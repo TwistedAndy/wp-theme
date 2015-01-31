@@ -334,7 +334,7 @@ p.form-submit {
 }
 
 
-/* Базовые для оформления содержимого */
+/* Базовые стили для оформления содержимого */
 
 .content {
 	font-size: 14px;
@@ -386,14 +386,14 @@ p.form-submit {
 	margin-top: 8px;
 }
 
-
-/* Стили для оформления дополнительных элементов WP */
-
 .content table, .content img {
 	height: auto;
 	width: auto;
 	max-width: 100%;
 }
+
+
+/* Стили для оформления дополнительных элементов WP */
 
 .content .alignnone {
 	margin: 0 0 15px;
