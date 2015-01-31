@@ -1,0 +1,466 @@
+@charset "utf-8";
+
+/*
+Theme Name: Тема
+Author: Андрей
+Version: 1.0
+Description: Тема для сайта
+*/
+
+
+/* Стили для оформления списка записей */
+
+.post {
+	margin-bottom: 50px;
+	overflow: hidden;
+}
+
+.post .thumb {
+	display: block;
+	width: 262px;
+	float: left;
+}
+
+.post .thumb img {
+	width: 262px;
+	height: auto;
+}
+
+.post .thumb + .post_body {
+	margin-left: 296px;
+}
+
+.post_body {
+	font-size: 13px;
+	line-height: 150%;
+}
+
+.post_body .title {
+	display: block;
+	font-size: 22px;
+	line-height: 130%;
+	color: #494949;
+	font-weight: bold;
+	text-transform: uppercase;
+	margin-bottom: 17px;
+	margin-top: -5px;
+}
+
+.post_body a.title {
+	font-weight: normal;
+	text-transform: none;
+	text-decoration: none;
+}
+
+.post_body a.title:hover {
+	color: #777;
+}
+
+.post_body .title span {
+	color: #ff0502;
+}
+
+.post_body p {
+	margin-top: 17px
+}
+
+.post_body p a {
+	color: #ff0502;
+}
+
+
+/* Стили для модальных окон с формой */
+
+#modal {
+	display: none;
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	top: 0;
+	background: #000;
+	opacity: 0.5;
+	z-index: 100;
+}
+
+.modal {
+	display: none;
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	margin-left: -215px;
+	margin-top: -240px;
+	padding: 15px 15px 2px;
+	width: 400px;
+	background: #fff;
+	z-index: 200;
+	font-size: 14px;
+	line-height: 130%;
+	box-shadow: 0 0 20px rgba(0,0,0,0.4);
+}
+
+.modal input[type="text"], .modal input[type="tel"], .modal input[type="email"], .modal textarea {
+	display: block;
+	width: 200px;
+	padding: 5px 10px;
+	color: #333;
+	font-size: 14px;
+	line-height: 20px;
+	border: 1px solid #ccc;
+	background: transparent;
+}
+
+.modal input[type="file"], .modal .wpcf7-form-control-wrap.file, .modal .first.file {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.modal p {
+	margin-bottom: 15px;
+	position: relative;
+}
+
+.modal .first {
+	display: inline-block;
+	width: 150px;
+	padding: 5px 8px 5px 0;
+	vertical-align: top;
+	text-align: right;
+	font-size: 16px;
+	line-height: 22px;
+}
+
+.modal .first.top {
+	vertical-align: top;
+}
+
+.modal .modal_title {
+	font-size: 20px;
+	line-height: 120%;
+	color: #C72221;
+	text-align: center;
+	margin-bottom: 17px;
+}
+
+.modal input[type="submit"] {
+	display: block;
+	width: 150px;
+	padding: 5px 10px 4px;
+	margin: 0 auto;
+	font-size: 17px;
+	font-weight: normal;
+	text-align: center;
+	line-height: 130%;
+	color: #FFF;
+	background: #C72221;
+	border: 0;
+	cursor: pointer;
+}
+
+.modal input[type="submit"]:hover {
+	background: #E54847;
+}
+
+.modal .ajax-loader {
+	display: none;
+}
+
+.modal .wpcf7-form-control-wrap {
+	display: inline-block;
+	position: relative;
+	width: 222px;
+	vertical-align: top;
+}
+
+.modal span.wpcf7-not-valid-tip {
+	margin: 10px 0 -5px;
+}
+
+.modal .wpcf7-response-output {
+	margin: 0 0 15px;
+	padding: 8px 12px;
+	font-size: 15px;
+	line-height: 130%;
+}
+
+.modal .modal_close {
+	display: block;
+	width: 24px;
+	height: 24px;
+	background: url(images/close.png) 0 0 no-repeat;
+	position: absolute;
+	right: 16px;
+	top: 16px;
+	cursor: pointer;
+}
+
+.modal .modal_close:hover {
+	opacity: 0.8;
+}
+
+
+/* Стили для оформления комментариев */
+
+#comments {
+	margin-top: 30px;
+}
+
+#comments .pagination {
+	margin-top: 20px;
+}
+
+.comment, .comment_avatar, .comment_inner, .comment_info, .comment_body, #respond, #respond form {
+	display: block;
+	position: relative;
+	overflow: hidden;
+}
+
+.comment_inner {
+	padding: 10px;
+	background: #f5f5f5;
+}
+
+.comment + .comment, .comment .comment {
+	margin-top: 20px;
+}
+
+.comment .comment_avatar {
+	float: left;
+	width: 60px;
+	height: 60px;
+}
+
+.comment .comment_avatar + .comment_body {
+	margin-left: 70px;
+}
+
+.comment .comment_author {
+	display: block;
+	font-size: 15px;
+	font-weight: bold;
+	margin: 0 0 4px;
+	float: left;
+}
+
+.comment .comment_date {
+	display: block;
+	font-size: 14px;
+	font-style: italic;
+	float: right;
+	margin: 0 0 4px;
+}
+
+.comment .comment_body {
+	font-style: normal;
+}
+
+.comment .answer {
+	font-size: 13px;
+	font-style: italic;
+	text-align: right;
+	line-height: 120%;
+	color: #900;
+}
+
+.comment .answer a {
+	display: inline-block;
+	color: #900;
+	text-decoration: none;
+	border-bottom: 1px dashed #900;
+}
+
+.comment .answer a:hover {
+	border-bottom-color: transparent;
+}
+
+.comment .answer a + a {
+	margin-left: 5px;
+}
+
+#respond {
+	width: 500px;
+	margin: 30px auto 0;
+}
+
+#respond input[type="text"], #respond textarea {
+	display: inline-block;
+	width: 220px;
+	height: auto;
+	padding: 5px 10px;
+	margin: 0 0 15px;
+	border: 1px solid #ccc;
+	font-size: 14px;
+	line-height: 130%;
+	vertical-align: top;
+}
+
+#respond input[type="text"] + input[type="text"] {
+	margin-left: 12px;
+}
+
+#respond textarea {
+	width: 478px;
+	height: 160px;
+	overflow: auto;
+}
+
+#respond input[type="submit"] {
+	display: inline-block;
+	padding: 8px 15px;
+	border: 0;
+	background: #eee;
+	text-align: center;
+	font-size: 15px;
+	line-height: 130%;
+	color: #000;
+	cursor: pointer;
+}
+
+#respond input[type="submit"]:hover {
+	background: #f5f5f5;
+}
+
+p.form-submit {
+	overflow: hidden;
+	width: 100%;
+}
+
+.logged-in-as .logout, .logged-in-as .login {
+	font-weight: bold;
+}
+
+.logged-in-as .login {
+	color: #953C21;
+}
+
+
+/* Стили для оформления содержимого */
+
+.content {
+	font-size: 14px;
+	line-height: 130%;
+}
+
+.content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
+	font-weight: normal;
+	line-height: 110%;
+	color: #222;
+	margin-bottom: 15px;
+}
+
+.content h1 {
+	font-size: 25px;
+	text-transform: uppercase;
+}
+
+.content h2 {
+	font-size: 22px;
+}
+
+.content h3 {
+	font-size: 19px;
+}
+
+.content h4 {
+	font-size: 17px;
+}
+
+.content h5 {
+	font-size: 15px;
+}
+
+.content h6 {
+	font-size: 14px;
+}
+
+.content p, .content blockquote, .content > table, .content > ul, .content > ol {
+	margin-bottom: 15px;
+}
+
+.content ul, .content ol {
+	list-style-position: outside;
+	margin-left: 1.4em;
+}
+
+.content li + li {
+	margin-top: 8px;
+}
+
+.content table, .content img {
+	height: auto;
+	width: auto;
+	max-width: 100%;
+}
+
+.content .alignnone {
+	margin: 0 0 15px;
+}
+
+.content .aligncenter {
+	display: block;
+	margin: 0 auto 15px;
+}
+
+.content .alignright {
+	float: right;
+	margin: 2px 0 15px 15px;
+}
+
+.content .alignleft {
+	float: left;
+	margin: 2px 15px 15px 0;
+}
+
+.content .gallery {
+	display: block;
+	position: relative;
+	overflow: hidden;
+	margin-bottom: 15px !important;
+}
+
+.content .gallery-item, .content .gallery-item a, .content .gallery-item img, .wp-caption img, .wp-caption a {
+	display: block;
+	margin: 0;
+	padding: 0;
+}
+
+.content .gallery-item img {
+	border: 0 !important;
+	width: 100%;
+}
+
+.content .wp-caption, .content blockquote, .content .gallery-icon, .content .gallery-caption {
+	display: block;
+	overflow: hidden;
+	text-align: center;
+	padding: 5px;
+	background: #f5f5f5;
+	max-width: 100%;
+}
+
+.content .gallery-icon {
+	padding: 10px;
+	margin: 0 5px;
+}
+
+.content .gallery-caption {
+	padding: 0 0 10px;
+	margin: 0 5px !important;
+}
+
+.content .wp-caption img {
+	margin: 5px auto 8px;
+}
+
+.content .wp-caption p:last-child {
+	margin-bottom: 5px;
+}
+
+.content blockquote {
+	padding: 12px 15px;
+	text-align: left;
+}
+
+.content blockquote p:last-child {
+	margin-bottom: 0;
+}
