@@ -334,7 +334,7 @@ p.form-submit {
 }
 
 
-/* Стили для оформления содержимого */
+/* Базовые для оформления содержимого */
 
 .content {
 	font-size: 14px;
@@ -373,7 +373,7 @@ p.form-submit {
 	font-size: 14px;
 }
 
-.content p, .content blockquote, .content > table, .content > ul, .content > ol {
+.content p, .content > table, .content > ul, .content > ol {
 	margin-bottom: 15px;
 }
 
@@ -385,6 +385,9 @@ p.form-submit {
 .content li + li {
 	margin-top: 8px;
 }
+
+
+/* Стили для оформления дополнительных элементов WP */
 
 .content table, .content img {
 	height: auto;
@@ -458,6 +461,7 @@ p.form-submit {
 
 .content blockquote {
 	padding: 12px 15px;
+	margin-bottom: 15px;
 	text-align: left;
 }
 
