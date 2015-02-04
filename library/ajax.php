@@ -127,7 +127,7 @@ if (tw_settings('init', 'ajax_posts')) {
 		
 	}
 
-	function tw_load_button($load_posts_number = 6, $ignore_max_page = false){
+	function tw_load_button($load_posts_number = false, $ignore_max_page = false){
 		
 		global $wp_query;
 		
@@ -139,13 +139,15 @@ if (tw_settings('init', 'ajax_posts')) {
 			
 			$posts_per_page = intval(get_query_var('posts_per_page'));  
 			
+			$max_offset = intval($wp_query->found_posts);
+			
 			$paged = intval(get_query_var('paged'));
-			 
+			
 			if ($paged == 0) $paged = 1; 
 			
+			if ($load_posts_number == false) $load_posts_number = $posts_per_page;
+			 
 			$offset = $paged * $posts_per_page;
-			
-			$max_offset = intval($wp_query->found_posts);
 			
 			?>
 			
@@ -154,6 +156,7 @@ if (tw_settings('init', 'ajax_posts')) {
 			<script type="text/javascript">
 				
 				var offset = <?php echo $offset; ?>;
+				var number = <?php echo $load_posts_number; ?>;
 				var max_offset = <?php echo $max_offset; ?>;
 				var more_button = jQuery('.more');
 			
@@ -169,7 +172,7 @@ if (tw_settings('init', 'ajax_posts')) {
 								tag: '<?php echo get_query_var('tag_id'); ?>',
 								search: '<?php echo get_query_var('s'); ?>',
 								offset: offset,
-								number: <?php echo $load_posts_number; ?>
+								number: number
 							},
 							url: '<?php echo admin_url('admin-ajax.php'); ?>',
 							dataType: 'html',
@@ -179,8 +182,8 @@ if (tw_settings('init', 'ajax_posts')) {
 									el.hide();
 									more_button.before(el);
 									el.slideDown();
-									offset = offset + <?php echo $load_posts_number; ?>;
-									if (offset >= max_offset) {
+									offset = offset + number;
+									if (offset >= max_offset || number == -1) {
 										more_button.remove();
 									}
 								} else {
