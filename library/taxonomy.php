@@ -180,7 +180,7 @@ function tw_in_category($category_id, $check_parents = true, $check_children = f
 		
 		if ($category_id == $current_category_id) {
 			$result = true;
-		} elseif (($check_parents or $check_children) and $category_thread = tw_category_thread($category_id, $check_parents, $check_children)) {
+		} elseif ($category_thread = tw_category_thread($category_id, false, true)) {
 			$result = in_array($current_category_id, $category_thread);
 		}
 		
