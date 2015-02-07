@@ -115,6 +115,7 @@ if (tw_settings('scripts')) {
 			'nouislider'	=> 'jquery.nouislider.all.min.js',
 			'scrollpane'	=> 'jquery.jscrollpane.min.js',
 			'mousewheel'	=> 'jquery.mousewheel.js',
+			'formstyler'	=> 'jquery.formstyler.min.js',
 		);
 		
 		$stylesheets = array(
