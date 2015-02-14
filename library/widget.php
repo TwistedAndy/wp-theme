@@ -23,7 +23,7 @@ class Twisted_Widget extends WP_Widget {
 			
 			foreach ($this->fields as $name => $field) {
 				
-				if (!isset($instance[$name]) or !$instance[$name]) {
+				if (!isset($instance[$name])) {
 					
 					$instance[$name] = $field['value'];
 					
