@@ -426,7 +426,11 @@ function tw_thumb($item, $size = false, $before = '', $after = '', $atts = array
 		
 	}
 	
-	return $before . $result . $after;
+	if ($result) {
+		return $before . $result . $after;
+	} else {
+		return $result;
+	}
 	
 }
 
