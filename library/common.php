@@ -250,6 +250,8 @@ function tw_strip($text, $len, $allowed_tags = false, $find = ' ', $dots = '...'
 		if ($allowed_tags != '+' and mb_strpos($allowed_tags, '+') === 0) {
 			$allowed_tags = str_replace('+', '', $allowed_tags);
 			$allowed_tags_list = $allowed_tags_list . '|' . $allowed_tags;
+		} else {
+			$allowed_tags_list = $allowed_tags;
 		}
 		
 		$allowed_tags_list = '<' . implode('><', explode('|', $allowed_tags_list)) . '>';
