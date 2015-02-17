@@ -243,28 +243,28 @@ function tw_page_link($page, $type = false) {
 
 function tw_strip($text, $len, $allowed_tags = false, $find = ' ', $dots = '...') {
 	
-	global $timer,$timer_start;
-	
-	$time_start = microtime(true);
+	if ($allowed_tags) {
 		
-	$text = strip_shortcodes($text);
-	
-	if ($allowed_tags == 'p') $wrap_p = true; else $wrap_p = false;
-	
-	if ($allowed_tags and !$wrap_p) {
-		if (is_array($allowed_tags)) {
-			$allowed_tags = '<' . implode('><', $allowed_tags) . '>';
-		} else {
-			if (mb_strpos($allowed_tags, '<') === false) $allowed_tags = '';
+		$allowed_tags_list = 'i|em|b|strong|s|del';
+		
+		if ($allowed_tags != '+' and mb_strpos($allowed_tags, '+') === 0) {
+			$allowed_tags = str_replace('+', '', $allowed_tags);
+			$allowed_tags_list = $allowed_tags_list . '|' . $allowed_tags;
 		}
-	} elseif ($allowed_tags === false or $wrap_p) {
-		if ($wrap_p) $allowed_tags = '<p>'; else $allowed_tags = '';
-		$allowed_tags = $allowed_tags . '<a><i><b><s><del><strong>';
-	} elseif ($allowed_tags === '') {
-		$allowed_tags = '';
+		
+		$allowed_tags_list = '<' . implode('><', explode('|', $allowed_tags_list)) . '>';
+		
+	} elseif ($allowed_tags === false) {
+		
+		$allowed_tags_list = '<i><em><b><strong><s><del>';
+		
+	} else {
+		
+		$allowed_tags_list = '';
+		
 	}
-
-	$text = strip_tags($text, $allowed_tags);
+	
+	$text = strip_tags(strip_shortcodes($text), $allowed_tags_list);
 	
 	if ($find and mb_strlen($text) > $len) {
 		$pos = mb_strpos($text, $find, $len);
@@ -275,7 +275,18 @@ function tw_strip($text, $len, $allowed_tags = false, $find = ' ', $dots = '...'
 		$text = mb_substr($text, 0, $pos);
 	}
 	
-	if ($allowed_tags !== '') $text = force_balance_tags($text);
+	if (mb_strpos($allowed_tags_list, '<a>') !== false) {
+		$link_start =  mb_strrpos($text, '<a');
+		if ($link_start !== false) {
+			$link_end = mb_strpos($text, '</a>', $link_start);
+			if ($link_end === false) {
+				$text = mb_substr($text, 0, $link_start) . $dots;
+			}
+		}
+		$text = preg_replace('#<a[^>]*?></a>#is', '', $text);
+	}
+	
+	if ($allowed_tags_list) $text = force_balance_tags($text);
 	
 	return $text;
 		
