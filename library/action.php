@@ -7,28 +7,32 @@
 Дата: 18.01.2015
 */
 
-add_filter('nav_menu_css_class' , 'tw_nav_class' , 10 , 2);
+if (tw_settings('init', 'menu_active_class')) {
 
-function tw_nav_class($classes, $item){
+	add_filter('nav_menu_css_class' , 'tw_nav_class' , 10 , 2);
 
-	$active_classes = array(
-		'current-menu-item',
-		'current-menu-ancestor',
-		'current-post-ancestor',
-		'current-page-ancestor',
-		'current-category-ancestor',
-	);
-	
-	foreach ($active_classes as $class) {
+	function tw_nav_class($classes, $item){
+
+		$active_classes = array(
+			'current-menu-item',
+			'current-menu-ancestor',
+			'current-post-ancestor',
+			'current-page-ancestor',
+			'current-category-ancestor',
+		);
 		
-		if (in_array($class, $classes)) {
-			$classes[] = 'active';
-			break;
+		foreach ($active_classes as $class) {
+			
+			if (in_array($class, $classes)) {
+				$classes[] = 'active';
+				break;
+			}
+			
 		}
 		
+		return $classes;
+
 	}
-	
-	return $classes;
 
 }
 
