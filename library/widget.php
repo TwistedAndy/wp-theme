@@ -250,7 +250,7 @@ class widget_recent_comments extends Twisted_Widget {
 
 		echo $args['before_widget'];
 		
-		if (!empty($title)) echo $args['before_title'] . $instance['title'] . $args['after_title'];
+		if ($instance['title']) echo $args['before_title'] . $instance['title'] . $args['after_title'];
 		
 		if ($items = get_comments(array('status' => 'approve', 'number' => $instance['number']))) {
 			foreach ($items as $item) {
