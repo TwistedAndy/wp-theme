@@ -69,6 +69,40 @@ Description: Тема для сайта
 }
 
 
+/* Стили для пагинации */
+
+.pagination {
+	text-align: center;
+	margin: 20px 0 50px 0;
+}
+
+.pagination span, .pagination a {
+	display: inline-block;
+	vertical-align: middle;
+	text-decoration: none;
+	padding: 2px 7px;
+	margin: 0 2px;
+}
+
+.pagination span {
+	color: #fff;
+	background-color: #6CAD37;
+}
+
+.pagination a:hover {
+	color: #0D7B0D;
+}
+
+.pagination .extend {
+	background: transparent;
+}
+
+.pagination span.next, .pagination span.next.double, .pagination span.prev, .pagination span.prev.double {
+	background: transparent;
+	color: #0D7B0D;
+}
+
+
 /* Стили для модальных окон с формой */
 
 #modal {
