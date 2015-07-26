@@ -35,7 +35,7 @@ class Twisted_Widget extends WP_Widget {
 					
 				}
 				
-				if (isset($field['type']) and in_array($field['type'], array('number', 'checkbox'))) {
+				if (isset($field['type']) and ($field['type'] == 'number' or ($field['type'] == 'checkbox' and !isset($field['values'])))) {
 					
 					$instance[$name] = intval($instance[$name]);
 					
@@ -80,11 +80,18 @@ class Twisted_Widget extends WP_Widget {
 						<input id="<?php echo $this->get_field_id($name . $key); ?>" type="radio" name="<?php echo $this->get_field_name($name); ?>" value="<?php echo $key; ?>" <?php if ($instance[$name] == $key) {?> checked="checked"<?php } ?> /><label for="<?php echo $this->get_field_id($name . $key); ?>"><?php echo $value; ?></label>
 						<?php } ?>
 						
+					<?php } elseif ($field['type'] == 'checkbox') { ?>
+			
+						<?php foreach($field['values'] as $key => $value) { ?>
+						<br />
+						<input id="<?php echo $this->get_field_id($name . $key); ?>" type="checkbox" name="<?php echo $this->get_field_name($name); ?>" value="<?php echo $key; ?>" <?php if ($instance[$name] == $key) {?> checked="checked"<?php } ?> /><label for="<?php echo $this->get_field_id($name . $key); ?>"><?php echo $value; ?></label>
+						<?php } ?>
+						
 					<?php } ?>
 			
 				<?php } elseif ($field['type'] == 'checkbox') { ?>
 				
-					<input id="<?php echo $this->get_field_id($name); ?>" type="checkbox" class="checkbox" name="<?php echo $this->get_field_name($name); ?>" value="1"<?php if ($instance[$name] == $value) {?> checked="checked"<?php } ?> /><label for="<?php echo $this->get_field_id($name); ?>"><?php echo $value; ?></label>
+					<input id="<?php echo $this->get_field_id($name); ?>" type="checkbox" class="checkbox" name="<?php echo $this->get_field_name($name); ?>" value="1"<?php if ($instance[$name] == '1') {?> checked="checked"<?php } ?> />
 					
 				<?php } else { ?>
 					
