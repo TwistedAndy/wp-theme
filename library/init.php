@@ -107,21 +107,21 @@ if (tw_settings('scripts')) {
 	function tw_register_scripts() {
 		
 		$scripts = array(
-			'colorbox'		=> 'jquery.colorbox-min.js',
 			'likes'			=> 'social-likes.min.js',
-			'jcarousel' 	=> 'jquery.jcarousel.min.js',
 			'share42'		=> 'share42/share42.js',
+			'jcarousel' 	=> 'jquery.jcarousel.min.js',
+			'colorbox'		=> 'jquery.colorbox-min.js',
 			'scrollto'		=> 'jquery.scrollTo.min.js',
-			'nouislider'	=> 'jquery.nouislider.all.min.js',
+			'nouislider'	=> 'jquery.nouislider.min.js',
 			'scrollpane'	=> 'jquery.jscrollpane.min.js',
 			'mousewheel'	=> 'jquery.mousewheel.js',
 			'formstyler'	=> 'jquery.formstyler.min.js',
 		);
 		
 		$stylesheets = array(
+			'likes'			=> 'social-likes.css',
 			'colorbox'		=> 'colorbox/colorbox.css',
 			'nouislider'	=> 'jquery.nouislider.css',
-			'likes'			=> 'social-likes.css',
 		);
 		
 		$dir = get_template_directory_uri() . '/scripts/';
@@ -131,7 +131,7 @@ if (tw_settings('scripts')) {
 			if (isset($scripts[$script])) {
 				wp_register_script($script, $dir . $scripts[$script], array('jquery'), null);
 				wp_enqueue_script($script);
-			} elseif (wp_script_is($script)) {
+			} elseif (wp_script_is($script) or $script == 'jquery') {
 				wp_enqueue_script($script);
 			}
 			

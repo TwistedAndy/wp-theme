@@ -19,7 +19,7 @@
 
 	comment_form(array(
 		'label_submit' => 'Отправить',
-		'logged_in_as' => '<p class="logged-in-as">' . sprintf('Вы вошли как <a class="login" href="%1$s">%2$s</a> <a class="logout" href="%3$s">[выйти]</a>', admin_url('profile.php'), $user_identity, wp_logout_url(apply_filters('the_permalink', get_permalink($post_id)))) . '</p>',
+		'logged_in_as' => '<p class="logged-in-as">' . sprintf('Вы вошли как <a class="login" href="%1$s">%2$s</a> <a class="logout" href="%3$s">[выйти]</a>', admin_url('profile.php'), $user_identity, wp_logout_url(apply_filters('the_permalink', get_permalink(get_the_ID())))) . '</p>',
 		'title_reply' => 'Добавить комментарий',
 		'comment_notes_before' => '',
 		'comment_notes_after' => '',

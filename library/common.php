@@ -3,8 +3,8 @@
 /*
 Описание: библиотека с общими функциями
 Автор: Тониевич Андрей
-Версия: 1.5
-Дата: 18.01.2015
+Версия: 1.6
+Дата: 18.01.2016
 */
 
 function tw_wp_title() {
@@ -332,31 +332,105 @@ function tw_text($item = false, $len = 250, $allowed_tags = false, $find = ' ', 
 }
 
 
-function tw_image($text) {
+function tw_find_image($text) {
 	
 	preg_match_all('/<img.+src=[\'"]([^\'"]+)[\'"].*>/i', $text, $matches);
 		
 	if (isset($matches[1][0]) and $matches[1][0]) {
-		return $matches[1][0];
+		
+		$image = $matches[1][0];
+
+		if (strpos($image, '/') === 0) {
+			$image = get_site_url() . $image;
+		} elseif (strpos($image, 'wp-content') === 0) {
+			$image = get_site_url() . '/' . $image;
+		}
+	
+		return esc_url($image);
+
 	} else {
+	
 		return false;
+	
 	}
 		
 }
 
 
-function tw_thumb($item, $size = false, $before = '', $after = '', $atts = array(), $thumb_only = false) {
+function tw_get_thumb($image_url, $size) {
 	
 	global $_wp_additional_image_sizes;
 	
-	$width = 0;
-	$height = 0;
+	$result = false;
+	
+	$position = mb_strrpos($image_url, '/');
+		
+	if ($position < mb_strlen($image_url)) {
+		
+		$filename = mb_strtolower(mb_substr($image_url, $position + 1));
+		
+		if (preg_match('#(.*?)\.(gif|jpg|jpeg|png|bmp)$#is', $filename, $matches)) {
+			
+			if (is_array($size) or (is_string($size) and $size != 'full')) {
+				
+				$crop = true;
+				$width = 0;
+				$height = 0;
+	
+				if (is_string($size) and $size and isset($_wp_additional_image_sizes[$size])) {
+					$width = $_wp_additional_image_sizes[$size]['width'];
+					$height = $_wp_additional_image_sizes[$size]['height'];
+					$crop = $_wp_additional_image_sizes[$size]['crop'];
+				} elseif (is_array($size) and $size) {
+					if (isset($size[0])) $width = $size[0];
+					if (isset($size[1])) $height = $size[1];
+					if (isset($size[2])) $crop = $size[2];
+				} else {
+					$width = $_wp_additional_image_sizes['thumbnail']['width'];
+					$height = $_wp_additional_image_sizes['thumbnail']['height'];
+					$crop = $_wp_additional_image_sizes['thumbnail']['crop'];
+				}
+				
+				$width = intval($width);
+				$height = intval($height);
+				
+				$filename =  '/library/cache/' . $matches[1] . '-' . $width . '-' . $height . '.' . $matches[2];
+				
+				if (!is_file(get_template_directory() . $filename)) {
+					$editor = wp_get_image_editor($image_url);
+					if (!is_wp_error($editor)) {
+						$editor->resize($width, $height, $crop);
+						$editor->save(get_template_directory() . $filename);
+					}
+				}
+				
+				$result = get_template_directory_uri() . $filename;
+				
+			} else {
+				
+				$result = $image_url;
+				
+			}
+			
+		}
+		
+	}
+	
+	return $result;
+	
+} 
+
+
+function tw_thumb($item, $size = false, $before = '', $after = '', $atts = array(), $thumb_only = false) {
+	
+	global $_wp_additional_image_sizes;
+
 	$result = '';
-	$src = '';
+	$src = false;
 	
 	if (!isset($atts['link'])) {
 	
-		$link = '';
+		$link = false;
 
 	} else {
 
@@ -375,56 +449,28 @@ function tw_thumb($item, $size = false, $before = '', $after = '', $atts = array
 	}
 	
 	if (!isset($atts['link_class'])) {
-	
 		$class = '';
-	
 	} else {
-	
 		$class = ' class="' . $atts['link_class'] . '"';
-	
 		unset($atts['link_class']);
+	}
 	
+	if (!$size or (is_string($size) and !isset($_wp_additional_image_sizes[$size]) and !in_array($size, array('thumbnail', 'medium', 'large', 'full')))) {
+		$size = 'thumbnail';
 	}
 	
 	if (has_post_thumbnail($item->ID)) {
 		
-		if (!$src and $link and $thumb = wp_get_attachment_image_src(get_post_thumbnail_id($item->ID), $link)) {
+		if ($link and !$src and $thumb = wp_get_attachment_image_src(get_post_thumbnail_id($item->ID), $link) and isset($thumb[0])) {
 			$src = $thumb[0];
-		}
-		
-		if (!isset($_wp_additional_image_sizes[$size]) and !in_array($size, array('thumbnail', 'medium', 'large', 'full'))) {
-			$size = 'thumbnail';
 		}
 		
 		$result = get_the_post_thumbnail($item->ID, $size, $atts);
 		
-	} elseif (!$thumb_only and $image = tw_image($item->post_content)) {
+	} elseif (!$thumb_only and $image = tw_get_thumb(tw_find_image($item->post_content), $size)) {
 		
-		if (!$src) $src = $image;
-		
-		if (is_string($size) and $size != 'full') {
-			
-			if (is_string($size) and isset($_wp_additional_image_sizes[$size])) {
-				$width = $_wp_additional_image_sizes[$size]['width'];
-				$height = $_wp_additional_image_sizes[$size]['height'];
-			} elseif (is_array($size) and $size) {
-				if (isset($size[0])) $width = $size[0];
-				if (isset($size[1])) $height = $size[1];
-			} elseif ($size != 'full') {
-				$width = $_wp_additional_image_sizes['thumbnail']['width'];
-				$height = $_wp_additional_image_sizes['thumbnail']['height'];
-			}
-			
-			$image = get_template_directory_uri() . '/library/timthumb.php?src=' . $image;
-			
-			if ($width and is_numeric($width)) {
-				$image .= '&w=' . $width;
-			}
-			
-			if ($height and is_numeric($height)) {
-				$image .= '&h=' . $height;
-			}
-			
+		if ($link and !$src) {
+			$src = tw_get_thumb($image, $link);
 		}
 		
 		$result = '<img src="' . $image . '" alt="' . $item->post_title . '"' . ((isset($atts['class'])) ? ' class="' . $atts['class'] . '"' : '') . ' />';
@@ -432,11 +478,8 @@ function tw_thumb($item, $size = false, $before = '', $after = '', $atts = array
 	}
 
 	if ($src) {
-		
 		$before = $before . '<a href="' . $src . '"' . $class . '>';
-		
 		$after = '</a>' . $after;
-		
 	}
 	
 	if ($result) {
