@@ -69,7 +69,7 @@ function tw_post_category_list($post_id = false, $with_link = true, $only_first 
 
 	if ($post_id == false) $post_id = get_the_ID();
 	
-	$cache_key = 'post_categories_' . $post_id . '_0';
+	$cache_key = 'post_categories_' . $post_id . '_object';
 	
 	$categories = wp_cache_get($cache_key, 'twisted');
 	
@@ -115,7 +115,7 @@ function tw_post_categories($post_id = false, $return_array = false, $include_pa
 	
 	$categories = wp_cache_get($cache_key, 'twisted');
 	
-	if ($categories === false) {
+	if (!$categories) {
 		
 		$categories = array();
 	
@@ -125,9 +125,9 @@ function tw_post_categories($post_id = false, $return_array = false, $include_pa
 				if ($include_parent and $category->parent) $categories[] = $category->parent;
 			}
 		}
-
-		$categories = array_unique($categories, SORT_NUMERIC);
 		
+		$categories = array_unique($categories, SORT_NUMERIC);
+	
 		wp_cache_add($cache_key, $categories, 'twisted', 60);
 		
 	}
