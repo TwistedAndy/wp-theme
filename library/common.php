@@ -4,36 +4,67 @@
 Описание: библиотека с общими функциями
 Автор: Тониевич Андрей
 Версия: 1.6
-Дата: 18.01.2016
+Дата: 19.01.2016
 */
 
-function tw_wp_title() {
+function tw_wp_title($add_page_number = false) {
 	
-	if (is_category()) {
-		single_cat_title('', true);
-	} elseif (is_page() or is_single()) {
-		the_title();
-	} elseif (is_tag()) {
-		single_tag_title();
-	} elseif (is_day()) {
-		echo 'Архив за ';
-		the_time('d F Y');
-	} elseif (is_month()) {
-		global $post;
-		echo 'Архив за ' . mb_strtolower(mysql2date('F Y', $post->post_date));
-	} elseif (is_year()) {
-		echo "Архив за ";
-		the_time('Y');
-	} elseif (is_author()) {
-		echo "Архив";
-	} elseif (is_404()) {
-		echo "Произошла ошибка";
-	} elseif (isset($_GET['paged']) && !empty($_GET['paged'])) {
-		echo "Архив блога";
+	$result = '';
+	
+	if (is_404()) {
+		
+		$result = 'Произошла ошибка';
+		
 	} elseif (is_search()) {
-		echo "Результаты поиска по запросу: <i>" . get_search_query() . "</i>";
+		
+		$result = 'Результаты поиска по запросу: ' . get_search_query();
+	
+	} elseif (is_front_page()) {
+		
+		$result = get_bloginfo('name', 'display');
+	
+	} elseif (is_post_type_archive()) {
+	
+		$result = post_type_archive_title('', false);
+	
+	} elseif (is_home() || is_singular()) {
+		
+		$result = single_post_title('', false);
+
+	} elseif (is_category() or is_tax()) {
+		
+		$result = single_term_title('', false);
+
+	} elseif (is_tag()) {
+		
+		$result = single_term_title('Записи с тегом: ', false);
+		
+	} elseif (is_author() and $author = get_queried_object()) {
+		
+		$result = 'Записи пользователя ' . $author->display_name;
+
+	} elseif (is_year()) {
+
+		$result = 'Записи за ' . get_the_date('Y') . ' год';
+
+	} elseif (is_month()) {
+		
+		global $post;
+		
+		$result = 'Записи за ' . mb_strtolower(mb_strtolower(mysql2date('F Y', $post->post_date))) . ' года';
+		
+	} elseif (is_day()) {
+		
+		$result = 'Записи за ' . mb_strtolower(get_the_date('d F Y')) . ' года';
+	
 	}
 	
+	if ($add_page_number and $result and $page = intval(get_query_var('paged'))) {
+		$result .= ' - ' . $page . ' страница';
+	}
+	
+	return $result;
+
 }
 
 
@@ -103,9 +134,7 @@ function tw_breadcrumbs($separator = ' > ') {
 		}
 	}
 	
-	echo '<span>';
-	tw_wp_title();
-	echo '</span>';
+	return '<span>' . tw_wp_title() . '</span>';
 
 }
 

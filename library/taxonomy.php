@@ -65,7 +65,7 @@ function tw_post_category_threads($post_id = false) {
 }
 
 
-function tw_post_category_list($post_id = false, $with_link = true, $only_first = false, $class = false) {
+function tw_post_category_list($post_id = false, $with_link = true, $only_first = true, $class = false) {
 
 	if ($post_id == false) $post_id = get_the_ID();
 	
