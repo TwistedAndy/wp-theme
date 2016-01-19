@@ -4,14 +4,14 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<meta name="viewport" content="width=device-width" />
 	<?php if (!function_exists('_wp_render_title_tag')) { ?>
-	<title><?php wp_title('|', true, 'right'); ?></title>
+	<title><?php echo tw_wp_title(true); ?></title>
 	<?php } ?>
-	<link rel="stylesheet" type="text/css" href="<?php bloginfo( 'template_url' ); ?>/style.css" />
+	<link rel="stylesheet" type="text/css" href="<?php bloginfo('template_url'); ?>/style.css" />
 	<?php wp_head(); ?>
 </head>
 <body>
 
-	<?php wp_nav_menu(array('items_wrap' => '<ul>%3$s</ul>', 'theme_location' => 'main' )); ?>
+	<?php wp_nav_menu(array('items_wrap' => '<ul>%3$s</ul>', 'theme_location' => 'main', 'container' => '', 'container_class' => '', 'before' => '', 'after' => '')); ?>
 	
 	<?php get_sidebar(); ?>
 	

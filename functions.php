@@ -91,26 +91,17 @@ $tw_settings = array(
 		'ajax_posts' => false,
 		'ajax_rating' => false,
 		'ajax_comments' => false,
-		'get_posts_filter' => false,
-		'menu_active_class' => true,
-		'widget_posts' => false,
+		'action_get_posts' => false,
+		'action_menu_active' => true,
+		'widget_posts' => true,
 		'widget_comments' => false,
-		'fix_russian_date' => true,
-		'fix_english_date' => true,
+		'module_cyrtolat' => true,
+		'module_russian_date' => true,
+		'module_english_date' => true,
 	)
 
 );
 
-$dir = get_template_directory() . '/library/';
-
-include_once($dir . 'init.php');
-include_once($dir . 'common.php');
-include_once($dir . 'taxonomy.php');
-include_once($dir . 'comment.php');
-include_once($dir . 'widget.php');
-
-include_once($dir . 'acf.php');
-include_once($dir . 'ajax.php');
-include_once($dir . 'action.php');
+include_once(get_template_directory() . '/library/init.php');
 
 ?>

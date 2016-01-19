@@ -177,8 +177,8 @@ function tw_navigation($args = array(), $query = false) {
 			global $wp_query;
 			$query = $wp_query;
 		}
-		$paged = intval($query->query_vars['paged']);  
-		$max_page = intval($query->max_num_pages);  
+		$paged = isset($query->query_vars['paged']) ? intval($query->query_vars['paged']) : 1;  
+		$max_page = isset($query->max_num_pages ) ? intval($wp_query->max_num_pages) : 1;  
 	}
 	
 	if ($max_page < 2) return '';
@@ -227,7 +227,7 @@ function tw_navigation($args = array(), $query = false) {
 		}  
 	}  
  
-	if ($step && $end_page < $max_page){  
+	if ($step and $end_page < $max_page){  
 		for ($i = $end_page + 1; $i <= $max_page; $i++) {  
 			if ($i % $step == 0 && $i !== $num_pages) {  
 				if (++$dd == 1) $out .= '<span class="extend">' . $dots_right . '</span>';  
@@ -551,6 +551,8 @@ function tw_none() {
 		echo "По данному адресу записи не обнаружены";
 	} elseif (is_search()) {
 		echo "По запросу <i>" . get_search_query() . "</i> ничего не найдено";
+	} else {
+		echo 'Записи не обнаружены';
 	}
 	
 }

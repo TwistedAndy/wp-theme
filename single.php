@@ -1,7 +1,5 @@
 <?php get_header(); ?>
 
-<?php tw_set_views(get_the_ID()); ?>
-
 <?php if (!have_posts()) { ?>
 
 	<?php get_template_part('content', 'none'); ?>

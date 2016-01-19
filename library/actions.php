@@ -1,13 +1,13 @@
 <?php
 
 /*
-Описание: дополнительные функции
+Описание: дополнительные фильтры и хуки
 Автор: Тониевич Андрей
-Версия: 1.5
-Дата: 18.01.2015
+Версия: 1.6
+Дата: 19.01.2016
 */
 
-if (tw_settings('init', 'menu_active_class')) {
+if (tw_settings('init', 'action_menu_active')) {
 
 	add_filter('nav_menu_css_class' , 'tw_nav_class' , 10 , 2);
 
@@ -37,7 +37,7 @@ if (tw_settings('init', 'menu_active_class')) {
 }
 
 
-if (tw_settings('init', 'get_posts_filter')) {
+if (tw_settings('init', 'action_get_posts')) {
 
 	add_action('pre_get_posts', 'tw_pre_get', 1);
 

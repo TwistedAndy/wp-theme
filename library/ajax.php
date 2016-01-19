@@ -4,108 +4,115 @@
 Описание: библиотека для работы с AJAX
 Автор: Тониевич Андрей
 Версия: 1.6
-Дата: 04.01.2016
+Дата: 19.01.2016
 */
 
 if (tw_settings('init', 'ajax_mail')) {
 	
+	add_action('wp_ajax_nopriv_send_email', 'tw_send_email');
+	add_action('wp_ajax_send_email', 'tw_send_email');
+	
 	function tw_send_email(){
 	
-		$errors = array();
-
-		foreach($_POST as $k => $v) {
-			
-			$_POST[$k] = htmlspecialchars($v);
-			
-		}
+		if (isset($_POST['nonce']) and wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
 		
-		if (isset($_POST['email'])) {
-		
-			$fields = array(
-				'name'	=> array(
-					'error'	=> 'Неверно указано имя',
-					'pattern'	=> '/^[a-zA-Zа-яА-Я0-9 -.]{2,}$/ui'
-				),
-				'email'	=> array(
-					'error'	=> 'Неверно указан e-mail',
-					'pattern' => '/^[^\@]+@.*\.[a-z]{2,6}$/i'
-				),
-				'message'	=> array(
-					'error'	=> 'Введите сообщение',
-					'pattern'	=> '/^.{4,}$/i'
-				)
-			);
-			
-			$is_callback = false;
-			
-		} else {
-			
-			$fields = array(
-				'name'	=> array(
-					'error'	=> 'Неверно указано имя',
-					'pattern'	=> '/^[a-zA-Zа-яА-Я0-9 -.]{2,}$/ui'
-				),
-				'phone'	=> array(
-					'error'	=> 'Неверно указан телефон',
-					'pattern'	=> '/^[0-9 +\- ()]{4,}$/i'
-				)
-			);
-			
-			$is_callback = true;
-			
-		}
+			$errors = array();
 
-
-		foreach ($fields as $k => $v) {
-			
-			if (isset($_POST[$k]) and !preg_match($v['pattern'], $_POST[$k]) and !(isset($v['empty']) and $v['empty'] and $_POST[$k] == '')) {
+			foreach($_POST as $k => $v) {
 				
-				$errors[$k] = $v['error'];
+				$_POST[$k] = htmlspecialchars($v);
 				
 			}
-
-		}
-
-		if (count($errors) == 0) {
-
-			$to = get_option('admin_email');
 			
-			if ($is_callback) {
+			if (isset($_POST['email'])) {
 			
-				$subject = "Заказ обратного звонка от " . $_POST['name'] . " (" . $_POST['phone'] . ")";
-				$message = "
-				<p><b>Имя:</b> " . $_POST['name'] . "</p>
-				<p><b>Телефон:</b> ". $_POST['phone'] ."</p>";
+				$fields = array(
+					'name'	=> array(
+						'error'	=> 'Неверно указано имя',
+						'pattern'	=> '#^[a-zA-Zа-яА-Я0-9 -.]{2,}$#ui'
+					),
+					'email'	=> array(
+						'error'	=> 'Неверно указан e-mail',
+						'pattern' => '#^[^\@]+@.*\.[a-z]{2,6}$#i'
+					),
+					'message'	=> array(
+						'error'	=> 'Введите сообщение',
+						'pattern'	=> '#^.{4,}$#i'
+					)
+				);
 				
-				$_POST['email'] = $to;
+				$is_callback = false;
 				
 			} else {
 				
-				$subject = "Сообщение от посетителя";
-				$message = "
-				<p><b>Имя:</b> " . $_POST['name'] . "</p>
-				<p><b>E-mail:</b> " . $_POST['email'] . "</p>
-				<p><b>Сообщение:</b> " . $_POST['message'] . "</p>";
+				$fields = array(
+					'name'	=> array(
+						'error'	=> 'Неверно указано имя',
+						'pattern'	=> '#^[a-zA-Zа-яА-Я0-9 -.]{2,}$#ui'
+					),
+					'phone'	=> array(
+						'error'	=> 'Неверно указан телефон',
+						'pattern'	=> '#^[0-9 +\- ()]{4,}$#i'
+					)
+				);
+				
+				$is_callback = true;
 				
 			}
-			 
-			$headers  = "Content-type: text/html; charset=utf-8 \r\n"; 
-			$headers .= "From: " . $_POST['name'] . " <" . $_POST['email'] . ">\r\n";
 
-			if (mail($to, $subject, $message, $headers)) {
 
-				echo (json_encode(array('text' => "Ваш запрос был успешно отправлен")));     
-			 
-			} else { 
+			foreach ($fields as $k => $v) {
+				
+				if (isset($_POST[$k]) and !preg_match($v['pattern'], $_POST[$k]) and !(isset($v['empty']) and $v['empty'] and $_POST[$k] == '')) {
+					
+					$errors[$k] = $v['error'];
+					
+				}
 
-				echo(json_encode(array('text' => "Ошибка. Запрос не отправлен из-за ошибки сервера")));     
-			 
 			}
-			
-		} else {
-			
-			echo(json_encode(array('errors' => $errors)));     
-			
+
+			if (count($errors) == 0) {
+
+				$to = get_option('admin_email');
+				
+				if ($is_callback) {
+				
+					$subject = "Заказ обратного звонка от " . $_POST['name'] . " (" . $_POST['phone'] . ")";
+					$message = "
+					<p><b>Имя:</b> " . $_POST['name'] . "</p>
+					<p><b>Телефон:</b> ". $_POST['phone'] ."</p>";
+					
+					$_POST['email'] = $to;
+					
+				} else {
+					
+					$subject = "Сообщение от посетителя";
+					$message = "
+					<p><b>Имя:</b> " . $_POST['name'] . "</p>
+					<p><b>E-mail:</b> " . $_POST['email'] . "</p>
+					<p><b>Сообщение:</b> " . $_POST['message'] . "</p>";
+					
+				}
+				 
+				$headers  = "Content-type: text/html; charset=utf-8 \r\n"; 
+				$headers .= "From: " . $_POST['name'] . " <" . $_POST['email'] . ">\r\n";
+
+				if (mail($to, $subject, $message, $headers)) {
+
+					echo (json_encode(array('text' => "Ваш запрос был успешно отправлен")));     
+				 
+				} else { 
+
+					echo(json_encode(array('text' => "Ошибка. Запрос не отправлен из-за ошибки сервера")));     
+				 
+				}
+				
+			} else {
+				
+				echo(json_encode(array('errors' => $errors)));     
+				
+			}
+		
 		}
 		
 		exit();
@@ -119,7 +126,7 @@ if (tw_settings('init', 'ajax_mail')) {
 		<input type="text" value="" placeholder="Ваш e-mail" name="email" />
 		<textarea cols="40" rows="5" placeholder="Сообщение" name="message"></textarea>
 		<input type="submit" value="Отправить" />
-		<input type="hidden" name="action" value="sendmail" />
+		<input type="hidden" name="action" value="send_email" />
 		<input type="hidden" name="nonce" value="<?php echo wp_create_nonce('ajax-nonce'); ?>" />
 	</form>
 
@@ -127,7 +134,7 @@ if (tw_settings('init', 'ajax_mail')) {
 				
 	jQuery(function($){
 		
-		$('.contacts_from form').submit(function(e){
+		$('form').submit(function(e){
 
 			var form = $(this), el;
 
@@ -175,19 +182,16 @@ if (tw_settings('init', 'ajax_mail')) {
 	*/
 	
 }
+
 	
 if (tw_settings('init', 'ajax_rating')) {
 
-	add_action('wp_ajax_nopriv_post-rating', 'post_rating');
-	add_action('wp_ajax_post-rating', 'post_rating');
+	add_action('wp_ajax_nopriv_post_rating', 'tw_post_rating');
+	add_action('wp_ajax_post_rating', 'tw_post_rating');
 
-	function post_rating(){ 
+	function tw_post_rating(){ 
 		
-		$nonce = $_POST['nonce'];  
-	   
-		if (!wp_verify_nonce($nonce, 'ajax-nonce')) exit();
-		  
-		if (isset($_POST['rating_vote'])) {
+		if (isset($_POST['rating_vote']) and isset($_POST['nonce']) and wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
 		  
 			$timebeforerevote = 120;
 			
@@ -236,7 +240,7 @@ if (tw_settings('init', 'ajax_rating')) {
 			
 			$rating_votes++;
 			
-			$rating_value =  round($rating_sum/$rating_votes);
+			$rating_value = round($rating_sum/$rating_votes);
 			
 			update_post_meta($post_id, "rating_IP", $rating_IP);
 			update_post_meta($post_id, "rating_votes", $rating_votes);
@@ -255,6 +259,86 @@ if (tw_settings('init', 'ajax_rating')) {
 		exit();  
 
 	}
+	
+	/*
+	
+	<?php
+	
+	$rating = get_post_meta(get_the_ID(), 'rating_value', true);
+	
+	if (empty($rating)) {
+		delete_post_meta($current_post->ID, 'rating_value');
+		add_post_meta($current_post->ID, 'rating_value', '0');
+		$rating = 0;
+	}
+	
+	?>
+	
+	<script type="text/javascript">
+
+	jQuery(function($){
+	
+		var rating = parseInt('<?php echo $rating; ?>');
+
+		$('.rating > span').each(function(i){
+			
+			var num = i+1;
+			
+			$(this).click(function(){
+
+				$.ajax({
+					type: "POST",
+					data: {
+						action: 'post_rating',
+						rating_vote: num,
+						nonce: '<?php echo wp_create_nonce('ajax-nonce'); ?>',
+						post_id: '<?php the_ID(); ?>'
+					},
+					url: '<?php echo admin_url('admin-ajax.php'); ?>',
+					dataType: 'json',
+					success: function(data){
+						
+						if (data.error) alert(data.error);
+						
+						if (data.rating) {
+							
+							rating = data.rating;
+							
+							$('.rating > span').removeClass('active');
+							$('.rating > span:lt(' + parseInt(data.rating) + ')').addClass('active');
+						}
+						
+					}
+				});
+				
+			});
+
+			$(this).hover(
+				function(){
+					$('.rating > span').removeClass('active');
+					$('.rating > span:lt(' + num + ')').addClass('active');	
+				},
+				function(){
+					
+				}
+			);
+			
+		});
+		
+		$('.rating').hover(
+			function(){
+			},
+			function(){
+				$('.rating > span').removeClass('active');
+				$('.rating > span:lt(' + rating + ')').addClass('active');	
+			}
+		);
+	
+	});
+
+	</script>
+	
+	*/
 
 }
 
@@ -280,7 +364,7 @@ if (tw_settings('init', 'ajax_posts')) {
 					
 				<div class="post">
 					<?php echo tw_thumb($item, 'post', '<div class="thumb">', '</div>'); ?>
-					<div class="post_body">
+					<div class="text">
 						<a class="title" href="<?php echo get_permalink($item->ID); ?>"><?php echo tw_title($item); ?></a>
 						<p><?php echo tw_text($item, 400); ?></p>
 					</div>
@@ -387,7 +471,7 @@ if (tw_settings('init', 'ajax_comments')) {
 
 	function tw_load_comments(){
 		
-		if (isset($_POST['post_id'])) {
+		if (isset($_POST['post_id']) and isset($_POST['nonce']) and wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
 					
 			global $wp_query;
 			
@@ -411,13 +495,15 @@ if (tw_settings('init', 'ajax_comments')) {
 
 /*
 
-<?php $page = get_query_var('cpage');
+<?php
+
+$page = get_query_var('cpage');
 
 if (!$page) $page = 1;
 
-$max_page = get_comment_pages_count(); ?>
+$max_page = get_comment_pages_count(); 
 
-<?php if ($max_page > 1) { ?>
+if ($max_page > 1) { ?>
 
 <div class="pages">
 	<?php for ($i = 1; $i <= $max_page; $i++) { ?>
@@ -427,7 +513,7 @@ $max_page = get_comment_pages_count(); ?>
 
 <script type="text/javascript">
 
-$(function(){
+jQuery(function($){
 	
 	$('#comments .pages span').each(function(i){
 		
@@ -462,65 +548,6 @@ $(function(){
 </script>
 <?php } ?>
 
-
-<script type="text/javascript">
-
-var rating = parseInt(<?php echo $rating; ?>);
-
-jQuery('.rating > span').each(function(i){
-	
-	var num = i+1;
-	
-	jQuery(this).click(function(){
-
-		jQuery.ajax({
-			type: "POST",
-			data: {
-				action: 'post-rating',
-				rating_vote: num,
-				nonce: '<?php echo wp_create_nonce('ajax-nonce'); ?>',
-				post_id: '<?php the_ID(); ?>'
-			},
-			url: '<?php echo admin_url('admin-ajax.php'); ?>',
-			dataType: 'json',
-			success: function(data){
-				
-				if (data.error) alert(data.error);
-				
-				if (data.rating) {
-					
-					rating = data.rating;
-					
-					jQuery('.rating > span').removeClass('active');
-					jQuery('.rating > span:lt(' + parseInt(data.rating) + ')').addClass('active');
-				}
-				
-			}
-		});
-		
-	});
-
-	jQuery(this).hover(
-		function(){
-			jQuery('.rating > span').removeClass('active');
-			jQuery('.rating > span:lt(' + num + ')').addClass('active');	
-		},
-		function(){
-			
-		}
-	);
-	
-});
-jQuery('.rating').hover(
-	function(){
-	},
-	function(){
-		jQuery('.rating > span').removeClass('active');
-		jQuery('.rating > span:lt(' + rating + ')').addClass('active');	
-	}
-);
-
-</script>
 */
 
 ?>
