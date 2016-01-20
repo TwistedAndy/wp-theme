@@ -235,27 +235,56 @@ Description: Тема для сайта
 
 /* Стили для оформления комментариев */
 
-#comments {
-	margin-top: 30px;
-}
-
-#comments .pagination {
-	margin-top: 20px;
-}
-
-.comment, .comment_avatar, .comment_inner, .comment_info, .comment_body, #respond, #respond form {
+.comments, .comment, .comment_avatar, .comment_inner, .comment_info, .comment_body {
 	display: block;
 	position: relative;
 	overflow: hidden;
 }
 
+.comments {
+	margin: 30px 0;
+}
+
+.comments h3, .comment-reply-title {
+	display: block;
+	margin-bottom: 12px;
+	font-size: 18px;
+	font-weight: normal;
+	line-height: 130%;
+	color: #333;
+}
+
+.comment-reply-title small, .comment-reply-title small a {
+	font-size: 16px;
+	text-transform: lowercase;
+	text-decoration: none;
+	color: #555;
+}
+
+.comment-reply-title small a:hover {
+	text-decoration: underline;
+}
+
+.comments .pagination {
+	margin-top: 20px;
+}
+
 .comment_inner {
-	padding: 10px;
+	padding: 15px;
+	border-radius: 10px;
 	background: #f5f5f5;
 }
 
 .comment + .comment, .comment .comment {
 	margin-top: 20px;
+}
+
+.comment .comment {
+	margin-left: 35px;
+}
+
+.comment.depth-3 .comment {
+	margin-left: 0;
 }
 
 .comment .comment_avatar {
@@ -264,106 +293,138 @@ Description: Тема для сайта
 	height: 60px;
 }
 
+.comment .comment_avatar img {
+	width: 100%;
+	height: auto;
+	border-radius: 5px;
+}
+
 .comment .comment_avatar + .comment_body {
-	margin-left: 70px;
+	margin-left: 75px;
+}
+
+.comment .comment_info {
+	margin-bottom: 4px;
 }
 
 .comment .comment_author {
 	display: block;
 	font-size: 15px;
 	font-weight: bold;
-	margin: 0 0 4px;
 	float: left;
 }
 
 .comment .comment_date {
 	display: block;
 	font-size: 14px;
-	font-style: italic;
 	float: right;
-	margin: 0 0 4px;
+	color: #666;
 }
 
 .comment .comment_body {
 	font-style: normal;
 }
 
-.comment .answer {
-	font-size: 13px;
+.comment_body p {
+	margin-bottom: 12px;
+}
+
+.comment .comment_on_moderation {
 	font-style: italic;
+	color: #900;
+}
+
+.comment .comment_buttons {
+	margin-top: 12px;
+	font-size: 13px;
 	text-align: right;
-	line-height: 120%;
+	line-height: 130%;
 	color: #900;
 }
 
-.comment .answer a {
+.comment .comment_buttons a {
 	display: inline-block;
-	color: #900;
+	padding: 3px 10px;
+	background: #aaa;
+	border-radius: 5px;
+	color: #fff;
 	text-decoration: none;
-	border-bottom: 1px dashed #900;
 }
 
-.comment .answer a:hover {
-	border-bottom-color: transparent;
+.comment .comment_buttons a:hover {
+	background: #ccc;
 }
 
-.comment .answer a + a {
+.comment .comment_buttons a + a {
 	margin-left: 5px;
 }
 
-#respond {
-	width: 500px;
-	margin: 30px auto 0;
+.comment-respond {
+	width: auto;
+	max-width: 600px;
+	margin: 30px auto;
 }
 
-#respond input[type="text"], #respond textarea {
-	display: inline-block;
-	width: 220px;
+.comment-respond input[type="text"], .comment-respond textarea {
+	display: block;
+	box-sizing: border-box;
+	max-width: 200px;
+	width: auto;
 	height: auto;
 	padding: 5px 10px;
 	margin: 0 0 15px;
 	border: 1px solid #ccc;
+	border-radius: 5px;
 	font-size: 14px;
+	font-weight: normal;
 	line-height: 130%;
-	vertical-align: top;
 }
 
-#respond input[type="text"] + input[type="text"] {
-	margin-left: 12px;
-}
-
-#respond textarea {
-	width: 478px;
+.comment-respond textarea {
+	max-width: 100%;
 	height: 160px;
 	overflow: auto;
 }
 
-#respond input[type="submit"] {
+.comment-respond input[type="submit"] {
 	display: inline-block;
-	padding: 8px 15px;
+	padding: 5px 15px;
 	border: 0;
-	background: #eee;
+	background: #aaa;
 	text-align: center;
 	font-size: 15px;
 	line-height: 130%;
-	color: #000;
+	color: #fff;
 	cursor: pointer;
+	border-radius: 5px;
 }
 
-#respond input[type="submit"]:hover {
-	background: #f5f5f5;
+.comment-respond input[type="submit"]:hover {
+	background: #ccc;
 }
 
-p.form-submit {
+.comment-respond p {
+	margin-bottom: 15px;
+}
+
+.comment-respond p.form-submit {
 	overflow: hidden;
 	width: 100%;
 }
 
-.logged-in-as .logout, .logged-in-as .login {
+.comment-respond .logout, .comment-respond .login {
 	font-weight: bold;
 }
 
-.logged-in-as .login {
+.comment-respond .logout {
+	text-decoration: none;	
+}
+
+.comment-respond .logout:hover {
+	text-decoration: underline;	
+}
+
+.comment-respond .login, .comment-reply-title > a {
 	color: #953C21;
 }
 

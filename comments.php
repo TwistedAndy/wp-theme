@@ -1,6 +1,6 @@
 <?php if (have_comments()) { ?>
 
-<div id="comments" class="content">
+<div class="comments">
 
 	<h3>Комментарии</h3>
 	
@@ -13,28 +13,15 @@
 <?php } ?>
 
 
-<div class="content">
-
-<?php if (comments_open()) {
-
-	comment_form(array(
-		'label_submit' => 'Отправить',
-		'logged_in_as' => '<p class="logged-in-as">' . sprintf('Вы вошли как <a class="login" href="%1$s">%2$s</a> <a class="logout" href="%3$s">[выйти]</a>', admin_url('profile.php'), $user_identity, wp_logout_url(apply_filters('the_permalink', get_permalink(get_the_ID())))) . '</p>',
-		'title_reply' => 'Добавить комментарий',
-		'comment_notes_before' => '',
-		'comment_notes_after' => '',
-		'comment_field' => '<textarea id="comment" name="comment" cols="45" rows="8" placeholder="Ваше сообщение..."></textarea>',
-		'fields' => array(
-			'author' => '<input name="author" type="text" value="" placeholder="Ваше имя..." />',
-			'email' => '<input name="email" type="text" value="" placeholder="Ваше email..." />',
-			'url' => ''
-		)
-	));
-
-} else { ?>
-
-	<p class="nocomments">Комментирование данной записи отключено</p>
-
-<?php } ?>
-
-</div>
+<?php tw_comment_form(array(
+	'fields' => array(
+		'author' => '<input placeholder="Ваше имя..." name="author" type="text" value="' . esc_attr($commenter['comment_author']) . '" size="30" required="required" />',
+		'email'  => '<input placeholder="Ваш email..." name="email" type="text" value="' . esc_attr($commenter['comment_author_email']) . '" size="30" required="required" />',
+		'url'    => '<input placeholder="Адрес сайта..." name="url" type="text" value="' . esc_attr($commenter['comment_author_url']) . '" size="30" />',
+	),
+	'comment_field' => '<textarea id="comment" name="comment" cols="45" rows="8" required="required"></textarea>',
+	'label_submit'	=> 'Отправить',
+	'title_reply'	=> 'Оставить комментарий',
+	'title_reply_before' => '<div id="reply-title" class="comment-reply-title">',
+	'title_reply_after'	 => '</div>'
+)); ?>
