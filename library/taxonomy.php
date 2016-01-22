@@ -4,7 +4,7 @@
 Описание: библиотека для работы с деревом страниц и категорий
 Автор: Тониевич Андрей
 Версия: 1.6
-Дата: 18.01.2016
+Дата: 22.01.2016
 */
 
 function tw_category_thread($category_id = false, $include_parents = true, $include_children = true) {
@@ -173,10 +173,16 @@ function tw_in_category($category_ids, $check_parents = true, $check_children = 
 		
 		$current_category_id = intval(get_query_var('cat'));
 		
-		if ($category_id == $current_category_id) {
-			$result = true;
-		} elseif ($category_thread = tw_category_thread($category_id, false, true)) {
-			$result = in_array($current_category_id, $category_thread);
+		foreach ($category_ids as $category_id) {
+		
+			if ($category_id == $current_category_id) {
+				$result = true;
+			} elseif ($category_thread = tw_category_thread($category_id, false, true)) {
+				$result = in_array($current_category_id, $category_thread);
+			}
+			
+			if ($result) break;
+			
 		}
 		
 	}
