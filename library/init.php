@@ -3,8 +3,8 @@
 /*
 Описание: библиотека для инициализации темы
 Автор: Тониевич Андрей
-Версия: 1.7
-Дата: 19.01.2016
+Версия: 1.8
+Дата: 07.02.2016
 */
 
 function tw_settings($group = false, $name = false) {
@@ -93,6 +93,25 @@ if (tw_settings('types')) {
 		
 			register_post_type($name, $type);
 		
+		}
+		
+	}
+
+}
+
+
+if (tw_settings('taxonomies')) {
+
+	add_action('init', 'tw_taxonomies');
+	
+	function tw_taxonomies() {
+		
+		$taxonomies = tw_settings('taxonomies');
+		
+		foreach ($taxonomies as $taxonomy) {
+		
+			register_taxonomy($taxonomy['name'], $taxonomy['types'], $taxonomy['args']);
+			
 		}
 		
 	}
