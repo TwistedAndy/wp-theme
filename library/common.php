@@ -3,8 +3,8 @@
 /*
 Описание: библиотека с общими функциями
 Автор: Тониевич Андрей
-Версия: 1.6
-Дата: 19.01.2016
+Версия: 1.7
+Дата: 07.02.2016
 */
 
 function tw_wp_title($add_page_number = false) {
@@ -94,29 +94,37 @@ function tw_breadcrumbs($separator = ' > ') {
 		echo $separator;
 	}
 	
-	if (is_single()) {
-		$cat = false;
-		$categories = get_the_terms(get_the_ID(), 'category');
-		if ($categories) {
+	$taxonomy = tw_current_taxonomy();
+	
+	if (is_single() and $taxonomy) {
+
+		$term = false;
+		
+		if ($categories = get_the_terms(get_the_ID(), $taxonomy)) {
 			foreach ($categories as $category) {
-				$cat = $category;
-				if ($category->parent > 0) break;
+				$term = $category;
+				if (isset($category->parent) and $category->parent > 0) break;
 			}
 		}
-		if ($cat and $categories = get_ancestors($cat->term_id, 'category')) {
+		
+		if ($term and $categories = get_ancestors($term->term_id, $taxonomy)) {
 			$categories = array_reverse($categories);
 			foreach ($categories as $category) {
-				$category = get_category($category);
-				echo '<a href="' . get_category_link($category->term_id) . '">' . $category->name . '</a>' . $separator;
+				$category = get_term($category, $taxonomy);
+				echo '<a href="' . get_term_link($category->term_id, $taxonomy) . '">' . $category->name . '</a>' . $separator;
 			}
-			echo '<a href="' . get_category_link($cat->term_id) . '">' . $cat->name . '</a>';
+			echo '<a href="' . get_term_link($term->term_id, $taxonomy) . '">' . $term->name . '</a>';
 		} else {
-			$cat = tw_current_category(true);
-			echo '<a href="' . get_category_link($cat->term_id) . '">' . $cat->name . '</a>';
+			$term = tw_current_term(true);;
+			echo '<a href="' . get_term_link($term->term_id, $taxonomy) . '">' . $term->name . '</a>';
 		}
+		
 		echo $separator;
+		
 	} elseif (is_page()) {
+		
 		$pages = get_ancestors(get_the_ID(), 'page');
+		
 		if ($pages) {
 			$pages = array_reverse($pages);
 			foreach ($pages as $page) {
@@ -124,14 +132,24 @@ function tw_breadcrumbs($separator = ' > ') {
 				echo '<a href="' . get_page_link($page->ID) . '">' . $page->post_title . '</a>' . $separator;				
 			}
 		}
-	} elseif (is_category()) {
-		if ($categories = get_ancestors(get_query_var('cat'), 'category')) {
+		
+	} elseif (is_category() or is_tax()) {
+		
+		if (is_tax() and $term_object = get_term_by('slug', get_query_var('term'), $taxonomy)) {
+			$term_id = $term_object->term_id;
+		} else {
+			$taxonomy = 'category';
+			$term_id = get_query_var('cat');
+		}
+		
+		if ($term_id and $categories = get_ancestors($term_id, $taxonomy)) {
 			$categories = array_reverse($categories);
 			foreach ($categories as $category) {
-				$category = get_category($category);
-				echo '<a href="' . get_category_link($category->cat_ID) . '">' . $category->cat_name . '</a>' . $separator;
+				$category = get_term($category, $taxonomy);
+				echo '<a href="' . get_term_link($category->term_id, $taxonomy) . '">' . $category->name . '</a>' . $separator;
 			}
 		}
+		
 	}
 	
 	return '<span>' . tw_wp_title() . '</span>';

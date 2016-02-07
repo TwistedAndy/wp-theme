@@ -13,7 +13,11 @@
 <?php } ?>
 
 
-<?php tw_comment_form(array(
+<?php
+
+$commenter = wp_get_current_commenter();
+
+tw_comment_form(array(
 	'fields' => array(
 		'author' => '<input placeholder="Ваше имя..." name="author" type="text" value="' . esc_attr($commenter['comment_author']) . '" size="30" required="required" />',
 		'email'  => '<input placeholder="Ваш email..." name="email" type="text" value="' . esc_attr($commenter['comment_author_email']) . '" size="30" required="required" />',
@@ -24,4 +28,6 @@
 	'title_reply'	=> 'Оставить комментарий',
 	'title_reply_before' => '<div id="reply-title" class="comment-reply-title">',
 	'title_reply_after'	 => '</div>'
-)); ?>
+));
+
+?>

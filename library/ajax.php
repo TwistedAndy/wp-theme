@@ -267,12 +267,22 @@ if (tw_settings('init', 'ajax_rating')) {
 	$rating = get_post_meta(get_the_ID(), 'rating_value', true);
 	
 	if (empty($rating)) {
-		delete_post_meta($current_post->ID, 'rating_value');
-		add_post_meta($current_post->ID, 'rating_value', '0');
+		delete_post_meta(get_the_ID(), 'rating_value');
+		add_post_meta(get_the_ID(), 'rating_value', '0');
 		$rating = 0;
 	}
 	
 	?>
+	
+	<div class="rating">
+
+		<?php for ($i = 0; $i < 4; $i++) { ?>
+
+		<span<?php if ($rating > $i) echo ' class="active"'; ?>></span>
+
+		<?php } ?>
+
+	</div>
 	
 	<script type="text/javascript">
 

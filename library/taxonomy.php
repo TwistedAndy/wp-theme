@@ -3,8 +3,8 @@
 /*
 Описание: библиотека для работы с деревом страниц и категорий
 Автор: Тониевич Андрей
-Версия: 1.6
-Дата: 22.01.2016
+Версия: 1.7
+Дата: 07.02.2016
 */
 
 function tw_category_thread($category_id = false, $include_parents = true, $include_children = true) {
@@ -224,24 +224,56 @@ function tw_in_page($page_id, $check_all_children = false) {
 }
 
 
-function tw_current_category($return_object = false) {
+function tw_current_taxonomy() {
 	
-	$category_id = 0;
+	$taxonomy = '';
 	
-	if (is_single()) {
-		if ($cs = get_the_category(get_the_ID())) $category_id = $cs[0]->cat_ID;
-	} else if (is_category()) {
-		$category_id = get_query_var('cat');
+	if (is_single() and $taxonomies = get_post_taxonomies(get_the_ID())) {
+		$taxonomy = array_shift($taxonomies);
+	} elseif (is_category()) {
+		$taxonomy = 'category';
+	} elseif (is_tax())  {
+		$taxonomy = get_query_var('taxonomy');
+	}
+	
+	return $taxonomy;
+	
+}
+
+
+function tw_current_term($return_object = false, $taxonomy = false) {
+	
+	$term_id = 0;
+	
+	if ($taxonomy or $taxonomy = tw_current_taxonomy()) {
+		
+		if (is_single() and $cs = get_the_terms(get_the_ID(), $taxonomy)) {
+			$term_id = $cs[0]->term_id;
+		} elseif (is_category()) {
+			$term_id = get_query_var('cat');
+		} elseif (is_tax() and $term_object = get_term_by('slug', get_query_var('term'), $taxonomy))  {
+			$term_id = $term_object->term_id;
+		} else {
+			return 0;
+		}
+		
+		if ($term_id and $return_object) {
+			return get_term($term_id, $taxonomy);
+		} else {
+			return intval($term_id);
+		}
+
 	} else {
 		return 0;
 	}
 	
-	if ($return_object and $category_id) {
-		return get_category($category_id);
-	} else {
-		return intval($category_id);
-	}
+}
 
+
+function tw_current_category($return_object = false) {
+	
+	return tw_current_term($return_object, 'category');
+	
 }
 
 ?>
