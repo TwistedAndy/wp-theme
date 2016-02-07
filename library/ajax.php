@@ -3,8 +3,8 @@
 /*
 Описание: библиотека для работы с AJAX
 Автор: Тониевич Андрей
-Версия: 1.6
-Дата: 19.01.2016
+Версия: 1.7
+Дата: 07.02.2016
 */
 
 if (tw_settings('init', 'ajax_mail')) {
@@ -197,7 +197,7 @@ if (tw_settings('init', 'ajax_rating')) {
 			
 			$ip = $_SERVER['REMOTE_ADDR'];
 			$post_id = intval($_POST['post_id']);  
-			$meta_IP = get_post_meta($post_id, "rating_IP");
+			$meta_IP = get_post_meta($post_id, 'rating_IP');
 			
 			if (is_array($meta_IP) and isset($meta_IP[0])) $rating_IP = $meta_IP[0]; else $rating_IP = array();
 			
@@ -213,24 +213,24 @@ if (tw_settings('init', 'ajax_rating')) {
 			$rating_vote = intval($_POST['rating_vote']);
 			if ($rating_vote > 5 or $rating_vote < 0) exit();
 			
-			$rating_value = get_post_meta($post_id, "rating_value", true);
+			$rating_value = get_post_meta($post_id, 'rating_value', true);
 			if (empty($rating_value)) {
-				delete_post_meta($post_id, "rating_value");
-				add_post_meta($post_id, "rating_value", '0');
+				delete_post_meta($post_id, 'rating_value');
+				add_post_meta($post_id, 'rating_value', '0');
 				$rating_value = 0;
 			}
 		
-			$rating_votes = get_post_meta($post_id, "rating_votes", true);
+			$rating_votes = get_post_meta($post_id, 'rating_votes', true);
 			if (empty($rating_votes)) {
-				delete_post_meta($post_id, "rating_votes");
-				add_post_meta($post_id, "rating_votes", '0');
+				delete_post_meta($post_id, 'rating_votes');
+				add_post_meta($post_id, 'rating_votes', '0');
 				$rating_votes = 0;
 			}
 			
-			$rating_sum = get_post_meta($post_id, "rating_sum", true);
+			$rating_sum = get_post_meta($post_id, 'rating_sum', true);
 			if (empty($rating_sum)) {
-				delete_post_meta($post_id, "rating_sum");
-				add_post_meta($post_id, "rating_sum", '0');
+				delete_post_meta($post_id, 'rating_sum');
+				add_post_meta($post_id, 'rating_sum', '0');
 				$rating_sum = 0;
 			}
 	  
@@ -240,15 +240,15 @@ if (tw_settings('init', 'ajax_rating')) {
 			
 			$rating_votes++;
 			
-			$rating_value = round($rating_sum/$rating_votes);
+			$rating_value = round($rating_sum/$rating_votes, 3);
 			
-			update_post_meta($post_id, "rating_IP", $rating_IP);
-			update_post_meta($post_id, "rating_votes", $rating_votes);
-			update_post_meta($post_id, "rating_value", $rating_value);
-			update_post_meta($post_id, "rating_sum", $rating_sum);
+			update_post_meta($post_id, 'rating_IP', $rating_IP);
+			update_post_meta($post_id, 'rating_votes', $rating_votes);
+			update_post_meta($post_id, 'rating_value', $rating_value);
+			update_post_meta($post_id, 'rating_sum', $rating_sum);
 			
 			$result = array(
-				'rating' => intval($rating_value),
+				'rating' => round($rating_value, 0),
 				'votes' => intval($rating_votes)
 			);
 			
@@ -263,90 +263,79 @@ if (tw_settings('init', 'ajax_rating')) {
 	/*
 	
 	<?php
-	
 	$rating = get_post_meta(get_the_ID(), 'rating_value', true);
-	
 	if (empty($rating)) {
 		delete_post_meta(get_the_ID(), 'rating_value');
 		add_post_meta(get_the_ID(), 'rating_value', '0');
 		$rating = 0;
+	} else {
+		$rating = round($rating, 0);
 	}
-	
 	?>
-	
-	<div class="rating">
-
-		<?php for ($i = 0; $i < 4; $i++) { ?>
-
+	<div class="rating" data-id="<?php the_ID(); ?>">
+		<?php for ($i = 0; $i < 5; $i++) { ?>
 		<span<?php if ($rating > $i) echo ' class="active"'; ?>></span>
-
 		<?php } ?>
-
 	</div>
 	
-	<script type="text/javascript">
-
 	jQuery(function($){
 	
-		var rating = parseInt('<?php echo $rating; ?>');
-
-		$('.rating > span').each(function(i){
+		$('.rating').each(function(){
 			
-			var num = i+1;
+			var rating = parseInt($('span.active', this).length);
+			var post_id = parseInt($(this).data('id'));
+			var element = $(this);
 			
-			$(this).click(function(){
-
-				$.ajax({
-					type: "POST",
-					data: {
-						action: 'post_rating',
-						rating_vote: num,
-						nonce: '<?php echo wp_create_nonce('ajax-nonce'); ?>',
-						post_id: '<?php the_ID(); ?>'
-					},
-					url: '<?php echo admin_url('admin-ajax.php'); ?>',
-					dataType: 'json',
-					success: function(data){
-						
-						if (data.error) alert(data.error);
-						
-						if (data.rating) {
-							
-							rating = data.rating;
-							
-							$('.rating > span').removeClass('active');
-							$('.rating > span:lt(' + parseInt(data.rating) + ')').addClass('active');
+			$('span', this).each(function(i){
+				
+				var num = i+1;
+				
+				$(this).click(function(){
+					$.ajax({
+						type: "POST",
+						data: {
+							action: 'post_rating',
+							rating_vote: num,
+							nonce: '<?php echo wp_create_nonce('ajax-nonce'); ?>',
+							post_id: post_id
+						},
+						url: '<?php echo admin_url('admin-ajax.php'); ?>',
+						dataType: 'json',
+						success: function(data){
+							if (data.error) alert(data.error);
+							if (data.rating) {
+								rating = data.rating;
+								$('span', element).removeClass('active');
+								$('span:lt(' + parseInt(data.rating) + ')', element).addClass('active');
+							}
 						}
+					});
+				});
+
+				$(this).hover(
+					function(){
+						$('span', element).removeClass('active');
+						$('span:lt(' + num + ')', element).addClass('active');	
+					},
+					function(){
 						
 					}
-				});
+				);
 				
 			});
-
-			$(this).hover(
+			
+			element.hover(
 				function(){
-					$('.rating > span').removeClass('active');
-					$('.rating > span:lt(' + num + ')').addClass('active');	
 				},
 				function(){
-					
+					$('span', this).removeClass('active');
+					$('span:lt(' + rating + ')', this).addClass('active');	
 				}
 			);
 			
 		});
 		
-		$('.rating').hover(
-			function(){
-			},
-			function(){
-				$('.rating > span').removeClass('active');
-				$('.rating > span:lt(' + rating + ')').addClass('active');	
-			}
-		);
-	
 	});
-
-	</script>
 	
 	*/
 
