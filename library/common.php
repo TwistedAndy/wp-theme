@@ -4,7 +4,7 @@
 Описание: библиотека с общими функциями
 Автор: Тониевич Андрей
 Версия: 1.7
-Дата: 07.02.2016
+Дата: 05.03.2016
 */
 
 function tw_wp_title($add_page_number = false) {
@@ -135,7 +135,7 @@ function tw_breadcrumbs($separator = ' > ') {
 		
 	} elseif (is_category() or is_tax()) {
 		
-		if (is_tax() and $term_object = get_term_by('slug', get_query_var('term'), $taxonomy)) {
+		if (is_tax() and $term_object = get_queried_object()) {
 			$term_id = $term_object->term_id;
 		} else {
 			$taxonomy = 'category';

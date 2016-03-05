@@ -4,7 +4,7 @@
 Описание: библиотека для работы с деревом страниц и категорий
 Автор: Тониевич Андрей
 Версия: 1.7
-Дата: 07.02.2016
+Дата: 05.03.2016
 */
 
 function tw_category_thread($category_id = false, $include_parents = true, $include_children = true) {
@@ -229,7 +229,14 @@ function tw_current_taxonomy() {
 	$taxonomy = '';
 	
 	if (is_single() and $taxonomies = get_post_taxonomies(get_the_ID())) {
-		$taxonomy = array_shift($taxonomies);
+		$preferred_taxonomies = array('category', 'product_cat', 'post_tag', 'product_tag');
+		foreach ($preferred_taxonomies as $preferred_taxonomy) {
+			if (in_array($preferred_taxonomy, $taxonomies)) {
+				$taxonomy = $preferred_taxonomy;
+				break;
+			}
+		}
+		if ($taxonomy == '') $taxonomy = array_shift($taxonomies);
 	} elseif (is_category()) {
 		$taxonomy = 'category';
 	} elseif (is_tax())  {
@@ -251,7 +258,7 @@ function tw_current_term($return_object = false, $taxonomy = false) {
 			$term_id = $cs[0]->term_id;
 		} elseif (is_category()) {
 			$term_id = get_query_var('cat');
-		} elseif (is_tax() and $term_object = get_term_by('slug', get_query_var('term'), $taxonomy))  {
+		} elseif (is_tax() and $term_object = get_queried_object()) {
 			$term_id = $term_object->term_id;
 		} else {
 			return 0;
