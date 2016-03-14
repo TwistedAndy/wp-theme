@@ -126,6 +126,7 @@ $tw_settings = array(
 		'ajax_comments' => false,
 		'action_get_posts' => false,
 		'action_menu_active' => true,
+		'action_clean_header' => true,
 		'widget_posts' => true,
 		'widget_comments' => false,
 		'module_cyrtolat' => true,
