@@ -8,24 +8,24 @@
 */
 
 if (tw_settings('init', 'ajax_mail')) {
-	
+
 	add_action('wp_ajax_nopriv_send_email', 'tw_send_email');
 	add_action('wp_ajax_send_email', 'tw_send_email');
-	
+
 	function tw_send_email(){
-	
+
 		if (isset($_POST['nonce']) and wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
-		
+
 			$errors = array();
 
-			foreach($_POST as $k => $v) {
-				
+			foreach ($_POST as $k => $v) {
+
 				$_POST[$k] = htmlspecialchars($v);
-				
+
 			}
-			
+
 			if (isset($_POST['email'])) {
-			
+
 				$fields = array(
 					'name'	=> array(
 						'error'	=> 'Неверно указано имя',
@@ -40,11 +40,11 @@ if (tw_settings('init', 'ajax_mail')) {
 						'pattern'	=> '#^.{4,}$#i'
 					)
 				);
-				
+
 				$is_callback = false;
-				
+
 			} else {
-				
+
 				$fields = array(
 					'name'	=> array(
 						'error'	=> 'Неверно указано имя',
@@ -55,18 +55,18 @@ if (tw_settings('init', 'ajax_mail')) {
 						'pattern'	=> '#^[0-9 +\- ()]{4,}$#i'
 					)
 				);
-				
+
 				$is_callback = true;
-				
+
 			}
 
 
 			foreach ($fields as $k => $v) {
-				
+
 				if (isset($_POST[$k]) and !preg_match($v['pattern'], $_POST[$k]) and !(isset($v['empty']) and $v['empty'] and $_POST[$k] == '')) {
-					
+
 					$errors[$k] = $v['error'];
-					
+
 				}
 
 			}
@@ -74,49 +74,49 @@ if (tw_settings('init', 'ajax_mail')) {
 			if (count($errors) == 0) {
 
 				$to = get_option('admin_email');
-				
+
 				if ($is_callback) {
-				
+
 					$subject = "Заказ обратного звонка от " . $_POST['name'] . " (" . $_POST['phone'] . ")";
 					$message = "
 					<p><b>Имя:</b> " . $_POST['name'] . "</p>
 					<p><b>Телефон:</b> ". $_POST['phone'] ."</p>";
-					
+
 					$_POST['email'] = $to;
-					
+
 				} else {
-					
+
 					$subject = "Сообщение от посетителя";
 					$message = "
 					<p><b>Имя:</b> " . $_POST['name'] . "</p>
 					<p><b>E-mail:</b> " . $_POST['email'] . "</p>
 					<p><b>Сообщение:</b> " . $_POST['message'] . "</p>";
-					
+
 				}
-				 
-				$headers  = "Content-type: text/html; charset=utf-8 \r\n"; 
+
+				$headers  = "Content-type: text/html; charset=utf-8 \r\n";
 				$headers .= "From: " . $_POST['name'] . " <" . $_POST['email'] . ">\r\n";
 
 				if (mail($to, $subject, $message, $headers)) {
 
-					echo (json_encode(array('text' => "Ваш запрос был успешно отправлен")));     
-				 
-				} else { 
+					echo(json_encode(array('text' => "Ваш запрос был успешно отправлен")));
 
-					echo(json_encode(array('text' => "Ошибка. Запрос не отправлен из-за ошибки сервера")));     
-				 
+				} else {
+
+					echo(json_encode(array('text' => "Ошибка. Запрос не отправлен из-за ошибки сервера")));
+
 				}
-				
+
 			} else {
-				
-				echo(json_encode(array('errors' => $errors)));     
-				
+
+				echo(json_encode(array('errors' => $errors)));
+
 			}
-		
+
 		}
-		
+
 		exit();
-		
+
 	}
 
 	/*
@@ -131,9 +131,9 @@ if (tw_settings('init', 'ajax_mail')) {
 	</form>
 
 	<script type="text/javascript">
-				
+
 	jQuery(function($){
-		
+
 		$('form').submit(function(e){
 
 			var form = $(this), el;
@@ -144,9 +144,9 @@ if (tw_settings('init', 'ajax_mail')) {
 				dataType: 'json',
 				data: $('input:text, input:hidden, input:checked, textarea, select', form),
 				success: function(data) {
-				
-					$('.error', form).remove();	
-					
+
+					$('.error', form).remove();
+
 					$('input, textarea, select', form).removeClass('incorrect');
 
 					if (data['errors']) {
@@ -180,88 +180,88 @@ if (tw_settings('init', 'ajax_mail')) {
 	</script>
 
 	*/
-	
+
 }
 
-	
+
 if (tw_settings('init', 'ajax_rating')) {
 
 	add_action('wp_ajax_nopriv_post_rating', 'tw_post_rating');
 	add_action('wp_ajax_post_rating', 'tw_post_rating');
 
-	function tw_post_rating(){ 
-		
+	function tw_post_rating(){
+
 		if (isset($_POST['rating_vote']) and isset($_POST['nonce']) and wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
-		  
+
 			$timebeforerevote = 120;
-			
+
 			$ip = $_SERVER['REMOTE_ADDR'];
-			$post_id = intval($_POST['post_id']);  
+			$post_id = intval($_POST['post_id']);
 			$meta_IP = get_post_meta($post_id, 'rating_IP');
-			
+
 			if (is_array($meta_IP) and isset($meta_IP[0])) $rating_IP = $meta_IP[0]; else $rating_IP = array();
-			
+
 			if (in_array($ip, array_keys($rating_IP))) {
-				$time = $rating_IP[$ip];  
+				$time = $rating_IP[$ip];
 				$now = time();
 				if (round(($now - $time) / 60) < $timebeforerevote) {
 					echo json_encode(array('error' => 'Вы уже голосовали'));
 					exit();
 				}
 			}
-			
+
 			$rating_vote = intval($_POST['rating_vote']);
 			if ($rating_vote > 5 or $rating_vote < 0) exit();
-			
+
 			$rating_value = get_post_meta($post_id, 'rating_value', true);
 			if (empty($rating_value)) {
 				delete_post_meta($post_id, 'rating_value');
 				add_post_meta($post_id, 'rating_value', '0');
 				$rating_value = 0;
 			}
-		
+
 			$rating_votes = get_post_meta($post_id, 'rating_votes', true);
 			if (empty($rating_votes)) {
 				delete_post_meta($post_id, 'rating_votes');
 				add_post_meta($post_id, 'rating_votes', '0');
 				$rating_votes = 0;
 			}
-			
+
 			$rating_sum = get_post_meta($post_id, 'rating_sum', true);
 			if (empty($rating_sum)) {
 				delete_post_meta($post_id, 'rating_sum');
 				add_post_meta($post_id, 'rating_sum', '0');
 				$rating_sum = 0;
 			}
-	  
-			$rating_IP[$ip] = time();  
-			
+
+			$rating_IP[$ip] = time();
+
 			$rating_sum = $rating_sum + $rating_vote;
-			
+
 			$rating_votes++;
-			
+
 			$rating_value = round($rating_sum/$rating_votes, 3);
-			
+
 			update_post_meta($post_id, 'rating_IP', $rating_IP);
 			update_post_meta($post_id, 'rating_votes', $rating_votes);
 			update_post_meta($post_id, 'rating_value', $rating_value);
 			update_post_meta($post_id, 'rating_sum', $rating_sum);
-			
+
 			$result = array(
 				'rating' => round($rating_value, 0),
 				'votes' => intval($rating_votes)
 			);
-			
-			echo json_encode($result);  
-	  
+
+			echo json_encode($result);
+
 		}
-		
-		exit();  
+
+		exit();
 
 	}
-	
+
 	/*
-	
+
 	<?php
 	$rating = get_post_meta(get_the_ID(), 'rating_value', true);
 	if (empty($rating)) {
@@ -277,19 +277,19 @@ if (tw_settings('init', 'ajax_rating')) {
 		<span<?php if ($rating > $i) echo ' class="active"'; ?>></span>
 		<?php } ?>
 	</div>
-	
+
 	jQuery(function($){
-	
+
 		$('.rating').each(function(){
-			
+
 			var rating = parseInt($('span.active', this).length);
 			var post_id = parseInt($(this).data('id'));
 			var element = $(this);
-			
+
 			$('span', this).each(function(i){
-				
+
 				var num = i+1;
-				
+
 				$(this).click(function(){
 					$.ajax({
 						type: "POST",
@@ -315,28 +315,28 @@ if (tw_settings('init', 'ajax_rating')) {
 				$(this).hover(
 					function(){
 						$('span', element).removeClass('active');
-						$('span:lt(' + num + ')', element).addClass('active');	
+						$('span:lt(' + num + ')', element).addClass('active');
 					},
 					function(){
-						
+
 					}
 				);
-				
+
 			});
-			
+
 			element.hover(
 				function(){
 				},
 				function(){
 					$('span', this).removeClass('active');
-					$('span:lt(' + rating + ')', this).addClass('active');	
+					$('span:lt(' + rating + ')', this).addClass('active');
 				}
 			);
-			
+
 		});
-		
+
 	});
-	
+
 	*/
 
 }
@@ -350,17 +350,17 @@ if (tw_settings('init', 'ajax_posts')) {
 	function tw_load_posts(){
 
 		$fields = array('category', 'tag', 'search', 'offset', 'number');
-		
+
 		foreach ($fields as $field) {
 			if (isset($_REQUEST[$field])) $$field =	htmlspecialchars($_REQUEST[$field]); else $$field = '';
 		}
-		
+
 		if ($number) {
-			
+
 			if ($items = get_posts(array('numberposts' => $number, 'offset' => $offset, 'category' => $category, 'tag_id' => $tag, 's' => $search))) { ?>
 
 				<?php foreach ($items as $item) { ?>
-					
+
 				<div class="post">
 					<?php echo tw_thumb($item, 'post', '<div class="thumb">', '</div>'); ?>
 					<div class="text">
@@ -368,54 +368,54 @@ if (tw_settings('init', 'ajax_posts')) {
 						<p><?php echo tw_text($item, 400); ?></p>
 					</div>
 				</div>
-				
+
 				<?php } ?>
 
 			<?php }
-		
+
 		}
-		
+
 		exit();
-		
+
 	}
 
 	function tw_load_button($load_posts_number = false, $ignore_max_page = false){
-		
+
 		global $wp_query;
-		
+
 		$max_page = intval($wp_query->max_num_pages);
-		
+
 		if ($ignore_max_page or $max_page > 1) {
-		
+
 			wp_enqueue_script('jquery');
-			
-			$posts_per_page = intval(get_query_var('posts_per_page'));  
-			
+
+			$posts_per_page = intval(get_query_var('posts_per_page'));
+
 			$max_offset = intval($wp_query->found_posts);
-			
+
 			$paged = intval(get_query_var('paged'));
-			
-			if ($paged == 0) $paged = 1; 
-			
+
+			if ($paged == 0) $paged = 1;
+
 			if ($load_posts_number == false) $load_posts_number = $posts_per_page;
-			 
+
 			$offset = $paged * $posts_per_page;
 			
 			?>
-			
+
 			<span class="more">Загрузить ещё</span>
-			
+
 			<script type="text/javascript">
-				
+
 				var offset = <?php echo $offset; ?>;
 				var number = <?php echo $load_posts_number; ?>;
 				var max_offset = <?php echo $max_offset; ?>;
 				var more_button = jQuery('.more');
-			
+
 				more_button.click(function(){
-					
+
 					if (offset < max_offset) {
-						
+
 						jQuery.ajax({
 							type: "POST",
 							data: {
@@ -443,19 +443,19 @@ if (tw_settings('init', 'ajax_posts')) {
 								}
 							}
 						});
-					
+
 					} else {
-						
+
 						more_button.remove();
-						
+
 					}
-					
+
 				});
 
 			</script>
-			
+
 			<?php
-					
+
 		}
 
 	}
@@ -469,25 +469,25 @@ if (tw_settings('init', 'ajax_comments')) {
 	add_action('wp_ajax_load_comments', 'tw_load_comments');
 
 	function tw_load_comments(){
-		
+
 		if (isset($_POST['post_id']) and isset($_POST['nonce']) and wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
-					
+
 			global $wp_query;
-			
+
 			$wp_query = new WP_Query(array(
 				'p' => intval($_POST['post_id'])
 			));
-			
+
 			if (have_posts()) {
 				set_query_var('cpage', intval($_POST['cpage']));
 				the_post();
 				comments_template('/ajax-comments.php');
 			}
-			
+
 		}
-		
+
 		exit();
-		
+
 	}
 
 }
@@ -500,7 +500,7 @@ $page = get_query_var('cpage');
 
 if (!$page) $page = 1;
 
-$max_page = get_comment_pages_count(); 
+$max_page = get_comment_pages_count();
 
 if ($max_page > 1) { ?>
 
@@ -513,9 +513,9 @@ if ($max_page > 1) { ?>
 <script type="text/javascript">
 
 jQuery(function($){
-	
+
 	$('#comments .pages span').each(function(i){
-		
+
 		var page = i+1;
 		var el = $(this);
 		el.click(function(){
@@ -539,14 +539,12 @@ jQuery(function($){
 				}
 			});
 		});
-		
+
 	});
-	
+
 });
 
 </script>
 <?php } ?>
 
 */
-
-?>

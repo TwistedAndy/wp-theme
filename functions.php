@@ -1,7 +1,7 @@
 <?php
 
 $tw_settings = array(
-		
+
 	'menu' => array(
 		'main' => 'Главное меню сайта',
 	),
@@ -18,7 +18,7 @@ $tw_settings = array(
 			'height' => 360
 		),
 	),
-	
+
 	'scripts' => array(
 		'likes',
 		'colorbox',
@@ -27,7 +27,7 @@ $tw_settings = array(
 		'share42',
 		'scrollto'
 	),
-	
+
 	'widgets' => array(
 		array(
 			'name' => 'Блок справа в сайдбаре',
@@ -39,7 +39,7 @@ $tw_settings = array(
 			'after_title' => '</div>'
 		),
 	),
-	
+
 	'taxonomies' => array(
 		array(
 			'name' => 'receipts',
@@ -72,7 +72,7 @@ $tw_settings = array(
 			)
 		),
 	),
-	
+
 	'types' => array(
 		'receipt' => array(
 			'labels' => array(
@@ -91,7 +91,7 @@ $tw_settings = array(
 			'description' => 'Каталог рецептов сайта',
 			'public' => true,
 			'publicly_queryable' => true,
-			'show_ui' => true, 
+			'show_ui' => true,
 			'show_in_menu' => true,
 			'show_in_nav_menus' => true,
 			'show_in_admin_bar' => true,
@@ -101,11 +101,11 @@ $tw_settings = array(
 			'supports' => array('title', 'editor', 'excerpt', 'author', 'thumbnail', 'custom-fields', 'comments'),
 			'has_archive' => true,
 			'rewrite' => array('slug' => 'recipes', 'with_front' => false, 'hierarchical' => false),
-			'query_var' => true, 
+			'query_var' => true,
 			'taxonomies' => array('receipts')
 		),
 	),
-	
+
 	'navigation' => array(
 		'prev' => '&#9668;',
 		'next' => '&#9658;',
@@ -137,5 +137,3 @@ $tw_settings = array(
 );
 
 include_once(get_template_directory() . '/library/init.php');
-
-?>

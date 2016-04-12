@@ -9,39 +9,39 @@
 
 
 function tw_comment($comment, $args, $depth ) {
-	
+
 	$GLOBALS['comment'] = $comment; ?>
-	
+
 	<div id="comment-<?php comment_ID(); ?>" <?php comment_class(); ?>>
-		
+
 		<?php if ('div' != $args['style']) echo '<div id="div-comment-' . get_comment_ID() . '">'; ?>
 
 		<div class="comment_inner">
-		
+
 			<div class="comment_avatar"><?php echo get_avatar($comment, 60); ?></div>
-			
+
 			<div class="comment_body">
-			
+
 				<div class="comment_info">
 					<span class="comment_author"><?php echo get_comment_author_link(get_comment_ID()); ?></span>
 					<span class="comment_date"><?php echo get_comment_date('d.m.Y в H:i', get_comment_ID()); ?></span>
 				</div>
 
 				<?php comment_text(get_comment_ID()); ?>
-				
+
 				<?php if ($comment->comment_approved == '0') { ?>
 					<div class="comment_on_moderation">Комментарий ожидает модерации.</div>
 				<?php } ?>
-				
+
 				<div class="comment_buttons">
 					<?php comment_reply_link(array_merge($args, array('depth' => $depth, 'max_depth' => $args['max_depth']))); ?>
-					<?php echo edit_comment_link(); ?>
+					<?php edit_comment_link(); ?>
 				</div>
-			
+
 			</div>
-			
+
 		</div>
-			
+
 		<?php if ('div' != $args['style']) echo '</div>';
 
 }
@@ -50,21 +50,21 @@ function tw_comment($comment, $args, $depth ) {
 
 
 function tw_comment_form($args = array(), $post_id = false) {
-	
+
 	if ($post_id == false) $post_id = get_the_ID();
 
 	$commenter = wp_get_current_commenter();
 	$user = wp_get_current_user();
 	$user_identity = $user->exists() ? $user->display_name : '';
-	
+
 	$args = wp_parse_args($args);
-	
+
 	$fields = array(
 		'author' => '<input placeholder="Ваше имя..." name="author" type="text" value="' . esc_attr($commenter['comment_author']) . '" size="30" required="required" />',
 		'email'  => '<input placeholder="Ваш email..." name="email" type="text" value="' . esc_attr($commenter['comment_author_email']) . '" size="30"' . (get_option('require_name_email') ? ' required="required"' : '') . ' />',
 		'url'    => '<input placeholder="Адрес сайта..." name="url" type="text" value="' . esc_attr($commenter['comment_author_url']) . '" size="30" />',
 	);
-	
+
 	$fields = apply_filters('comment_form_default_fields', $fields);
 
 	$defaults = array(
@@ -98,53 +98,53 @@ function tw_comment_form($args = array(), $post_id = false) {
 	$args = array_merge($defaults, $args);
 
 	if (comments_open($post_id)) { ?>
-		
+
 		<?php do_action( 'comment_form_before' ); ?>
-		
+
 		<div id="respond" class="comment-respond">
-			
+
 			<?php
-			
+
 			echo $args['title_reply_before'];
-			
+
 			comment_form_title($args['title_reply'], $args['title_reply_to']);
-			
+
 			if (isset($_GET['replytocom'])) echo $args['cancel_reply_before'] . get_cancel_comment_reply_link($args['cancel_reply_link']) . $args['cancel_reply_after'];
-			
+
 			echo $args['title_reply_after'];
 
 			if (get_option('comment_registration') && !is_user_logged_in()) {
-				
+
 				echo $args['must_log_in'];
-				
+
 				do_action( 'comment_form_must_log_in_after' );
-				
+
 			} else { ?>
-			
+
 				<form action="<?php echo site_url('/wp-comments-post.php'); ?>" method="post" id="<?php echo esc_attr($args['id_form']); ?>" class="<?php echo esc_attr($args['class_form']); ?>">
-					
+
 					<?php
-					
+
 					do_action('comment_form_top');
 
 					if (is_user_logged_in()) {
-						
+
 						echo apply_filters('comment_form_logged_in', $args['logged_in_as'], $commenter, $user_identity);
 
 						do_action('comment_form_logged_in_after', $commenter, $user_identity);
 
 					} else {
-						
+
 						echo $args['comment_notes_before'];
-						
+
 						do_action('comment_form_before_fields');
-						
+
 						$comment_fields = apply_filters('comment_form_fields', $args['fields']);
-						
+
 						foreach ($comment_fields as $name => $field) {
 							echo apply_filters("comment_form_field_{$name}", $field) . "\n";
 						}
-						
+
 						do_action('comment_form_after_fields');
 
 					}
@@ -152,41 +152,39 @@ function tw_comment_form($args = array(), $post_id = false) {
 					$textarea_field = apply_filters('comment_form_fields', array('comment' => $args['comment_field']));
 					$textarea_field = apply_filters('comment_form_field_comment', $textarea_field['comment']);
 					echo $textarea_field;
-					
+
 					$submit_button = sprintf($args['submit_button'], esc_attr($args['name_submit']), esc_attr($args['id_submit']), esc_attr($args['class_submit']), esc_attr($args['label_submit']));
 					$submit_button = apply_filters('comment_form_submit_button', $submit_button, $args);
 					$submit_field = sprintf($args['submit_field'], $submit_button, get_comment_id_fields($post_id));
 					$submit_field = apply_filters( 'comment_form_submit_field', $submit_field, $args );
 					echo $submit_field;
-					
+
 					do_action( 'comment_form', $post_id );
 
 					?>
-					
+
 				</form>
-				
+
 			<?php } ?>
-			
+
 		</div>
 
 		<?php
-		
+
 		do_action('comment_form_after');
-		
+
 	} else {
-		
+
 		if ($args['disabled_message']) { ?>
-		
+
 		<div id="respond" class="comment-respond">
 			<p class="nocomments">Комментирование данной записи отключено</p>
 		</div>
-		
+
 		<?php }
-		
+
 		do_action('comment_form_comments_closed');
-	
+
 	}
 
 }
-
-?>
