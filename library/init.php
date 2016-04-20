@@ -3,8 +3,8 @@
 /*
 Описание: библиотека для инициализации темы
 Автор: Тониевич Андрей
-Версия: 1.8
-Дата: 07.02.2016
+Версия: 1.9
+Дата: 21.04.2016
 */
 
 function tw_settings($group = false, $name = false) {
@@ -125,38 +125,76 @@ if (tw_settings('scripts')) {
 
 	function tw_register_scripts() {
 
-		$scripts = array(
-			'likes'			=> 'social-likes.min.js',
-			'share42'		=> 'share42/share42.js',
-			'jcarousel' 	=> 'jquery.jcarousel.min.js',
-			'colorbox'		=> 'jquery.colorbox-min.js',
-			'scrollto'		=> 'jquery.scrollTo.min.js',
-			'nouislider'	=> 'jquery.nouislider.min.js',
-			'scrollpane'	=> 'jquery.jscrollpane.min.js',
-			'mousewheel'	=> 'jquery.mousewheel.js',
-			'formstyler'	=> 'jquery.formstyler.min.js',
+		$defaults = array(
+			'deps' => array('jquery'),
+			'styles' => array(),
+			'scripts' => array(),
+			'display' => false
 		);
 
-		$stylesheets = array(
-			'likes'			=> 'social-likes.css',
-			'colorbox'		=> 'colorbox/colorbox.css',
-			'nouislider'	=> 'jquery.nouislider.css',
+		$predefined_scripts = array(
+			'likes' => array(
+				'styles' => array('social-likes.css'),
+				'scripts' => array('social-likes.min.js'),
+			),
+			'colorbox' => array(
+				'styles' => array('colorbox/colorbox.css'),
+				'scripts' => array('jquery.colorbox-min.js'),
+			),
+			'styler' => array(
+				'styles' => array('jquery.formstyler.css'),
+				'scripts' => array('jquery.formstyler.min.js'),
+			),
+			'jcarousel' => array(
+				'scripts' => array('jquery.jcarousel.min.js'),
+			),
+			'nivo' => array(
+				'styles' => array('nivo-slider.css'),
+				'scripts' => array('jquery.nivo.slider.pack.js'),
+			)
 		);
+
+		$scripts = tw_settings('scripts');
 
 		$dir = get_template_directory_uri() . '/scripts/';
 
-		foreach (tw_settings('scripts') as $script) {
+		foreach ($scripts as $script => $config) {
 
-			if (isset($scripts[$script])) {
-				wp_register_script($script, $dir . $scripts[$script], array('jquery'), null);
-				wp_enqueue_script($script);
-			} elseif (wp_script_is($script) or $script == 'jquery') {
-				wp_enqueue_script($script);
+			if (is_bool($config) and $config) {
+
+				if (!empty($predefined_scripts[$script])) {
+					$config = $predefined_scripts[$script];
+					$config['display'] = true;
+				} elseif (wp_script_is($script, 'registered')) {
+					wp_enqueue_script($script);
+				} elseif (wp_style_is($script, 'registered')) {
+					wp_enqueue_style($script);
+				}
+
 			}
 
-			if (isset($stylesheets[$script])) {
-				wp_register_style($script, $dir . $stylesheets[$script]);
-				wp_enqueue_style($script);
+			if (is_array($config)) {
+
+				$config = wp_parse_args($config, $defaults);
+
+				if ($config['display']) {
+
+					if (!empty($config['scripts']) and is_array($config['scripts'])) {
+						foreach ($config['scripts'] as $file) {
+							wp_register_script($script, $dir . $file, $config['deps'], null);
+							wp_enqueue_script($script);
+						}
+					}
+
+					if (!empty($config['styles']) and is_array($config['styles'])) {
+						foreach ($config['styles'] as $file) {
+							wp_register_style($script, $dir . $file, array(), null);
+							wp_enqueue_style($script);
+						}
+					}
+
+				}
+
 			}
 
 		}

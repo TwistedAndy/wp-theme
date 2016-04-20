@@ -20,12 +20,12 @@ $tw_settings = array(
 	),
 
 	'scripts' => array(
-		'likes',
-		'colorbox',
-		'jcarousel',
-		'nouislider',
-		'share42',
-		'scrollto'
+		'jquery' => true,
+		'nivo' => false,
+		'likes' => false,
+		'styler' => false,
+		'colorbox' => false,
+		'jcarousel' => false,
 	),
 
 	'widgets' => array(
@@ -126,8 +126,9 @@ $tw_settings = array(
 		'ajax_comments' => false,
 		'action_get_posts' => false,
 		'action_menu_active' => true,
+		'action_fix_caption' => false,
 		'action_clean_header' => true,
-		'widget_posts' => true,
+		'widget_posts' => false,
 		'widget_comments' => false,
 		'module_cyrtolat' => true,
 		'module_russian_date' => true,

@@ -96,3 +96,38 @@ if (tw_settings('init', 'action_get_posts')) {
 	}
 
 }
+
+
+if (tw_settings('init', 'action_fix_caption')) {
+
+	add_filter('img_caption_shortcode_width', 'tw_fix_caption');
+
+	function tw_fix_caption($value = false, $attr, $content) {
+
+		$atts = shortcode_atts(array(
+			'id'	  => '',
+			'align'	  => 'alignnone',
+			'width'	  => '',
+			'caption' => '',
+			'class'   => '',
+		), $attr, 'caption');
+
+		$atts['width'] = intval($atts['width']);
+
+		if ($atts['width'] < 1 or empty($atts['caption'])) {
+			return $content;
+		}
+
+		if (!empty($atts['id'])) {
+			$atts['id'] = 'id="' . esc_attr(sanitize_html_class($atts['id'])) . '" ';
+		}
+
+		$atts['class'] = 'class="' . trim('wp-caption ' . $atts['align'] . ' ' . $atts['class']) . '" ';
+
+		$style = 'style="max-width: ' . $atts['width'] . 'px;"';
+		
+		return '<div ' . $atts['id'] . $atts['class'] . $style . '>' . do_shortcode($content) . '<p class="wp-caption-text">' . $atts['caption'] . '</p></div>';
+		
+	}
+
+}
