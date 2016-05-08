@@ -100,9 +100,9 @@ if (tw_settings('init', 'action_get_posts')) {
 
 if (tw_settings('init', 'action_fix_caption')) {
 
-	add_filter('img_caption_shortcode_width', 'tw_fix_caption');
+	add_filter('img_caption_shortcode', 'tw_fix_caption', 10, 3);
 
-	function tw_fix_caption($value = false, $attr, $content) {
+	function tw_fix_caption($value = false, $attr = array(), $content = '') {
 
 		$atts = shortcode_atts(array(
 			'id'	  => '',
@@ -125,9 +125,9 @@ if (tw_settings('init', 'action_fix_caption')) {
 		$atts['class'] = 'class="' . trim('wp-caption ' . $atts['align'] . ' ' . $atts['class']) . '" ';
 
 		$style = 'style="max-width: ' . $atts['width'] . 'px;"';
-		
+
 		return '<div ' . $atts['id'] . $atts['class'] . $style . '>' . do_shortcode($content) . '<p class="wp-caption-text">' . $atts['caption'] . '</p></div>';
-		
+
 	}
 
 }

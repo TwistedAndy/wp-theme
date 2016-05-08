@@ -134,23 +134,23 @@ if (tw_settings('scripts')) {
 
 		$predefined_scripts = array(
 			'likes' => array(
-				'styles' => array('social-likes.css'),
-				'scripts' => array('social-likes.min.js'),
+				'styles' => 'social-likes.css',
+				'scripts' => 'social-likes.min.js',
 			),
 			'colorbox' => array(
-				'styles' => array('colorbox/colorbox.css'),
-				'scripts' => array('jquery.colorbox-min.js'),
+				'styles' => 'colorbox/colorbox.css',
+				'scripts' => 'jquery.colorbox-min.js',
 			),
 			'styler' => array(
-				'styles' => array('jquery.formstyler.css'),
-				'scripts' => array('jquery.formstyler.min.js'),
+				'styles' => 'jquery.formstyler.css',
+				'scripts' => 'jquery.formstyler.min.js',
 			),
 			'jcarousel' => array(
-				'scripts' => array('jquery.jcarousel.min.js'),
+				'scripts' => 'jquery.jcarousel.min.js',
 			),
 			'nivo' => array(
-				'styles' => array('nivo-slider.css'),
-				'scripts' => array('jquery.nivo.slider.pack.js'),
+				'styles' => 'nivo-slider.css',
+				'scripts' => 'jquery.nivo.slider.pack.js',
 			)
 		);
 
@@ -160,12 +160,25 @@ if (tw_settings('scripts')) {
 
 		foreach ($scripts as $script => $config) {
 
+			if (is_callable($config)) {
+				$config = $config();
+			}
+
+			if (!empty($predefined_scripts[$script])) {
+
+				if (is_array($config)) {
+					$config = wp_parse_args($config, $predefined_scripts[$script]);
+				} else {
+					$config = $predefined_scripts[$script];
+				}
+
+				$config['display'] = true;
+
+			}
+
 			if (is_bool($config) and $config) {
 
-				if (!empty($predefined_scripts[$script])) {
-					$config = $predefined_scripts[$script];
-					$config['display'] = true;
-				} elseif (wp_script_is($script, 'registered')) {
+				if (wp_script_is($script, 'registered')) {
 					wp_enqueue_script($script);
 				} elseif (wp_style_is($script, 'registered')) {
 					wp_enqueue_style($script);
@@ -177,22 +190,18 @@ if (tw_settings('scripts')) {
 
 				$config = wp_parse_args($config, $defaults);
 
-				if ($config['display']) {
-
-					if (!empty($config['scripts']) and is_array($config['scripts'])) {
-						foreach ($config['scripts'] as $file) {
-							wp_register_script($script, $dir . $file, $config['deps'], null);
-							wp_enqueue_script($script);
-						}
+				if (!empty($config['scripts']) and is_string($config['scripts'])) {
+					wp_register_script($script, $dir . $config['scripts'], $config['deps'], null);
+					if ($config['display']) {
+						wp_enqueue_script($script);
 					}
+				}
 
-					if (!empty($config['styles']) and is_array($config['styles'])) {
-						foreach ($config['styles'] as $file) {
-							wp_register_style($script, $dir . $file, array(), null);
-							wp_enqueue_style($script);
-						}
+				if (!empty($config['styles']) and is_string($config['styles'])) {
+					wp_register_style($script, $dir . $config['styles'], array(), null);
+					if ($config['display']) {
+						wp_enqueue_style($script);
 					}
-
 				}
 
 			}
@@ -221,7 +230,7 @@ if (tw_settings('widgets')) {
 }
 
 
-$dir = get_template_directory() . '/library/';
+$dir = dirname(__FILE__) . '/';
 
 include_once($dir . 'common.php');
 include_once($dir . 'taxonomy.php');

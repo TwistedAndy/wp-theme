@@ -20,7 +20,7 @@ $tw_settings = array(
 	),
 
 	'scripts' => array(
-		'jquery' => true,
+		'jquery' => false,
 		'nivo' => false,
 		'likes' => false,
 		'styler' => false,
@@ -126,7 +126,7 @@ $tw_settings = array(
 		'ajax_comments' => false,
 		'action_get_posts' => false,
 		'action_menu_active' => true,
-		'action_fix_caption' => false,
+		'action_fix_caption' => true,
 		'action_clean_header' => true,
 		'widget_posts' => false,
 		'widget_comments' => false,
@@ -137,4 +137,4 @@ $tw_settings = array(
 
 );
 
-include_once(get_template_directory() . '/library/init.php');
+include_once(dirname(__FILE__) . '/library/init.php');
