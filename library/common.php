@@ -4,7 +4,7 @@
 Описание: библиотека с общими функциями
 Автор: Тониевич Андрей
 Версия: 1.7
-Дата: 05.03.2016
+Дата: 21.05.2016
 */
 
 function tw_wp_title($add_page_number = false) {
@@ -344,6 +344,10 @@ function tw_strip($text, $len, $allowed_tags = false, $find = ' ', $dots = '...'
 
 function tw_text($item = false, $len = 250, $allowed_tags = false, $find = ' ', $force_cut = true) {
 
+	if ($item == false) {
+		$item = get_post();
+	}
+
 	if ($item and isset($item->post_content) and isset($item->post_excerpt)) {
 		$text = $item->post_content;
 		$excerpt = $item->post_excerpt;
@@ -470,14 +474,16 @@ function tw_get_thumb($image_url, $size) {
 }
 
 
-function tw_thumb($item, $size = false, $before = '', $after = '', $atts = array(), $thumb_only = false) {
+function tw_thumb($item = false, $size = false, $before = '', $after = '', $atts = array(), $thumb_only = false) {
 
 	global $_wp_additional_image_sizes;
 
 	$result = '';
 	$src = false;
 
-	if (!$item) $item = get_post();
+	if ($item == false) {
+		$item = get_post();
+	}
 
 	if (!isset($atts['link'])) {
 

@@ -3,9 +3,39 @@
 /*
 Описание: библиотека для работы с Advanced Custom Fields
 Автор: Тониевич Андрей
-Версия: 1.5
-Дата: 18.01.2015
+Версия: 1.6
+Дата: 20.05.2016
 */
+
+
+function tw_acf_get_current_id() {
+
+	$post_id = false;
+
+	if (is_category()) {
+
+		$post_id = 'category_' . get_query_var('cat');
+
+	} elseif (is_tag() or is_tax()) {
+
+		$queried_object = get_queried_object();
+
+		if (!empty($queried_object->taxonomy) and !empty($queried_object->term_id)) {
+
+			$post_id = $queried_object->taxonomy . '_' . $queried_object->term_id;
+
+		}
+
+	} elseif (is_singular()) {
+
+		$post_id = get_the_ID();
+
+	}
+
+	return $post_id;
+
+}
+
 
 if (tw_settings('acf', 'option_page') and function_exists('acf_add_options_page')) {
 

@@ -121,6 +121,7 @@ $tw_settings = array(
 	),
 
 	'init' => array(
+		'ajax_mail' => false,
 		'ajax_posts' => false,
 		'ajax_rating' => false,
 		'ajax_comments' => false,

@@ -158,50 +158,52 @@ if (tw_settings('scripts')) {
 
 		$dir = get_template_directory_uri() . '/scripts/';
 
-		foreach ($scripts as $script => $config) {
+		if (!empty($scripts) and is_array($scripts)) {
 
-			if (is_callable($config)) {
-				$config = $config();
-			}
+			foreach ($scripts as $script => $config) {
 
-			if (!empty($predefined_scripts[$script])) {
-
-				if (is_array($config)) {
-					$config = wp_parse_args($config, $predefined_scripts[$script]);
-				} else {
-					$config = $predefined_scripts[$script];
+				if (is_callable($config)) {
+					$config = $config();
 				}
 
-				$config['display'] = true;
+				if (is_bool($config) and $config) {
 
-			}
+					$config = array();
 
-			if (is_bool($config) and $config) {
+					$config['display'] = true;
 
-				if (wp_script_is($script, 'registered')) {
-					wp_enqueue_script($script);
-				} elseif (wp_style_is($script, 'registered')) {
-					wp_enqueue_style($script);
-				}
-
-			}
-
-			if (is_array($config)) {
-
-				$config = wp_parse_args($config, $defaults);
-
-				if (!empty($config['scripts']) and is_string($config['scripts'])) {
-					wp_register_script($script, $dir . $config['scripts'], $config['deps'], null);
-					if ($config['display']) {
+					if (wp_script_is($script, 'registered')) {
 						wp_enqueue_script($script);
 					}
-				}
 
-				if (!empty($config['styles']) and is_string($config['styles'])) {
-					wp_register_style($script, $dir . $config['styles'], array(), null);
-					if ($config['display']) {
+					if (wp_style_is($script, 'registered')) {
 						wp_enqueue_style($script);
 					}
+
+				}
+
+				if (!empty($predefined_scripts[$script])) {
+					$config = wp_parse_args($config, $predefined_scripts[$script]);
+				}
+
+				if (is_array($config)) {
+
+					$config = wp_parse_args($config, $defaults);
+
+					if (!empty($config['scripts']) and is_string($config['scripts'])) {
+						wp_register_script($script, $dir . $config['scripts'], $config['deps'], null);
+						if ($config['display']) {
+							wp_enqueue_script($script);
+						}
+					}
+
+					if (!empty($config['styles']) and is_string($config['styles'])) {
+						wp_register_style($script, $dir . $config['styles'], array(), null);
+						if ($config['display']) {
+							wp_enqueue_style($script);
+						}
+					}
+
 				}
 
 			}
