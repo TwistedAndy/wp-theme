@@ -2,7 +2,7 @@
 
 <?php if (!have_posts()) { ?>
 
-	<?php get_template_part('content', 'none'); ?>
+	<?php get_template_part('content/none'); ?>
 
 <?php } else { ?>
 
@@ -11,13 +11,13 @@
 	<div class="content">
 
 		<h1><?php echo tw_wp_title(); ?></h1>
-		
+
 		<?php the_content(); ?>
 
 	</div>
-	
+
 	<?php echo tw_navigation(array('type' => 'page')); ?>
-		
+
 	<?php } ?>
 
 <?php } ?>

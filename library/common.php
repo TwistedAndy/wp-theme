@@ -594,8 +594,8 @@ function tw_get_views($post_id) {
 
 	if (!$count) {
 		delete_post_meta($post_id, $count_key);
-		add_post_meta($post_id, $count_key, '0');
-		return '0';
+		add_post_meta($post_id, $count_key, 0);
+		return 0;
 	}
 
 	return $count;
@@ -614,7 +614,7 @@ function tw_set_views($post_id) {
 		update_post_meta($post_id, $count_key, $count);
 	} else {
 		delete_post_meta($post_id, $count_key);
-		add_post_meta($post_id, $count_key, '0');
+		add_post_meta($post_id, $count_key, 1);
 	}
 
 }
@@ -622,13 +622,13 @@ function tw_set_views($post_id) {
 
 function tw_get_rating($post_id) {
 
-	$rating_value = get_post_meta($post_id, 'rating_value', true);
+	$rating_sum = get_post_meta($post_id, 'rating_sum', true);
 	$rating_votes = get_post_meta($post_id, 'rating_votes', true);
 
 	if ($rating_votes == 0) $rating_votes = 1;
 
 	return array(
-		'rating' => round($rating_value/$rating_votes),
+		'rating' => round($rating_sum/$rating_votes, 1),
 		'votes' => intval($rating_votes)
 	);
 
