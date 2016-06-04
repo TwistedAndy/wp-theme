@@ -159,8 +159,8 @@ function tw_breadcrumbs($separator = ' > ') {
 
 function tw_navigation($args = array(), $query = false) {
 
-	if (tw_settings('navigation') and is_array($args)) {
-		$args = array_merge(tw_settings('navigation'), $args);
+	if (tw_get_setting('navigation') and is_array($args)) {
+		$args = array_merge(tw_get_setting('navigation'), $args);
 	}
 
 	$defaults = array(

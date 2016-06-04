@@ -7,7 +7,7 @@
 Дата: 19.01.2016
 */
 
-if (tw_settings('init', 'module_russian_date')) {
+if (tw_get_setting('init', 'module_russian_date')) {
 
 	function tw_russian_date($date = '') {
 
@@ -55,7 +55,7 @@ if (tw_settings('init', 'module_russian_date')) {
 			'Sun' => 'воскресенье',
 		);
 
-		if (tw_settings('init', 'module_english_date')) {
+		if (tw_get_setting('init', 'module_english_date')) {
 			$replace_ru = array_merge($replace_ru, $replace_en);
 		}
 
@@ -71,7 +71,7 @@ if (tw_settings('init', 'module_russian_date')) {
 }
 
 
-if (tw_settings('init', 'module_cyrtolat')) {
+if (tw_get_setting('init', 'module_cyrtolat')) {
 
 	function tw_convert_to_translit($text) {
 

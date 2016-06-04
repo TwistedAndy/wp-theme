@@ -37,7 +37,7 @@ function tw_acf_get_current_id() {
 }
 
 
-if (tw_settings('acf', 'option_page') and function_exists('acf_add_options_page')) {
+if (tw_get_setting('acf', 'option_page') and function_exists('acf_add_options_page')) {
 
 	acf_add_options_page(array(
 		'page_title' 	=> 'Редактирование информации на сайте',
@@ -46,13 +46,15 @@ if (tw_settings('acf', 'option_page') and function_exists('acf_add_options_page'
 		'capability'	=> 'manage_options',
 		'redirect'		=> false,
 		'position'		=> 25,
-		'icon_url'		=> 'dashicons-welcome-widgets-menus'
+		'icon_url'		=> 'dashicons-welcome-widgets-menus',
+		'update_button' => 'Обновить',
+		'autoload'      => true
 	));
 
 }
 
 
-if (tw_settings('acf', 'include_subcats')) {
+if (tw_get_setting('acf', 'include_subcats')) {
 
 	add_filter('acf/location/rule_match/post_category', 'tw_match_subcategories', 10, 3);
 
@@ -97,7 +99,7 @@ if (tw_settings('acf', 'include_subcats')) {
 }
 
 
-if (tw_settings('acf', 'json_enable')) {
+if (tw_get_setting('acf', 'json_enable')) {
 
 	add_filter('acf/settings/save_json', 'tw_json_save_point');
 
@@ -142,7 +144,7 @@ if (!function_exists('get_field') and !is_admin()) {
 	}
 
 
-	if (tw_settings('acf', 'require_acf')) {
+	if (tw_get_setting('acf', 'require_acf')) {
 
 		add_action('wp_footer', 'tw_acf_fallback', 100);
 

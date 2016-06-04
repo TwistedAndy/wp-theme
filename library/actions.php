@@ -7,7 +7,7 @@
 Дата: 14.03.2016
 */
 
-if (tw_settings('init', 'action_menu_active')) {
+if (tw_get_setting('init', 'action_menu_active')) {
 
 	add_filter('nav_menu_css_class' , 'tw_nav_class', 10, 2);
 
@@ -37,7 +37,7 @@ if (tw_settings('init', 'action_menu_active')) {
 }
 
 
-if (!is_admin() and tw_settings('init', 'action_clean_header')) {
+if (!is_admin() and tw_get_setting('init', 'action_clean_header')) {
 
 	add_action('after_setup_theme', 'tw_clean_header', 10);
 
@@ -77,7 +77,7 @@ if (!is_admin() and tw_settings('init', 'action_clean_header')) {
 }
 
 
-if (tw_settings('init', 'action_get_posts')) {
+if (tw_get_setting('init', 'action_get_posts')) {
 
 	add_action('pre_get_posts', 'tw_pre_get', 1);
 
@@ -98,7 +98,7 @@ if (tw_settings('init', 'action_get_posts')) {
 }
 
 
-if (tw_settings('init', 'action_fix_caption')) {
+if (tw_get_setting('init', 'action_fix_caption')) {
 
 	add_filter('img_caption_shortcode', 'tw_fix_caption', 10, 3);
 

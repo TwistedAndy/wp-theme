@@ -28,7 +28,14 @@ $tw_settings = array(
 		'jcarousel' => false,
 	),
 
-	'widgets' => array(
+	'ajax' => array(
+		'email' => false,
+		'rating' => false,
+		'posts' => false,
+		'comments' => false
+	),
+	
+	'sidebars' => array(
 		array(
 			'name' => 'Блок справа в сайдбаре',
 			'id' => 'sidebar',
@@ -38,6 +45,11 @@ $tw_settings = array(
 			'before_title' => '<div class="title">',
 			'after_title' => '</div>'
 		),
+	),
+
+	'widgets' => array(
+		'posts' => false,
+		'comments' => false
 	),
 
 	'taxonomies' => array(
@@ -121,16 +133,10 @@ $tw_settings = array(
 	),
 
 	'init' => array(
-		'ajax_mail' => false,
-		'ajax_posts' => false,
-		'ajax_rating' => false,
-		'ajax_comments' => false,
 		'action_get_posts' => false,
 		'action_menu_active' => true,
 		'action_fix_caption' => true,
 		'action_clean_header' => true,
-		'widget_posts' => false,
-		'widget_comments' => false,
 		'module_cyrtolat' => true,
 		'module_russian_date' => true,
 		'module_english_date' => true,

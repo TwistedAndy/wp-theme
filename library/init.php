@@ -1,27 +1,24 @@
 <?php
 
 /*
-Описание: библиотека для инициализации темы
+Описание: библиотека для инициализации темы оформления
 Автор: Тониевич Андрей
-Версия: 1.9
-Дата: 21.04.2016
+Версия: 2.0
+Дата: 04.06.2016
 */
 
-function tw_settings($group = false, $name = false) {
+$dir = dirname(__FILE__) . '/';
 
-	global $tw_settings;
+include_once($dir . 'settings.php');
+include_once($dir . 'common.php');
+include_once($dir . 'taxonomy.php');
+include_once($dir . 'comment.php');
+include_once($dir . 'widget.php');
 
-	if ($name and $group and isset($tw_settings[$group][$name])) {
-		return $tw_settings[$group][$name];
-	} elseif ($group and isset($tw_settings[$group])) {
-		return $tw_settings[$group];
-	} elseif ($name == false and $group == false) {
-		return $tw_settings;
-	} else {
-		return false;
-	}
-
-};
+include_once($dir . 'acf.php');
+include_once($dir . 'custom.php');
+include_once($dir . 'modules.php');
+include_once($dir . 'actions.php');
 
 
 add_action('after_setup_theme', 'tw_setup');
@@ -30,47 +27,57 @@ function tw_setup() {
 
 	add_theme_support('title-tag');
 
-	if (tw_settings('menu')) {
+	if (tw_get_setting('menu')) {
 
-		register_nav_menus(tw_settings('menu'));
+		register_nav_menus(tw_get_setting('menu'));
 
 	}
 
-	if (tw_settings('thumbs')) {
+	if (tw_get_setting('thumbs')) {
 
 		add_theme_support('post-thumbnails');
 
-		foreach (tw_settings('thumbs') as $name => $thumb) {
+		$thumbs = tw_get_setting('thumbs');
 
-			$crop = (isset($thumb['crop'])) ? $thumb['crop'] : true;
+		if (is_array($thumbs)) {
 
-			if (!isset($thumb['width'])) $thumb['width'] = 0;
+			foreach ($thumbs as $name => $thumb) {
 
-			if (!isset($thumb['height'])) $thumb['height'] = 0;
+				$crop = (isset($thumb['crop'])) ? $thumb['crop'] : true;
 
-			if (in_array($name, array('thumbnail', 'medium', 'large'))) {
-
-				if (get_option($name . '_size_w') != $thumb['width']) {
-					update_option($name . '_size_w', $thumb['width']);
+				if (!isset($thumb['width'])) {
+					$thumb['width'] = 0;
 				}
 
-				if (get_option($name . '_size_h') != $thumb['height']) {
-					update_option($name . '_size_h', $thumb['height']);
+				if (!isset($thumb['height'])) {
+					$thumb['height'] = 0;
 				}
 
-				if (isset($thumb['crop']) and get_option($name . '_crop') != $crop) {
-					update_option($name . '_crop', $crop);
+				if (in_array($name, array('thumbnail', 'medium', 'large'))) {
+
+					if (get_option($name . '_size_w') != $thumb['width']) {
+						update_option($name . '_size_w', $thumb['width']);
+					}
+
+					if (get_option($name . '_size_h') != $thumb['height']) {
+						update_option($name . '_size_h', $thumb['height']);
+					}
+
+					if (isset($thumb['crop']) and get_option($name . '_crop') != $crop) {
+						update_option($name . '_crop', $crop);
+					}
+
+				} else {
+
+					add_image_size($name, $thumb['width'], $thumb['height'], $crop);
+
 				}
 
-			} else {
+				if (isset($thumb['thumb']) and $thumb['thumb']) {
 
-				add_image_size($name, $thumb['width'], $thumb['height'], $crop);
+					set_post_thumbnail_size($thumb['width'], $thumb['height'], $crop);
 
-			}
-
-			if (isset($thumb['thumb']) and $thumb['thumb']) {
-
-				set_post_thumbnail_size($thumb['width'], $thumb['height'], $crop);
+				}
 
 			}
 
@@ -81,17 +88,21 @@ function tw_setup() {
 }
 
 
-if (tw_settings('types')) {
+if (tw_get_setting('types')) {
 
 	add_action('init', 'tw_post_type');
 
 	function tw_post_type() {
 
-		$types = tw_settings('types');
+		$types = tw_get_setting('types');
 
-		foreach ($types as $name => $type) {
+		if (is_array($types)) {
 
-			register_post_type($name, $type);
+			foreach ($types as $name => $type) {
+
+				register_post_type($name, $type);
+
+			}
 
 		}
 
@@ -100,17 +111,21 @@ if (tw_settings('types')) {
 }
 
 
-if (tw_settings('taxonomies')) {
+if (tw_get_setting('taxonomies')) {
 
 	add_action('init', 'tw_taxonomies');
 
 	function tw_taxonomies() {
 
-		$taxonomies = tw_settings('taxonomies');
+		$taxonomies = tw_get_setting('taxonomies');
 
-		foreach ($taxonomies as $taxonomy) {
+		if (is_array($taxonomies)) {
 
-			register_taxonomy($taxonomy['name'], $taxonomy['types'], $taxonomy['args']);
+			foreach ($taxonomies as $taxonomy) {
+
+				register_taxonomy($taxonomy['name'], $taxonomy['types'], $taxonomy['args']);
+
+			}
 
 		}
 
@@ -119,7 +134,7 @@ if (tw_settings('taxonomies')) {
 }
 
 
-if (tw_settings('scripts')) {
+if (tw_get_setting('scripts')) {
 
 	add_action('init', 'tw_register_scripts');
 
@@ -154,7 +169,7 @@ if (tw_settings('scripts')) {
 			)
 		);
 
-		$scripts = tw_settings('scripts');
+		$scripts = tw_get_setting('scripts');
 
 		$dir = get_template_directory_uri() . '/scripts/';
 
@@ -215,15 +230,21 @@ if (tw_settings('scripts')) {
 }
 
 
-if (tw_settings('widgets')) {
+if (tw_get_setting('sidebars')) {
 
-	add_action('widgets_init', 'tw_widgets_init');
+	add_action('widgets_init', 'tw_sidebars_init');
 
-	function tw_widgets_init() {
+	function tw_sidebars_init() {
 
-		foreach (tw_settings('widgets') as $widget) {
+		$sidebars = tw_get_setting('sidebars');
 
-			register_sidebar($widget);
+		if (is_array($sidebars)) {
+
+			foreach ($sidebars as $sidebar) {
+
+				register_sidebar($sidebar);
+
+			}
 
 		}
 
@@ -232,14 +253,66 @@ if (tw_settings('widgets')) {
 }
 
 
-$dir = dirname(__FILE__) . '/';
+if (tw_get_setting('widgets')) {
 
-include_once($dir . 'common.php');
-include_once($dir . 'taxonomy.php');
-include_once($dir . 'comment.php');
-include_once($dir . 'widgets.php');
+	add_action('widgets_init', 'tw_widgets_init');
 
-include_once($dir . 'acf.php');
-include_once($dir . 'ajax.php');
-include_once($dir . 'actions.php');
-include_once($dir . 'modules.php');
+	function tw_widgets_init() {
+
+		$widgets = tw_get_setting('widgets');
+
+		if (is_array($widgets)) {
+
+			$dir = dirname(__FILE__);
+
+			foreach ($widgets as $widget => $active) {
+
+				$file = $dir . '/widgets/' . strtolower($widget) . '.php';
+
+				if ($active and is_file($file)) {
+
+					include_once($file);
+
+					register_widget('twisted_widget_' . $widget);
+
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+
+if (tw_get_setting('widgets')) {
+
+	$ajax_handlers = tw_get_setting('ajax');
+
+	if (is_array($ajax_handlers) and $ajax_handlers) {
+
+		$dir = dirname(__FILE__);
+
+		foreach ($ajax_handlers as $handler => $active) {
+
+			$file = $dir . '/ajax/' . strtolower($handler) . '.php';
+
+			if ($active and is_file($file)) {
+
+				include_once($file);
+
+			}
+
+		}
+
+	}
+
+}
+
+
+
+
+
+
+
