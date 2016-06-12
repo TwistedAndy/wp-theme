@@ -40,7 +40,7 @@ $tw_settings = array(
 			'name' => 'Блок справа в сайдбаре',
 			'id' => 'sidebar',
 			'description' => 'Область для виджетов в сайдбаре',
-			'before_widget' => '<div class="widget">',
+			'before_widget' => '<div class="widget %2$s">',
 			'after_widget' => '</div>',
 			'before_title' => '<div class="title">',
 			'after_title' => '</div>'

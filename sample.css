@@ -2,23 +2,25 @@
 
 /*
 Theme Name: Тема
+Theme URI: https://github.com/TwistedAndy/wp-theme
 Author: Андрей
+Author URI: http://www.maultalk.com/topic139110.html
 Version: 1.0
 Description: Тема для сайта
+Text Domain: wp-theme
 */
-
 
 /* Стили для оформления списка записей */
 
 .post {
-	margin-bottom: 50px;
 	overflow: hidden;
+	margin-bottom: 50px;
 }
 
 .post .thumb {
 	display: block;
-	width: 262px;
 	float: left;
+	width: 262px;
 }
 
 .post .thumb img {
@@ -37,23 +39,23 @@ Description: Тема для сайта
 
 .post_body .title {
 	display: block;
+	margin-top: -5px;
+	margin-bottom: 17px;
+	font-weight: bold;
 	font-size: 22px;
 	line-height: 130%;
 	color: #494949;
-	font-weight: bold;
 	text-transform: uppercase;
-	margin-bottom: 17px;
-	margin-top: -5px;
 }
 
 .post_body a.title {
 	font-weight: normal;
-	text-transform: none;
 	text-decoration: none;
+	text-transform: none;
 }
 
 .post_body a.title:hover {
-	color: #777;
+	color: #777777;
 }
 
 .post_body .title span {
@@ -68,29 +70,28 @@ Description: Тема для сайта
 	color: #ff0502;
 }
 
-
 /* Стили для пагинации */
 
 .pagination {
-	text-align: center;
 	margin: 20px 0 50px 0;
+	text-align: center;
 }
 
 .pagination span, .pagination a {
 	display: inline-block;
-	vertical-align: middle;
-	text-decoration: none;
 	padding: 2px 7px;
 	margin: 0 2px;
+	vertical-align: middle;
+	text-decoration: none;
 }
 
 .pagination span {
-	color: #fff;
-	background-color: #6CAD37;
+	background-color: #6cad37;
+	color: #ffffff;
 }
 
 .pagination a:hover {
-	color: #0D7B0D;
+	color: #0d7b0d;
 }
 
 .pagination .extend {
@@ -99,49 +100,48 @@ Description: Тема для сайта
 
 .pagination span.next, .pagination span.next.double, .pagination span.prev, .pagination span.prev.double {
 	background: transparent;
-	color: #0D7B0D;
+	color: #0d7b0d;
 }
-
 
 /* Стили для модальных окон с формой */
 
 #modal {
 	display: none;
 	position: fixed;
-	left: 0;
+	top: 0;
 	right: 0;
 	bottom: 0;
-	top: 0;
-	background: #000;
-	opacity: 0.5;
+	left: 0;
 	z-index: 100;
+	background: #000000;
+	opacity: 0.5;
 }
 
 .modal {
 	display: none;
 	position: fixed;
-	left: 50%;
 	top: 50%;
-	margin-left: -215px;
-	margin-top: -240px;
-	padding: 15px 15px 2px;
-	width: 400px;
-	background: #fff;
+	left: 50%;
 	z-index: 200;
+	width: 400px;
+	padding: 15px 15px 2px;
+	margin-top: -240px;
+	margin-left: -215px;
+	background: #ffffff;
+	box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
 	font-size: 14px;
 	line-height: 130%;
-	box-shadow: 0 0 20px rgba(0,0,0,0.4);
 }
 
 .modal input[type="text"], .modal input[type="tel"], .modal input[type="email"], .modal textarea {
 	display: block;
 	width: 200px;
 	padding: 5px 10px;
-	color: #333;
+	border: 1px solid #cccccc;
+	background: transparent;
 	font-size: 14px;
 	line-height: 20px;
-	border: 1px solid #ccc;
-	background: transparent;
+	color: #333333;
 }
 
 .modal input[type="file"], .modal .wpcf7-form-control-wrap.file, .modal .first.file {
@@ -150,8 +150,8 @@ Description: Тема для сайта
 }
 
 .modal p {
-	margin-bottom: 15px;
 	position: relative;
+	margin-bottom: 15px;
 }
 
 .modal .first {
@@ -169,11 +169,11 @@ Description: Тема для сайта
 }
 
 .modal .modal_title {
+	margin-bottom: 17px;
+	text-align: center;
 	font-size: 20px;
 	line-height: 120%;
-	color: #C72221;
-	text-align: center;
-	margin-bottom: 17px;
+	color: #c72221;
 }
 
 .modal input[type="submit"] {
@@ -181,18 +181,18 @@ Description: Тема для сайта
 	width: 150px;
 	padding: 5px 10px 4px;
 	margin: 0 auto;
-	font-size: 17px;
-	font-weight: normal;
-	text-align: center;
-	line-height: 130%;
-	color: #FFF;
-	background: #C72221;
 	border: 0;
+	background: #c72221;
+	text-align: center;
+	font-weight: normal;
+	font-size: 17px;
+	line-height: 130%;
+	color: #ffffff;
 	cursor: pointer;
 }
 
 .modal input[type="submit"]:hover {
-	background: #E54847;
+	background: #e54847;
 }
 
 .modal .ajax-loader {
@@ -211,27 +211,26 @@ Description: Тема для сайта
 }
 
 .modal .wpcf7-response-output {
-	margin: 0 0 15px;
 	padding: 8px 12px;
+	margin: 0 0 15px;
 	font-size: 15px;
 	line-height: 130%;
 }
 
 .modal .modal_close {
 	display: block;
+	position: absolute;
+	top: 16px;
+	right: 16px;
 	width: 24px;
 	height: 24px;
 	background: url(images/close.png) 0 0 no-repeat;
-	position: absolute;
-	right: 16px;
-	top: 16px;
 	cursor: pointer;
 }
 
 .modal .modal_close:hover {
 	opacity: 0.8;
 }
-
 
 /* Стили для оформления комментариев */
 
@@ -248,17 +247,17 @@ Description: Тема для сайта
 .comments h3, .comment-reply-title {
 	display: block;
 	margin-bottom: 12px;
-	font-size: 18px;
 	font-weight: normal;
+	font-size: 18px;
 	line-height: 130%;
-	color: #333;
+	color: #333333;
 }
 
 .comment-reply-title small, .comment-reply-title small a {
 	font-size: 16px;
-	text-transform: lowercase;
+	color: #555555;
 	text-decoration: none;
-	color: #555;
+	text-transform: lowercase;
 }
 
 .comment-reply-title small a:hover {
@@ -309,16 +308,16 @@ Description: Тема для сайта
 
 .comment .comment_author {
 	display: block;
-	font-size: 15px;
-	font-weight: bold;
 	float: left;
+	font-weight: bold;
+	font-size: 15px;
 }
 
 .comment .comment_date {
 	display: block;
-	font-size: 14px;
 	float: right;
-	color: #666;
+	font-size: 14px;
+	color: #666666;
 }
 
 .comment .comment_body {
@@ -331,28 +330,28 @@ Description: Тема для сайта
 
 .comment .comment_on_moderation {
 	font-style: italic;
-	color: #900;
+	color: #990000;
 }
 
 .comment .comment_buttons {
 	margin-top: 12px;
-	font-size: 13px;
 	text-align: right;
+	font-size: 13px;
 	line-height: 130%;
-	color: #900;
+	color: #990000;
 }
 
 .comment .comment_buttons a {
 	display: inline-block;
 	padding: 3px 10px;
-	background: #aaa;
 	border-radius: 5px;
-	color: #fff;
+	background: #aaaaaa;
+	color: #ffffff;
 	text-decoration: none;
 }
 
 .comment .comment_buttons a:hover {
-	background: #ccc;
+	background: #cccccc;
 }
 
 .comment .comment_buttons a + a {
@@ -368,39 +367,39 @@ Description: Тема для сайта
 .comment-respond input[type="text"], .comment-respond textarea {
 	display: block;
 	box-sizing: border-box;
-	max-width: 200px;
 	width: auto;
+	max-width: 200px;
 	height: auto;
 	padding: 5px 10px;
 	margin: 0 0 15px;
-	border: 1px solid #ccc;
+	border: 1px solid #cccccc;
 	border-radius: 5px;
-	font-size: 14px;
 	font-weight: normal;
+	font-size: 14px;
 	line-height: 130%;
 }
 
 .comment-respond textarea {
+	overflow: auto;
 	max-width: 100%;
 	height: 160px;
-	overflow: auto;
 }
 
 .comment-respond input[type="submit"] {
 	display: inline-block;
 	padding: 5px 15px;
 	border: 0;
-	background: #aaa;
+	border-radius: 5px;
+	background: #aaaaaa;
 	text-align: center;
 	font-size: 15px;
 	line-height: 130%;
-	color: #fff;
+	color: #ffffff;
 	cursor: pointer;
-	border-radius: 5px;
 }
 
 .comment-respond input[type="submit"]:hover {
-	background: #ccc;
+	background: #cccccc;
 }
 
 .comment-respond p {
@@ -417,17 +416,16 @@ Description: Тема для сайта
 }
 
 .comment-respond .logout {
-	text-decoration: none;	
+	text-decoration: none;
 }
 
 .comment-respond .logout:hover {
-	text-decoration: underline;	
+	text-decoration: underline;
 }
 
 .comment-respond .login, .comment-reply-title > a {
-	color: #953C21;
+	color: #953c21;
 }
-
 
 /* Базовые стили для оформления содержимого */
 
@@ -437,10 +435,10 @@ Description: Тема для сайта
 }
 
 .content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
+	margin-bottom: 15px;
 	font-weight: normal;
 	line-height: 110%;
-	color: #222;
-	margin-bottom: 15px;
+	color: #222222;
 }
 
 .content h1 {
@@ -473,8 +471,8 @@ Description: Тема для сайта
 }
 
 .content ul, .content ol {
-	list-style-position: outside;
 	margin-left: 1.4em;
+	list-style-position: outside;
 }
 
 .content li + li {
@@ -482,11 +480,10 @@ Description: Тема для сайта
 }
 
 .content table, .content img {
-	height: auto;
 	width: auto;
 	max-width: 100%;
+	height: auto;
 }
-
 
 /* Стили для оформления дополнительных элементов WP */
 
@@ -509,31 +506,30 @@ Description: Тема для сайта
 	margin: 2px 15px 15px 0;
 }
 
-.content .gallery {
+.content .gallery, .content .gallery-item, .content .gallery-item a, .content .gallery-item img {
 	display: block;
 	position: relative;
-	overflow: hidden;
-	margin-bottom: 15px !important;
+	padding: 0;
+	margin: 0;
 }
 
-.content .gallery-item, .content .gallery-item a, .content .gallery-item img, .wp-caption img, .wp-caption a {
-	display: block;
-	margin: 0;
-	padding: 0;
+.content .gallery {
+	overflow: hidden;
+	margin-bottom: 15px;
 }
 
 .content .gallery-item img {
-	border: 0 !important;
 	width: 100%;
+	border: 0 !important;
 }
 
-.content .wp-caption, .content blockquote, .content .gallery-icon, .content .gallery-caption {
+.content .gallery-icon, .content .gallery-caption {
 	display: block;
 	overflow: hidden;
-	text-align: center;
+	max-width: 100%;
 	padding: 5px;
 	background: #f5f5f5;
-	max-width: 100%;
+	text-align: center;
 }
 
 .content .gallery-icon {
@@ -546,20 +542,36 @@ Description: Тема для сайта
 	margin: 0 5px !important;
 }
 
+.content .wp-caption {
+	display: block;
+	overflow: hidden;
+	max-width: 100%;
+	padding: 5px;
+	margin-bottom: 15px;
+	background: #f5f5f5;
+}
+
+.content .wp-caption a {
+	display: block;
+}
+
 .content .wp-caption img {
+	display: block;
 	margin: 5px auto 8px;
 }
 
-.content .wp-caption p:last-child {
-	margin-bottom: 5px;
+.content .wp-caption :last-child {
+	margin-bottom: 0;
 }
 
 .content blockquote {
+	display: block;
+	overflow: hidden;
 	padding: 12px 15px;
 	margin-bottom: 15px;
-	text-align: left;
+	background: #f5f5f5;
 }
 
-.content blockquote p:last-child {
+.content blockquote :last-child {
 	margin-bottom: 0;
 }
