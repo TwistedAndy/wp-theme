@@ -3,72 +3,72 @@
 /*
 Описание: библиотека с общими функциями
 Автор: Тониевич Андрей
-Версия: 1.7
-Дата: 21.05.2016
+Версия: 1.8
+Дата: 12.06.2016
 */
 
-function tw_wp_title($add_page_number = false) {
+function tw_wp_title($add_page_number = true) {
 
-	$result = '';
+	$title = '';
 
 	if (is_404()) {
 
-		$result = 'Произошла ошибка';
+		$title = __('Page not found', 'wp-theme');
 
 	} elseif (is_search()) {
 
-		$result = 'Результаты поиска по запросу: ' . get_search_query();
+		$title = sprintf(__('Search results for %s', 'wp-theme'), get_search_query());
 
-	} elseif (is_front_page()) {
+	} elseif (is_home() or is_front_page()) {
 
-		$result = get_bloginfo('name', 'display');
+		$title = get_bloginfo('name', 'display');
 
 	} elseif (is_post_type_archive()) {
 
-		$result = post_type_archive_title('', false);
+		$title = post_type_archive_title('', false);
 
-	} elseif (is_home() || is_singular()) {
+	} elseif (is_singular()) {
 
-		$result = single_post_title('', false);
+		$title = single_post_title('', false);
 
 	} elseif (is_category() or is_tax()) {
 
-		$result = single_term_title('', false);
+		$title = single_term_title('', false);
 
 	} elseif (is_tag()) {
 
-		$result = single_term_title('Записи с тегом: ', false);
+		$title = sprintf(__('Posts with tag <i>%s</i>', 'wp-theme'), single_term_title('', false));
 
 	} elseif (is_author() and $author = get_queried_object()) {
 
-		$result = 'Записи пользователя ' . $author->display_name;
+		$title = sprintf(__('Posts of <i>%s</i>', 'wp-theme'), $author->display_name);
 
-	} elseif (is_year()) {
+	} elseif (is_day()) {
 
-		$result = 'Записи за ' . get_the_date('Y') . ' год';
+		$title = sprintf(__('Posts for <i>%s</i>', 'wp-theme'), mb_strtolower(get_the_date('d F Y')));
 
 	} elseif (is_month()) {
 
 		global $post;
+		$title = sprintf(__('Posts for <i>%s</i>', 'wp-theme'), mb_strtolower(mysql2date('F Y', $post->post_date)));
 
-		$result = 'Записи за ' . mb_strtolower(mb_strtolower(mysql2date('F Y', $post->post_date))) . ' года';
+	} elseif (is_year()) {
 
-	} elseif (is_day()) {
-
-		$result = 'Записи за ' . mb_strtolower(get_the_date('d F Y')) . ' года';
+		$title = sprintf(__('Posts for <i>%s</i> year', 'wp-theme'), get_the_date('Y'));
 
 	}
 
-	if ($add_page_number and $result and $page = intval(get_query_var('paged'))) {
-		$result .= ' - ' . $page . ' страница';
+	if ($add_page_number and $title and $page = intval(get_query_var('paged'))) {
+
+		$title .= sprintf(__(' - page %d', 'wp-theme'), $page);
+
 	}
 
-	return $result;
+	return apply_filters('wp_title', $title, '', '');
 
 }
 
-
-function tw_title($item, $len = false) {
+function tw_title($item, $length = false) {
 
 	$name = '';
 
@@ -78,7 +78,9 @@ function tw_title($item, $len = false) {
 
 		$name = apply_filters('the_title', $name, $item->ID);
 
-		if ($len) $name = tw_strip($name, $len);
+		if ($length) {
+			$name = tw_strip_text($name, $length);
+		}
 
 	}
 
@@ -86,12 +88,10 @@ function tw_title($item, $len = false) {
 
 }
 
-
 function tw_breadcrumbs($separator = ' > ') {
 
-	if (!is_home()) {
-		echo '<a href="' . get_option('home') . '" class="home">Главная</a>';
-		echo $separator;
+	if (!is_home() or !is_front_page()) {
+		echo '<a href="' . get_site_url() . '" class="home">' . __('Home', 'wp-theme') . '</a>' . $separator;
 	}
 
 	$taxonomy = tw_current_taxonomy();
@@ -103,7 +103,9 @@ function tw_breadcrumbs($separator = ' > ') {
 		if ($categories = get_the_terms(get_the_ID(), $taxonomy)) {
 			foreach ($categories as $category) {
 				$term = $category;
-				if (!empty($category->parent) and $category->parent > 0) break;
+				if (!empty($category->parent) and $category->parent > 0) {
+					break;
+				}
 			}
 		}
 
@@ -156,139 +158,248 @@ function tw_breadcrumbs($separator = ' > ') {
 
 }
 
+function tw_pagination($args = array(), $query = false) {
 
-function tw_navigation($args = array(), $query = false) {
+	$theme_settings = tw_get_setting('pagination');
 
-	if (tw_get_setting('navigation') and is_array($args)) {
-		$args = array_merge(tw_get_setting('navigation'), $args);
+	if ($theme_settings and is_array($theme_settings) and is_array($args)) {
+		$args = wp_parse_args($args, $theme_settings);
 	}
 
 	$defaults = array(
-		'before'	=> '<div class="pagination">',
-		'after'		=> '</div>',
-		'prev'		=> '&laquo;',
-		'next'		=> '&raquo;',
-		'first'		=> false,
-		'last'		=> false,
-		'pages_text'=> '',
-		'number'	=> 10,
-		'step'		=> 10,
-		'inactive'	=> false,
+		'before' => '<div class="pagination">',
+		'after' => '</div>',
+		'prev' => '&laquo;',
+		'next' => '&raquo;',
+		'first' => false,
+		'last' => false,
+		'pages_text' => '',
+		'number' => 10,
+		'step' => 10,
+		'inactive' => false,
 		'dots_left' => '...',
-		'dots_right'=> '...',
-		'type'		=> 'posts'
+		'dots_right' => '...',
+		'type' => 'posts',
+		'format' => '',
+		'base' => '',
+		'add_args' => array(),
+		'add_frag' => ''
 	);
 
-	foreach ($defaults as $key => $value) {
-		if (isset($args[$key])) $$key = $args[$key]; else $$key = $value;
-	}
+	$args = wp_parse_args($args, $defaults);
 
-	if ($type == 'comments') {
+	if ($args['type'] == 'comments') {
+
 		$paged = intval(get_query_var('cpage'));
 		$max_page = intval(get_comment_pages_count());
-	} elseif ($type == 'page') {
+
+	} elseif ($args['type'] == 'page') {
+
 		global $page, $numpages;
+
 		$paged = intval($page);
 		$max_page = intval($numpages);
+
 	} else {
+
+		global $wp_rewrite;
+
+		$url_parts = explode('?', html_entity_decode(get_pagenum_link()));
+
+		if (!empty($url_parts[0])) {
+
+			$pagenum_link = trailingslashit($url_parts[0]) . '%_%';
+
+			if ($wp_rewrite->using_index_permalinks() and !strpos($pagenum_link, 'index.php')) {
+				$format = 'index.php/';
+			} else {
+				$format = '';
+			}
+
+			if ($wp_rewrite->using_permalinks()) {
+				$format .= user_trailingslashit($wp_rewrite->pagination_base . '/%#%', 'paged');
+			} else {
+				$format .= '?paged=%#%';
+			}
+
+			$args['base'] = $pagenum_link;
+
+			$args['format'] = $format;
+
+			if (!empty($url_parts[1])) {
+
+				$format = explode('?', str_replace('%_%', $args['format'], $args['base']));
+
+				if (isset($format[1])) {
+					$format_query = $format[1];
+				} else {
+					$format_query = '';
+				}
+
+				wp_parse_str($format_query, $format_args);
+
+				wp_parse_str($url_parts[1], $url_query_args);
+
+				foreach ($format_args as $format_arg => $format_arg_value) {
+					unset($url_query_args[$format_arg]);
+				}
+
+				$args['add_args'] = array_merge($args['add_args'], urlencode_deep($url_query_args));
+
+			}
+
+		}
+
 		if (!$query or !($query instanceof WP_Query)) {
 			global $wp_query;
 			$query = $wp_query;
 		}
+
 		$paged = isset($query->query_vars['paged']) ? intval($query->query_vars['paged']) : 1;
-		$max_page = isset($query->max_num_pages ) ? intval($query->max_num_pages) : 1;
+		$max_page = isset($query->max_num_pages) ? intval($query->max_num_pages) : 1;
+
 	}
 
-	if ($max_page < 2) return '';
-	if ($paged == 0) $paged = 1;
+	if ($max_page < 2) {
+		return '';
+	}
 
-	$out = $before;
-	$number = $number - 1;
-	$half_page_start = floor($number/2);
-	$half_page_end = ceil($number/2);
+	if ($paged == 0) {
+		$paged = 1;
+	}
+
+	$out = $args['before'];
+	$number = $args['number'] - 1;
+	$half_page_start = floor($number / 2);
+	$half_page_end = ceil($number / 2);
 	$start_page = $paged - $half_page_start;
 	$end_page = $paged + $half_page_end;
 
-	if ($start_page <= 0) $start_page = 1;
+	if ($start_page < 1) {
+		$start_page = 1;
+	}
 
-	if (($end_page - $start_page) != $number) $end_page = $start_page + $number;
+	if (($end_page - $start_page) != $number) {
+		$end_page = $start_page + $number;
+	}
 
 	if ($end_page > $max_page) {
 		$start_page = $max_page - $number;
 		$end_page = intval($max_page);
 	}
 
-	if ($start_page <= 0) $start_page = 1;
-
-	if ($pages_text) {
-		$pages_text = str_replace('{current}', $paged, $pages_text);
-		$pages_text = str_replace('{last}', $max_page, $pages_text);
-		$out .= '<span class="pages">' . $pages_text . '</span>';
+	if ($start_page < 1) {
+		$start_page = 1;
 	}
 
-	if ($first and $start_page >= 2 and ($number + 1) < $max_page) {
-		$out .= '<a class="prev double" href="' . tw_page_link(1, $type) . '">' . (($first != 'first') ? $first : 1) . '</a>';
-		if ($dots_left and $start_page != 2) $out .= '<span class="extend">' . $dots_left . '</span>';
+	if ($args['pages_text']) {
+		$args['pages_text'] = str_replace('{current}', $paged, $args['pages_text']);
+		$args['pages_text'] = str_replace('{last}', $max_page, $args['pages_text']);
+		$out .= '<span class="pages">' . $args['pages_text'] . '</span>';
 	}
 
-	if ($paged != 1) {
-		$out .= '<a class="prev" href="' . tw_page_link(($paged-1), $type) . '">' . $prev . '</a>';
-	} elseif ($inactive) {
-		$out .= '<span class="prev">' . $prev .'</span>';
+	if ($args['first'] !== false and $start_page >= 2 and ($number + 1) < $max_page) {
+		$out .= '<a class="prev double" href="' . tw_page_link(1, $args) . '">' . (($args['first'] != 'first') ? $args['first'] : 1) . '</a>';
+		if ($args['dots_left'] and $start_page != 2) {
+			$out .= '<span class="extend">' . $args['dots_left'] . '</span>';
+		}
+	}
+
+	if ($args['prev'] !== false) {
+		if ($paged != 1) {
+			$out .= '<a class="prev" href="' . tw_page_link(($paged - 1), $args) . '">' . $args['prev'] . '</a>';
+		} elseif ($args['inactive']) {
+			$out .= '<span class="prev">' . $args['prev'] . '</span>';
+		}
 	}
 
 	for ($i = $start_page; $i <= $end_page; $i++) {
 		if ($i == $paged) {
 			$out .= '<span class="current">' . $i . '</span>';
 		} else {
-			$out .= '<a href="' . tw_page_link($i, $type) . '">' . $i . '</a>';
+			$out .= '<a href="' . tw_page_link($i, $args) . '">' . $i . '</a>';
 		}
 	}
 
-	if ($step and $end_page < $max_page){
+	if ($args['step'] and $end_page < $max_page) {
+		$dd = 0;
 		for ($i = $end_page + 1; $i <= $max_page; $i++) {
-			if ($i % $step == 0 && $i !== $num_pages) {
-				if (++$dd == 1) $out .= '<span class="extend">' . $dots_right . '</span>';
-				$out .= '<a href="' . tw_page_link($i, $type) . '">' . $i . '</a>';
+			if ($i % $args['step'] == 0 && $i !== $args['number']) {
+				if (++$dd == 1) {
+					$out .= '<span class="extend">' . $args['dots_right'] . '</span>';
+				}
+				$out .= '<a href="' . tw_page_link($i, $args) . '">' . $i . '</a>';
 			}
 		}
 	}
 
-	if ($paged != $end_page) {
-		$out .= '<a class="next" href="' . tw_page_link(($paged+1), $type) . '">' . $next . '</a>';
-	} elseif ($inactive) {
-		$out .= '<span class="next">' . $next . '</span>';
+	if ($args['next'] !== false) {
+		if ($paged != $end_page) {
+			$out .= '<a class="next" href="' . tw_page_link(($paged + 1), $args) . '">' . $args['next'] . '</a>';
+		} elseif ($args['inactive']) {
+			$out .= '<span class="next">' . $args['next'] . '</span>';
+		}
 	}
 
-	if ($last and $end_page < $max_page) {
-		if ($dots_right and $end_page != ($max_page-1)) $out.= '<span class="extend">' . $dots_right . '</span>';
-		$out .= '<a class="next double" href="' . tw_page_link($max_page, $type) . '">' . (($last != 'last') ? $last : $max_page) . '</a>';
+	if ($args['last'] !== false and $end_page < $max_page) {
+		if ($args['dots_right'] and $end_page != ($max_page - 1)) {
+			$out .= '<span class="extend">' . $args['dots_right'] . '</span>';
+		}
+		$out .= '<a class="next double" href="' . tw_page_link($max_page, $args) . '">' . (($args['last'] != 'last') ? $args['last'] : $max_page) . '</a>';
 	}
 
-	$out .= $after;
+	$out .= $args['after'];
 
 	return $out;
 
 }
 
+function tw_page_link($page, $args = array()) {
 
-function tw_page_link($page, $type = false) {
+	if (is_array($args) and isset($args['type'])) {
+		$type = $args['type'];
+	} elseif (is_string($args)) {
+		$type = $args;
+	} else {
+		$type = false;
+	}
 
 	if ($type == 'comments') {
+
 		$link = get_comments_pagenum_link($page);
+
 	} elseif ($type == 'page') {
+
 		$link = str_replace(array('<a href="', '">'), '', _wp_link_page($page));
 		$link = apply_filters('wp_link_pages_link', $link, $page);
+
 	} else {
-		$link = get_pagenum_link($page);
+
+		if (is_array($args) and !empty($args['base']) and !empty($args['format'])) {
+
+			$link = str_replace('%_%', ($page == 1 ? '' : $args['format']), $args['base']);
+			$link = str_replace('%#%', $page, $link);
+
+			if (!empty($args['add_args'])) {
+				$link = add_query_arg($args['add_args'], $link);
+			}
+
+			$link .= $args['add_fragment'];
+			$link = apply_filters('paginate_links', $link);
+
+		} else {
+
+			$link = get_pagenum_link($page);
+
+		}
+
 	}
 
 	return $link;
 
 }
 
-
-function tw_strip($text, $len, $allowed_tags = false, $find = ' ', $dots = '...') {
+function tw_strip_text($text, $length, $allowed_tags = false, $find = ' ', $dots = '...') {
 
 	if ($allowed_tags) {
 
@@ -315,17 +426,19 @@ function tw_strip($text, $len, $allowed_tags = false, $find = ' ', $dots = '...'
 
 	$text = strip_tags(strip_shortcodes($text), $allowed_tags_list);
 
-	if ($find and mb_strlen($text) > $len) {
-		$pos = mb_strpos($text, $find, $len);
-		if ($pos < $len or $pos > ($len + 20)) $pos = $len;
+	if ($find and mb_strlen($text) > $length) {
+		$pos = mb_strpos($text, $find, $length);
+		if ($pos < $length or $pos > ($length + 20)) {
+			$pos = $length;
+		}
 		$text = mb_substr($text, 0, $pos) . $dots;
 	} else {
-		$pos = $len;
+		$pos = $length;
 		$text = mb_substr($text, 0, $pos);
 	}
 
 	if (mb_strpos($allowed_tags_list, '<a>') !== false) {
-		$link_start =  mb_strrpos($text, '<a');
+		$link_start = mb_strrpos($text, '<a');
 		if ($link_start !== false) {
 			$link_end = mb_strpos($text, '</a>', $link_start);
 			if ($link_end === false) {
@@ -335,31 +448,46 @@ function tw_strip($text, $len, $allowed_tags = false, $find = ' ', $dots = '...'
 		$text = preg_replace('#<a[^>]*?></a>#is', '', $text);
 	}
 
-	if ($allowed_tags_list) $text = force_balance_tags($text);
+	if ($allowed_tags_list) {
+		$text = force_balance_tags($text);
+	}
 
 	return $text;
 
 }
 
+function tw_text($item = false, $length = 250, $allowed_tags = false, $find = ' ', $force_cut = true) {
 
-function tw_text($item = false, $len = 250, $allowed_tags = false, $find = ' ', $force_cut = true) {
-
-	if ($item == false) {
+	if ($item === false) {
 		$item = get_post();
 	}
 
-	if ($item and isset($item->post_content) and isset($item->post_excerpt)) {
+	if ($item and isset($item->post_content)) {
+
 		$text = $item->post_content;
-		$excerpt = $item->post_excerpt;
+
+		if (isset($item->post_excerpt)) {
+			$excerpt = $item->post_excerpt;
+		} else {
+			$excerpt = false;
+		}
+
+	} elseif ($item and is_string($item)) {
+
+		$text = $item;
+		$excerpt = false;
+
 	} else {
+
 		$text = get_the_content();
 		$excerpt = get_the_excerpt();
+
 	}
 
 	if ($excerpt and mb_strlen($excerpt) > 0) {
 
 		if ($force_cut) {
-			$result = tw_strip($excerpt, $len, $allowed_tags, $find);
+			$result = tw_strip_text($excerpt, $length, $allowed_tags, $find);
 		} else {
 			$result = $excerpt;
 		}
@@ -369,21 +497,20 @@ function tw_text($item = false, $len = 250, $allowed_tags = false, $find = ' ', 
 		$pos = mb_strpos($text, '<!--more');
 
 		if ($force_cut) {
-			$result = tw_strip(mb_substr($text, 0, $pos), $len, $allowed_tags, $find);
+			$result = tw_strip_text(mb_substr($text, 0, $pos), $length, $allowed_tags, $find);
 		} else {
-			$result = tw_strip(mb_substr($text, 0, $pos), $pos, $allowed_tags, $find);
+			$result = tw_strip_text(mb_substr($text, 0, $pos), $pos, $allowed_tags, $find);
 		}
 
 	} else {
 
-		$result = tw_strip($text, $len, $allowed_tags, $find);
+		$result = tw_strip_text($text, $length, $allowed_tags, $find);
 
 	}
 
 	return $result;
 
 }
-
 
 function tw_find_image($text) {
 
@@ -408,7 +535,6 @@ function tw_find_image($text) {
 	}
 
 }
-
 
 function tw_get_thumb($image_url, $size) {
 
@@ -435,9 +561,15 @@ function tw_get_thumb($image_url, $size) {
 					$height = $_wp_additional_image_sizes[$size]['height'];
 					$crop = $_wp_additional_image_sizes[$size]['crop'];
 				} elseif (is_array($size) and $size) {
-					if (isset($size[0])) $width = $size[0];
-					if (isset($size[1])) $height = $size[1];
-					if (isset($size[2])) $crop = $size[2];
+					if (isset($size[0])) {
+						$width = $size[0];
+					}
+					if (isset($size[1])) {
+						$height = $size[1];
+					}
+					if (isset($size[2])) {
+						$crop = $size[2];
+					}
 				} else {
 					$width = $_wp_additional_image_sizes['thumbnail']['width'];
 					$height = $_wp_additional_image_sizes['thumbnail']['height'];
@@ -447,7 +579,7 @@ function tw_get_thumb($image_url, $size) {
 				$width = intval($width);
 				$height = intval($height);
 
-				$filename =  '/library/cache/' . $matches[1] . '-' . $width . '-' . $height . '.' . $matches[2];
+				$filename = '/library/cache/' . $matches[1] . '-' . $width . '-' . $height . '.' . $matches[2];
 
 				if (!is_file(get_template_directory() . $filename)) {
 					$editor = wp_get_image_editor($image_url);
@@ -472,7 +604,6 @@ function tw_get_thumb($image_url, $size) {
 	return $result;
 
 }
-
 
 function tw_thumb($item = false, $size = false, $before = '', $after = '', $atts = array(), $thumb_only = false) {
 
@@ -547,10 +678,11 @@ function tw_thumb($item = false, $size = false, $before = '', $after = '', $atts
 
 }
 
-
 function tw_date($item, $format = '') {
 
-	if (!$format) $format = get_option('date_format');
+	if (!$format) {
+		$format = get_option('date_format');
+	}
 
 	$date = mysql2date($format, $item->post_date);
 
@@ -558,33 +690,33 @@ function tw_date($item, $format = '') {
 
 }
 
-
 function tw_none() {
 
 	if (is_category()) {
-		echo 'В данной рубрике записи не обнаружены';
+		$result = __('There are no posts in this category', 'wp-theme');
 	} elseif (is_page() or is_single()) {
-		echo 'Запись не обнаружена';
+		$result = __('The requested post is not found', 'wp-theme');
 	} elseif (is_tag()) {
-		echo 'С данным тегом записи не обнаружены';
+		$result = sprintf(__('There are no posts with tag <i>%s</i>', 'wp-theme'), single_term_title('', false));
 	} elseif (is_day()) {
-		echo 'За этот день записи не обнаружены';
+		$result = __('There are no posts for requested day', 'wp-theme');
 	} elseif (is_month()) {
-		echo 'За этот месяц записи не обнаружены';
+		$result = __('There are no posts for requested month', 'wp-theme');
 	} elseif (is_year()) {
-		echo 'За этот год записи не обнаружены';
+		$result = __('There are no posts for requested year', 'wp-theme');
 	} elseif (is_author()) {
-		echo 'У этого автора записи отсутствуют';
+		$result = __('There are no posts by this author', 'wp-theme');
 	} elseif (is_404()) {
-		echo 'По данному адресу записи не обнаружены';
+		$result = __('Sorry, but there is nothing to show by requested address', 'wp-theme');
 	} elseif (is_search()) {
-		echo 'По запросу <i>' . get_search_query() . '</i> ничего не найдено';
+		$result = sprintf(__('There are no information matching the query <i>%s</i>', 'wp-theme'), get_search_query());
 	} else {
-		echo 'Записи не обнаружены';
+		$result = __('There are no posts to show', 'wp-theme');
 	}
 
-}
+	return $result;
 
+}
 
 function tw_get_views($post_id) {
 
@@ -602,7 +734,6 @@ function tw_get_views($post_id) {
 
 }
 
-
 function tw_set_views($post_id) {
 
 	$count_key = 'post_views_count';
@@ -619,16 +750,17 @@ function tw_set_views($post_id) {
 
 }
 
-
 function tw_get_rating($post_id) {
 
 	$rating_sum = get_post_meta($post_id, 'rating_sum', true);
 	$rating_votes = get_post_meta($post_id, 'rating_votes', true);
 
-	if ($rating_votes == 0) $rating_votes = 1;
+	if ($rating_votes == 0) {
+		$rating_votes = 1;
+	}
 
 	return array(
-		'rating' => round($rating_sum/$rating_votes, 1),
+		'rating' => round($rating_sum / $rating_votes, 1),
 		'votes' => intval($rating_votes)
 	);
 

@@ -3,12 +3,12 @@
 /*
 Описание: библиотека для работы с комментариями
 Автор: Тониевич Андрей
-Версия: 1.6
-Дата: 18.01.2016
+Версия: 1.7
+Дата: 12.06.2016
 */
 
 
-function tw_comment($comment, $args, $depth ) {
+function tw_comment($comment, $args, $depth) {
 
 	$GLOBALS['comment'] = $comment; ?>
 
@@ -24,13 +24,13 @@ function tw_comment($comment, $args, $depth ) {
 
 				<div class="comment_info">
 					<span class="comment_author"><?php echo get_comment_author_link(get_comment_ID()); ?></span>
-					<span class="comment_date"><?php echo get_comment_date('d.m.Y в H:i', get_comment_ID()); ?></span>
+					<span class="comment_date"><?php echo get_comment_date('d.m.Y, H:i', get_comment_ID()); ?></span>
 				</div>
 
 				<?php comment_text(get_comment_ID()); ?>
 
 				<?php if ($comment->comment_approved == '0') { ?>
-					<div class="comment_on_moderation">Комментарий ожидает модерации.</div>
+					<div class="comment_on_moderation"><?php echo __('This comment is not approved yet.', 'wp-theme'); ?></div>
 				<?php } ?>
 
 				<div class="comment_buttons">
@@ -60,9 +60,9 @@ function tw_comment_form($args = array(), $post_id = false) {
 	$args = wp_parse_args($args);
 
 	$fields = array(
-		'author' => '<input placeholder="Ваше имя..." name="author" type="text" value="' . esc_attr($commenter['comment_author']) . '" size="30" required="required" />',
-		'email'  => '<input placeholder="Ваш email..." name="email" type="text" value="' . esc_attr($commenter['comment_author_email']) . '" size="30"' . (get_option('require_name_email') ? ' required="required"' : '') . ' />',
-		'url'    => '<input placeholder="Адрес сайта..." name="url" type="text" value="' . esc_attr($commenter['comment_author_url']) . '" size="30" />',
+		'author' => '<input placeholder="' . __('Your name', 'wp-theme') . '" name="author" type="text" value="' . esc_attr($commenter['comment_author']) . '" size="30" required="required" />',
+		'email'  => '<input placeholder="' . __('Your e-mail', 'wp-theme') . '" name="email" type="text" value="' . esc_attr($commenter['comment_author_email']) . '" size="30"' . (get_option('require_name_email') ? ' required="required"' : '') . ' />',
+		'url'    => '<input placeholder="' . __('Site', 'wp-theme') . '" name="url" type="text" value="' . esc_attr($commenter['comment_author_url']) . '" size="30" />',
 	);
 
 	$fields = apply_filters('comment_form_default_fields', $fields);
@@ -70,8 +70,8 @@ function tw_comment_form($args = array(), $post_id = false) {
 	$defaults = array(
 		'fields'               => $fields,
 		'comment_field'        => '<textarea id="comment" name="comment" cols="45" rows="8" required="required"></textarea>',
-		'must_log_in'          => '<p class="must-log-in">' . sprintf('Вы должны <a href="%s">войти</a>, чтобы оставить комментарий.', wp_login_url(apply_filters('the_permalink', get_permalink($post_id)))) . '</p>',
-		'logged_in_as'         => '<p class="logged-in-as">' . sprintf('Вы вошли как <a class="login" href="%1$s">%2$s</a> <a class="logout" href="%3$s">[выйти]</a>', get_edit_user_link(), $user_identity, wp_logout_url(apply_filters('the_permalink', get_permalink($post_id)))) . '</p>',
+		'must_log_in'          => '<p class="must-log-in">' . sprintf(__('You need to <a href="%s">login</a> to post a comment.', 'wp-theme'), wp_login_url(apply_filters('the_permalink', get_permalink($post_id)))) . '</p>',
+		'logged_in_as'         => '<p class="logged-in-as">' . sprintf(__('You\'ve logged in as <a class="login" href="%1$s">%2$s</a> <a class="logout" href="%3$s">[log out]</a>', 'wp-theme'), get_edit_user_link(), $user_identity, wp_logout_url(apply_filters('the_permalink', get_permalink($post_id)))) . '</p>',
 		'comment_notes_before' => '',
 		'comment_notes_after'  => '',
 		'id_form'              => 'commentform',
@@ -79,14 +79,14 @@ function tw_comment_form($args = array(), $post_id = false) {
 		'class_form'           => 'comment-form',
 		'class_submit'         => 'submit',
 		'name_submit'          => 'submit',
-		'title_reply'          => __( 'Leave a Reply' ),
-		'title_reply_to'       => __( 'Leave a Reply to %s' ),
+		'title_reply'          => __('Leave a Reply', 'wp-theme'),
+		'title_reply_to'       => __('Leave a Reply to %s', 'wp-theme'),
 		'title_reply_before'   => '<div id="reply-title" class="comment-reply-title">',
 		'title_reply_after'    => '</div>',
 		'cancel_reply_before'  => ' <small>[',
 		'cancel_reply_after'   => ']</small>',
-		'cancel_reply_link'    => __( 'Cancel reply' ),
-		'label_submit'         => __( 'Post Comment' ),
+		'cancel_reply_link'    => __('Cancel reply', 'wp-theme'),
+		'label_submit'         => __('Post Comment', 'wp-theme'),
 		'submit_button'        => '<input name="%1$s" type="submit" id="%2$s" class="%3$s" value="%4$s" />',
 		'submit_field'         => '<p class="form-submit">%1$s %2$s</p>',
 		'format'               => 'xhtml',
@@ -178,7 +178,9 @@ function tw_comment_form($args = array(), $post_id = false) {
 		if ($args['disabled_message']) { ?>
 
 		<div id="respond" class="comment-respond">
-			<p class="nocomments">Комментирование данной записи отключено</p>
+
+			<p class="nocomments"><?php echo __('Sorry, but comments are closed.', 'wp-theme'); ?></p>
+
 		</div>
 
 		<?php }

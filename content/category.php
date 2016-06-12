@@ -15,4 +15,4 @@
 
 <?php } ?>
 
-<?php echo tw_navigation(array('type' => 'posts')); ?>
+<?php echo tw_pagination(array('type' => 'posts')); ?>

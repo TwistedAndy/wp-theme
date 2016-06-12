@@ -18,7 +18,7 @@
 
 	</div>
 
-	<?php echo tw_navigation(array('type' => 'page')); ?>
+	<?php echo tw_pagination(array('type' => 'page')); ?>
 
 	<?php if (comments_open() || get_comments_number()) comments_template(); ?>
 

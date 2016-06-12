@@ -34,7 +34,7 @@ $tw_settings = array(
 		'posts' => false,
 		'comments' => false
 	),
-	
+
 	'sidebars' => array(
 		array(
 			'name' => 'Блок справа в сайдбаре',
@@ -118,7 +118,7 @@ $tw_settings = array(
 		),
 	),
 
-	'navigation' => array(
+	'pagination' => array(
 		'prev' => '&#9668;',
 		'next' => '&#9658;',
 		'first' => false,

@@ -16,7 +16,7 @@
 
 	</div>
 
-	<?php echo tw_navigation(array('type' => 'page')); ?>
+	<?php echo tw_pagination(array('type' => 'page')); ?>
 
 	<?php } ?>
 

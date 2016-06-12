@@ -1,0 +1,169 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2016-06-12 15:03+0300\n"
+"PO-Revision-Date: 2016-06-12 15:09+0300\n"
+"Last-Translator: Андрей <toniyevych@gmail.com>\n"
+"Language-Team: \n"
+"Language: ru_RU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.8\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: library/comment.php:34
+msgid "This comment is not approved yet."
+msgstr "Этот комментарий ожидает модерации."
+
+#: library/comment.php:64
+msgid "Your name"
+msgstr "Ваше имя"
+
+#: library/comment.php:65
+msgid "Your e-mail"
+msgstr "Ваш email"
+
+#: library/comment.php:66
+msgid "Site"
+msgstr "Адрес сайта"
+
+#: library/comment.php:75
+#, php-format
+msgid "You need to <a href=\"%s\">login</a> to post a comment."
+msgstr "Вы должны <a href=\"%s\">войти</a>, чтобы оставить комментарий."
+
+#: library/comment.php:78
+#, php-format
+msgid ""
+"You've logged in as <a class=\"login\" href=\"%1$s\">%2$s</a> <a class="
+"\"logout\" href=\"%3$s\">[log out]</a>"
+msgstr ""
+"Вы вошли как <a class=\"login\" href=\"%1$s\">%2$s</a> <a class=\"logout"
+"\" href=\"%3$s\">[выйти]</a>"
+
+#: library/comment.php:88
+msgid "Leave a Reply"
+msgstr "Ответить"
+
+#: library/comment.php:89
+#, php-format
+msgid "Leave a Reply to %s"
+msgstr "Ответить на %s"
+
+#: library/comment.php:94
+msgid "Cancel reply"
+msgstr "Отменить"
+
+#: library/comment.php:95
+msgid "Post Comment"
+msgstr "Отправить"
+
+#: library/comment.php:188
+msgid "Sorry, but comments are closed."
+msgstr "Извините, но комментирование этой записи отключено."
+
+#: library/common.php:16
+msgid "Page not found"
+msgstr "Страница не найдена"
+
+#: library/common.php:20
+#, php-format
+msgid "Search results for %s"
+msgstr "Результаты поиска по запросу: %s"
+
+#: library/common.php:40
+#, php-format
+msgid "Posts with tag <i>%s</i>"
+msgstr "Записи с тегом <i>%s</i>"
+
+#: library/common.php:44
+#, php-format
+msgid "Posts of <i>%s</i>"
+msgstr "Записи пользователя <i>%s</i>"
+
+#: library/common.php:48 library/common.php:53
+#, php-format
+msgid "Posts for <i>%s</i>"
+msgstr "Записи за <i>%s</i> года"
+
+#: library/common.php:57
+#, php-format
+msgid "Posts for <i>%s</i> year"
+msgstr "Записи за <i>%s</i> год"
+
+#: library/common.php:63
+#, php-format
+msgid " - page %d"
+msgstr " - %d страница"
+
+#: library/common.php:94
+msgid "Home"
+msgstr "Главная"
+
+#: library/common.php:696
+msgid "There are no posts in this category"
+msgstr "В данной рубрике записи не обнаружены"
+
+#: library/common.php:698
+msgid "The requested post is not found"
+msgstr "Запись не обнаружена"
+
+#: library/common.php:700
+#, php-format
+msgid "There are no posts with tag <i>%s</i>"
+msgstr "С тегом <i>%s</i> записи не обнаружены"
+
+#: library/common.php:702
+msgid "There are no posts for requested day"
+msgstr "За этот день записи не обнаружены"
+
+#: library/common.php:704
+msgid "There are no posts for requested month"
+msgstr "За этот месяц записи не обнаружены"
+
+#: library/common.php:706
+msgid "There are no posts for requested year"
+msgstr "За этот год записи не обнаружены"
+
+#: library/common.php:708
+msgid "There are no posts by this author"
+msgstr "У этого автора записи отсутствуют"
+
+#: library/common.php:710
+msgid "Sorry, but there is nothing to show by requested address"
+msgstr "Извините, но по данному адресу записи не обнаружены"
+
+#: library/common.php:712
+#, php-format
+msgid "There are no information matching the query <i>%s</i>"
+msgstr "По запросу <i>%s</i> ничего не найдено"
+
+#: library/common.php:714
+msgid "There are no posts to show"
+msgstr "Записи не обнаружены"
+
+#. Theme Name of the plugin/theme
+msgid "Тема"
+msgstr ""
+
+#. Theme URI of the plugin/theme
+msgid "https://github.com/TwistedAndy/wp-theme"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "Тема для сайта"
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Андрей"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://www.maultalk.com/topic139110.html"
+msgstr ""
+
+#~ msgid "An error occured"
+#~ msgstr "Произошла ошибка"

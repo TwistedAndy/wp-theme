@@ -1,0 +1,170 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Project-Id-Version: Тема оформления для WordPress\n"
+"POT-Creation-Date: 2016-06-12 15:09+0300\n"
+"PO-Revision-Date: 2016-06-12 10:55+0300\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.8\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-WPHeader: style.css\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;"
+"_n_noop:1,2;_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.js\n"
+
+#: library/comment.php:34
+msgid "This comment is not approved yet."
+msgstr ""
+
+#: library/comment.php:64
+msgid "Your name"
+msgstr ""
+
+#: library/comment.php:65
+msgid "Your e-mail"
+msgstr ""
+
+#: library/comment.php:66
+msgid "Site"
+msgstr ""
+
+#: library/comment.php:75
+#, php-format
+msgid "You need to <a href=\"%s\">login</a> to post a comment."
+msgstr ""
+
+#: library/comment.php:78
+#, php-format
+msgid ""
+"You've logged in as <a class=\"login\" href=\"%1$s\">%2$s</a> <a class="
+"\"logout\" href=\"%3$s\">[log out]</a>"
+msgstr ""
+
+#: library/comment.php:88
+msgid "Leave a Reply"
+msgstr ""
+
+#: library/comment.php:89
+#, php-format
+msgid "Leave a Reply to %s"
+msgstr ""
+
+#: library/comment.php:94
+msgid "Cancel reply"
+msgstr ""
+
+#: library/comment.php:95
+msgid "Post Comment"
+msgstr ""
+
+#: library/comment.php:188
+msgid "Sorry, but comments are closed."
+msgstr ""
+
+#: library/common.php:16
+msgid "Page not found"
+msgstr ""
+
+#: library/common.php:20
+#, php-format
+msgid "Search results for %s"
+msgstr ""
+
+#: library/common.php:40
+#, php-format
+msgid "Posts with tag <i>%s</i>"
+msgstr ""
+
+#: library/common.php:44
+#, php-format
+msgid "Posts of <i>%s</i>"
+msgstr ""
+
+#: library/common.php:48 library/common.php:53
+#, php-format
+msgid "Posts for <i>%s</i>"
+msgstr ""
+
+#: library/common.php:57
+#, php-format
+msgid "Posts for <i>%s</i> year"
+msgstr ""
+
+#: library/common.php:63
+#, php-format
+msgid " - page %d"
+msgstr ""
+
+#: library/common.php:94
+msgid "Home"
+msgstr ""
+
+#: library/common.php:696
+msgid "There are no posts in this category"
+msgstr ""
+
+#: library/common.php:698
+msgid "The requested post is not found"
+msgstr ""
+
+#: library/common.php:700
+#, php-format
+msgid "There are no posts with tag <i>%s</i>"
+msgstr ""
+
+#: library/common.php:702
+msgid "There are no posts for requested day"
+msgstr ""
+
+#: library/common.php:704
+msgid "There are no posts for requested month"
+msgstr ""
+
+#: library/common.php:706
+msgid "There are no posts for requested year"
+msgstr ""
+
+#: library/common.php:708
+msgid "There are no posts by this author"
+msgstr ""
+
+#: library/common.php:710
+msgid "Sorry, but there is nothing to show by requested address"
+msgstr ""
+
+#: library/common.php:712
+#, php-format
+msgid "There are no information matching the query <i>%s</i>"
+msgstr ""
+
+#: library/common.php:714
+msgid "There are no posts to show"
+msgstr ""
+
+#. Theme Name of the plugin/theme
+msgid "Тема"
+msgstr ""
+
+#. Theme URI of the plugin/theme
+msgid "https://github.com/TwistedAndy/wp-theme"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "Тема для сайта"
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Андрей"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://www.maultalk.com/topic139110.html"
+msgstr ""

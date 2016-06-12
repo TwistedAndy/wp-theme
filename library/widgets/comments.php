@@ -55,7 +55,7 @@ class Twisted_Widget_Comments extends Twisted_Widget {
 						</div>
 					</div>
 					<h4><a href="<?php echo get_comment_link($item); ?>"><?php echo tw_title($post); ?></a></h4>
-					<p><?php echo tw_strip($item->comment_content, $instance['chars']); ?></p>
+					<p><?php echo tw_text($item->comment_content, $instance['chars']); ?></p>
 				</div>
 
 			<?php }
