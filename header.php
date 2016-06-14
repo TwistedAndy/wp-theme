@@ -11,14 +11,19 @@
 </head>
 <body>
 
-	<?php wp_nav_menu(array('items_wrap' => '<ul>%3$s</ul>', 'theme_location' => 'main', 'container' => '', 'container_class' => '', 'before' => '', 'after' => '')); ?>
-	
-	<?php get_sidebar(); ?>
+	<?php wp_nav_menu(array('theme_location' => 'main', 'container' => '', 'container_class' => '', 'menu_class' => '', 'menu_id' => '')); ?>
 	
 	<?php if (!is_front_page()) { ?>
 	<div class="breadcrumbs">
 		<?php echo tw_breadcrumbs(''); ?>
 	</div>
 	<?php } ?>
+	
+	<form action="<?php echo get_site_url(); ?>/index.php" method="get" id="search">
+		<input type="text" value="<?php echo get_search_query(); ?>" placeholder="Поиск по сайту" name="s" />
+		<input type="submit" value="" />
+	</form>
+	
+	<?php get_sidebar(); ?>
 	
 	<?php echo get_site_url(); ?>

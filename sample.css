@@ -3,7 +3,7 @@
 /*
 Theme Name: Тема
 Theme URI: https://github.com/TwistedAndy/wp-theme
-Author: Андрей
+Author: Тониевич Андрей
 Author URI: http://www.maultalk.com/topic139110.html
 Version: 1.0
 Description: Тема для сайта
@@ -70,6 +70,7 @@ Text Domain: wp-theme
 	color: #ff0502;
 }
 
+
 /* Стили для пагинации */
 
 .pagination {
@@ -102,6 +103,7 @@ Text Domain: wp-theme
 	background: transparent;
 	color: #0d7b0d;
 }
+
 
 /* Стили для модальных окон с формой */
 
@@ -231,6 +233,7 @@ Text Domain: wp-theme
 .modal .modal_close:hover {
 	opacity: 0.8;
 }
+
 
 /* Стили для оформления комментариев */
 
@@ -427,6 +430,7 @@ Text Domain: wp-theme
 	color: #953c21;
 }
 
+
 /* Базовые стили для оформления содержимого */
 
 .content {
@@ -485,6 +489,7 @@ Text Domain: wp-theme
 	height: auto;
 }
 
+
 /* Стили для оформления дополнительных элементов WP */
 
 .content .alignnone {
@@ -506,63 +511,8 @@ Text Domain: wp-theme
 	margin: 2px 15px 15px 0;
 }
 
-.content .gallery, .content .gallery-item, .content .gallery-item a, .content .gallery-item img {
-	display: block;
-	position: relative;
-	padding: 0;
-	margin: 0;
-}
 
-.content .gallery {
-	overflow: hidden;
-	margin-bottom: 15px;
-}
-
-.content .gallery-item img {
-	width: 100%;
-	border: 0 !important;
-}
-
-.content .gallery-icon, .content .gallery-caption {
-	display: block;
-	overflow: hidden;
-	max-width: 100%;
-	padding: 5px;
-	background: #f5f5f5;
-	text-align: center;
-}
-
-.content .gallery-icon {
-	padding: 10px;
-	margin: 0 5px;
-}
-
-.content .gallery-caption {
-	padding: 0 0 10px;
-	margin: 0 5px !important;
-}
-
-.content .wp-caption {
-	display: block;
-	overflow: hidden;
-	max-width: 100%;
-	padding: 5px;
-	margin-bottom: 15px;
-	background: #f5f5f5;
-}
-
-.content .wp-caption a {
-	display: block;
-}
-
-.content .wp-caption img {
-	display: block;
-	margin: 5px auto 8px;
-}
-
-.content .wp-caption :last-child {
-	margin-bottom: 0;
-}
+/* Стиль для цитат */
 
 .content blockquote {
 	display: block;
@@ -574,4 +524,104 @@ Text Domain: wp-theme
 
 .content blockquote :last-child {
 	margin-bottom: 0;
+}
+
+
+/* Стиль для галереи */
+
+.content .gallery {
+	overflow: hidden;
+	margin: 0 -10px 10px 0;
+	font-size: 0;
+	line-height: 0;
+}
+
+.content .gallery-item {
+	display: inline-block;
+	width: 33.33%;
+	padding: 0;
+	margin: 0 0 10px;
+	vertical-align: top;
+}
+
+.gallery-columns-1 .gallery-item {
+	width: 100%;
+}
+
+.gallery-columns-2 .gallery-item {
+	width: 50%;
+}
+
+.gallery-columns-4 .gallery-item {
+	width: 25%;
+}
+
+.gallery-columns-5 .gallery-item {
+	width: 20%;
+}
+
+.gallery-columns-6 .gallery-item {
+	width: 16.66%;
+}
+
+.gallery-columns-7 .gallery-item {
+	width: 14.28%;
+}
+
+.gallery-columns-8 .gallery-item {
+	width: 12.5%;
+}
+
+.gallery-columns-9 .gallery-item {
+	width: 11.11%;
+}
+
+.content .gallery-icon, .content .gallery-caption {
+	display: block;
+	position: relative;
+	overflow: hidden;
+	padding: 10px;
+	margin: 0 10px 0 0;
+	background: #f5f5f5;
+}
+
+.content .gallery-icon a, .content .gallery-icon img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.content .gallery-caption {
+	display: none;
+	padding-top: 0;
+}
+
+.gallery-columns-1 .gallery-caption, .gallery-columns-2 .gallery-caption, .gallery-columns-3 .gallery-caption {
+	display: block;
+}
+
+
+/* Стиль для изображений с подписью */
+
+.content .wp-caption {
+	display: block;
+	overflow: hidden;
+	box-sizing: border-box;
+	padding: 10px;
+	margin-bottom: 20px;
+	background: #f5f5f5;
+}
+
+.content .wp-caption .wp-caption-text {
+	padding: 10px 10px 0;
+}
+
+
+/* Стиль для подписи */
+
+.content .wp-caption-text {
+	text-align: center;
+	font-style: italic;
+	font-size: 13px;
+	line-height: 1.3;
 }

@@ -124,7 +124,7 @@ if (tw_get_setting('init', 'action_fix_caption')) {
 
 		$atts['class'] = 'class="' . trim('wp-caption ' . $atts['align'] . ' ' . $atts['class']) . '" ';
 
-		$style = 'style="max-width: ' . $atts['width'] . 'px;"';
+		$style = 'style="max-width: ' . ($atts['width'] + 20) . 'px;"';
 
 		return '<div ' . $atts['id'] . $atts['class'] . $style . '>' . do_shortcode($content) . '<p class="wp-caption-text">' . $atts['caption'] . '</p></div>';
 

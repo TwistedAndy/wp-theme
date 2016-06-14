@@ -27,6 +27,8 @@ function tw_setup() {
 
 	add_theme_support('title-tag');
 
+	add_theme_support('html5', array('gallery'));
+	
 	load_theme_textdomain('wp-theme', get_template_directory() . '/languages');
 
 	if (tw_get_setting('menu')) {
