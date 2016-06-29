@@ -3,8 +3,8 @@
 /*
 Описание: библиотека для работы с Advanced Custom Fields
 Автор: Тониевич Андрей
-Версия: 1.6
-Дата: 20.05.2016
+Версия: 1.7
+Дата: 29.06.2016
 */
 
 
@@ -88,6 +88,86 @@ if (tw_get_setting('acf', 'include_subcats')) {
 					}
 				}
 
+			}
+
+		}
+
+		return $match;
+
+	}
+
+}
+
+
+if (tw_get_setting('acf', 'category_rules')) {
+
+	add_filter('acf/location/rule_types', 'tw_acf_location_rules_types');
+
+	function tw_acf_location_rules_types($choices) {
+
+		$choices['Таксономия'] = array(
+			'tax_category' => 'Категория',
+			'tax_category_sub' => 'Подкатегория',
+			'tax_category_all' => 'Категория и подкатегории',
+		);
+
+		return $choices;
+
+	}
+
+	add_filter('acf/location/rule_values/tax_category', 'tw_acf_location_rules_values_category');
+	add_filter('acf/location/rule_values/tax_category_all', 'tw_acf_location_rules_values_category');
+	add_filter('acf/location/rule_values/tax_category_sub', 'tw_acf_location_rules_values_category');
+
+	function tw_acf_location_rules_values_category($choices) {
+
+		$categories = get_categories(array(
+			'hide_empty' => false,
+			'taxonomy' => 'category',
+		));
+
+		$categories = _get_term_children(0, $categories, 'category');
+
+		if ($categories) {
+			foreach ($categories as $category) {
+				$ancestors = get_ancestors($category->term_id, 'category');
+				$title = str_repeat('- ', count($ancestors)) . $category->name;
+				$choices[$category->term_id] = $title;
+			}
+		}
+
+		return $choices;
+	}
+
+
+	add_filter('acf/location/rule_match/tax_category', 'tw_acf_location_rules_match_category', 10, 3);
+	add_filter('acf/location/rule_match/tax_category_sub', 'tw_acf_location_rules_match_category', 10, 3);
+	add_filter('acf/location/rule_match/tax_category_all', 'tw_acf_location_rules_match_category', 10, 3);
+
+	function tw_acf_location_rules_match_category($match, $rule, $options) {
+
+		if (!empty($_REQUEST['tag_ID'])) {
+
+			$current_term_id = intval($_REQUEST['tag_ID']);
+
+			$term_id = intval($rule['value']);
+
+			$match = ($current_term_id == $term_id);
+
+			if ($current_term_id == $term_id) {
+				if ($rule['param'] == 'tax_category_sub') {
+					$match = false;
+				} else {
+					$match = true;
+				}
+			}
+
+			if (!$match and ($rule['param'] == 'tax_category_sub' or $rule['param'] == 'tax_category_all') and $term_children = get_term_children($term_id, 'category')) {
+				$match = in_array($current_term_id, $term_children);
+			}
+
+			if ($rule['operator'] == "!=") {
+				$match = !$match;
 			}
 
 		}

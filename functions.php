@@ -129,6 +129,7 @@ $tw_settings = array(
 		'require_acf' => false,
 		'json_enable' => true,
 		'option_page' => false,
+		'category_rules' => true,
 		'include_subcats' => true,
 	),
 
