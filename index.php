@@ -1,13 +1,15 @@
-<?php get_header(); ?>
+<?php
 
-<?php if (!have_posts()) { ?>
+get_header();
 
-	<?php get_template_part('content/none'); ?>
+if (!have_posts()) {
 
-<?php } else { ?>
+	get_template_part('parts/none');
 
-	<?php get_template_part('content/category'); ?>
+} else {
 
-<?php } ?>
+	get_template_part('parts/category');
 
-<?php get_footer(); ?>
+}
+
+get_footer();

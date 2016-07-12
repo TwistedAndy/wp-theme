@@ -2,11 +2,11 @@
 
 <?php if (!have_posts()) { ?>
 
-	<?php get_template_part('content/none'); ?>
+	<?php get_template_part('parts/none'); ?>
 
 <?php } else { ?>
 	
-	<?php get_template_part('content/category'); ?>
+	<?php get_template_part('parts/category'); ?>
 
 <?php } ?>
 
