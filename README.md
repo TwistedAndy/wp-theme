@@ -1,5 +1,7 @@
-### Базовая тема оформления WordPpress
+### Basic WordPress theme
 
-Этот репозиторий содержит базовый набор необходимых файлов для создания темы оформления для WordPress. Помимо основных файлов шаблона он включает в себя набор функций и библиотек для упрощения реализации требуемого функционала.
+This is the simple boilerplate theme for WordPress, which includes a lot of useful functions to speed up the theme development.
 
-Основные параметры инициализации и настройки темы оформления размещены в файле **functions.php** в виде массива. Доступ к ним реализован с помощью соответствующей функции.
+The main theme configuration is placed in **`functions.php`** file and stored as associative array. You can edit the current example to add custom menus, sidebars, register new post types and taxonomies. Also you can specify the new image sizes, ajax hanglers, widgets and add custom filters.
+
+This theme also includes the basic styles for the posts, content elements, pagination and comments. If you don't use SASS, you can delete **`scss`** directory and place your styles directly in **`css/style.css`** file.

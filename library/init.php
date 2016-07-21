@@ -3,8 +3,8 @@
 /*
 Описание: библиотека для инициализации темы оформления
 Автор: Тониевич Андрей
-Версия: 2.0
-Дата: 04.06.2016
+Версия: 2.1
+Дата: 21.07.2016
 */
 
 $dir = dirname(__FILE__) . '/';
@@ -28,7 +28,7 @@ function tw_setup() {
 	add_theme_support('title-tag');
 
 	add_theme_support('html5', array('gallery'));
-	
+
 	load_theme_textdomain('wp-theme', get_template_directory() . '/languages');
 
 	if (tw_get_setting('menu')) {
@@ -140,50 +140,50 @@ if (tw_get_setting('taxonomies')) {
 
 if (tw_get_setting('scripts')) {
 
-	add_action('init', 'tw_register_scripts');
+	add_action('wp_enqueue_scripts', 'tw_register_scripts');
 
 	function tw_register_scripts() {
 
 		$defaults = array(
 			'deps' => array('jquery'),
-			'styles' => array(),
-			'scripts' => array(),
+			'style' => '',
+			'script' => '',
 			'display' => false
 		);
 
 		$predefined_scripts = array(
+			'template' => array(
+				'style' => 'css/style.css',
+				'display' => true
+			),
 			'likes' => array(
-				'styles' => 'social-likes.css',
-				'scripts' => 'social-likes.min.js',
+				'style' => 'scripts/social-likes.css',
+				'script' => 'scripts/social-likes.min.js',
 			),
 			'colorbox' => array(
-				'styles' => 'colorbox/colorbox.css',
-				'scripts' => 'jquery.colorbox-min.js',
+				'style' => 'scripts/colorbox/colorbox.css',
+				'script' => 'scripts/jquery.colorbox-min.js',
 			),
 			'styler' => array(
-				'styles' => 'jquery.formstyler.css',
-				'scripts' => 'jquery.formstyler.min.js',
+				'style' => 'scripts/jquery.formstyler.css',
+				'script' => 'scripts/jquery.formstyler.min.js',
 			),
 			'jcarousel' => array(
-				'scripts' => 'jquery.jcarousel.min.js',
+				'script' => 'scripts/jquery.jcarousel.min.js',
 			),
 			'nivo' => array(
-				'styles' => 'nivo-slider.css',
-				'scripts' => 'jquery.nivo.slider.pack.js',
+				'style' => 'scripts/nivo-slider.css',
+				'script' => 'scripts/jquery.nivo.slider.pack.js',
 			)
 		);
 
 		$scripts = tw_get_setting('scripts');
 
-		$dir = get_template_directory_uri() . '/scripts/';
+		$dir = get_template_directory_uri() . '/';
 
 		if (!empty($scripts) and is_array($scripts)) {
 
 			foreach ($scripts as $script => $config) {
-
-				if (is_callable($config)) {
-					$config = $config();
-				}
 
 				if (is_bool($config) and $config) {
 
@@ -209,15 +209,15 @@ if (tw_get_setting('scripts')) {
 
 					$config = wp_parse_args($config, $defaults);
 
-					if (!empty($config['scripts']) and is_string($config['scripts'])) {
-						wp_register_script($script, $dir . $config['scripts'], $config['deps'], null);
+					if (!empty($config['script']) and is_string($config['script'])) {
+						wp_register_script($script, $dir . $config['script'], $config['deps'], null);
 						if ($config['display']) {
 							wp_enqueue_script($script);
 						}
 					}
 
-					if (!empty($config['styles']) and is_string($config['styles'])) {
-						wp_register_style($script, $dir . $config['styles'], array(), null);
+					if (!empty($config['style']) and is_string($config['style'])) {
+						wp_register_style($script, $dir . $config['style'], array(), null);
 						if ($config['display']) {
 							wp_enqueue_style($script);
 						}

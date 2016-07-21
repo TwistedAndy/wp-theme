@@ -1,78 +1,126 @@
-@charset "utf-8";
+@charset "UTF-8";
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-size: 100%;
+	vertical-align: baseline;
+	background: transparent;
+}
 
-/*
-Theme Name: Тема
-Theme URI: https://github.com/TwistedAndy/wp-theme
-Author: Тониевич Андрей
-Author URI: http://www.maultalk.com/topic139110.html
-Version: 1.0
-Description: Тема для сайта
-Text Domain: wp-theme
-*/
+article, aside, details, figcaption, figure, footer, header, menu, nav, section {
+	display: block;
+}
+
+:focus {
+	outline: 0;
+}
+
+html, body {
+	height: 100%;
+}
+
+body {
+	min-width: 1100px;
+	font-size: 14px;
+	font-family: 'Arial', 'Helvetica', sans-serif;
+	line-height: 1.3;
+	color: #333333;
+}
+
+ol, ul {
+	list-style-position: inside;
+}
+
+a {
+	color: #333333;
+	text-decoration: underline;
+}
+
+a:hover {
+	text-decoration: none;
+}
+
+a:hover img {
+	opacity: 0.8;
+}
+
+#site {
+	display: table;
+	position: relative;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+	background: #ffffff;
+	table-layout: fixed;
+}
+
+#footer {
+	display: table-row;
+	height: 1px;
+}
+
+.fixed {
+	position: relative;
+	width: 1080px;
+	margin: 0 auto;
+}
 
 /* Стили для оформления списка записей */
-
 .post {
 	overflow: hidden;
-	margin-bottom: 50px;
+	margin-bottom: 40px;
 }
 
 .post .thumb {
 	display: block;
 	float: left;
-	width: 262px;
+	width: 240px;
 }
 
 .post .thumb img {
-	width: 262px;
+	width: 100%;
 	height: auto;
 }
 
-.post .thumb + .post_body {
-	margin-left: 296px;
+.post .thumb + .body {
+	margin-left: 260px;
 }
 
-.post_body {
+.post .body {
 	font-size: 13px;
 	line-height: 150%;
 }
 
-.post_body .title {
+.post .title {
 	display: block;
-	margin-top: -5px;
 	margin-bottom: 17px;
-	font-weight: bold;
-	font-size: 22px;
-	line-height: 130%;
-	color: #494949;
-	text-transform: uppercase;
-}
-
-.post_body a.title {
 	font-weight: normal;
+	font-size: 18px;
+	line-height: 1.3;
+	color: #444444;
 	text-decoration: none;
 	text-transform: none;
 }
 
-.post_body a.title:hover {
+.post .title:hover {
 	color: #777777;
 }
 
-.post_body .title span {
-	color: #ff0502;
-}
-
-.post_body p {
-	margin-top: 17px
-}
-
-.post_body p a {
-	color: #ff0502;
-}
-
-
 /* Стили для пагинации */
-
 .pagination {
 	margin: 20px 0 50px 0;
 	text-align: center;
@@ -99,14 +147,12 @@ Text Domain: wp-theme
 	background: transparent;
 }
 
-.pagination span.next, .pagination span.next.double, .pagination span.prev, .pagination span.prev.double {
+.pagination span.next, .pagination span.prev {
 	background: transparent;
 	color: #0d7b0d;
 }
 
-
 /* Стили для модальных окон с формой */
-
 #modal {
 	display: none;
 	position: fixed;
@@ -208,7 +254,7 @@ Text Domain: wp-theme
 	vertical-align: top;
 }
 
-.modal span.wpcf7-not-valid-tip {
+.modal .wpcf7-not-valid-tip {
 	margin: 10px 0 -5px;
 }
 
@@ -226,7 +272,7 @@ Text Domain: wp-theme
 	right: 16px;
 	width: 24px;
 	height: 24px;
-	background: url(images/close.png) 0 0 no-repeat;
+	background: url(../images/close.png) 0 0 no-repeat;
 	cursor: pointer;
 }
 
@@ -234,9 +280,7 @@ Text Domain: wp-theme
 	opacity: 0.8;
 }
 
-
 /* Стили для оформления комментариев */
-
 .comments, .comment, .comment_avatar, .comment_inner, .comment_info, .comment_body {
 	display: block;
 	position: relative;
@@ -247,7 +291,7 @@ Text Domain: wp-theme
 	margin: 30px 0;
 }
 
-.comments h3, .comment-reply-title {
+.comments h3 {
 	display: block;
 	margin-bottom: 12px;
 	font-weight: normal;
@@ -256,22 +300,11 @@ Text Domain: wp-theme
 	color: #333333;
 }
 
-.comment-reply-title small, .comment-reply-title small a {
-	font-size: 16px;
-	color: #555555;
-	text-decoration: none;
-	text-transform: lowercase;
-}
-
-.comment-reply-title small a:hover {
-	text-decoration: underline;
-}
-
 .comments .pagination {
 	margin-top: 20px;
 }
 
-.comment_inner {
+.comment .comment_inner {
 	padding: 15px;
 	border-radius: 10px;
 	background: #f5f5f5;
@@ -327,7 +360,7 @@ Text Domain: wp-theme
 	font-style: normal;
 }
 
-.comment_body p {
+.comment .comment_body p {
 	margin-bottom: 12px;
 }
 
@@ -359,6 +392,31 @@ Text Domain: wp-theme
 
 .comment .comment_buttons a + a {
 	margin-left: 5px;
+}
+
+/* Стили для оформления формы комментариев */
+.comment-reply-title {
+	display: block;
+	margin-bottom: 12px;
+	font-weight: normal;
+	font-size: 18px;
+	line-height: 130%;
+	color: #333333;
+}
+
+.comment-reply-title a {
+	color: #953c21;
+}
+
+.comment-reply-title small, .comment-reply-title small a {
+	font-size: 16px;
+	color: #555555;
+	text-decoration: none;
+	text-transform: lowercase;
+}
+
+.comment-reply-title small a:hover {
+	text-decoration: underline;
 }
 
 .comment-respond {
@@ -426,52 +484,49 @@ Text Domain: wp-theme
 	text-decoration: underline;
 }
 
-.comment-respond .login, .comment-reply-title > a {
+.comment-respond .login {
 	color: #953c21;
 }
 
-
-/* Базовые стили для оформления содержимого */
-
 .content {
 	font-size: 14px;
-	line-height: 130%;
+	line-height: 1.3;
 }
 
 .content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
-	margin-bottom: 15px;
+	margin-bottom: 20px;
 	font-weight: normal;
-	line-height: 110%;
+	line-height: 1.2;
 	color: #222222;
 }
 
 .content h1 {
-	font-size: 25px;
+	font-size: 22px;
 	text-transform: uppercase;
 }
 
 .content h2 {
-	font-size: 22px;
+	font-size: 20px;
 }
 
 .content h3 {
-	font-size: 19px;
+	font-size: 18px;
 }
 
 .content h4 {
-	font-size: 17px;
+	font-size: 16px;
 }
 
 .content h5 {
-	font-size: 15px;
-}
-
-.content h6 {
 	font-size: 14px;
 }
 
+.content h6 {
+	font-size: 13px;
+}
+
 .content p, .content > table, .content > ul, .content > ol {
-	margin-bottom: 15px;
+	margin-bottom: 20px;
 }
 
 .content ul, .content ol {
@@ -484,41 +539,39 @@ Text Domain: wp-theme
 }
 
 .content table, .content img {
+	height: auto;
 	width: auto;
 	max-width: 100%;
-	height: auto;
 }
 
-
-/* Стили для оформления дополнительных элементов WP */
-
-.content .alignnone {
-	margin: 0 0 15px;
-}
-
-.content .aligncenter {
-	display: block;
-	margin: 0 auto 15px;
-}
-
-.content .alignright {
-	float: right;
-	margin: 2px 0 15px 15px;
+.content > :last-child {
+	margin-bottom: 0;
 }
 
 .content .alignleft {
 	float: left;
-	margin: 2px 15px 15px 0;
+	margin: 0 20px 20px 0;
 }
 
+.content .alignright {
+	float: right;
+	margin: 0 0 20px 20px;
+}
 
-/* Стиль для цитат */
+.content .alignnone {
+	margin: 0 0 20px;
+}
+
+.content .aligncenter {
+	display: block;
+	margin: 0 auto 20px;
+}
 
 .content blockquote {
 	display: block;
 	overflow: hidden;
 	padding: 12px 15px;
-	margin-bottom: 15px;
+	margin-bottom: 20px;
 	background: #f5f5f5;
 }
 
@@ -526,82 +579,12 @@ Text Domain: wp-theme
 	margin-bottom: 0;
 }
 
-
-/* Стиль для галереи */
-
-.content .gallery {
-	overflow: hidden;
-	margin: 0 -10px 10px 0;
-	font-size: 0;
-	line-height: 0;
+.content .wp-caption-text {
+	text-align: center;
+	font-style: italic;
+	font-size: 13px;
+	line-height: 1.3;
 }
-
-.content .gallery-item {
-	display: inline-block;
-	width: 33.33%;
-	padding: 0;
-	margin: 0 0 10px;
-	vertical-align: top;
-}
-
-.gallery-columns-1 .gallery-item {
-	width: 100%;
-}
-
-.gallery-columns-2 .gallery-item {
-	width: 50%;
-}
-
-.gallery-columns-4 .gallery-item {
-	width: 25%;
-}
-
-.gallery-columns-5 .gallery-item {
-	width: 20%;
-}
-
-.gallery-columns-6 .gallery-item {
-	width: 16.66%;
-}
-
-.gallery-columns-7 .gallery-item {
-	width: 14.28%;
-}
-
-.gallery-columns-8 .gallery-item {
-	width: 12.5%;
-}
-
-.gallery-columns-9 .gallery-item {
-	width: 11.11%;
-}
-
-.content .gallery-icon, .content .gallery-caption {
-	display: block;
-	position: relative;
-	overflow: hidden;
-	padding: 10px;
-	margin: 0 10px 0 0;
-	background: #f5f5f5;
-}
-
-.content .gallery-icon a, .content .gallery-icon img {
-	display: block;
-	width: 100%;
-	height: auto;
-}
-
-.content .gallery-caption {
-	display: none;
-	padding-top: 0;
-}
-
-.gallery-columns-1 .gallery-caption, .gallery-columns-2 .gallery-caption, .gallery-columns-3 .gallery-caption {
-	display: block;
-}
-
-
-/* Стиль для изображений с подписью */
 
 .content .wp-caption {
 	display: block;
@@ -616,12 +599,82 @@ Text Domain: wp-theme
 	padding: 10px 10px 0;
 }
 
+.gallery {
+	overflow: hidden;
+	margin: 0 -10px 10px 0;
+	font-size: 0;
+	line-height: 0;
+}
 
-/* Стиль для подписи */
+.gallery .gallery-item {
+	display: inline-block;
+	width: 33.33%;
+	padding: 0;
+	margin: 0 0 10px;
+	vertical-align: top;
+}
 
-.content .wp-caption-text {
-	text-align: center;
-	font-style: italic;
-	font-size: 13px;
-	line-height: 1.3;
+.gallery .gallery-columns-1 .gallery-item {
+	width: 100%;
+}
+
+.gallery .gallery-columns-2 .gallery-item {
+	width: 50%;
+}
+
+.gallery .gallery-columns-4 .gallery-item {
+	width: 25%;
+}
+
+.gallery .gallery-columns-5 .gallery-item {
+	width: 20%;
+}
+
+.gallery .gallery-columns-6 .gallery-item {
+	width: 16.66%;
+}
+
+.gallery .gallery-columns-7 .gallery-item {
+	width: 14.28%;
+}
+
+.gallery .gallery-columns-8 .gallery-item {
+	width: 12.5%;
+}
+
+.gallery .gallery-columns-9 .gallery-item {
+	width: 11.11%;
+}
+
+.gallery .gallery-icon {
+	display: block;
+	position: relative;
+	overflow: hidden;
+	padding: 10px;
+	margin: 0 10px 0 0;
+	background: #f5f5f5;
+}
+
+.gallery .gallery-icon a, .gallery .gallery-icon img {
+	display: block;
+	width: 100%;
+	height: auto;
+	margin: 0;
+	padding: 0;
+}
+
+.gallery .gallery-caption {
+	display: block;
+	position: relative;
+	overflow: hidden;
+	padding: 0 10px 10px;
+	margin: 0 10px 0 0;
+	background: #f5f5f5;
+}
+
+.gallery .gallery-columns-6 .gallery-caption,
+.gallery .gallery-columns-7 .gallery-caption,
+.gallery .gallery-columns-8 .gallery-caption,
+.gallery .gallery-columns-9 .gallery-caption {
+	display: none;
 }

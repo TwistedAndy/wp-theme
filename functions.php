@@ -8,8 +8,8 @@ $tw_settings = array(
 
 	'thumbs' => array(
 		'post' => array(
-			'width' => 262,
-			'height' => 211,
+			'width' => 240,
+			'height' => 180,
 			'thumb' => true,
 			'crop' => array('center', 'center')
 		),
@@ -20,6 +20,7 @@ $tw_settings = array(
 	),
 
 	'scripts' => array(
+		'template' => true,
 		'jquery' => false,
 		'nivo' => false,
 		'likes' => false,
