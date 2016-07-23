@@ -19,9 +19,16 @@ $tw_settings = array(
 		),
 	),
 
-	'scripts' => array(
-		'template' => true,
-		'jquery' => false,
+	'assets' => array(
+		'template' => array(
+			'deps' => array('jquery'),
+			'style' => 'css/style.css',
+			'script' => 'assets/theme.js',
+			'footer' => true,
+			'localize' => array(
+				'ajaxurl' => admin_url('admin-ajax.php')
+			)
+		),
 		'nivo' => false,
 		'likes' => false,
 		'styler' => false,

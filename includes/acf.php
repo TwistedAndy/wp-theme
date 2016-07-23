@@ -185,7 +185,7 @@ if (tw_get_setting('acf', 'json_enable')) {
 
 	function tw_json_save_point() {
 
-		$path = get_stylesheet_directory() . '/library/acf';
+		$path = get_stylesheet_directory() . '/includes/acf';
 
 		if (!is_dir($path)) mkdir($path, 0755);
 
@@ -200,7 +200,7 @@ if (tw_get_setting('acf', 'json_enable')) {
 
 		unset($paths[0]);
 
-		$path = get_stylesheet_directory() . '/library/acf';
+		$path = get_stylesheet_directory() . '/includes/acf';
 
 		if (!is_dir($path)) mkdir($path, 0755);
 
