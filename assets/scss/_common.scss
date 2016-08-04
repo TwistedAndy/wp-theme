@@ -17,14 +17,16 @@ ol, ul {
 a {
 	color: $color_main;
 	text-decoration: underline;
-}
-
-a:hover {
-	text-decoration: none;
-}
-
-a:hover img {
-	opacity: 0.8;
+	
+	&:hover {
+		text-decoration: none;
+		
+		img {
+			opacity: 0.8;
+		}
+		
+	}
+	
 }
 
 #site {

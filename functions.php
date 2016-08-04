@@ -153,4 +153,4 @@ $tw_settings = array(
 
 );
 
-include_once(dirname(__FILE__) . '/library/init.php');
+include_once(dirname(__FILE__) . '/includes/init.php');

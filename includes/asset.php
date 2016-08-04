@@ -17,23 +17,23 @@ function tw_process_assets() {
 			'display' => true
 		),
 		'likes' => array(
-			'style' => 'assets/social-likes.css',
-			'script' => 'assets/social-likes.min.js',
+			'style' => 'scripts/social-likes.css',
+			'script' => 'scripts/social-likes.min.js',
 		),
 		'colorbox' => array(
-			'style' => 'assets/colorbox/colorbox.css',
-			'script' => 'assets/jquery.colorbox-min.js',
+			'style' => 'scripts/colorbox/colorbox.css',
+			'script' => 'scripts/jquery.colorbox-min.js',
 		),
 		'styler' => array(
-			'style' => 'assets/jquery.formstyler.css',
-			'script' => 'assets/jquery.formstyler.min.js',
+			'style' => 'scripts/jquery.formstyler.css',
+			'script' => 'scripts/jquery.formstyler.min.js',
 		),
 		'jcarousel' => array(
-			'script' => 'assets/jquery.jcarousel.min.js',
+			'script' => 'scripts/jquery.jcarousel.min.js',
 		),
 		'nivo' => array(
-			'style' => 'assets/nivo-slider.css',
-			'script' => 'assets/jquery.nivo.slider.pack.js',
+			'style' => 'scripts/nivo-slider.css',
+			'script' => 'scripts/jquery.nivo.slider.pack.js',
 		)
 	);
 
@@ -81,7 +81,7 @@ function tw_register_asset($name, $asset) {
 
 	if (is_array($asset)) {
 
-		$dir = get_template_directory_uri() . '/';
+		$dir = get_template_directory_uri() . '/assets/';
 
 		$defaults = array(
 			'deps' => array('jquery'),

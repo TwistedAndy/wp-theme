@@ -694,6 +694,8 @@ function tw_none() {
 
 	if (is_category()) {
 		$result = __('There are no posts in this category', 'wp-theme');
+	} elseif (is_tax('product_cat') or is_tax('product_tag')) {
+		$result = __('No products were found matching your selection.', 'woocommerce');
 	} elseif (is_page() or is_single()) {
 		$result = __('The requested post is not found', 'wp-theme');
 	} elseif (is_tag()) {
