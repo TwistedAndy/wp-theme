@@ -3,13 +3,13 @@
 /*
 Описание: библиотека для работы с наборами ресурсов
 Автор: Тониевич Андрей
-Версия: 1.0
-Дата: 23.07.2016
+Версия: 1.1
+Дата: 26.08.2016
 */
 
-add_action('wp_enqueue_scripts', 'tw_process_assets');
+add_action('after_setup_theme', 'tw_register_assets');
 
-function tw_process_assets() {
+function tw_register_assets() {
 
 	$predefined_assets = array(
 		'template' => array(
@@ -43,39 +43,25 @@ function tw_process_assets() {
 
 		foreach ($assets as $name => $asset) {
 
-			if (is_bool($asset) and $asset) {
-
-				if (wp_script_is($name, 'registered')) {
-					wp_enqueue_script($name);
-				}
-
-				if (wp_style_is($name, 'registered')) {
-					wp_enqueue_style($name);
-				}
-
-				$asset = array();
-
-				$asset['display'] = true;
-
-			}
-
 			if (!empty($predefined_assets[$name])) {
-				$asset = wp_parse_args($asset, $predefined_assets[$name]);
+
+				if (is_array($asset)) {
+					$asset = wp_parse_args($asset, $predefined_assets[$name]);
+				} elseif (is_bool($asset)) {
+					$asset = $predefined_assets[$name];
+				}
+
 			}
 
-			if (is_array($asset)) {
-				tw_register_asset($name, $asset);
-				if (!empty($asset['display'])) {
-					tw_load_asset($name);
-				}
-			}
+			tw_register_asset($name, $asset);
+
+			tw_set_setting('registred_assets', $name, $asset);
 
 		}
 
 	}
 
 }
-
 
 function tw_register_asset($name, $asset) {
 
@@ -87,7 +73,7 @@ function tw_register_asset($name, $asset) {
 			'deps' => array('jquery'),
 			'style' => '',
 			'script' => '',
-			'footer' => true,
+			'footer' => false,
 			'display' => false,
 			'localize' => array()
 		);
@@ -102,20 +88,10 @@ function tw_register_asset($name, $asset) {
 				wp_localize_script($name, $name, $asset['localize']);
 			}
 
-			if ($asset['display']) {
-				wp_enqueue_script($name);
-			}
-
 		}
 
 		if (!empty($asset['style']) and is_string($asset['style'])) {
-
 			wp_register_style($name, $dir . $asset['style'], array(), null);
-
-			if ($asset['display']) {
-				wp_enqueue_style($name);
-			}
-
 		}
 
 	}
@@ -125,7 +101,27 @@ function tw_register_asset($name, $asset) {
 }
 
 
-function tw_load_asset($name) {
+add_action('wp_enqueue_scripts', 'tw_enqueue_assets');
+
+function tw_enqueue_assets() {
+
+	$registred_assets = tw_get_setting('registred_assets');
+
+	if ($registred_assets) {
+
+		foreach ($registred_assets as $name => $asset) {
+
+			if ((is_array($asset) and !empty($asset['display'])) or (is_bool($asset) and $asset)) {
+				tw_enqueue_asset($name);
+			}
+
+		}
+
+	}
+
+}
+
+function tw_enqueue_asset($name) {
 
 	if (wp_script_is($name, 'registered')) {
 		wp_enqueue_script($name);
@@ -133,12 +129,15 @@ function tw_load_asset($name) {
 
 	if (wp_style_is($name, 'registered')) {
 		wp_enqueue_style($name);
-
-
 	}
 
 	return false;
 
 }
+
+
+
+
+
 
 
