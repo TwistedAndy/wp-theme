@@ -3,8 +3,8 @@
 /*
 Описание: библиотека для работы с деревом страниц и категорий
 Автор: Тониевич Андрей
-Версия: 1.7
-Дата: 05.03.2016
+Версия: 1.8
+Дата: 14.09.2016
 */
 
 function tw_category_thread($category_id = false, $include_parents = true, $include_children = true) {
@@ -31,9 +31,19 @@ function tw_category_thread($category_id = false, $include_parents = true, $incl
 
 		$result[] = $category_id;
 
-		if ($include_parents and $parents = get_ancestors($category_id, 'category')) $result = array_merge($result, array_reverse($parents));
+		if ($include_parents) {
+			$parents = get_ancestors($category_id, 'category');
+			if (is_array($parents) and $parents) {
+				$result = array_merge($result, array_reverse($parents));
+			}
+		}
 
-		if ($include_children and $children = get_term_children($category_id, 'category')) $result = array_merge($result, $children);
+		if ($include_children) {
+			$children = get_term_children($category_id, 'category');
+			if (is_array($children) and $children) {
+				$result = array_merge($result, $children);
+			}
+		}
 
 		$result = array_unique($result, SORT_NUMERIC);
 
@@ -48,13 +58,18 @@ function tw_category_thread($category_id = false, $include_parents = true, $incl
 
 function tw_post_category_threads($post_id = false) {
 
-	if ($post_id == false) $post_id = get_the_ID();
+	if ($post_id == false) {
+		$post_id = get_the_ID();
+	}
 
 	$ancestors = array();
 
-	if ($categories = tw_post_categories($post_id, true, false)) {
+	$categories = tw_post_categories($post_id, true, false);
+
+	if (is_array($categories) and $categories) {
 		foreach ($categories as $category) {
-			if ($category_thread = tw_category_thread($category, true, false)) {
+			$category_thread = tw_category_thread($category, true, false);
+			if (is_array($category_thread) and $category_thread) {
 				$ancestors[$category_thread[0]] = $category_thread;
 			}
 		}
@@ -65,9 +80,11 @@ function tw_post_category_threads($post_id = false) {
 }
 
 
-function tw_post_category_list($post_id = false, $with_link = true, $only_first = true, $class = false) {
+function tw_post_category_list($post_id = false, $with_link = true, $only_first = true, $class = '') {
 
-	if ($post_id == false) $post_id = get_the_ID();
+	if ($post_id == false) {
+		$post_id = get_the_ID();
+	}
 
 	$cache_key = 'post_categories_' . $post_id . '_object';
 
@@ -78,13 +95,17 @@ function tw_post_category_list($post_id = false, $with_link = true, $only_first 
 		wp_cache_add($cache_key, $categories, 'twisted', 60);
 	}
 
-	if ($categories) {
+	if (is_array($categories) and $categories) {
 
 		$result = array();
 
-		if ($class) $class = ' class="' . $class . '"'; else $class = '';
+		if ($class) {
+			$class = ' class="' . $class . '"';
+		}
 
-		if ($only_first) $categories = array($categories[0]);
+		if ($only_first) {
+			$categories = array($categories[0]);
+		}
 
 		foreach ($categories as $category) {
 			if ($with_link) {
@@ -93,8 +114,6 @@ function tw_post_category_list($post_id = false, $with_link = true, $only_first 
 				$result[] = $category->cat_name;
 			}
 		}
-
-		if ($only_first) $result = $result[0];
 
 	} else {
 
@@ -109,7 +128,9 @@ function tw_post_category_list($post_id = false, $with_link = true, $only_first 
 
 function tw_post_categories($post_id = false, $return_array = false, $include_parent = false) {
 
-	if ($post_id == false) $post_id = get_the_ID();
+	if ($post_id == false) {
+		$post_id = get_the_ID();
+	}
 
 	$cache_key = 'post_categories_' . $post_id . '_' . intval($include_parent);
 
@@ -119,10 +140,14 @@ function tw_post_categories($post_id = false, $return_array = false, $include_pa
 
 		$categories = array();
 
-		if ($terms = get_the_terms($post_id, 'category')) {
+		$terms = get_the_terms($post_id, 'category');
+
+		if (is_array($terms) and $terms) {
 			foreach ($terms as $category) {
 				$categories[] = $category->term_id;
-				if ($include_parent and $category->parent) $categories[] = $category->parent;
+				if ($include_parent and $category->parent) {
+					$categories[] = $category->parent;
+				}
 			}
 		}
 
@@ -132,12 +157,16 @@ function tw_post_categories($post_id = false, $return_array = false, $include_pa
 
 	}
 
-	if ($return_array) return $categories; else return implode(',', $categories);
+	if ($return_array) {
+		return $categories;
+	} else {
+		return implode(',', $categories);
+	}
 
 }
 
 
-function tw_in_category($category_ids, $check_parents = true, $check_children = false) {
+function tw_in_category($category_ids, $current_category_ids = false, $check_parents = true, $check_children = false) {
 
 	$result = false;
 
@@ -147,17 +176,28 @@ function tw_in_category($category_ids, $check_parents = true, $check_children = 
 		$category_ids = array(intval($category_ids));
 	}
 
-	if (is_single()) {
+	if ($current_category_ids or is_single()) {
 
-		$categories = tw_post_categories(false, true, true);
+		if ($current_category_ids) {
+			if (is_array($current_category_ids)) {
+				$categories = array_map('intval', $current_category_ids);
+			} else {
+				$categories = array(intval($current_category_ids));
+			}
+		} else {
+			$categories = tw_post_categories(false, true, true);
+		}
 
 		if (is_array($categories) and $categories) {
+
 			foreach ($category_ids as $category_id) {
+
 				if (in_array($category_id, $categories)) {
 					$result = true;
 				} elseif ($check_parents or $check_children) {
 					foreach ($categories as $category) {
-						if ($category_thread = tw_category_thread($category, $check_parents, $check_children)) {
+						$category_thread = tw_category_thread($category, $check_parents, $check_children);
+						if (is_array($category_thread) and $category_thread) {
 							if (in_array($category_id, $category_thread)) {
 								$result = true;
 								break;
@@ -165,8 +205,13 @@ function tw_in_category($category_ids, $check_parents = true, $check_children = 
 						}
 					}
 				}
-				if ($result) break;
+
+				if ($result) {
+					break;
+				}
+
 			}
+
 		}
 
 	} elseif (is_category()) {
@@ -177,8 +222,11 @@ function tw_in_category($category_ids, $check_parents = true, $check_children = 
 
 			if ($category_id == $current_category_id) {
 				$result = true;
-			} elseif ($category_thread = tw_category_thread($category_id, false, true)) {
-				$result = in_array($current_category_id, $category_thread);
+			} else {
+				$category_thread = tw_category_thread($category_id, false, true);
+				if (is_array($category_thread) and $category_thread) {
+					$result = in_array($current_category_id, $category_thread);
+				}
 			}
 
 			if ($result) break;
@@ -272,7 +320,9 @@ function tw_current_term($return_object = false, $taxonomy = false) {
 		}
 
 	} else {
+
 		return $term_id;
+
 	}
 
 }

@@ -3,8 +3,8 @@
 /*
 Описание: библиотека с общими функциями
 Автор: Тониевич Андрей
-Версия: 1.8
-Дата: 12.06.2016
+Версия: 1.9
+Дата: 14.09.2016
 */
 
 function tw_wp_title($add_page_number = true) {
@@ -68,15 +68,16 @@ function tw_wp_title($add_page_number = true) {
 
 }
 
-function tw_title($item, $length = false) {
+
+function tw_title($post, $length = false) {
 
 	$name = '';
 
-	if (isset($item->post_title)) {
+	if (isset($post->post_title)) {
 
-		$name = $item->post_title;
+		$name = $post->post_title;
 
-		$name = apply_filters('the_title', $name, $item->ID);
+		$name = apply_filters('the_title', $name, $post->ID);
 
 		if ($length) {
 			$name = tw_strip_text($name, $length);
@@ -88,10 +89,13 @@ function tw_title($item, $length = false) {
 
 }
 
+
 function tw_breadcrumbs($separator = ' > ') {
 
+	$result = '';
+
 	if (!is_home() or !is_front_page()) {
-		echo '<a href="' . get_site_url() . '" class="home">' . __('Home', 'wp-theme') . '</a>' . $separator;
+		$result = '<a href="' . get_site_url() . '" class="home">' . __('Home', 'wp-theme') . '</a>' . $separator;
 	}
 
 	$taxonomy = tw_current_taxonomy();
@@ -113,15 +117,15 @@ function tw_breadcrumbs($separator = ' > ') {
 			$categories = array_reverse($categories);
 			foreach ($categories as $category) {
 				$category = get_term($category, $taxonomy);
-				echo '<a href="' . get_term_link($category->term_id, $taxonomy) . '">' . $category->name . '</a>' . $separator;
+				$result .= '<a href="' . get_term_link($category->term_id, $taxonomy) . '">' . $category->name . '</a>' . $separator;
 			}
-			echo '<a href="' . get_term_link($term->term_id, $taxonomy) . '">' . $term->name . '</a>';
+			$result .= '<a href="' . get_term_link($term->term_id, $taxonomy) . '">' . $term->name . '</a>';
 		} else {
 			$term = tw_current_term(true);
-			echo '<a href="' . get_term_link($term->term_id, $taxonomy) . '">' . $term->name . '</a>';
+			$result .= '<a href="' . get_term_link($term->term_id, $taxonomy) . '">' . $term->name . '</a>';
 		}
 
-		echo $separator;
+		$result .= $separator;
 
 	} elseif (is_page()) {
 
@@ -131,7 +135,7 @@ function tw_breadcrumbs($separator = ' > ') {
 			$pages = array_reverse($pages);
 			foreach ($pages as $page) {
 				$page = get_post($page);
-				echo '<a href="' . get_page_link($page) . '">' . $page->post_title . '</a>' . $separator;
+				$result .= '<a href="' . get_page_link($page) . '">' . $page->post_title . '</a>' . $separator;
 			}
 		}
 
@@ -148,15 +152,18 @@ function tw_breadcrumbs($separator = ' > ') {
 			$categories = array_reverse($categories);
 			foreach ($categories as $category) {
 				$category = get_term($category, $taxonomy);
-				echo '<a href="' . get_term_link($category->term_id, $taxonomy) . '">' . $category->name . '</a>' . $separator;
+				$result .= '<a href="' . get_term_link($category->term_id, $taxonomy) . '">' . $category->name . '</a>' . $separator;
 			}
 		}
 
 	}
 
-	return '<span>' . tw_wp_title() . '</span>';
+	$result .= '<span>' . tw_wp_title() . '</span>';
+
+	return $result;
 
 }
+
 
 function tw_pagination($args = array(), $query = false) {
 
@@ -268,7 +275,7 @@ function tw_pagination($args = array(), $query = false) {
 		$paged = 1;
 	}
 
-	$out = $args['before'];
+	$result = $args['before'];
 	$number = $args['number'] - 1;
 	$half_page_start = floor($number / 2);
 	$half_page_end = ceil($number / 2);
@@ -295,29 +302,29 @@ function tw_pagination($args = array(), $query = false) {
 	if ($args['pages_text']) {
 		$args['pages_text'] = str_replace('{current}', $paged, $args['pages_text']);
 		$args['pages_text'] = str_replace('{last}', $max_page, $args['pages_text']);
-		$out .= '<span class="pages">' . $args['pages_text'] . '</span>';
+		$result .= '<span class="pages">' . $args['pages_text'] . '</span>';
 	}
 
 	if ($args['first'] !== false and $start_page >= 2 and ($number + 1) < $max_page) {
-		$out .= '<a class="prev double" href="' . tw_page_link(1, $args) . '">' . (($args['first'] != 'first') ? $args['first'] : 1) . '</a>';
+		$result .= '<a class="prev double" href="' . tw_page_link(1, $args) . '">' . (($args['first'] != 'first') ? $args['first'] : 1) . '</a>';
 		if ($args['dots_left'] and $start_page != 2) {
-			$out .= '<span class="extend">' . $args['dots_left'] . '</span>';
+			$result .= '<span class="extend">' . $args['dots_left'] . '</span>';
 		}
 	}
 
 	if ($args['prev'] !== false) {
 		if ($paged != 1) {
-			$out .= '<a class="prev" href="' . tw_page_link(($paged - 1), $args) . '">' . $args['prev'] . '</a>';
+			$result .= '<a class="prev" href="' . tw_page_link(($paged - 1), $args) . '">' . $args['prev'] . '</a>';
 		} elseif ($args['inactive']) {
-			$out .= '<span class="prev">' . $args['prev'] . '</span>';
+			$result .= '<span class="prev">' . $args['prev'] . '</span>';
 		}
 	}
 
 	for ($i = $start_page; $i <= $end_page; $i++) {
 		if ($i == $paged) {
-			$out .= '<span class="current">' . $i . '</span>';
+			$result .= '<span class="current">' . $i . '</span>';
 		} else {
-			$out .= '<a href="' . tw_page_link($i, $args) . '">' . $i . '</a>';
+			$result .= '<a href="' . tw_page_link($i, $args) . '">' . $i . '</a>';
 		}
 	}
 
@@ -326,35 +333,36 @@ function tw_pagination($args = array(), $query = false) {
 		for ($i = $end_page + 1; $i <= $max_page; $i++) {
 			if ($i % $args['step'] == 0 && $i !== $args['number']) {
 				if (++$dd == 1) {
-					$out .= '<span class="extend">' . $args['dots_right'] . '</span>';
+					$result .= '<span class="extend">' . $args['dots_right'] . '</span>';
 				}
-				$out .= '<a href="' . tw_page_link($i, $args) . '">' . $i . '</a>';
+				$result .= '<a href="' . tw_page_link($i, $args) . '">' . $i . '</a>';
 			}
 		}
 	}
 
 	if ($args['next'] !== false) {
 		if ($paged != $end_page) {
-			$out .= '<a class="next" href="' . tw_page_link(($paged + 1), $args) . '">' . $args['next'] . '</a>';
+			$result .= '<a class="next" href="' . tw_page_link(($paged + 1), $args) . '">' . $args['next'] . '</a>';
 		} elseif ($args['inactive']) {
-			$out .= '<span class="next">' . $args['next'] . '</span>';
+			$result .= '<span class="next">' . $args['next'] . '</span>';
 		}
 	}
 
 	if ($args['last'] !== false and $end_page < $max_page) {
 		if ($args['dots_right'] and $end_page != ($max_page - 1)) {
-			$out .= '<span class="extend">' . $args['dots_right'] . '</span>';
+			$result .= '<span class="extend">' . $args['dots_right'] . '</span>';
 		}
-		$out .= '<a class="next double" href="' . tw_page_link($max_page, $args) . '">' . (($args['last'] != 'last') ? $args['last'] : $max_page) . '</a>';
+		$result .= '<a class="next double" href="' . tw_page_link($max_page, $args) . '">' . (($args['last'] != 'last') ? $args['last'] : $max_page) . '</a>';
 	}
 
-	$out .= $args['after'];
+	$result .= $args['after'];
 
-	return $out;
+	return $result;
 
 }
 
-function tw_page_link($page, $args = array()) {
+
+function tw_page_link($page_number, $args = array()) {
 
 	if (is_array($args) and isset($args['type'])) {
 		$type = $args['type'];
@@ -366,19 +374,19 @@ function tw_page_link($page, $args = array()) {
 
 	if ($type == 'comments') {
 
-		$link = get_comments_pagenum_link($page);
+		$link = get_comments_pagenum_link($page_number);
 
 	} elseif ($type == 'page') {
 
-		$link = str_replace(array('<a href="', '">'), '', _wp_link_page($page));
-		$link = apply_filters('wp_link_pages_link', $link, $page);
+		$link = str_replace(array('<a href="', '">'), '', _wp_link_page($page_number));
+		$link = apply_filters('wp_link_pages_link', $link, $page_number);
 
 	} else {
 
 		if (is_array($args) and !empty($args['base']) and !empty($args['format'])) {
 
-			$link = str_replace('%_%', ($page == 1 ? '' : $args['format']), $args['base']);
-			$link = str_replace('%#%', $page, $link);
+			$link = str_replace('%_%', ($page_number == 1 ? '' : $args['format']), $args['base']);
+			$link = str_replace('%#%', $page_number, $link);
 
 			if (!empty($args['add_args'])) {
 				$link = add_query_arg($args['add_args'], $link);
@@ -389,7 +397,7 @@ function tw_page_link($page, $args = array()) {
 
 		} else {
 
-			$link = get_pagenum_link($page);
+			$link = get_pagenum_link($page_number);
 
 		}
 
@@ -398,6 +406,7 @@ function tw_page_link($page, $args = array()) {
 	return $link;
 
 }
+
 
 function tw_strip_text($text, $length, $allowed_tags = false, $find = ' ', $dots = '...') {
 
@@ -456,25 +465,26 @@ function tw_strip_text($text, $length, $allowed_tags = false, $find = ' ', $dots
 
 }
 
-function tw_text($item = false, $length = 250, $allowed_tags = false, $find = ' ', $force_cut = true) {
 
-	if ($item === false) {
-		$item = get_post();
+function tw_text($post = false, $length = 250, $allowed_tags = false, $find = ' ', $force_cut = true) {
+
+	if ($post === false) {
+		$post = get_post();
 	}
 
-	if ($item and isset($item->post_content)) {
+	if ($post and isset($post->post_content)) {
 
-		$text = $item->post_content;
+		$text = $post->post_content;
 
-		if (isset($item->post_excerpt)) {
-			$excerpt = $item->post_excerpt;
+		if (isset($post->post_excerpt)) {
+			$excerpt = $post->post_excerpt;
 		} else {
 			$excerpt = false;
 		}
 
-	} elseif ($item and is_string($item)) {
+	} elseif ($post and is_string($post)) {
 
-		$text = $item;
+		$text = $post;
 		$excerpt = false;
 
 	} else {
@@ -512,6 +522,7 @@ function tw_text($item = false, $length = 250, $allowed_tags = false, $find = ' 
 
 }
 
+
 function tw_find_image($text) {
 
 	preg_match_all('/<img.+src=[\'"]([^\'"]+)[\'"].*>/i', $text, $matches);
@@ -536,7 +547,8 @@ function tw_find_image($text) {
 
 }
 
-function tw_get_thumb($image_url, $size) {
+
+function tw_create_thumb($image_url, $size) {
 
 	global $_wp_additional_image_sizes;
 
@@ -556,7 +568,7 @@ function tw_get_thumb($image_url, $size) {
 				$width = 0;
 				$height = 0;
 
-				if (is_string($size) and $size and isset($_wp_additional_image_sizes[$size])) {
+				if (is_string($size) and $size and !empty($_wp_additional_image_sizes[$size])) {
 					$width = $_wp_additional_image_sizes[$size]['width'];
 					$height = $_wp_additional_image_sizes[$size]['height'];
 					$crop = $_wp_additional_image_sizes[$size]['crop'];
@@ -579,7 +591,7 @@ function tw_get_thumb($image_url, $size) {
 				$width = intval($width);
 				$height = intval($height);
 
-				$filename = '/library/cache/' . $matches[1] . '-' . $width . '-' . $height . '.' . $matches[2];
+				$filename = '/includes/cache/' . $matches[1] . '-' . $width . '-' . $height . '.' . $matches[2];
 
 				if (!is_file(get_template_directory() . $filename)) {
 					$editor = wp_get_image_editor($image_url);
@@ -605,38 +617,40 @@ function tw_get_thumb($image_url, $size) {
 
 }
 
-function tw_thumb($item = false, $size = false, $before = '', $after = '', $atts = array(), $thumb_only = false) {
+
+function tw_thumb($post = false, $size = false, $before = '', $after = '', $atts = array(), $thumb_only = false) {
 
 	global $_wp_additional_image_sizes;
 
-	$result = '';
-	$src = false;
+	$thumb = '';
+	$link_href = false;
+	$link_image_size = false;
 
-	if ($item == false) {
-		$item = get_post();
+	if ($post == false) {
+		$post = get_post();
 	}
 
-	if (!isset($atts['link'])) {
-
-		$link = false;
-
-	} else {
+	if (!empty($atts['link'])) {
 
 		if ($atts['link'] == 'url') {
-			$src = get_permalink($item->ID);
-		}
 
-		if (isset($_wp_additional_image_sizes[$atts['link']])) {
-			$link = $atts['link'];
+			$link_href = get_permalink($post->ID);
+
 		} else {
-			$link = 'full';
+
+			if (!empty($_wp_additional_image_sizes[$atts['link']])) {
+				$link_image_size = $atts['link'];
+			} else {
+				$link_image_size = 'full';
+			}
+
 		}
 
 		unset($atts['link']);
 
 	}
 
-	if (!isset($atts['link_class'])) {
+	if (empty($atts['link_class'])) {
 		$class = '';
 	} else {
 		$class = ' class="' . $atts['link_class'] . '"';
@@ -647,50 +661,68 @@ function tw_thumb($item = false, $size = false, $before = '', $after = '', $atts
 		$size = 'thumbnail';
 	}
 
-	if (has_post_thumbnail($item->ID)) {
+	if (has_post_thumbnail($post->ID)) {
 
-		if ($link and !$src and $thumb = wp_get_attachment_image_src(get_post_thumbnail_id($item->ID), $link) and isset($thumb[0])) {
-			$src = $thumb[0];
+		if ($link_image_size) {
+
+			$thumb = wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $link_image_size);
+
+			if (!empty($thumb[0])) {
+				$link_href = $thumb[0];
+			}
+
 		}
 
-		$result = get_the_post_thumbnail($item->ID, $size, $atts);
+		$thumb = get_the_post_thumbnail($post->ID, $size, $atts);
 
-	} elseif (!$thumb_only and $image = tw_get_thumb(tw_find_image($item->post_content), $size)) {
+	} elseif (!$thumb_only) {
 
-		if ($link and !$src) {
-			$src = tw_get_thumb($image, $link);
+		$image = tw_create_thumb(tw_find_image($post->post_content), $size);
+
+		if ($image) {
+
+			if ($link_image_size and !$link_href) {
+				$link_href = tw_create_thumb($image, $link_image_size);
+			}
+
+			$thumb = '<img src="' . $image . '" alt="' . $post->post_title . '"' . ((isset($atts['class'])) ? ' class="' . $atts['class'] . '"' : '') . ' />';
+
 		}
-
-		$result = '<img src="' . $image . '" alt="' . $item->post_title . '"' . ((isset($atts['class'])) ? ' class="' . $atts['class'] . '"' : '') . ' />';
 
 	}
 
-	if ($src) {
-		$before = $before . '<a href="' . $src . '"' . $class . '>';
+	if ($link_href) {
+		$before = $before . '<a href="' . $link_href . '"' . $class . '>';
 		$after = '</a>' . $after;
 	}
 
-	if ($result) {
-		return $before . $result . $after;
+	if ($thumb) {
+		return $before . $thumb . $after;
 	} else {
-		return $result;
+		return $thumb;
 	}
 
 }
 
-function tw_date($item, $format = '') {
+
+function tw_date($post = false, $format = '') {
+
+	if ($post == false) {
+		$post = get_post();
+	}
 
 	if (!$format) {
 		$format = get_option('date_format');
 	}
 
-	$date = mysql2date($format, $item->post_date);
+	$date = mysql2date($format, $post->post_date);
 
 	return apply_filters('get_the_date', $date, $format);
 
 }
 
-function tw_none() {
+
+function tw_not_found_text() {
 
 	if (is_category()) {
 		$result = __('There are no posts in this category', 'wp-theme');
@@ -720,6 +752,39 @@ function tw_none() {
 
 }
 
+
+function tw_get_template_part($name, $variables = array()) {
+
+	if (is_array($variables) and $variables) {
+		extract($variables);
+	}
+
+	$filename = get_template_directory() . '/parts/' . $name . '.php';
+
+	if (is_file($filename)) {
+		include($filename);
+	}
+
+}
+
+
+function tw_get_rating($post_id) {
+
+	$rating_sum = get_post_meta($post_id, 'rating_sum', true);
+	$rating_votes = get_post_meta($post_id, 'rating_votes', true);
+
+	if ($rating_votes == 0) {
+		$rating_votes = 1;
+	}
+
+	return array(
+		'rating' => round($rating_sum / $rating_votes, 1),
+		'votes' => intval($rating_votes)
+	);
+
+}
+
+
 function tw_get_views($post_id) {
 
 	$count_key = 'post_views_count';
@@ -735,6 +800,7 @@ function tw_get_views($post_id) {
 	return $count;
 
 }
+
 
 function tw_set_views($post_id) {
 
@@ -752,18 +818,4 @@ function tw_set_views($post_id) {
 
 }
 
-function tw_get_rating($post_id) {
 
-	$rating_sum = get_post_meta($post_id, 'rating_sum', true);
-	$rating_votes = get_post_meta($post_id, 'rating_votes', true);
-
-	if ($rating_votes == 0) {
-		$rating_votes = 1;
-	}
-
-	return array(
-		'rating' => round($rating_sum / $rating_votes, 1),
-		'votes' => intval($rating_votes)
-	);
-
-}

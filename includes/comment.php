@@ -47,8 +47,6 @@ function tw_comment($comment, $args, $depth) {
 }
 
 
-
-
 function tw_comment_form($args = array(), $post_id = false) {
 
 	if ($post_id == false) $post_id = get_the_ID();
