@@ -3,8 +3,8 @@
 /*
 Описание: библиотека для работы с Advanced Custom Fields
 Автор: Тониевич Андрей
-Версия: 1.7
-Дата: 29.06.2016
+Версия: 1.8
+Дата: 26.09.2016
 */
 
 
@@ -235,3 +235,7 @@ if (!function_exists('get_field') and !is_admin()) {
 	}
 
 }
+
+add_filter('acf/settings/google_api_key', function() {
+	return 'AIzaSyAJ5QTsj4apSnVK-6T7HMQfUW5-RljJTQ4';
+});

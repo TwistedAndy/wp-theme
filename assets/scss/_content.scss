@@ -154,38 +154,6 @@
 		vertical-align: top;
 	}
 
-	&.gallery-columns-1 .gallery-item {
-		width: 100%;
-	}
-
-	&.gallery-columns-2 .gallery-item {
-		width: 50%;
-	}
-
-	&.gallery-columns-4 .gallery-item {
-		width: 25%;
-	}
-
-	&.gallery-columns-5 .gallery-item {
-		width: 20%;
-	}
-
-	&.gallery-columns-6 .gallery-item {
-		width: 16.66%;
-	}
-
-	&.gallery-columns-7 .gallery-item {
-		width: 14.28%;
-	}
-
-	&.gallery-columns-8 .gallery-item {
-		width: 12.5%;
-	}
-
-	&.gallery-columns-9 .gallery-item {
-		width: 11.11%;
-	}
-
 	.gallery-icon {
 		display: block;
 		position: relative;
@@ -213,11 +181,43 @@
 		background: $color_content;
 	}
 
-	.gallery-columns-6 .gallery-caption,
-	.gallery-columns-7 .gallery-caption,
-	.gallery-columns-8 .gallery-caption,
-	.gallery-columns-9 .gallery-caption {
-		display: none;
-	}
+}
 
+.gallery-columns-1 .gallery-item {
+	width: 100%;
+}
+
+.gallery-columns-2 .gallery-item {
+	width: 50%;
+}
+
+.gallery-columns-4 .gallery-item {
+	width: 25%;
+}
+
+.gallery-columns-5 .gallery-item {
+	width: 20%;
+}
+
+.gallery-columns-6 .gallery-item {
+	width: 16.66%;
+}
+
+.gallery-columns-7 .gallery-item {
+	width: 14.28%;
+}
+
+.gallery-columns-8 .gallery-item {
+	width: 12.5%;
+}
+
+.gallery-columns-9 .gallery-item {
+	width: 11.11%;
+}
+
+.gallery-columns-6 .gallery-caption,
+.gallery-columns-7 .gallery-caption,
+.gallery-columns-8 .gallery-caption,
+.gallery-columns-9 .gallery-caption {
+	display: none;
 }
