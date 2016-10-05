@@ -143,6 +143,7 @@ $tw_settings = array(
 
 	'init' => array(
 		'action_get_posts' => false,
+		'action_menu_clean' => false,
 		'action_menu_active' => true,
 		'action_fix_caption' => true,
 		'action_clean_header' => true,

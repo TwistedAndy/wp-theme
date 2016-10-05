@@ -3,21 +3,23 @@
 /*
 Описание: библиотека с общими функциями
 Автор: Тониевич Андрей
-Версия: 1.9
-Дата: 14.09.2016
+Версия: 2.0
+Дата: 05.10.2016
 */
 
-function tw_wp_title($add_page_number = true) {
+function tw_wp_title($before = '', $after = '', $add_page_number = false) {
+
+	global $post;
 
 	$title = '';
 
-	if (is_404()) {
+	if (is_category() or is_tax()) {
 
-		$title = __('Page not found', 'wp-theme');
+		$title = single_post_title('', false);
 
-	} elseif (is_search()) {
+	} elseif (is_singular()) {
 
-		$title = sprintf(__('Search results for %s', 'wp-theme'), get_search_query());
+		$title = single_term_title('', false);
 
 	} elseif (is_home() or is_front_page()) {
 
@@ -27,13 +29,13 @@ function tw_wp_title($add_page_number = true) {
 
 		$title = post_type_archive_title('', false);
 
-	} elseif (is_singular()) {
+	} elseif (is_404()) {
 
-		$title = single_post_title('', false);
+		$title = __('Page not found', 'wp-theme');
 
-	} elseif (is_category() or is_tax()) {
+	} elseif (is_search()) {
 
-		$title = single_term_title('', false);
+		$title = sprintf(__('Search results for %s', 'wp-theme'), get_search_query());
 
 	} elseif (is_tag()) {
 
@@ -49,7 +51,6 @@ function tw_wp_title($add_page_number = true) {
 
 	} elseif (is_month()) {
 
-		global $post;
 		$title = sprintf(__('Posts for <i>%s</i>', 'wp-theme'), mb_strtolower(mysql2date('F Y', $post->post_date)));
 
 	} elseif (is_year()) {
@@ -58,107 +59,119 @@ function tw_wp_title($add_page_number = true) {
 
 	}
 
-	if ($add_page_number and $title and $page = intval(get_query_var('paged'))) {
-
+	if ($add_page_number and !empty($title) and $page = intval(get_query_var('paged'))) {
 		$title .= sprintf(__(' - page %d', 'wp-theme'), $page);
-
 	}
 
-	return apply_filters('wp_title', $title, '', '');
+	if (!empty($title)) {
+		$title = $before . $title . $after;
+	}
+
+	return $title;
 
 }
 
 
 function tw_title($post, $length = false) {
 
-	$name = '';
+	$title = '';
 
-	if (isset($post->post_title)) {
+	if (!empty($post->post_title)) {
 
-		$name = $post->post_title;
+		$title = $post->post_title;
 
-		$name = apply_filters('the_title', $name, $post->ID);
+		$title = apply_filters('the_title', $title, $post->ID);
 
-		if ($length) {
-			$name = tw_strip_text($name, $length);
-		}
+	} elseif (!empty($post->name)) {
+
+		$title = $post->name;
 
 	}
 
-	return $name;
+	if ($title and $length) {
+		$title = tw_strip_text($title, $length);
+	}
+
+	return $title;
 
 }
 
 
-function tw_breadcrumbs($separator = ' > ') {
+function tw_breadcrumbs($before = '<div class="breadcrumbs">', $after = '</div>', $separator = ' > ') {
 
 	$result = '';
 
 	if (!is_home() or !is_front_page()) {
+
 		$result = '<a href="' . get_site_url() . '" class="home">' . __('Home', 'wp-theme') . '</a>' . $separator;
-	}
 
-	$taxonomy = tw_current_taxonomy();
+		$taxonomy = tw_current_taxonomy();
 
-	if (is_single() and $taxonomy) {
+		if (is_single() and $taxonomy) {
 
-		$term = false;
+			$term = false;
 
-		if ($categories = get_the_terms(get_the_ID(), $taxonomy)) {
-			foreach ($categories as $category) {
-				$term = $category;
-				if (!empty($category->parent) and $category->parent > 0) {
-					break;
+			if ($categories = get_the_terms(get_the_ID(), $taxonomy)) {
+				foreach ($categories as $category) {
+					$term = $category;
+					if (!empty($category->parent) and $category->parent > 0) {
+						break;
+					}
 				}
 			}
-		}
 
-		if ($term and !empty($term->term_id) and !empty($term->name) and $categories = get_ancestors($term->term_id, $taxonomy)) {
-			$categories = array_reverse($categories);
-			foreach ($categories as $category) {
-				$category = get_term($category, $taxonomy);
-				$result .= '<a href="' . get_term_link($category->term_id, $taxonomy) . '">' . $category->name . '</a>' . $separator;
+			if ($term and !empty($term->term_id) and !empty($term->name) and $categories = get_ancestors($term->term_id, $taxonomy)) {
+				$categories = array_reverse($categories);
+				foreach ($categories as $category) {
+					$category = get_term($category, $taxonomy);
+					$result .= '<a href="' . get_term_link($category->term_id, $taxonomy) . '">' . $category->name . '</a>' . $separator;
+				}
+				$result .= '<a href="' . get_term_link($term->term_id, $taxonomy) . '">' . $term->name . '</a>';
+			} else {
+				$term = tw_current_term(true);
+				$result .= '<a href="' . get_term_link($term->term_id, $taxonomy) . '">' . $term->name . '</a>';
 			}
-			$result .= '<a href="' . get_term_link($term->term_id, $taxonomy) . '">' . $term->name . '</a>';
-		} else {
-			$term = tw_current_term(true);
-			$result .= '<a href="' . get_term_link($term->term_id, $taxonomy) . '">' . $term->name . '</a>';
-		}
 
-		$result .= $separator;
+			$result .= $separator;
 
-	} elseif (is_page()) {
+		} elseif (is_page()) {
 
-		$pages = get_ancestors(get_the_ID(), 'page');
+			$pages = get_ancestors(get_the_ID(), 'page');
 
-		if ($pages) {
-			$pages = array_reverse($pages);
-			foreach ($pages as $page) {
-				$page = get_post($page);
-				$result .= '<a href="' . get_page_link($page) . '">' . $page->post_title . '</a>' . $separator;
+			if ($pages) {
+				$pages = array_reverse($pages);
+				foreach ($pages as $page) {
+					$page = get_post($page);
+					$result .= '<a href="' . get_page_link($page) . '">' . $page->post_title . '</a>' . $separator;
+				}
 			}
-		}
 
-	} elseif (is_category() or is_tax()) {
+		} elseif (is_category() or is_tax()) {
 
-		if (is_tax() and $term_object = get_queried_object()) {
-			$term_id = $term_object->term_id;
-		} else {
-			$taxonomy = 'category';
-			$term_id = get_query_var('cat');
-		}
-
-		if ($term_id and $categories = get_ancestors($term_id, $taxonomy)) {
-			$categories = array_reverse($categories);
-			foreach ($categories as $category) {
-				$category = get_term($category, $taxonomy);
-				$result .= '<a href="' . get_term_link($category->term_id, $taxonomy) . '">' . $category->name . '</a>' . $separator;
+			if (is_tax() and $term_object = get_queried_object()) {
+				$term_id = $term_object->term_id;
+			} else {
+				$taxonomy = 'category';
+				$term_id = get_query_var('cat');
 			}
+
+			if ($term_id and $categories = get_ancestors($term_id, $taxonomy)) {
+				$categories = array_reverse($categories);
+				foreach ($categories as $category) {
+					$category = get_term($category, $taxonomy);
+					$result .= '<a href="' . get_term_link($category->term_id, $taxonomy) . '">' . $category->name . '</a>' . $separator;
+				}
+			}
+
+		}
+
+		$result .= '<span>' . tw_wp_title() . '</span>';
+
+		if ($result) {
+			$result = $before . $result . $after;
 		}
 
 	}
-
-	$result .= '<span>' . tw_wp_title() . '</span>';
 
 	return $result;
 
@@ -306,7 +319,7 @@ function tw_pagination($args = array(), $query = false) {
 	}
 
 	if ($args['first'] !== false and $start_page >= 2 and ($number + 1) < $max_page) {
-		$result .= '<a class="prev double" href="' . tw_page_link(1, $args) . '">' . (($args['first'] != 'first') ? $args['first'] : 1) . '</a>';
+		$result .= '<a class="prev first" href="' . tw_page_link(1, $args) . '">' . (($args['first'] != 'first') ? $args['first'] : 1) . '</a>';
 		if ($args['dots_left'] and $start_page != 2) {
 			$result .= '<span class="extend">' . $args['dots_left'] . '</span>';
 		}
@@ -352,7 +365,7 @@ function tw_pagination($args = array(), $query = false) {
 		if ($args['dots_right'] and $end_page != ($max_page - 1)) {
 			$result .= '<span class="extend">' . $args['dots_right'] . '</span>';
 		}
-		$result .= '<a class="next double" href="' . tw_page_link($max_page, $args) . '">' . (($args['last'] != 'last') ? $args['last'] : $max_page) . '</a>';
+		$result .= '<a class="next last" href="' . tw_page_link($max_page, $args) . '">' . (($args['last'] != 'last') ? $args['last'] : $max_page) . '</a>';
 	}
 
 	$result .= $args['after'];
@@ -415,10 +428,14 @@ function tw_strip_text($text, $length, $allowed_tags = false, $find = ' ', $dots
 		$allowed_tags_list = 'i|em|b|strong|s|del';
 
 		if ($allowed_tags != '+' and mb_strpos($allowed_tags, '+') === 0) {
+
 			$allowed_tags = str_replace('+', '', $allowed_tags);
 			$allowed_tags_list = $allowed_tags_list . '|' . $allowed_tags;
+
 		} else {
+
 			$allowed_tags_list = $allowed_tags;
+
 		}
 
 		$allowed_tags_list = '<' . implode('><', explode('|', $allowed_tags_list)) . '>';
@@ -436,25 +453,38 @@ function tw_strip_text($text, $length, $allowed_tags = false, $find = ' ', $dots
 	$text = strip_tags(strip_shortcodes($text), $allowed_tags_list);
 
 	if ($find and mb_strlen($text) > $length) {
+
 		$pos = mb_strpos($text, $find, $length);
+
 		if ($pos < $length or $pos > ($length + 20)) {
 			$pos = $length;
 		}
+
 		$text = mb_substr($text, 0, $pos) . $dots;
+
 	} else {
+
 		$pos = $length;
 		$text = mb_substr($text, 0, $pos);
+
 	}
 
 	if (mb_strpos($allowed_tags_list, '<a>') !== false) {
+
 		$link_start = mb_strrpos($text, '<a');
+
 		if ($link_start !== false) {
+
 			$link_end = mb_strpos($text, '</a>', $link_start);
+
 			if ($link_end === false) {
 				$text = mb_substr($text, 0, $link_start) . $dots;
 			}
+
 		}
+
 		$text = preg_replace('#<a[^>]*?></a>#is', '', $text);
+
 	}
 
 	if ($allowed_tags_list) {
@@ -472,7 +502,7 @@ function tw_text($post = false, $length = 250, $allowed_tags = false, $find = ' 
 		$post = get_post();
 	}
 
-	if ($post and isset($post->post_content)) {
+	if (!empty($post->post_content)) {
 
 		$text = $post->post_content;
 
@@ -482,7 +512,7 @@ function tw_text($post = false, $length = 250, $allowed_tags = false, $find = ' 
 			$excerpt = false;
 		}
 
-	} elseif ($post and is_string($post)) {
+	} elseif (is_string($post) and $post) {
 
 		$text = $post;
 		$excerpt = false;
@@ -568,24 +598,32 @@ function tw_create_thumb($image_url, $size) {
 				$width = 0;
 				$height = 0;
 
-				if (is_string($size) and $size and !empty($_wp_additional_image_sizes[$size])) {
+				if (is_string($size) and !empty($size) and !empty($_wp_additional_image_sizes[$size])) {
+
 					$width = $_wp_additional_image_sizes[$size]['width'];
 					$height = $_wp_additional_image_sizes[$size]['height'];
 					$crop = $_wp_additional_image_sizes[$size]['crop'];
+
 				} elseif (is_array($size) and $size) {
+
 					if (isset($size[0])) {
 						$width = $size[0];
 					}
+
 					if (isset($size[1])) {
 						$height = $size[1];
 					}
+
 					if (isset($size[2])) {
 						$crop = $size[2];
 					}
+
 				} else {
+
 					$width = $_wp_additional_image_sizes['thumbnail']['width'];
 					$height = $_wp_additional_image_sizes['thumbnail']['height'];
 					$crop = $_wp_additional_image_sizes['thumbnail']['crop'];
+
 				}
 
 				$width = intval($width);
@@ -594,11 +632,26 @@ function tw_create_thumb($image_url, $size) {
 				$filename = '/includes/cache/' . $matches[1] . '-' . $width . '-' . $height . '.' . $matches[2];
 
 				if (!is_file(get_template_directory() . $filename)) {
+
+					$site_url = get_option('siteurl');
+
+					if (strpos($image_url, $site_url) === 0) {
+
+						$image_path = str_replace(trailingslashit($site_url), ABSPATH, $image_url);
+
+						if (is_file($image_path)) {
+							$image_url = $image_path;
+						}
+
+					}
+
 					$editor = wp_get_image_editor($image_url);
+
 					if (!is_wp_error($editor)) {
 						$editor->resize($width, $height, $crop);
 						$editor->save(get_template_directory() . $filename);
 					}
+
 				}
 
 				$result = get_template_directory_uri() . $filename;
@@ -632,7 +685,7 @@ function tw_thumb($post = false, $size = false, $before = '', $after = '', $atts
 
 	if (!empty($atts['link'])) {
 
-		if ($atts['link'] == 'url') {
+		if ($atts['link'] == 'url' and !empty($post->ID)) {
 
 			$link_href = get_permalink($post->ID);
 
@@ -651,17 +704,23 @@ function tw_thumb($post = false, $size = false, $before = '', $after = '', $atts
 	}
 
 	if (empty($atts['link_class'])) {
+
 		$class = '';
+
 	} else {
+
 		$class = ' class="' . $atts['link_class'] . '"';
+
 		unset($atts['link_class']);
+
 	}
 
 	if (!$size or (is_string($size) and empty($_wp_additional_image_sizes[$size]) and !in_array($size, array('thumbnail', 'medium', 'large', 'full')))) {
 		$size = 'thumbnail';
 	}
 
-	if (has_post_thumbnail($post->ID)) {
+
+	if (is_object($post) and !empty($post->ID) and has_post_thumbnail($post->ID)) {
 
 		if ($link_image_size) {
 
@@ -675,6 +734,24 @@ function tw_thumb($post = false, $size = false, $before = '', $after = '', $atts
 
 		$thumb = get_the_post_thumbnail($post->ID, $size, $atts);
 
+	} elseif (is_array($post) and !empty($post['url'])) {
+
+		if (is_string($size) and !empty($post['sizes'][$size])) {
+			$image = $post['sizes'][$size];
+		} else {
+			$image = tw_create_thumb($post['url'], $size);
+		}
+
+		if ($image) {
+
+			if ($link_image_size and !$link_href) {
+				$link_href = tw_create_thumb($post['url'], $link_image_size);
+			}
+
+			$thumb = '<img src="' . $image . '" alt="' . $post['alt'] . '"' . ((!empty($atts['class'])) ? ' class="' . $atts['class'] . '"' : '') . ' />';
+
+		}
+
 	} elseif (!$thumb_only) {
 
 		$image = tw_create_thumb(tw_find_image($post->post_content), $size);
@@ -685,7 +762,7 @@ function tw_thumb($post = false, $size = false, $before = '', $after = '', $atts
 				$link_href = tw_create_thumb($image, $link_image_size);
 			}
 
-			$thumb = '<img src="' . $image . '" alt="' . $post->post_title . '"' . ((isset($atts['class'])) ? ' class="' . $atts['class'] . '"' : '') . ' />';
+			$thumb = '<img src="' . $image . '" alt="' . $post->post_title . '"' . ((!empty($atts['class'])) ? ' class="' . $atts['class'] . '"' : '') . ' />';
 
 		}
 
@@ -697,10 +774,10 @@ function tw_thumb($post = false, $size = false, $before = '', $after = '', $atts
 	}
 
 	if ($thumb) {
-		return $before . $thumb . $after;
-	} else {
-		return $thumb;
+		$thumb = $before . $thumb . $after;
 	}
+
+	return $thumb;
 
 }
 

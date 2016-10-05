@@ -3,13 +3,13 @@
 /*
 Описание: дополнительные фильтры и хуки
 Автор: Тониевич Андрей
-Версия: 1.7
-Дата: 14.03.2016
+Версия: 1.8
+Дата: 29.09.2016
 */
 
 if (tw_get_setting('init', 'action_menu_active')) {
 
-	add_filter('nav_menu_css_class' , 'tw_nav_class', 10, 2);
+	add_filter('nav_menu_css_class', 'tw_nav_class', 10, 1);
 
 	function tw_nav_class($classes) {
 
@@ -30,7 +30,34 @@ if (tw_get_setting('init', 'action_menu_active')) {
 
 		}
 
+		if (in_array('menu-item-has-children', $classes)) {
+			$classes[] = 'submenu';
+		}
+
 		return $classes;
+
+	}
+
+}
+
+
+if (tw_get_setting('init', 'action_menu_clean')) {
+
+	add_filter('nav_menu_css_class', 'tw_nav_classes_clean', 20, 1);
+
+	function tw_nav_classes_clean($classes) {
+
+		$new_classes = array();
+
+		foreach ($classes as $class) {
+
+			if (strpos($class, 'menu-item') !== 0 and strpos($class, 'current-') !== 0) {
+				$new_classes[] = $class;
+			}
+
+		}
+
+		return $new_classes;
 
 	}
 
