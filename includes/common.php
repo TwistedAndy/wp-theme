@@ -15,11 +15,11 @@ function tw_wp_title($before = '', $after = '', $add_page_number = false) {
 
 	if (is_category() or is_tax()) {
 
-		$title = single_post_title('', false);
+		$title = single_term_title('', false);
 
 	} elseif (is_singular()) {
 
-		$title = single_term_title('', false);
+		$title = single_post_title('', false);
 
 	} elseif (is_home() or is_front_page()) {
 
@@ -101,7 +101,7 @@ function tw_breadcrumbs($before = '<div class="breadcrumbs">', $after = '</div>'
 
 	$result = '';
 
-	if (!is_home() or !is_front_page()) {
+	if (!is_home() and !is_front_page()) {
 
 		$result = '<a href="' . get_site_url() . '" class="home">' . __('Home', 'wp-theme') . '</a>' . $separator;
 
