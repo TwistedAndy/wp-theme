@@ -3,8 +3,8 @@
 /*
 Описание: библиотека с общими функциями
 Автор: Тониевич Андрей
-Версия: 2.0
-Дата: 05.10.2016
+Версия: 2.1
+Дата: 07.11.2016
 */
 
 function tw_wp_title($before = '', $after = '', $add_page_number = false) {
@@ -97,13 +97,18 @@ function tw_title($post, $length = false) {
 }
 
 
-function tw_breadcrumbs($before = '<div class="breadcrumbs">', $after = '</div>', $separator = ' > ') {
+function tw_breadcrumbs($before = '<div class="breadcrumbs">', $after = '</div>', $separator = '', $microdata = true) {
 
 	$result = '';
+	$breadcrumbs = array();
 
 	if (!is_home() and !is_front_page()) {
 
-		$result = '<a href="' . get_site_url() . '" class="home">' . __('Home', 'wp-theme') . '</a>' . $separator;
+		$breadcrumbs[] = array(
+			'link' => get_site_url(),
+			'class' => 'home',
+			'title' => __('Home', 'wp-theme')
+		);
 
 		$taxonomy = tw_current_taxonomy();
 
@@ -121,29 +126,52 @@ function tw_breadcrumbs($before = '<div class="breadcrumbs">', $after = '</div>'
 			}
 
 			if ($term and !empty($term->term_id) and !empty($term->name) and $categories = get_ancestors($term->term_id, $taxonomy)) {
+
 				$categories = array_reverse($categories);
+
 				foreach ($categories as $category) {
 					$category = get_term($category, $taxonomy);
-					$result .= '<a href="' . get_term_link($category->term_id, $taxonomy) . '">' . $category->name . '</a>' . $separator;
+					$breadcrumbs[] = array(
+						'link' => get_term_link($category->term_id, $taxonomy),
+						'title' => $category->name
+					);
 				}
-				$result .= '<a href="' . get_term_link($term->term_id, $taxonomy) . '">' . $term->name . '</a>';
-			} else {
-				$term = tw_current_term(true);
-				$result .= '<a href="' . get_term_link($term->term_id, $taxonomy) . '">' . $term->name . '</a>';
-			}
 
-			$result .= $separator;
+				$breadcrumbs[] = array(
+					'link' => get_term_link($term->term_id, $taxonomy),
+					'title' => $term->name
+				);
+
+			} else {
+
+				$term = tw_current_term(true);
+
+				$breadcrumbs[] = array(
+					'link' => get_term_link($term->term_id, $taxonomy),
+					'title' => $term->name
+				);
+
+			}
 
 		} elseif (is_page()) {
 
 			$pages = get_ancestors(get_the_ID(), 'page');
 
 			if ($pages) {
+
 				$pages = array_reverse($pages);
+
 				foreach ($pages as $page) {
+
 					$page = get_post($page);
-					$result .= '<a href="' . get_page_link($page) . '">' . $page->post_title . '</a>' . $separator;
+
+					$breadcrumbs[] = array(
+						'link' => get_page_link($page),
+						'title' => $page->post_title
+					);
+
 				}
+
 			}
 
 		} elseif (is_category() or is_tax()) {
@@ -156,19 +184,71 @@ function tw_breadcrumbs($before = '<div class="breadcrumbs">', $after = '</div>'
 			}
 
 			if ($term_id and $categories = get_ancestors($term_id, $taxonomy)) {
+
 				$categories = array_reverse($categories);
+
 				foreach ($categories as $category) {
+
 					$category = get_term($category, $taxonomy);
-					$result .= '<a href="' . get_term_link($category->term_id, $taxonomy) . '">' . $category->name . '</a>' . $separator;
+
+					$breadcrumbs[] = array(
+						'link' => get_term_link($category->term_id, $taxonomy),
+						'title' => $category->name
+					);
+
 				}
+
 			}
 
 		}
 
-		$result .= '<span>' . tw_wp_title() . '</span>';
+		if ($microdata) {
+			$before = substr_replace($before, ' xmlns:v="http://rdf.data-vocabulary.org/#">', strrpos($before, '>'), 1);
+		}
 
-		if ($result) {
-			$result = $before . $result . $after;
+		$result = $before . tw_build_breadcrumb($breadcrumbs, $separator, $microdata, true) . '<span class="last">' . tw_wp_title() . '</span>' . $after;
+
+	}
+
+	return $result;
+
+}
+
+
+function tw_build_breadcrumb($breadcrumbs, $separator, $microdata = true, $first = false) {
+
+	$result = '';
+
+	if (!empty($breadcrumbs)) {
+
+		$breadcrumb = array_shift($breadcrumbs);
+
+		$class = '';
+
+		if (!empty($breadcrumb['class'])) {
+			$class = ' class="' . $breadcrumb['class'] . '"';
+		}
+
+		if ($microdata) {
+
+			if ($first) {
+				$result = '<span typeof="v:Breadcrumb">';
+			} else {
+				$result = '<span typeof="v:Breadcrumb" rel="v:child">';
+			}
+
+			$result .= '<a href="' . $breadcrumb['link'] . '"' . $class . ' rel="v:url" property="v:title">' . $breadcrumb['title'] . '</a>' . $separator;
+
+			$result .= tw_build_breadcrumb($breadcrumbs, $separator, $microdata);
+
+			$result .= '</span>';
+
+		} else {
+
+			$result = '<a href="' . $breadcrumb['link'] . '"' . $class . '>' . $breadcrumb['title'] . '</a>' . $separator;
+
+			tw_build_breadcrumb($breadcrumbs, $separator, $microdata);
+
 		}
 
 	}

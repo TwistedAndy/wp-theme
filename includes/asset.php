@@ -7,7 +7,7 @@
 Дата: 26.08.2016
 */
 
-add_action('after_setup_theme', 'tw_register_assets');
+add_action('init', 'tw_register_assets');
 
 function tw_register_assets() {
 
