@@ -1,11 +1,21 @@
 <?php
+/**
+ * Settings library
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 1.0
+ */
 
-/*
-Описание: библиотека для работы с настройками
-Автор: Тониевич Андрей
-Версия: 1.0
-Дата: 04.06.2016
-*/
+
+/**
+ * Get current theme setting
+ *
+ * @param bool|string $group Setting group
+ * @param bool|string $name  Setting name
+ *
+ * @return array|bool
+ */
 
 function tw_get_setting($group = false, $name = false) {
 
@@ -21,8 +31,16 @@ function tw_get_setting($group = false, $name = false) {
 		return false;
 	}
 
-};
+}
 
+
+/**
+ * Set theme setting
+ *
+ * @param string $group Setting group
+ * @param string $name  Setting name
+ * @param $value
+ */
 
 function tw_set_setting($group, $name, $value) {
 
@@ -34,4 +52,4 @@ function tw_set_setting($group, $name, $value) {
 		$tw_settings[$name] = $value;
 	}
 
-};
+}

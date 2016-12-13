@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: Тема оформления для WordPress\n"
-"POT-Creation-Date: 2016-06-12 15:09+0300\n"
+"POT-Creation-Date: 2016-12-13 22:20+0200\n"
 "PO-Revision-Date: 2016-06-12 10:55+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -20,133 +20,165 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.js\n"
 
-#: library/comment.php:34
-msgid "This comment is not approved yet."
+#: includes/acf.php:53
+msgid "Edit the theme settings"
 msgstr ""
 
-#: library/comment.php:64
-msgid "Your name"
+#: includes/acf.php:54
+msgid "Theme settings"
 msgstr ""
 
-#: library/comment.php:65
-msgid "Your e-mail"
+#: includes/acf.php:60
+msgid "Refresh"
 msgstr ""
 
-#: library/comment.php:66
-msgid "Site"
+#: includes/acf.php:126
+msgid "Taxonomy"
 msgstr ""
 
-#: library/comment.php:75
+#: includes/acf.php:127
+msgid "Category"
+msgstr ""
+
+#: includes/acf.php:128
+msgid "Subcategories"
+msgstr ""
+
+#: includes/acf.php:129
+msgid "Category and subcategories"
+msgstr ""
+
+#: includes/comment.php:61
 #, php-format
 msgid "You need to <a href=\"%s\">login</a> to post a comment."
 msgstr ""
 
-#: library/comment.php:78
+#: includes/comment.php:63
 #, php-format
 msgid ""
 "You've logged in as <a class=\"login\" href=\"%1$s\">%2$s</a> <a class="
 "\"logout\" href=\"%3$s\">[log out]</a>"
 msgstr ""
 
-#: library/comment.php:88
+#: includes/comment.php:77
+msgid "Your name"
+msgstr ""
+
+#: includes/comment.php:78
+msgid "Your e-mail"
+msgstr ""
+
+#: includes/comment.php:79
+msgid "Site"
+msgstr ""
+
+#: includes/comment.php:97
 msgid "Leave a Reply"
 msgstr ""
 
-#: library/comment.php:89
+#: includes/comment.php:98
 #, php-format
 msgid "Leave a Reply to %s"
 msgstr ""
 
-#: library/comment.php:94
+#: includes/comment.php:103
 msgid "Cancel reply"
 msgstr ""
 
-#: library/comment.php:95
+#: includes/comment.php:104
 msgid "Post Comment"
 msgstr ""
 
-#: library/comment.php:188
+#: includes/comment.php:197
 msgid "Sorry, but comments are closed."
 msgstr ""
 
-#: library/common.php:16
+#: includes/common.php:46
 msgid "Page not found"
 msgstr ""
 
-#: library/common.php:20
+#: includes/common.php:50
 #, php-format
 msgid "Search results for %s"
 msgstr ""
 
-#: library/common.php:40
+#: includes/common.php:54
 #, php-format
 msgid "Posts with tag <i>%s</i>"
 msgstr ""
 
-#: library/common.php:44
+#: includes/common.php:58
 #, php-format
 msgid "Posts of <i>%s</i>"
 msgstr ""
 
-#: library/common.php:48 library/common.php:53
+#: includes/common.php:62 includes/common.php:66
 #, php-format
 msgid "Posts for <i>%s</i>"
 msgstr ""
 
-#: library/common.php:57
+#: includes/common.php:70
 #, php-format
 msgid "Posts for <i>%s</i> year"
 msgstr ""
 
-#: library/common.php:63
+#: includes/common.php:75
 #, php-format
 msgid " - page %d"
 msgstr ""
 
-#: library/common.php:94
+#: includes/common.php:142
 msgid "Home"
 msgstr ""
 
-#: library/common.php:696
+#: includes/common.php:1014
 msgid "There are no posts in this category"
 msgstr ""
 
-#: library/common.php:698
+#: includes/common.php:1016
+msgid "No products were found matching your selection."
+msgstr ""
+
+#: includes/common.php:1018
 msgid "The requested post is not found"
 msgstr ""
 
-#: library/common.php:700
+#: includes/common.php:1020
 #, php-format
 msgid "There are no posts with tag <i>%s</i>"
 msgstr ""
 
-#: library/common.php:702
+#: includes/common.php:1022
 msgid "There are no posts for requested day"
 msgstr ""
 
-#: library/common.php:704
+#: includes/common.php:1024
 msgid "There are no posts for requested month"
 msgstr ""
 
-#: library/common.php:706
+#: includes/common.php:1026
 msgid "There are no posts for requested year"
 msgstr ""
 
-#: library/common.php:708
+#: includes/common.php:1028
 msgid "There are no posts by this author"
 msgstr ""
 
-#: library/common.php:710
+#: includes/common.php:1030
 msgid "Sorry, but there is nothing to show by requested address"
 msgstr ""
 
-#: library/common.php:712
+#: includes/common.php:1032
 #, php-format
 msgid "There are no information matching the query <i>%s</i>"
 msgstr ""
 
-#: library/common.php:714
+#: includes/common.php:1034
 msgid "There are no posts to show"
+msgstr ""
+
+#: parts/comment.php:15
+msgid "This comment is not approved yet."
 msgstr ""
 
 #. Theme Name of the plugin/theme
@@ -162,7 +194,7 @@ msgid "Тема для сайта"
 msgstr ""
 
 #. Author of the plugin/theme
-msgid "Андрей"
+msgid "Тониевич Андрей"
 msgstr ""
 
 #. Author URI of the plugin/theme

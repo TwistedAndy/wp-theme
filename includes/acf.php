@@ -1,12 +1,18 @@
 <?php
+/**
+ * A set of functions to interact with the Advanced Custom Fields plugin
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 1.8
+ */
 
-/*
-Описание: библиотека для работы с Advanced Custom Fields
-Автор: Тониевич Андрей
-Версия: 1.8
-Дата: 26.09.2016
-*/
 
+/**
+ * Retrieve the current page id for the get_field() function
+ *
+ * @return string ID of the current page
+ */
 
 function tw_acf_get_current_id() {
 
@@ -37,22 +43,30 @@ function tw_acf_get_current_id() {
 }
 
 
+/**
+ * Add new options page for the theme settings
+ */
+
 if (tw_get_setting('acf', 'option_page') and function_exists('acf_add_options_page')) {
 
 	acf_add_options_page(array(
-		'page_title' 	=> 'Редактирование информации на сайте',
-		'menu_title'	=> 'Информация',
-		'menu_slug' 	=> 'theme-settings',
-		'capability'	=> 'manage_options',
-		'redirect'		=> false,
-		'position'		=> 25,
-		'icon_url'		=> 'dashicons-welcome-widgets-menus',
-		'update_button' => 'Обновить',
-		'autoload'      => true
+		'page_title' => __('Edit the theme settings', 'wp-theme'),
+		'menu_title' => __('Theme settings', 'wp-theme'),
+		'menu_slug' => 'theme-settings',
+		'capability' => 'manage_options',
+		'redirect' => false,
+		'position' => 90,
+		'icon_url' => 'dashicons-star-filled',
+		'update_button' => __('Refresh', 'wp-theme'),
+		'autoload' => true
 	));
 
 }
 
+
+/**
+ * Check the subcategories too when displaying the fields for the specified category
+ */
 
 if (tw_get_setting('acf', 'include_subcats')) {
 
@@ -99,16 +113,20 @@ if (tw_get_setting('acf', 'include_subcats')) {
 }
 
 
+/**
+ * Add a set of additional rules to display the fields only in the selected category or subcategories
+ */
+
 if (tw_get_setting('acf', 'category_rules')) {
 
 	add_filter('acf/location/rule_types', 'tw_acf_location_rules_types');
 
 	function tw_acf_location_rules_types($choices) {
 
-		$choices['Таксономия'] = array(
-			'tax_category' => 'Категория',
-			'tax_category_sub' => 'Подкатегория',
-			'tax_category_all' => 'Категория и подкатегории',
+		$choices[__('Taxonomy', 'wp-theme')] = array(
+			'tax_category' => __('Category', 'wp-theme'),
+			'tax_category_sub' => __('Subcategories', 'wp-theme'),
+			'tax_category_all' => __('Category and subcategories', 'wp-theme'),
 		);
 
 		return $choices;
@@ -138,7 +156,6 @@ if (tw_get_setting('acf', 'category_rules')) {
 
 		return $choices;
 	}
-
 
 	add_filter('acf/location/rule_match/tax_category', 'tw_acf_location_rules_match_category', 10, 3);
 	add_filter('acf/location/rule_match/tax_category_sub', 'tw_acf_location_rules_match_category', 10, 3);
@@ -179,6 +196,10 @@ if (tw_get_setting('acf', 'category_rules')) {
 }
 
 
+/**
+ * Turn on the local JSON feature to save the field groups in separate files
+ */
+
 if (tw_get_setting('acf', 'json_enable')) {
 
 	add_filter('acf/settings/save_json', 'tw_json_save_point');
@@ -192,7 +213,6 @@ if (tw_get_setting('acf', 'json_enable')) {
 		return $path;
 
 	}
-
 
 	add_filter('acf/settings/load_json', 'tw_json_load_point');
 
@@ -213,6 +233,10 @@ if (tw_get_setting('acf', 'json_enable')) {
 }
 
 
+/**
+ * Declare the fallback function if the Advanced Custom Fields plugin is disabled
+ */
+
 if (!function_exists('get_field') and !is_admin()) {
 
 	function get_field($field, $post_id = false) {
@@ -222,7 +246,6 @@ if (!function_exists('get_field') and !is_admin()) {
 		return get_post_meta($post_id, $field, false);
 
 	}
-
 
 	if (tw_get_setting('acf', 'require_acf')) {
 
@@ -235,6 +258,11 @@ if (!function_exists('get_field') and !is_admin()) {
 	}
 
 }
+
+
+/**
+ * Add an API key for the Google Maps field
+ */
 
 add_filter('acf/settings/google_api_key', function() {
 	return 'AIzaSyAJ5QTsj4apSnVK-6T7HMQfUW5-RljJTQ4';

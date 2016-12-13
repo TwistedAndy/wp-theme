@@ -1,11 +1,11 @@
 <?php
-
-/*
-Описание: обработчик для работы с рейтингом записи
-Автор: Тониевич Андрей
-Версия: 1.0
-Дата: 04.06.2016
-*/
+/**
+ * Rate post
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 1.0
+ */
 
 add_action('wp_ajax_nopriv_post_rating', 'tw_post_rating');
 add_action('wp_ajax_post_rating', 'tw_post_rating');

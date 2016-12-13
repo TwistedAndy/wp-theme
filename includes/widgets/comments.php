@@ -1,36 +1,36 @@
 <?php
-
-/*
-Описание: виджет для вывода комментариев с сайта
-Автор: Тониевич Андрей
-Версия: 1.0
-Дата: 04.06.2016
-*/
+/**
+ * Widget with latest comments
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 1.0
+ */
 
 class Twisted_Widget_Comments extends Twisted_Widget {
+
+	public $fields = array(
+		'title' => array(
+			'name' => 'Заголовок',
+			'value' => 'Последние комментарии',
+			'type' => 'text',
+			'filter' => 'widget_title'
+		),
+		'number' => array(
+			'name' => 'Количество комментариев',
+			'value' => 5,
+			'type' => 'number'
+		),
+		'chars' => array(
+			'name' => 'Количество символов',
+			'value' => 150,
+			'type' => 'number'
+		)
+	);
 
 	function __construct() {
 		parent::__construct('twisted_widget_comments', 'Последние комментарии', array('description' => 'Последние комментарии с аватарками'));
 	}
-
-	public $fields = array(
-		'title' => array(
-			'name'	 => 'Заголовок',
-			'value'  => 'Последние комментарии',
-			'type'	 => 'text',
-			'filter' => 'widget_title'
-		),
-		'number' => array(
-			'name'	 => 'Количество комментариев',
-			'value'  => 5,
-			'type'	 => 'number'
-		),
-		'chars' => array(
-			'name'	 => 'Количество символов',
-			'value'  => 150,
-			'type'	 => 'number'
-		)
-	);
 
 	public function widget($args, $instance) {
 
@@ -41,9 +41,7 @@ class Twisted_Widget_Comments extends Twisted_Widget {
 		if ($instance['title']) echo $args['before_title'] . $instance['title'] . $args['after_title'];
 
 		if ($items = get_comments(array('status' => 'approve', 'number' => $instance['number']))) {
-			foreach ($items as $item) {
-				$post = get_post($item->comment_post_ID);
-				?>
+			foreach ($items as $item) { $post = get_post($item->comment_post_ID); ?>
 
 				<div class="comment">
 					<div class="comment_head">

@@ -134,14 +134,15 @@ $tw_settings = array(
 	),
 
 	'acf' => array(
-		'require_acf' => false,
+		'require_acf' => true,
 		'json_enable' => true,
-		'option_page' => false,
+		'option_page' => true,
 		'category_rules' => true,
 		'include_subcats' => true,
 	),
 
 	'init' => array(
+		'caption_padding' => 20,
 		'action_get_posts' => false,
 		'action_menu_clean' => false,
 		'action_menu_active' => true,

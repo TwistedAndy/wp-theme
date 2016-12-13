@@ -1,7 +1,11 @@
-<?php
+<?php get_header(); ?>
 
-get_header();
+	<div class="content">
 
-get_template_part('parts/none');
+		<?php echo tw_wp_title('<h1>', '</h1>'); ?>
 
-get_footer();
+		<p><?php echo tw_not_found_text(); ?></p>
+
+	</div>
+
+<?php get_footer(); ?>

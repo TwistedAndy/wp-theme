@@ -1,56 +1,56 @@
 <?php
-
-/*
-Описание: виджет для вывода записей с сайта
-Автор: Тониевич Андрей
-Версия: 1.0
-Дата: 04.06.2016
-*/
+/**
+ * Widget with latest or most populat posts
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 1.0
+ */
 
 class Twisted_Widget_Posts extends Twisted_Widget {
 
-	function __construct() {
-		parent::__construct('twisted_widget_posts', 'Записи на сайте', array('description' => 'Виджет для вывода записей с дополнительными настройками'));
-	}
-
 	public $fields = array(
 		'title' => array(
-			'name'	 => 'Заголовок',
-			'value'  => 'Последние записи',
-			'type'	 => 'text',
+			'name' => 'Заголовок',
+			'value' => 'Последние записи',
+			'type' => 'text',
 			'filter' => 'widget_title'
 		),
 		'number' => array(
-			'name'	 => 'Количество записей',
-			'value'  => 5,
-			'type'	 => 'number'
+			'name' => 'Количество записей',
+			'value' => 5,
+			'type' => 'number'
 		),
 		'chars' => array(
-			'name'	 => 'Количество символов',
-			'value'  => 150,
-			'type'	 => 'number'
+			'name' => 'Количество символов',
+			'value' => 150,
+			'type' => 'number'
 		),
 		'category' => array(
-			'name'	 => 'Рубрика',
-			'value'  => 0,
-			'type'	 => 'select',
+			'name' => 'Рубрика',
+			'value' => 0,
+			'type' => 'select',
 		),
 		'categories' => array(
-			'name'	 => 'Строка с ID-категорий',
-			'value'  => '',
-			'type'	 => 'text'
+			'name' => 'Строка с ID-категорий',
+			'value' => '',
+			'type' => 'text'
 		),
 		'sort' => array(
-			'name'	 => 'Сортировка',
-			'value'  => 0,
+			'name' => 'Сортировка',
+			'value' => 0,
 			'values' => array(
 				0 => 'Последние',
 				1 => 'Случайные',
 				2 => 'Популярные'
 			),
-			'type'	 => 'select'
+			'type' => 'select'
 		)
 	);
+
+	function __construct() {
+		parent::__construct('twisted_widget_posts', 'Записи на сайте', array('description' => 'Виджет для вывода записей с дополнительными настройками'));
+	}
 
 	public function widget($args, $instance) {
 
@@ -60,7 +60,11 @@ class Twisted_Widget_Posts extends Twisted_Widget {
 
 		if ($instance['title']) echo $args['before_title'] . $instance['title'] . $args['after_title'];
 
-		$array = array('numberposts' => $instance['number'], 'cat' => $instance['categories'], 'category' => $instance['category']);
+		$array = array(
+			'numberposts' => $instance['number'],
+			'cat' => $instance['categories'],
+			'category' => $instance['category']
+		);
 
 		if ($instance['sort'] == 1) {
 			$array['orderby'] = 'rand';

@@ -1,11 +1,23 @@
 <?php
+/**
+ * Common library with a lot of functions to work with title, images, text and other things. Also it has the functions
+ * to build the custom pagination, breadcrumb navigation and rating.
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 2.1
+ */
 
-/*
-Описание: библиотека с общими функциями
-Автор: Тониевич Андрей
-Версия: 2.1
-Дата: 07.11.2016
-*/
+
+/**
+ * Get the title for the current page
+ *
+ * @param string $before        Code to prepend to the title
+ * @param string $after         Code to append to the title
+ * @param bool $add_page_number Add a page number to the title
+ *
+ * @return string
+ */
 
 function tw_wp_title($before = '', $after = '', $add_page_number = false) {
 
@@ -72,7 +84,16 @@ function tw_wp_title($before = '', $after = '', $add_page_number = false) {
 }
 
 
-function tw_title($post, $length = false) {
+/**
+ * Get the title of a given post
+ *
+ * @param $post       WP_Post Post object with a title
+ * @param int $length Maximum length of the title
+ *
+ * @return string
+ */
+
+function tw_title($post, $length = 0) {
 
 	$title = '';
 
@@ -96,6 +117,17 @@ function tw_title($post, $length = false) {
 
 }
 
+
+/**
+ * Build the breadcrumbs for the current page
+ *
+ * @param string $before    Code to prepend to the breadcrumbs
+ * @param string $after     Code to append to the breadcrumbs
+ * @param string $separator Code between the breadcrumbs
+ * @param bool $microdata   Include the microdata for the search engines
+ *
+ * @return string
+ */
 
 function tw_breadcrumbs($before = '<div class="breadcrumbs">', $after = '</div>', $separator = '', $microdata = true) {
 
@@ -215,6 +247,17 @@ function tw_breadcrumbs($before = '<div class="breadcrumbs">', $after = '</div>'
 }
 
 
+/**
+ * Build a single breadcrumb
+ *
+ * @param array $breadcrumbs Array with breadcrumbs
+ * @param string $separator  Code between the breadcrumbs
+ * @param bool $microdata    Include the microdata for the search engines
+ * @param bool $first
+ *
+ * @return string
+ */
+
 function tw_build_breadcrumb($breadcrumbs, $separator, $microdata = true, $first = false) {
 
 	$result = '';
@@ -257,6 +300,15 @@ function tw_build_breadcrumb($breadcrumbs, $separator, $microdata = true, $first
 
 }
 
+
+/**
+ * Build the pagination for a given WP_Query object
+ *
+ * @param array $args
+ * @param bool|WP_Query $query WP_Query object. Leave empty to use the current one
+ *
+ * @return string
+ */
 
 function tw_pagination($args = array(), $query = false) {
 
@@ -455,6 +507,15 @@ function tw_pagination($args = array(), $query = false) {
 }
 
 
+/**
+ * Build a link for a given page number
+ *
+ * @param int $page_number Page number
+ * @param array $args
+ *
+ * @return string
+ */
+
 function tw_page_link($page_number, $args = array()) {
 
 	if (is_array($args) and isset($args['type'])) {
@@ -501,7 +562,19 @@ function tw_page_link($page_number, $args = array()) {
 }
 
 
-function tw_strip_text($text, $length, $allowed_tags = false, $find = ' ', $dots = '...') {
+/**
+ * Strip the text to a given length
+ *
+ * @param string $text              Text to strip
+ * @param int $length               Required length of the text
+ * @param bool|string $allowed_tags List of tags separated by "|"
+ * @param string $find              Symbol to find for proper strip
+ * @param string $dots              Text after the stripped text
+ *
+ * @return string
+ */
+
+function tw_strip_text($text, $length = 200, $allowed_tags = false, $find = ' ', $dots = '...') {
 
 	if ($allowed_tags) {
 
@@ -576,6 +649,18 @@ function tw_strip_text($text, $length, $allowed_tags = false, $find = ' ', $dots
 }
 
 
+/**
+ * Get the short description for a given post or text
+ *
+ * @param bool|string|WP_Post $post Post or text to find and strip the text
+ * @param int $length               Required length of the text
+ * @param bool|string $allowed_tags List of tags separated by "|"
+ * @param string $find              Symbol to find for proper strip
+ * @param bool $force_cut           Strip the post excerpt
+ *
+ * @return bool|string
+ */
+
 function tw_text($post = false, $length = 250, $allowed_tags = false, $find = ' ', $force_cut = true) {
 
 	if ($post === false) {
@@ -633,6 +718,14 @@ function tw_text($post = false, $length = 250, $allowed_tags = false, $find = ' 
 }
 
 
+/**
+ * Find the first image and return its link
+ *
+ * @param string $text
+ *
+ * @return string
+ */
+
 function tw_find_image($text) {
 
 	preg_match_all('/<img.+src=[\'"]([^\'"]+)[\'"].*>/i', $text, $matches);
@@ -651,18 +744,27 @@ function tw_find_image($text) {
 
 	} else {
 
-		return false;
+		return '';
 
 	}
 
 }
 
 
+/**
+ * Get the link to an image with specified size
+ *
+ * @param string $image_url  URL of the image
+ * @param array|string $size Size of the image
+ *
+ * @return string
+ */
+
 function tw_create_thumb($image_url, $size) {
 
 	global $_wp_additional_image_sizes;
 
-	$result = false;
+	$result = '';
 
 	$position = mb_strrpos($image_url, '/');
 
@@ -751,7 +853,20 @@ function tw_create_thumb($image_url, $size) {
 }
 
 
-function tw_thumb($post = false, $size = false, $before = '', $after = '', $atts = array(), $thumb_only = false) {
+/**
+ * Get the thumbnail for a given post
+ *
+ * @param bool|WP_Post $post Post object or false to use the current one
+ * @param string|array $size Size of the thumbnail
+ * @param string $before     Code to prepend to the breadcrumbs
+ * @param string $after      Code to append to the breadcrumbs
+ * @param array $atts        Array with attributes
+ * @param bool $thumb_only   Do not find the images in the post content
+ *
+ * @return string
+ */
+
+function tw_thumb($post = false, $size = '', $before = '', $after = '', $atts = array(), $thumb_only = false) {
 
 	global $_wp_additional_image_sizes;
 
@@ -798,7 +913,6 @@ function tw_thumb($post = false, $size = false, $before = '', $after = '', $atts
 	if (!$size or (is_string($size) and empty($_wp_additional_image_sizes[$size]) and !in_array($size, array('thumbnail', 'medium', 'large', 'full')))) {
 		$size = 'thumbnail';
 	}
-
 
 	if (is_object($post) and !empty($post->ID) and has_post_thumbnail($post->ID)) {
 
@@ -862,6 +976,15 @@ function tw_thumb($post = false, $size = false, $before = '', $after = '', $atts
 }
 
 
+/**
+ * Get the date and time for a given post
+ *
+ * @param bool|WP_Post $post Post object of false to use the current one
+ * @param string $format     Date and time format
+ *
+ * @return string
+ */
+
 function tw_date($post = false, $format = '') {
 
 	if ($post == false) {
@@ -878,6 +1001,12 @@ function tw_date($post = false, $format = '') {
 
 }
 
+
+/**
+ * Get the text for a "Page not found" message
+ *
+ * @return string
+ */
 
 function tw_not_found_text() {
 
@@ -910,6 +1039,13 @@ function tw_not_found_text() {
 }
 
 
+/**
+ * Include the template and pass the variables
+ *
+ * @param string $name     File name in parts folder
+ * @param array $variables Array with variables to pass
+ */
+
 function tw_get_template_part($name, $variables = array()) {
 
 	if (is_array($variables) and $variables) {
@@ -924,6 +1060,14 @@ function tw_get_template_part($name, $variables = array()) {
 
 }
 
+
+/**
+ * Get the votes information
+ *
+ * @param $post_id
+ *
+ * @return array
+ */
 
 function tw_get_rating($post_id) {
 
@@ -942,6 +1086,14 @@ function tw_get_rating($post_id) {
 }
 
 
+/**
+ * Get the number of post views
+ *
+ * @param $post_id
+ *
+ * @return int
+ */
+
 function tw_get_views($post_id) {
 
 	$count_key = 'post_views_count';
@@ -951,6 +1103,7 @@ function tw_get_views($post_id) {
 	if (!$count) {
 		delete_post_meta($post_id, $count_key);
 		add_post_meta($post_id, $count_key, 0);
+
 		return 0;
 	}
 
@@ -958,6 +1111,12 @@ function tw_get_views($post_id) {
 
 }
 
+
+/**
+ * Increase the number of views
+ *
+ * @param $post_id
+ */
 
 function tw_set_views($post_id) {
 

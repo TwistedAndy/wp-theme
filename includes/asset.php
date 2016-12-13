@@ -1,11 +1,17 @@
 <?php
+/**
+ * Asset management library. It allows to register and enqueue
+ * the styles, scripts and the localization strings
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 1.1
+ */
 
-/*
-Описание: библиотека для работы с наборами ресурсов
-Автор: Тониевич Андрей
-Версия: 1.1
-Дата: 26.08.2016
-*/
+
+/**
+ * Register a set of default and custom assets
+ */
 
 add_action('init', 'tw_register_assets');
 
@@ -63,6 +69,15 @@ function tw_register_assets() {
 }
 
 
+/**
+ * Register a single asset
+ *
+ * @param string $name Name of the asset. It should be unique.
+ * @param array $asset The array with the asset configuration
+ *
+ * @return bool
+ */
+
 function tw_register_asset($name, $asset) {
 
 	if (is_array($asset)) {
@@ -101,6 +116,10 @@ function tw_register_asset($name, $asset) {
 }
 
 
+/**
+ * Enqueue all previously registered assets
+ */
+
 add_action('wp_enqueue_scripts', 'tw_enqueue_assets');
 
 function tw_enqueue_assets() {
@@ -121,6 +140,12 @@ function tw_enqueue_assets() {
 
 }
 
+
+/**
+ * @param string $name Name of the previously registered asset.
+ *
+ * @return bool
+ */
 
 function tw_enqueue_asset($name) {
 

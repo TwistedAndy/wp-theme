@@ -1,17 +1,13 @@
-<?php
+<?php get_header(); ?>
 
-get_header();
+<?php the_post(); ?>
 
-the_post();
+	<div class="content">
 
-?>
+		<?php the_title('<h1>', '</h1>'); ?>
 
-<div class="content">
+		<?php the_content(); ?>
 
-	<h1><?php echo tw_wp_title(); ?></h1>
-	
-	<?php the_content(); ?>
+	</div>
 
-</div>
-
-<?php get_footer();
+<?php get_footer(); ?>

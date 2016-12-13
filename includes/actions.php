@@ -1,11 +1,16 @@
 <?php
+/**
+ * A set of additional filters and hooks to modify the default WordPress behaviour
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 1.8
+ */
 
-/*
-Описание: дополнительные фильтры и хуки
-Автор: Тониевич Андрей
-Версия: 1.8
-Дата: 29.09.2016
-*/
+
+/**
+ * Add an 'active' class for the selected item in menu
+ */
 
 if (tw_get_setting('init', 'action_menu_active')) {
 
@@ -41,6 +46,10 @@ if (tw_get_setting('init', 'action_menu_active')) {
 }
 
 
+/**
+ * Clean the menu item from the additional classes
+ */
+
 if (tw_get_setting('init', 'action_menu_clean')) {
 
 	add_filter('nav_menu_css_class', 'tw_nav_classes_clean', 20, 1);
@@ -63,6 +72,10 @@ if (tw_get_setting('init', 'action_menu_clean')) {
 
 }
 
+
+/**
+ * Clean the header from some unnecessary meta-tags and scripts
+ */
 
 if (!is_admin() and tw_get_setting('init', 'action_clean_header')) {
 
@@ -89,7 +102,6 @@ if (!is_admin() and tw_get_setting('init', 'action_clean_header')) {
 
 	}
 
-
 	add_filter('wp_default_scripts', 'tw_remove_jquery_migrate');
 
 	function tw_remove_jquery_migrate($scripts) {
@@ -103,6 +115,10 @@ if (!is_admin() and tw_get_setting('init', 'action_clean_header')) {
 
 }
 
+
+/**
+ * Add a custom filter for the post loading
+ */
 
 if (tw_get_setting('init', 'action_get_posts')) {
 
@@ -125,6 +141,10 @@ if (tw_get_setting('init', 'action_get_posts')) {
 }
 
 
+/**
+ * Add the max-width property to the default caption shortcode and fix its width
+ */
+
 if (tw_get_setting('init', 'action_fix_caption')) {
 
 	add_filter('img_caption_shortcode', 'tw_fix_caption', 10, 3);
@@ -132,11 +152,11 @@ if (tw_get_setting('init', 'action_fix_caption')) {
 	function tw_fix_caption($value = false, $attr = array(), $content = '') {
 
 		$atts = shortcode_atts(array(
-			'id'	  => '',
-			'align'	  => 'alignnone',
-			'width'	  => '',
+			'id' => '',
+			'align' => 'alignnone',
+			'width' => '',
 			'caption' => '',
-			'class'   => '',
+			'class' => '',
 		), $attr, 'caption');
 
 		$atts['width'] = intval($atts['width']);
@@ -151,7 +171,7 @@ if (tw_get_setting('init', 'action_fix_caption')) {
 
 		$atts['class'] = 'class="' . trim('wp-caption ' . $atts['align'] . ' ' . $atts['class']) . '" ';
 
-		$style = 'style="max-width: ' . ($atts['width'] + 20) . 'px;"';
+		$style = 'style="max-width: ' . ($atts['width'] + intval(tw_get_setting('init', 'caption_padding'))) . 'px;"';
 
 		return '<div ' . $atts['id'] . $atts['class'] . $style . '>' . do_shortcode($content) . '<p class="wp-caption-text">' . $atts['caption'] . '</p></div>';
 

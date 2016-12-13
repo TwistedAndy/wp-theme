@@ -1,15 +1,5 @@
-<?php
+<?php get_header(); ?>
 
-get_header();
+<?php get_template_part('parts/category'); ?>
 
-if (!have_posts()) {
-
-	get_template_part('parts/none');
-
-} else {
-
-	get_template_part('parts/category');
-
-}
-
-get_footer();
+<?php get_footer(); ?>

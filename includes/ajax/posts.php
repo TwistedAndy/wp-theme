@@ -1,11 +1,11 @@
 <?php
-
-/*
-Описание: обработчик для динамической загрузки записей
-Автор: Тониевич Андрей
-Версия: 1.0
-Дата: 04.06.2016
-*/
+/**
+ * Load more posts in the list
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 1.0
+ */
 
 add_action('wp_ajax_nopriv_load_posts', 'tw_load_posts');
 add_action('wp_ajax_load_posts', 'tw_load_posts');
@@ -22,7 +22,7 @@ function tw_load_posts() {
 			$params[$field] = '';
 		}
 	}
-	
+
 	if ($params['number']) {
 
 		$args = array(

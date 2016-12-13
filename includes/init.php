@@ -1,13 +1,17 @@
 <?php
-
-/*
-Описание: библиотека для инициализации темы оформления
-Автор: Тониевич Андрей
-Версия: 2.2
-Дата: 23.07.2016
-*/
+/**
+ * Theme initialization script
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 2.2
+ */
 
 $dir = dirname(__FILE__) . '/';
+
+/**
+ * Include necessary files
+ */
 
 include_once($dir . 'settings.php');
 include_once($dir . 'common.php');
@@ -26,17 +30,35 @@ add_action('after_setup_theme', 'tw_setup');
 
 function tw_setup() {
 
+	/**
+	 * Add support for title tag and HTML5 galleries
+	 */
+
 	add_theme_support('title-tag');
 
 	add_theme_support('html5', array('gallery'));
 
+
+	/**
+	 * Load translations for the theme
+	 */
+
 	load_theme_textdomain('wp-theme', get_template_directory() . '/languages');
+
+
+	/**
+	 * Register menu locations
+	 */
 
 	if (tw_get_setting('menu')) {
 
 		register_nav_menus(tw_get_setting('menu'));
 
 	}
+
+	/**
+	 * Register custom image sizes
+	 */
 
 	if (tw_get_setting('thumbs')) {
 
@@ -93,6 +115,10 @@ function tw_setup() {
 }
 
 
+/**
+ * Register custom post types
+ */
+
 if (tw_get_setting('types')) {
 
 	add_action('init', 'tw_post_type');
@@ -115,6 +141,10 @@ if (tw_get_setting('types')) {
 
 }
 
+
+/**
+ * Register custom taxonomies
+ */
 
 if (tw_get_setting('taxonomies')) {
 
@@ -139,6 +169,10 @@ if (tw_get_setting('taxonomies')) {
 }
 
 
+/**
+ * Register custom sidebars
+ */
+
 if (tw_get_setting('sidebars')) {
 
 	add_action('widgets_init', 'tw_sidebars_init');
@@ -161,6 +195,10 @@ if (tw_get_setting('sidebars')) {
 
 }
 
+
+/**
+ * Register and include custom widgets
+ */
 
 if (tw_get_setting('widgets')) {
 
@@ -194,6 +232,10 @@ if (tw_get_setting('widgets')) {
 
 }
 
+
+/**
+ * Register and include custom ajax handlers
+ */
 
 if (tw_get_setting('ajax')) {
 

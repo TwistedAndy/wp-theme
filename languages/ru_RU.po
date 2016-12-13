@@ -1,9 +1,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2016-06-12 15:03+0300\n"
-"PO-Revision-Date: 2016-06-12 15:09+0300\n"
-"Last-Translator: Андрей <toniyevych@gmail.com>\n"
+"POT-Creation-Date: 2016-12-13 22:20+0200\n"
+"PO-Revision-Date: 2016-12-13 22:20+0200\n"
+"Last-Translator: Toniyevych Andriy <toniyevych@gmail.com>\n"
 "Language-Team: \n"
 "Language: ru_RU\n"
 "MIME-Version: 1.0\n"
@@ -14,136 +14,168 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: library/comment.php:34
-msgid "This comment is not approved yet."
-msgstr "Этот комментарий ожидает модерации."
+#: includes/acf.php:53
+msgid "Edit the theme settings"
+msgstr "Редактирование настроек темы и данных на сайте"
 
-#: library/comment.php:64
-msgid "Your name"
-msgstr "Ваше имя"
+#: includes/acf.php:54
+msgid "Theme settings"
+msgstr "Настройки темы"
 
-#: library/comment.php:65
-msgid "Your e-mail"
-msgstr "Ваш email"
+#: includes/acf.php:60
+msgid "Refresh"
+msgstr "Обновить"
 
-#: library/comment.php:66
-msgid "Site"
-msgstr "Адрес сайта"
+#: includes/acf.php:126
+msgid "Taxonomy"
+msgstr "Таксономия"
 
-#: library/comment.php:75
+#: includes/acf.php:127
+msgid "Category"
+msgstr "Категория"
+
+#: includes/acf.php:128
+msgid "Subcategories"
+msgstr "Подкатегории"
+
+#: includes/acf.php:129
+msgid "Category and subcategories"
+msgstr "Категория и подкатегории"
+
+#: includes/comment.php:61
 #, php-format
 msgid "You need to <a href=\"%s\">login</a> to post a comment."
 msgstr "Вы должны <a href=\"%s\">войти</a>, чтобы оставить комментарий."
 
-#: library/comment.php:78
+#: includes/comment.php:63
 #, php-format
 msgid ""
 "You've logged in as <a class=\"login\" href=\"%1$s\">%2$s</a> <a class="
 "\"logout\" href=\"%3$s\">[log out]</a>"
 msgstr ""
-"Вы вошли как <a class=\"login\" href=\"%1$s\">%2$s</a> <a class=\"logout"
-"\" href=\"%3$s\">[выйти]</a>"
+"Вы вошли как <a class=\"login\" href=\"%1$s\">%2$s</a> <a class=\"logout\" "
+"href=\"%3$s\">[выйти]</a>"
 
-#: library/comment.php:88
+#: includes/comment.php:77
+msgid "Your name"
+msgstr "Ваше имя"
+
+#: includes/comment.php:78
+msgid "Your e-mail"
+msgstr "Ваш email"
+
+#: includes/comment.php:79
+msgid "Site"
+msgstr "Адрес сайта"
+
+#: includes/comment.php:97
 msgid "Leave a Reply"
 msgstr "Ответить"
 
-#: library/comment.php:89
+#: includes/comment.php:98
 #, php-format
 msgid "Leave a Reply to %s"
 msgstr "Ответить на %s"
 
-#: library/comment.php:94
+#: includes/comment.php:103
 msgid "Cancel reply"
 msgstr "Отменить"
 
-#: library/comment.php:95
+#: includes/comment.php:104
 msgid "Post Comment"
 msgstr "Отправить"
 
-#: library/comment.php:188
+#: includes/comment.php:197
 msgid "Sorry, but comments are closed."
 msgstr "Извините, но комментирование этой записи отключено."
 
-#: library/common.php:16
+#: includes/common.php:46
 msgid "Page not found"
 msgstr "Страница не найдена"
 
-#: library/common.php:20
+#: includes/common.php:50
 #, php-format
 msgid "Search results for %s"
 msgstr "Результаты поиска по запросу: %s"
 
-#: library/common.php:40
+#: includes/common.php:54
 #, php-format
 msgid "Posts with tag <i>%s</i>"
 msgstr "Записи с тегом <i>%s</i>"
 
-#: library/common.php:44
+#: includes/common.php:58
 #, php-format
 msgid "Posts of <i>%s</i>"
 msgstr "Записи пользователя <i>%s</i>"
 
-#: library/common.php:48 library/common.php:53
+#: includes/common.php:62 includes/common.php:66
 #, php-format
 msgid "Posts for <i>%s</i>"
 msgstr "Записи за <i>%s</i> года"
 
-#: library/common.php:57
+#: includes/common.php:70
 #, php-format
 msgid "Posts for <i>%s</i> year"
 msgstr "Записи за <i>%s</i> год"
 
-#: library/common.php:63
+#: includes/common.php:75
 #, php-format
 msgid " - page %d"
 msgstr " - %d страница"
 
-#: library/common.php:94
+#: includes/common.php:142
 msgid "Home"
 msgstr "Главная"
 
-#: library/common.php:696
+#: includes/common.php:1014
 msgid "There are no posts in this category"
 msgstr "В данной рубрике записи не обнаружены"
 
-#: library/common.php:698
+#: includes/common.php:1016
+msgid "No products were found matching your selection."
+msgstr ""
+
+#: includes/common.php:1018
 msgid "The requested post is not found"
 msgstr "Запись не обнаружена"
 
-#: library/common.php:700
+#: includes/common.php:1020
 #, php-format
 msgid "There are no posts with tag <i>%s</i>"
 msgstr "С тегом <i>%s</i> записи не обнаружены"
 
-#: library/common.php:702
+#: includes/common.php:1022
 msgid "There are no posts for requested day"
 msgstr "За этот день записи не обнаружены"
 
-#: library/common.php:704
+#: includes/common.php:1024
 msgid "There are no posts for requested month"
 msgstr "За этот месяц записи не обнаружены"
 
-#: library/common.php:706
+#: includes/common.php:1026
 msgid "There are no posts for requested year"
 msgstr "За этот год записи не обнаружены"
 
-#: library/common.php:708
+#: includes/common.php:1028
 msgid "There are no posts by this author"
 msgstr "У этого автора записи отсутствуют"
 
-#: library/common.php:710
+#: includes/common.php:1030
 msgid "Sorry, but there is nothing to show by requested address"
 msgstr "Извините, но по данному адресу записи не обнаружены"
 
-#: library/common.php:712
+#: includes/common.php:1032
 #, php-format
 msgid "There are no information matching the query <i>%s</i>"
 msgstr "По запросу <i>%s</i> ничего не найдено"
 
-#: library/common.php:714
+#: includes/common.php:1034
 msgid "There are no posts to show"
 msgstr "Записи не обнаружены"
+
+#: parts/comment.php:15
+msgid "This comment is not approved yet."
+msgstr "Этот комментарий ожидает модерации."
 
 #. Theme Name of the plugin/theme
 msgid "Тема"
@@ -158,7 +190,7 @@ msgid "Тема для сайта"
 msgstr ""
 
 #. Author of the plugin/theme
-msgid "Андрей"
+msgid "Тониевич Андрей"
 msgstr ""
 
 #. Author URI of the plugin/theme

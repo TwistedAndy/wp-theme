@@ -1,11 +1,11 @@
 <?php
-
-/*
-Описание: обработчик для проверки и отправки писем
-Автор: Тониевич Андрей
-Версия: 1.0
-Дата: 04.06.2016
-*/
+/**
+ * Validate and send email
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 1.0
+ */
 
 add_action('wp_ajax_nopriv_send_email', 'tw_send_email');
 add_action('wp_ajax_send_email', 'tw_send_email');

@@ -1,11 +1,16 @@
 <?php
+/**
+ * Additional modules
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 1.0
+ */
 
-/*
-Описание: дополнительные модули
-Автор: Тониевич Андрей
-Версия: 1.0
-Дата: 19.01.2016
-*/
+
+/**
+ * Fix the russian dates
+ */
 
 if (tw_get_setting('init', 'module_russian_date')) {
 
@@ -70,6 +75,10 @@ if (tw_get_setting('init', 'module_russian_date')) {
 
 }
 
+
+/**
+ * Convert cyrillic symbols in urls to latin
+ */
 
 if (tw_get_setting('init', 'module_cyrtolat')) {
 

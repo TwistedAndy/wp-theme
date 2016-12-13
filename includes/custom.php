@@ -1,8 +1,8 @@
 <?php
-
-/*
-Описание: файл для дополнительных функций
-Автор: Тониевич Андрей
-Версия: 1.0
-Дата: 04.06.2016
-*/
+/**
+ * File for the custom PHP code
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 1.0
+ */

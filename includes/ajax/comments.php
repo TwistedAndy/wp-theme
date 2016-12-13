@@ -1,11 +1,11 @@
 <?php
-
-/*
-Описание: обработчик для динамической загрузки списка комментариев
-Автор: Тониевич Андрей
-Версия: 1.0
-Дата: 04.06.2016
-*/
+/**
+ * Load comment list
+ *
+ * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @package wp-theme
+ * @version 1.0
+ */
 
 add_action('wp_ajax_nopriv_load_comments', 'tw_load_comments');
 add_action('wp_ajax_load_comments', 'tw_load_comments');

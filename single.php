@@ -1,12 +1,6 @@
-<?php
+<?php get_header(); ?>
 
-get_header();
-
-if (!have_posts()) {
-	
-	get_template_part('parts/none');
-
-} else { the_post(); ?>
+<?php the_post(); ?>
 
 	<div class="content">
 
@@ -16,10 +10,8 @@ if (!have_posts()) {
 
 	</div>
 
-	<?php echo tw_pagination(array('type' => 'page')); ?>
+<?php echo tw_pagination(array('type' => 'page')); ?>
 
-	<?php if (comments_open() or get_comments_number()) comments_template(); ?>
-	
-<?php }
+<?php if (comments_open() or get_comments_number()) comments_template(); ?>
 
-get_footer();
+<?php get_footer(); ?>
