@@ -49,17 +49,23 @@ function tw_acf_get_current_id() {
 
 if (tw_get_setting('acf', 'option_page') and function_exists('acf_add_options_page')) {
 
-	acf_add_options_page(array(
-		'page_title' => __('Edit the theme settings', 'wp-theme'),
-		'menu_title' => __('Theme settings', 'wp-theme'),
-		'menu_slug' => 'theme-settings',
-		'capability' => 'manage_options',
-		'redirect' => false,
-		'position' => 90,
-		'icon_url' => 'dashicons-star-filled',
-		'update_button' => __('Refresh', 'wp-theme'),
-		'autoload' => true
-	));
+	add_action('init', 'tw_acf_add_options_page');
+
+	function tw_acf_add_options_page() {
+
+		acf_add_options_page(array(
+			'page_title' => __('Edit the theme settings', 'wp-theme'),
+			'menu_title' => __('Theme settings', 'wp-theme'),
+			'menu_slug' => 'theme-settings',
+			'capability' => 'manage_options',
+			'redirect' => false,
+			'position' => 90,
+			'icon_url' => 'dashicons-star-filled',
+			'update_button' => __('Refresh', 'wp-theme'),
+			'autoload' => true
+		));
+
+	}
 
 }
 
