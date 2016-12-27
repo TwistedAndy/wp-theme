@@ -5,7 +5,7 @@
  *
  * @author  Toniyevych Andriy <toniyevych@gmail.com>
  * @package wp-theme
- * @version 1.1
+ * @version 1.2
  */
 
 
@@ -132,6 +132,12 @@ function tw_enqueue_assets() {
 
 			if ((is_array($asset) and !empty($asset['display'])) or (is_bool($asset) and $asset)) {
 				tw_enqueue_asset($name);
+			}
+
+			if (!empty($asset['deps'])) {
+				foreach ($asset['deps'] as $dep) {
+					tw_enqueue_asset($dep);
+				}
 			}
 
 		}
