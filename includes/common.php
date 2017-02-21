@@ -821,19 +821,21 @@ function tw_create_thumb($image_url, $size) {
 
 						$image_path = str_replace(trailingslashit($site_url), ABSPATH, $image_url);
 
-						if (is_file($image_path)) {
-							$image_url = $image_path;
+						if (!is_file($image_path)) {
+							$image_path = $image_url;
 						}
 
 					}
-
-					$editor = wp_get_image_editor($image_url);
-
+					
+					$editor = wp_get_image_editor($image_path);
+					
 					if (!is_wp_error($editor)) {
 						$editor->resize($width, $height, $crop);
 						$editor->save(get_template_directory() . $filename);
+					} else {
+						return $image_url;
 					}
-
+				
 				}
 
 				$result = get_template_directory_uri() . $filename;
