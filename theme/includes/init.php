@@ -4,27 +4,65 @@
  *
  * @author  Toniyevych Andriy <toniyevych@gmail.com>
  * @package wp-theme
- * @version 2.2
+ * @version 2.0
  */
 
-$dir = dirname(__FILE__) . '/';
+define('TW_ROOT', dirname(__DIR__));
+define('TW_INC', __DIR__);
+
 
 /**
- * Include necessary files
+ * Include all necessary files
  */
 
-include_once($dir . 'settings.php');
-include_once($dir . 'common.php');
-include_once($dir . 'taxonomy.php');
-include_once($dir . 'comment.php');
-include_once($dir . 'widget.php');
-include_once($dir . 'asset.php');
+$files = array(
+	'assets',
+	'content',
+	'settings',
+	'taxonomy',
+	'thumbs',
+	'widget'
+);
 
-include_once($dir . 'acf.php');
-include_once($dir . 'custom.php');
-include_once($dir . 'modules.php');
-include_once($dir . 'actions.php');
+foreach ($files as $file) {
 
+	$filename = TW_INC . '/core/' . $file . '.php';
+
+	if (is_file($filename)) {
+		include_once($filename);
+	}
+
+}
+
+
+/**
+ * Include enabled modules
+ */
+
+if (tw_get_setting('modules')) {
+
+	$modules = tw_get_setting('modules');
+
+	foreach ($modules as $file => $enabled) {
+
+		if ($enabled) {
+
+			$filename = TW_INC . '/modules/' . $file . '.php';
+
+			if (is_file($filename)) {
+				include_once($filename);
+			}
+
+		}
+
+	}
+
+}
+
+
+/**
+ * Main theme configuration
+ */
 
 add_action('after_setup_theme', 'tw_setup');
 
@@ -108,6 +146,49 @@ function tw_setup() {
 
 			}
 
+		}
+
+	}
+
+}
+
+
+/**
+ * Register custom editor styles
+ */
+
+if (tw_get_setting('styles')) {
+
+	add_filter('tiny_mce_before_init', 'tw_register_styles');
+
+	function tw_register_styles($array) {
+
+		$style_formats = tw_get_setting('styles');
+
+		$array['style_formats'] = json_encode($style_formats);
+
+		return $array;
+
+	}
+
+
+	add_filter('mce_buttons_2', 'tw_enable_fromat_button');
+
+	function tw_enable_fromat_button($buttons) {
+
+		array_unshift($buttons, 'styleselect');
+
+		return $buttons;
+
+	}
+
+
+	if (file_exists(TW_ROOT . '/editor-style.css')) {
+
+		add_action('init', 'tw_add_editor_styles');
+
+		function tw_add_editor_styles() {
+			add_editor_style('editor-style.css');
 		}
 
 	}
@@ -210,11 +291,9 @@ if (tw_get_setting('widgets')) {
 
 		if (is_array($widgets)) {
 
-			$dir = dirname(__FILE__);
-
 			foreach ($widgets as $widget => $active) {
 
-				$file = $dir . '/widgets/' . strtolower($widget) . '.php';
+				$file = TW_INC . '/widgets/' . strtolower($widget) . '.php';
 
 				if ($active and is_file($file)) {
 
@@ -243,11 +322,9 @@ if (tw_get_setting('ajax')) {
 
 	if (is_array($ajax_handlers) and $ajax_handlers) {
 
-		$dir = dirname(__FILE__);
-
 		foreach ($ajax_handlers as $handler => $active) {
 
-			$file = $dir . '/ajax/' . strtolower($handler) . '.php';
+			$file = TW_INC . '/ajax/' . strtolower($handler) . '.php';
 
 			if ($active and is_file($file)) {
 

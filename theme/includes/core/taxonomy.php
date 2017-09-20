@@ -4,7 +4,7 @@
  *
  * @author  Toniyevych Andriy <toniyevych@gmail.com>
  * @package wp-theme
- * @version 1.8
+ * @version 2.0
  */
 
 

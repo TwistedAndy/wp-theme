@@ -4,7 +4,7 @@
  *
  * @author  Toniyevych Andriy <toniyevych@gmail.com>
  * @package wp-theme
- * @version 1.8
+ * @version 2.0
  */
 
 
@@ -12,7 +12,7 @@
  * Add an 'active' class for the selected item in menu
  */
 
-if (tw_get_setting('init', 'action_menu_active')) {
+if (tw_get_setting('modules', 'actions', 'menu_active')) {
 
 	add_filter('nav_menu_css_class', 'tw_nav_class', 10, 1);
 
@@ -50,7 +50,7 @@ if (tw_get_setting('init', 'action_menu_active')) {
  * Clean the menu item from the additional classes
  */
 
-if (tw_get_setting('init', 'action_menu_clean')) {
+if (tw_get_setting('modules', 'actions', 'menu_clean')) {
 
 	add_filter('nav_menu_css_class', 'tw_nav_classes_clean', 20, 1);
 
@@ -77,7 +77,7 @@ if (tw_get_setting('init', 'action_menu_clean')) {
  * Clean the header from some unnecessary meta-tags and scripts
  */
 
-if (!is_admin() and tw_get_setting('init', 'action_clean_header')) {
+if (!is_admin() and tw_get_setting('modules', 'actions', 'clean_header')) {
 
 	add_action('after_setup_theme', 'tw_clean_header', 10);
 
@@ -117,35 +117,10 @@ if (!is_admin() and tw_get_setting('init', 'action_clean_header')) {
 
 
 /**
- * Add a custom filter for the post loading
- */
-
-if (tw_get_setting('init', 'action_get_posts')) {
-
-	add_action('pre_get_posts', 'tw_pre_get', 1);
-
-	function tw_pre_get($query) {
-
-		if ($query->is_main_query() && $query->is_category(4)) {
-
-			$query->query_vars['posts_per_page'] = 4;
-
-			$query->set('orderby', 'name');
-
-			return;
-
-		}
-
-	}
-
-}
-
-
-/**
  * Add the max-width property to the default caption shortcode and fix its width
  */
 
-if (tw_get_setting('init', 'action_fix_caption')) {
+if (tw_get_setting('modules', 'actions', 'fix_caption')) {
 
 	add_filter('img_caption_shortcode', 'tw_fix_caption', 10, 3);
 
@@ -171,7 +146,7 @@ if (tw_get_setting('init', 'action_fix_caption')) {
 
 		$atts['class'] = 'class="' . trim('wp-caption ' . $atts['align'] . ' ' . $atts['class']) . '" ';
 
-		$style = 'style="max-width: ' . ($atts['width'] + intval(tw_get_setting('init', 'caption_padding'))) . 'px;"';
+		$style = 'style="max-width: ' . ($atts['width'] + intval(tw_get_setting('modules', 'actions', 'caption_padding'))) . 'px;"';
 
 		return '<div ' . $atts['id'] . $atts['class'] . $style . '>' . do_shortcode($content) . '<p class="wp-caption-text">' . $atts['caption'] . '</p></div>';
 

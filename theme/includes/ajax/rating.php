@@ -87,6 +87,31 @@ function tw_post_rating() {
 
 }
 
+/**
+ * Get the votes information
+ *
+ * @param $post_id
+ *
+ * @return array
+ */
+
+function tw_get_rating($post_id) {
+
+	$rating_sum = get_post_meta($post_id, 'rating_sum', true);
+	$rating_votes = get_post_meta($post_id, 'rating_votes', true);
+
+	if ($rating_votes == 0) {
+		$rating_votes = 1;
+	}
+
+	return array(
+		'rating' => round($rating_sum / $rating_votes, 1),
+		'votes' => intval($rating_votes)
+	);
+
+}
+
+
 /*
 
 <?php

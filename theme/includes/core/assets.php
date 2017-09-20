@@ -5,7 +5,7 @@
  *
  * @author  Toniyevych Andriy <toniyevych@gmail.com>
  * @package wp-theme
- * @version 1.2
+ * @version 2.0
  */
 
 
@@ -31,14 +31,12 @@ function tw_register_assets() {
 			'script' => 'scripts/jquery.colorbox-min.js',
 		),
 		'styler' => array(
-			'style' => 'scripts/jquery.formstyler.css',
 			'script' => 'scripts/jquery.formstyler.min.js',
 		),
 		'jcarousel' => array(
 			'script' => 'scripts/jquery.jcarousel.min.js',
 		),
 		'nivo' => array(
-			'style' => 'scripts/nivo-slider.css',
 			'script' => 'scripts/jquery.nivo.slider.pack.js',
 		)
 	);
@@ -50,7 +48,9 @@ function tw_register_assets() {
 		foreach ($assets as $name => $asset) {
 
 			if (is_array($asset)) {
-				$asset = wp_parse_args($asset, $predefined_assets[$name]);
+				if (isset($predefined_assets[$name])) {
+					$asset = wp_parse_args($asset, $predefined_assets[$name]);
+				}
 			} elseif (is_bool($asset) and $asset) {
 				$asset = $predefined_assets[$name];
 				$asset['display'] = true;
@@ -88,7 +88,7 @@ function tw_register_asset($name, $asset) {
 			'deps' => array('jquery'),
 			'style' => '',
 			'script' => '',
-			'footer' => false,
+			'footer' => true,
 			'display' => false,
 			'localize' => array()
 		);

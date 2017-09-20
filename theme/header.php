@@ -9,7 +9,7 @@
 
 <?php wp_nav_menu(array('theme_location' => 'menu', 'container' => '', 'container_class' => '', 'menu_class' => '', 'menu_id' => '')); ?>
 
-<?php echo tw_breadcrumbs('<div class="breadcrumbs">', '</div>', ''); ?>
+<?php echo tw_breadcrumbs('','<div class="breadcrumbs">', '</div>'); ?>
 
 <form action="<?php echo get_site_url(); ?>/index.php" method="get" id="search">
 	<input type="text" value="<?php echo get_search_query(); ?>" placeholder="Поиск по сайту" name="s" />

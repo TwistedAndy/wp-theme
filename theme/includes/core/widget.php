@@ -4,7 +4,7 @@
  *
  * @author  Toniyevych Andriy <toniyevych@gmail.com>
  * @package wp-theme
- * @version 1.6
+ * @version 2.0
  */
 
 class Twisted_Widget extends WP_Widget {

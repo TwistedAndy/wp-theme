@@ -1,10 +1,10 @@
 <?php
 /**
- * A set of functions to interact with the Advanced Custom Fields plugin
+ * Advanced Custom Fields library
  *
  * @author  Toniyevych Andriy <toniyevych@gmail.com>
  * @package wp-theme
- * @version 1.8
+ * @version 2.0
  */
 
 
@@ -47,7 +47,7 @@ function tw_acf_get_current_id() {
  * Add new options page for the theme settings
  */
 
-if (tw_get_setting('acf', 'option_page') and function_exists('acf_add_options_page')) {
+if (tw_get_setting('modules', 'acf', 'option_page') and function_exists('acf_add_options_page')) {
 
 	add_action('init', 'tw_acf_add_options_page');
 
@@ -74,7 +74,7 @@ if (tw_get_setting('acf', 'option_page') and function_exists('acf_add_options_pa
  * Check the subcategories too when displaying the fields for the specified category
  */
 
-if (tw_get_setting('acf', 'include_subcats')) {
+if (tw_get_setting('modules', 'acf', 'include_subcats')) {
 
 	add_filter('acf/location/rule_match/post_category', 'tw_match_subcategories', 10, 3);
 
@@ -123,7 +123,7 @@ if (tw_get_setting('acf', 'include_subcats')) {
  * Add a set of additional rules to display the fields only in the selected category or subcategories
  */
 
-if (tw_get_setting('acf', 'category_rules')) {
+if (tw_get_setting('modules', 'acf', 'category_rules')) {
 
 	add_filter('acf/location/rule_types', 'tw_acf_location_rules_types');
 
@@ -206,7 +206,7 @@ if (tw_get_setting('acf', 'category_rules')) {
  * Turn on the local JSON feature to save the field groups in separate files
  */
 
-if (tw_get_setting('acf', 'json_enable')) {
+if (tw_get_setting('modules', 'acf', 'json_enable')) {
 
 	add_filter('acf/settings/save_json', 'tw_json_save_point');
 
@@ -253,7 +253,7 @@ if (!function_exists('get_field') and !is_admin()) {
 
 	}
 
-	if (tw_get_setting('acf', 'require_acf')) {
+	if (tw_get_setting('modules', 'acf', 'require_acf')) {
 
 		add_action('wp_footer', 'tw_acf_fallback', 100);
 
