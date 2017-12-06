@@ -17,49 +17,54 @@ add_action('init', 'tw_register_assets');
 
 function tw_register_assets() {
 
-	$predefined_assets = array(
-		'template' => array(
-			'style' => 'css/style.css',
-			'display' => true
-		),
-		'likes' => array(
-			'style' => 'scripts/social-likes.css',
-			'script' => 'scripts/social-likes.min.js',
-		),
-		'colorbox' => array(
-			'style' => 'scripts/colorbox/colorbox.css',
-			'script' => 'scripts/jquery.colorbox-min.js',
-		),
-		'styler' => array(
-			'script' => 'scripts/jquery.formstyler.min.js',
-		),
-		'jcarousel' => array(
-			'script' => 'scripts/jquery.jcarousel.min.js',
-		),
-		'nivo' => array(
-			'script' => 'scripts/jquery.nivo.slider.pack.js',
-		)
-	);
-
 	$assets = tw_get_setting('assets');
 
 	if (!empty($assets) and is_array($assets)) {
 
 		foreach ($assets as $name => $asset) {
 
-			if (is_array($asset)) {
-				if (isset($predefined_assets[$name])) {
-					$asset = wp_parse_args($asset, $predefined_assets[$name]);
+			$filename = TW_ROOT . '/assets/plugins/' . $name . '/index.php';
+
+			$defaults = false;
+
+			if (is_file($filename)) {
+
+				$array = include($filename);
+
+				if (is_array($array)) {
+
+					if (!empty($array['script']) and is_string($array['script'])) {
+						$array['script'] = array($array['script']);
+					}
+
+					foreach ($array['script'] as $key => $value) {
+						$array['script'][$key] = 'plugins/' . $name . '/' . $array['script'][$key];
+					}
+
+					if (!empty($array['style']) and is_string($array['style'])) {
+						$array['style'] = array($array['style']);
+					}
+
+					foreach ($array['style'] as $key => $value) {
+						$array['style'][$key] = 'plugins/' . $name . '/' . $array['style'][$key];
+					}
+
+					$defaults = $array;
+
 				}
+
+			}
+
+			if (is_array($asset) and $defaults) {
+				$asset = wp_parse_args($asset, $defaults);
 			} elseif (is_bool($asset) and $asset) {
-				$asset = $predefined_assets[$name];
+				$asset = $defaults;
 				$asset['display'] = true;
-			} else {
-				$asset = $predefined_assets[$name];
+			} elseif ($defaults) {
+				$asset = $defaults;
 			}
 
 			tw_register_asset($name, $asset);
-
 			tw_set_setting('registred_assets', $name, $asset);
 
 		}
@@ -95,9 +100,39 @@ function tw_register_asset($name, $asset) {
 
 		$asset = wp_parse_args($asset, $defaults);
 
-		if (!empty($asset['script']) and is_string($asset['script'])) {
+		if (!empty($asset['script'])) {
 
-			wp_register_script($name, $dir . $asset['script'], $asset['deps'], null, $asset['footer']);
+			if (is_string($asset['script'])) {
+				$asset['script'] = array($asset['script']);
+			}
+
+			if (is_array($asset['script'])) {
+
+				$i = count($asset['script']) - 1;
+
+				$current_key = false;
+
+				foreach ($asset['script'] as $script) {
+
+					$previous_key = $current_key;
+
+					if ($i == 0) {
+						$current_key = $name;
+					} else {
+						$current_key = $name . '-' . $i;
+					}
+
+					if ($previous_key) {
+						$asset['deps'][] = $previous_key;
+					}
+
+					wp_register_script($current_key, $dir . $script, $asset['deps'], null, $asset['footer']);
+
+					$i--;
+
+				}
+
+			}
 
 			if ($asset['localize']) {
 				wp_localize_script($name, $name, $asset['localize']);
@@ -105,8 +140,42 @@ function tw_register_asset($name, $asset) {
 
 		}
 
-		if (!empty($asset['style']) and is_string($asset['style'])) {
-			wp_register_style($name, $dir . $asset['style'], array(), null);
+		if (!empty($asset['style'])) {
+
+			if (is_string($asset['style'])) {
+				$asset['style'] = array($asset['style']);
+			}
+
+			if (is_array($asset['style'])) {
+
+				$i = count($asset['style']) - 1;
+
+				$current_key = false;
+
+				$deps = array();
+
+				foreach ($asset['style'] as $style) {
+
+					$previous_key = $current_key;
+
+					if ($i == 0) {
+						$current_key = $name;
+					} else {
+						$current_key = $name . '-' . $i;
+					}
+
+					if ($previous_key) {
+						$deps[] = $previous_key;
+					}
+
+					wp_register_style($current_key, $dir . $style, $deps, null);
+
+					$i--;
+
+				}
+
+			}
+
 		}
 
 	}
@@ -130,7 +199,7 @@ function tw_enqueue_assets() {
 
 		foreach ($registred_assets as $name => $asset) {
 
-			if ((is_array($asset) and !empty($asset['display'])) or (is_bool($asset) and $asset)) {
+			if ((is_array($asset) and !empty($asset['display'])) or $asset === true) {
 				tw_enqueue_asset($name);
 			}
 

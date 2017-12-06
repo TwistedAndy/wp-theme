@@ -1,0 +1,50 @@
+<script type="text/javascript">
+
+	// https://flickity.metafizzy.co/options.html
+
+	jQuery(function($) {
+
+		if (typeof $.fn.flickity !== 'undefined') {
+
+			$('.slider').each(function() {
+
+				var carousel = $('.inner ul', this), buttons = $('.slider_btns > span', this);
+
+				buttons.first().addClass('active');
+
+				carousel.flickity({
+					wrapAround: true,
+					prevNextButtons: false,
+					pageDots: false,
+					adaptiveHeight: false,
+					cellSelector: 'li',
+					imagesLoaded: false,
+					cellAlign: 'left'
+				});
+
+				$('.arrow_l', this).click(function() {
+					carousel.flickity('next');
+				});
+
+				$('.arrow_r', this).click(function() {
+					carousel.flickity('previous');
+				});
+
+				buttons.click(function() {
+					var el = $(this);
+					el.addClass('active').siblings().removeClass('active');
+					carousel.flickity('select', el.index());
+				});
+
+				carousel.on('select.flickity', function() {
+					var flkty = carousel.data('flickity');
+					buttons.eq(flkty.selectedIndex).addClass('active').siblings().removeClass('active');
+				});
+
+			});
+
+		}
+
+	});
+
+</script>

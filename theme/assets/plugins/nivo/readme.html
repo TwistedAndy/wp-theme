@@ -1,0 +1,29 @@
+<script type="text/javascript">
+
+	// http://docs.themeisle.com/article/487-nivo-slider-settings
+
+	jQuery(function($) {
+
+		if (typeof $.fn.nivoSlider !== 'undefined') {
+
+			$('.slider').nivoSlider({
+				effect: 'random',
+				slices: 15,
+				boxCols: 8,
+				boxRows: 4,
+				animSpeed: 1000,
+				pauseTime: 10000,
+				startSlide: 0,
+				directionNav: false,
+				controlNav: true,
+				controlNavThumbs: false,
+				pauseOnHover: false,
+				manualAdvance: true,
+				randomStart: false
+			});
+
+		}
+
+	});
+
+</script>

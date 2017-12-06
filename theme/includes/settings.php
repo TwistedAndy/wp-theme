@@ -27,13 +27,13 @@ $settings['assets'] = array(
 		'footer' => true,
 		'localize' => array(
 			'ajaxurl' => admin_url('admin-ajax.php')
-		)
+		),
+		'display' => true
 	),
 	'nivo' => false,
-	'likes' => false,
 	'styler' => false,
-	'colorbox' => false,
-	'jcarousel' => false,
+	'fancybox' => false,
+	'flickity' => false,
 );
 
 
