@@ -1,21 +1,19 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xml:lang="ru" lang="ru" xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html <?php echo get_language_attributes('html'); ?>>
 <head>
-	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-	<meta name="viewport" content="width=device-width" />
+	<meta charset="<?php bloginfo('charset'); ?>" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<?php wp_head(); ?>
 </head>
 <body>
 
-<?php wp_nav_menu(array('theme_location' => 'menu', 'container' => '', 'container_class' => '', 'menu_class' => '', 'menu_id' => '')); ?>
+	<?php echo get_site_url(); ?>
 
-<?php echo tw_breadcrumbs('','<div class="breadcrumbs">', '</div>'); ?>
+	<?php wp_nav_menu(array('theme_location' => 'main', 'container' => '', 'container_class' => '', 'menu_class' => '', 'menu_id' => '')); ?>
 
-<form action="<?php echo get_site_url(); ?>/index.php" method="get" id="search">
-	<input type="text" value="<?php echo get_search_query(); ?>" placeholder="Поиск по сайту" name="s" />
-	<input type="submit" value="" />
-</form>
+	<?php echo tw_breadcrumbs('','<div class="breadcrumbs">', '</div>'); ?>
 
-<?php get_sidebar(); ?>
-
-<?php echo get_site_url(); ?>
+	<form action="<?php echo get_site_url(); ?>/index.php" method="get" id="search">
+		<input type="text" value="<?php echo get_search_query(); ?>" placeholder="Поиск по сайту" name="s" />
+		<input type="submit" value="" />
+	</form>
