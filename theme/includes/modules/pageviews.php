@@ -16,7 +16,11 @@
  * @return int
  */
 
-function tw_get_views($post_id) {
+function tw_get_views($post_id = false) {
+
+	if ($post_id === false) {
+		$post_id = get_the_ID();
+	}
 
 	$count = intval(get_post_meta($post_id, 'post_views_count', true));
 
@@ -31,7 +35,11 @@ function tw_get_views($post_id) {
  * @param $post_id
  */
 
-function tw_set_views($post_id) {
+function tw_set_views($post_id = false) {
+
+	if ($post_id === false) {
+		$post_id = get_the_ID();
+	}
 
 	$count = tw_get_views($post_id);
 

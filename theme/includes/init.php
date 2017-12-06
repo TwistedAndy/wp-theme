@@ -7,57 +7,10 @@
  * @version 2.0
  */
 
-define('TW_ROOT', dirname(__DIR__));
 define('TW_INC', __DIR__);
+define('TW_ROOT', dirname(TW_INC));
 
-
-/**
- * Include all necessary files
- */
-
-$files = array(
-	'assets',
-	'content',
-	'settings',
-	'taxonomy',
-	'thumbs',
-	'widget'
-);
-
-foreach ($files as $file) {
-
-	$filename = TW_INC . '/core/' . $file . '.php';
-
-	if (is_file($filename)) {
-		include_once($filename);
-	}
-
-}
-
-
-/**
- * Include enabled modules
- */
-
-if (tw_get_setting('modules')) {
-
-	$modules = tw_get_setting('modules');
-
-	foreach ($modules as $file => $enabled) {
-
-		if ($enabled) {
-
-			$filename = TW_INC . '/modules/' . $file . '.php';
-
-			if (is_file($filename)) {
-				include_once($filename);
-			}
-
-		}
-
-	}
-
-}
+include_once TW_INC . '/core/loader.php';
 
 
 /**
@@ -291,16 +244,12 @@ if (tw_get_setting('widgets')) {
 
 		if (is_array($widgets)) {
 
-			foreach ($widgets as $widget => $active) {
+			foreach ($widgets as $file => $active) {
 
-				$file = TW_INC . '/widgets/' . strtolower($widget) . '.php';
+				$result = tw_load_file('widgets', $file);
 
-				if ($active and is_file($file)) {
-
-					include_once($file);
-
-					register_widget('twisted_widget_' . $widget);
-
+				if ($result) {
+					register_widget('twisted_widget_' . $file);
 				}
 
 			}
@@ -310,36 +259,6 @@ if (tw_get_setting('widgets')) {
 	}
 
 }
-
-
-/**
- * Register and include custom ajax handlers
- */
-
-if (tw_get_setting('ajax')) {
-
-	$ajax_handlers = tw_get_setting('ajax');
-
-	if (is_array($ajax_handlers) and $ajax_handlers) {
-
-		foreach ($ajax_handlers as $handler => $active) {
-
-			$file = TW_INC . '/ajax/' . strtolower($handler) . '.php';
-
-			if ($active and is_file($file)) {
-
-				include_once($file);
-
-			}
-
-		}
-
-	}
-
-}
-
-
-
 
 
 

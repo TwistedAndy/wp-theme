@@ -63,6 +63,10 @@ function tw_set_setting($group, $name, $value) {
 
 	global $tw_settings;
 
+	if (empty($tw_settings)) {
+		$tw_settings = array();
+	}
+
 	if ($name and $group) {
 		$tw_settings[$group][$name] = $value;
 	} elseif ($name) {
