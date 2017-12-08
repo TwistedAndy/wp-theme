@@ -126,7 +126,11 @@ function tw_register_asset($name, $asset) {
 						$asset['deps'][] = $previous_key;
 					}
 
-					wp_register_script($current_key, $dir . $script, $asset['deps'], null, $asset['footer']);
+					if (strpos($script, 'http') !== 0) {
+						$script = $dir . $script;
+					}
+
+					wp_register_script($current_key, $script, $asset['deps'], null, $asset['footer']);
 
 					$i--;
 
@@ -168,7 +172,11 @@ function tw_register_asset($name, $asset) {
 						$deps[] = $previous_key;
 					}
 
-					wp_register_style($current_key, $dir . $style, $deps, null);
+					if (strpos($style, 'http') !== 0) {
+						$style = $dir . $style;
+					}
+
+					wp_register_style($current_key, $style, $deps, null);
 
 					$i--;
 
