@@ -150,7 +150,7 @@ function tw_create_thumb($image_url, $size) {
 /**
  * Get the thumbnail for a given post
  *
- * @param bool|WP_Post $post Post object or false to use the current one
+ * @param bool|WP_Post $post Post object, ACF image array, attachment ID or "false" to use the current post
  * @param string|array $size Size of the thumbnail
  * @param string $before     Code to prepend to the breadcrumbs
  * @param string $after      Code to append to the breadcrumbs
@@ -162,14 +162,25 @@ function tw_create_thumb($image_url, $size) {
 
 function tw_thumb($post = false, $size = '', $before = '', $after = '', $atts = array(), $thumb_only = false) {
 
-	global $_wp_additional_image_sizes;
-
 	$thumb = '';
+	$thumb_class = '';
+	$link_class = '';
 	$link_href = false;
 	$link_image_size = false;
 
-	if ($post == false) {
+	$sizes = tw_get_setting('cache', 'image_sizes');
+
+	if ($post === false) {
 		$post = get_post();
+	}
+
+	if (!$sizes) {
+		$sizes = get_intermediate_image_sizes();
+		tw_set_setting('cache', 'image_sizes', $sizes);
+	}
+
+	if (empty($size) or (is_string($size) and !in_array($size, $sizes))) {
+		$size = 'thumbnail';
 	}
 
 	if (!empty($atts['link'])) {
@@ -180,10 +191,10 @@ function tw_thumb($post = false, $size = '', $before = '', $after = '', $atts = 
 
 		} else {
 
-			if (!empty($_wp_additional_image_sizes[$atts['link']])) {
+			if (in_array($atts['link'], $sizes)) {
 				$link_image_size = $atts['link'];
 			} else {
-				$link_image_size = 'full';
+				$link_href = $atts['link'];
 			}
 
 		}
@@ -192,22 +203,15 @@ function tw_thumb($post = false, $size = '', $before = '', $after = '', $atts = 
 
 	}
 
-	if (empty($atts['link_class'])) {
-
-		$class = '';
-
-	} else {
-
-		$class = ' class="' . $atts['link_class'] . '"';
-
+	if (!empty($atts['link_class'])) {
+		$link_class = ' class="' . $atts['link_class'] . '"';
 		unset($atts['link_class']);
-
 	}
 
-	if (!$size or (is_string($size) and empty($_wp_additional_image_sizes[$size]) and !in_array($size, array('thumbnail', 'medium', 'large', 'full')))) {
-		$size = 'thumbnail';
+	if (!empty($atts['class'])) {
+		$thumb_class = ' class="' . $atts['link_class'] . '"';
 	}
-
+	
 	if (is_object($post) and !empty($post->ID) and has_post_thumbnail($post->ID)) {
 
 		if ($link_image_size) {
@@ -221,6 +225,20 @@ function tw_thumb($post = false, $size = '', $before = '', $after = '', $atts = 
 		}
 
 		$thumb = get_the_post_thumbnail($post->ID, $size, $atts);
+
+	} elseif (is_numeric($post)) {
+
+		if ($link_image_size) {
+
+			$thumb = wp_get_attachment_image_src($post, $link_image_size);
+
+			if (!empty($thumb[0])) {
+				$link_href = $thumb[0];
+			}
+
+		}
+
+		$thumb = wp_get_attachment_image($post, $size, false, $atts);
 
 	} elseif (is_array($post) and !empty($post['url'])) {
 
@@ -236,11 +254,11 @@ function tw_thumb($post = false, $size = '', $before = '', $after = '', $atts = 
 				$link_href = tw_create_thumb($post['url'], $link_image_size);
 			}
 
-			$thumb = '<img src="' . $image . '" alt="' . $post['alt'] . '"' . ((!empty($atts['class'])) ? ' class="' . $atts['class'] . '"' : '') . ' />';
+			$thumb = '<img src="' . $image . '" alt="' . $post['alt'] . '"' . $thumb_class . ' />';
 
 		}
 
-	} elseif (!$thumb_only) {
+	} elseif (!$thumb_only and !empty($post->post_content)) {
 
 		$image = tw_create_thumb(tw_find_image($post->post_content), $size);
 
@@ -250,14 +268,14 @@ function tw_thumb($post = false, $size = '', $before = '', $after = '', $atts = 
 				$link_href = tw_create_thumb($image, $link_image_size);
 			}
 
-			$thumb = '<img src="' . $image . '" alt="' . $post->post_title . '"' . ((!empty($atts['class'])) ? ' class="' . $atts['class'] . '"' : '') . ' />';
+			$thumb = '<img src="' . $image . '" alt="' . $post->post_title . '"' . $thumb_class . ' />';
 
 		}
 
 	}
 
 	if ($link_href) {
-		$before = $before . '<a href="' . $link_href . '"' . $class . '>';
+		$before = $before . '<a href="' . $link_href . '"' . $link_class . '>';
 		$after = '</a>' . $after;
 	}
 
