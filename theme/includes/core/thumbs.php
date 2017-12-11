@@ -176,6 +176,7 @@ function tw_thumb($post = false, $size = '', $before = '', $after = '', $atts = 
 
 	if (!$sizes) {
 		$sizes = get_intermediate_image_sizes();
+		$sizes[] = 'full';
 		tw_set_setting('cache', 'image_sizes', $sizes);
 	}
 
@@ -209,9 +210,9 @@ function tw_thumb($post = false, $size = '', $before = '', $after = '', $atts = 
 	}
 
 	if (!empty($atts['class'])) {
-		$thumb_class = ' class="' . $atts['link_class'] . '"';
+		$thumb_class = ' class="' . $atts['class'] . '"';
 	}
-	
+
 	if (is_object($post) and !empty($post->ID) and has_post_thumbnail($post->ID)) {
 
 		if ($link_image_size) {
