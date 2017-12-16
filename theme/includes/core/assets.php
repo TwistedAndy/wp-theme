@@ -33,20 +33,28 @@ function tw_register_assets() {
 
 				if (is_array($array)) {
 
-					if (!empty($array['script']) and is_string($array['script'])) {
-						$array['script'] = array($array['script']);
-					}
+					if (!empty($array['script'])) {
 
-					foreach ($array['script'] as $key => $value) {
-						$array['script'][$key] = 'plugins/' . $name . '/' . $array['script'][$key];
-					}
+						if (!is_array($array['script'])) {
+							$array['script'] = array($array['script']);
+						}
 
-					if (!empty($array['style']) and is_string($array['style'])) {
-						$array['style'] = array($array['style']);
-					}
+						foreach ($array['script'] as $key => $value) {
+							$array['script'][$key] = 'plugins/' . $name . '/' . $array['script'][$key];
+						}
 
-					foreach ($array['style'] as $key => $value) {
-						$array['style'][$key] = 'plugins/' . $name . '/' . $array['style'][$key];
+					}
+					
+					if (!empty($array['style'])) {
+
+						if (!is_array($array['style'])) {
+							$array['style'] = array($array['style']);
+						}
+
+						foreach ($array['style'] as $key => $value) {
+							$array['style'][$key] = 'plugins/' . $name . '/' . $array['style'][$key];
+						}
+
 					}
 
 					$defaults = $array;
