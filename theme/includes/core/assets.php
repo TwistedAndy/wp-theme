@@ -44,7 +44,7 @@ function tw_register_assets() {
 						}
 
 					}
-					
+
 					if (!empty($array['style'])) {
 
 						if (!is_array($array['style'])) {
@@ -73,7 +73,7 @@ function tw_register_assets() {
 			}
 
 			tw_register_asset($name, $asset);
-			tw_set_setting('registred_assets', $name, $asset);
+			tw_set_setting('registered_assets', $name, $asset);
 
 		}
 
@@ -209,11 +209,11 @@ add_action('wp_enqueue_scripts', 'tw_enqueue_assets');
 
 function tw_enqueue_assets() {
 
-	$registred_assets = tw_get_setting('registred_assets');
+	$registered_assets = tw_get_setting('registered_assets');
 
-	if ($registred_assets) {
+	if ($registered_assets) {
 
-		foreach ($registred_assets as $name => $asset) {
+		foreach ($registered_assets as $name => $asset) {
 
 			if ((is_array($asset) and !empty($asset['display'])) or $asset === true) {
 				tw_enqueue_asset($name);
@@ -251,10 +251,3 @@ function tw_enqueue_asset($name) {
 	return false;
 
 }
-
-
-
-
-
-
-
