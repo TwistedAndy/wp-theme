@@ -2,7 +2,7 @@
 /**
  * Taxonomy library
  *
- * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
  * @version 2.0
  */
@@ -11,9 +11,9 @@
 /**
  * Build an array with parent and nested categories for a given category ID
  *
- * @param bool|int $category_id  Category ID
- * @param bool $include_parents  Include the parent categories
- * @param bool $include_children Include the nested categories
+ * @param bool|int $category_id      Category ID
+ * @param bool     $include_parents  Include the parent categories
+ * @param bool     $include_children Include the nested categories
  *
  * @return array
  */
@@ -102,10 +102,10 @@ function tw_post_category_threads($post_id = false) {
 /**
  * Getall post categories as a links
  *
- * @param bool|int $post_id Post ID or false for the current post
- * @param bool $with_link   Wrap each category with the link
- * @param bool $only_first  Return only first category
- * @param string $class     Class for the link
+ * @param bool|int $post_id    Post ID or false for the current post
+ * @param bool     $with_link  Wrap each category with the link
+ * @param bool     $only_first Return only first category
+ * @param string   $class      Class for the link
  *
  * @return array|string
  */
@@ -159,9 +159,9 @@ function tw_post_category_list($post_id = false, $with_link = true, $only_first 
 /**
  * Get all post categories as a comma-separated values
  *
- * @param bool|int $post_id    Post ID or false for the current post
- * @param bool $return_array   Return categories as an array
- * @param bool $include_parent Include all parent categories
+ * @param bool|int $post_id        Post ID or false for the current post
+ * @param bool     $return_array   Return categories as an array
+ * @param bool     $include_parent Include all parent categories
  *
  * @return array|string
  */
@@ -209,10 +209,10 @@ function tw_post_categories($post_id = false, $return_array = false, $include_pa
 /**
  * Check if the current post or category belongs to a given categories
  *
- * @param array|int $category_ids              Single category ID or an array with IDs to check
+ * @param array|int      $category_ids         Single category ID or an array with IDs to check
  * @param array|int|bool $current_category_ids Current category ID. Set false to use current category ID
- * @param bool $check_parents                  Check the parent categories for the current ones
- * @param bool $check_children                 Check the children categories for the current ones
+ * @param bool           $check_parents        Check the parent categories for the current ones
+ * @param bool           $check_children       Check the children categories for the current ones
  *
  * @return bool
  */
@@ -280,7 +280,9 @@ function tw_in_category($category_ids, $current_category_ids = false, $check_par
 				}
 			}
 
-			if ($result) break;
+			if ($result) {
+				break;
+			}
 
 		}
 
@@ -294,7 +296,7 @@ function tw_in_category($category_ids, $current_category_ids = false, $check_par
 /**
  * Check if the current page is nested in another
  *
- * @param $page_id
+ * @param      $page_id
  * @param bool $check_all_children
  *
  * @return bool
@@ -351,7 +353,9 @@ function tw_current_taxonomy() {
 				break;
 			}
 		}
-		if ($taxonomy == '') $taxonomy = array_shift($taxonomies);
+		if ($taxonomy == '') {
+			$taxonomy = array_shift($taxonomies);
+		}
 	} elseif (is_category()) {
 		$taxonomy = 'category';
 	} elseif (is_tax()) {
@@ -366,8 +370,8 @@ function tw_current_taxonomy() {
 /**
  * Get the current term
  *
- * @param bool $return_object   Return term as an object
- * @param bool|string $taxonomy Taxonomy name
+ * @param bool        $return_object Return term as an object
+ * @param bool|string $taxonomy      Taxonomy name
  *
  * @return int|WP_Term
  */

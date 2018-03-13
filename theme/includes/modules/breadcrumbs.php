@@ -2,7 +2,7 @@
 /**
  * Breadcrumbs library
  *
- * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
  * @version 2.0
  */
@@ -14,7 +14,7 @@
  * @param string $before    Code to prepend to the breadcrumbs
  * @param string $after     Code to append to the breadcrumbs
  * @param string $separator Code between the breadcrumbs
- * @param bool $microdata   Include the microdata for the search engines
+ * @param bool   $microdata Include the microdata for the search engines
  *
  * @return string
  */
@@ -140,10 +140,10 @@ function tw_breadcrumbs($separator = '', $before = '<div class="breadcrumbs">', 
 /**
  * Build a single breadcrumb
  *
- * @param array $breadcrumbs Array with breadcrumbs
- * @param string $separator  Code between the breadcrumbs
- * @param bool $microdata    Include the microdata for the search engines
- * @param bool $first
+ * @param array  $breadcrumbs Array with breadcrumbs
+ * @param string $separator   Code between the breadcrumbs
+ * @param bool   $microdata   Include the microdata for the search engines
+ * @param bool   $first
  *
  * @return string
  */

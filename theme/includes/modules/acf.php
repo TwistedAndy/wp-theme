@@ -2,7 +2,7 @@
 /**
  * Advanced Custom Fields library
  *
- * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
  * @version 2.0
  */

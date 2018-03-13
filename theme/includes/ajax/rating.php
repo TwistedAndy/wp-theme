@@ -2,7 +2,7 @@
 /**
  * Rate post
  *
- * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
  * @version 1.0
  */

@@ -2,7 +2,7 @@
 /**
  * Title, text and date processing library
  *
- * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
  * @version 2.0
  */
@@ -11,11 +11,11 @@
 /**
  * Strip the text to a given length
  *
- * @param string $text              Text to strip
- * @param int $length               Required length of the text
+ * @param string      $text         Text to strip
+ * @param int         $length       Required length of the text
  * @param bool|string $allowed_tags List of tags separated by "|"
- * @param string $find              Symbol to find for proper strip
- * @param string $dots              Text after the stripped text
+ * @param string      $find         Symbol to find for proper strip
+ * @param string      $dots         Text after the stripped text
  *
  * @return string
  */
@@ -98,8 +98,8 @@ function tw_strip_text($text, $length = 200, $allowed_tags = false, $find = ' ',
 /**
  * Get the title of a given post
  *
- * @param $post       WP_Post Post object with a title
- * @param int $length Maximum length of the title
+ * @param     $post       WP_Post Post object with a title
+ * @param int $length     Maximum length of the title
  *
  * @return string
  */
@@ -132,11 +132,11 @@ function tw_title($post, $length = 0) {
 /**
  * Get the short description for a given post or text
  *
- * @param bool|string|WP_Post $post Post or text to find and strip the text
- * @param int $length               Required length of the text
- * @param bool|string $allowed_tags List of tags separated by "|"
- * @param string $find              Symbol to find for proper strip
- * @param bool $force_cut           Strip the post excerpt
+ * @param bool|string|WP_Post $post         Post or text to find and strip the text
+ * @param int                 $length       Required length of the text
+ * @param bool|string         $allowed_tags List of tags separated by "|"
+ * @param string              $find         Symbol to find for proper strip
+ * @param bool                $force_cut    Strip the post excerpt
  *
  * @return bool|string
  */
@@ -201,8 +201,8 @@ function tw_text($post = false, $length = 250, $allowed_tags = false, $find = ' 
 /**
  * Get the date and time for a given post
  *
- * @param bool|WP_Post $post Post object of false to use the current one
- * @param string $format     Date and time format
+ * @param bool|WP_Post $post   Post object of false to use the current one
+ * @param string       $format Date and time format
  *
  * @return string
  */
@@ -227,9 +227,9 @@ function tw_date($post = false, $format = '') {
 /**
  * Get the title for the current page
  *
- * @param string $before        Code to prepend to the title
- * @param string $after         Code to append to the title
- * @param bool $add_page_number Add a page number to the title
+ * @param string $before          Code to prepend to the title
+ * @param string $after           Code to append to the title
+ * @param bool   $add_page_number Add a page number to the title
  *
  * @return string
  */

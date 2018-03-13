@@ -2,7 +2,7 @@
 /**
  * Settings library
  *
- * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
  * @version 2.0
  */
@@ -56,7 +56,7 @@ function tw_get_setting($group = false, $name = false, $key = false) {
  *
  * @param string $group Setting group
  * @param string $name  Setting name
- * @param $value
+ * @param        $value
  */
 
 function tw_set_setting($group, $name, $value) {

@@ -2,7 +2,7 @@
 /**
  * Comment library
  *
- * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
  * @version 2.0
  */
@@ -13,9 +13,9 @@
  *
  * @global WP_Comment $comment
  *
- * @param WP_Comment $comment
- * @param array $args
- * @param int $depth
+ * @param WP_Comment  $comment
+ * @param array       $args
+ * @param int         $depth
  */
 
 function tw_comment($comment, $args, $depth) {
@@ -45,7 +45,7 @@ function tw_comment($comment, $args, $depth) {
  * Outputs a complete commenting form. It is similar to default comment_form() function
  *
  * @param array $args
- * @param int $post_id
+ * @param int   $post_id
  */
 
 function tw_comment_form($args = array(), $post_id = 0) {

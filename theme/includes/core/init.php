@@ -2,7 +2,7 @@
 /**
  * Theme initialization script
  *
- * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
  * @version 2.0
  */
@@ -145,6 +145,7 @@ if (tw_get_setting('styles')) {
 		add_action('init', 'tw_add_editor_styles');
 
 		function tw_add_editor_styles() {
+
 			add_editor_style('editor-style.css');
 		}
 

@@ -2,7 +2,7 @@
 /**
  * Pagination library
  *
- * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
  * @version 2.0
  */
@@ -11,7 +11,7 @@
 /**
  * Build the pagination for a given WP_Query object
  *
- * @param array $args
+ * @param array         $args
  * @param bool|WP_Query $query WP_Query object. Leave empty to use the current one
  *
  * @return string
@@ -217,7 +217,7 @@ function tw_pagination($args = array(), $query = false) {
 /**
  * Build a link for a given page number
  *
- * @param int $page_number Page number
+ * @param int   $page_number Page number
  * @param array $args
  *
  * @return string

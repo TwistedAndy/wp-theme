@@ -3,7 +3,7 @@
  * Asset management library. It allows to register and enqueue
  * the styles, scripts and the localization strings
  *
- * @author  Toniyevych Andriy <toniyevych@gmail.com>
+ * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
  * @version 2.0
  */
@@ -85,8 +85,8 @@ function tw_register_assets() {
 /**
  * Register a single asset
  *
- * @param string $name Name of the asset. It should be unique.
- * @param array $asset The array with the asset configuration
+ * @param string $name  Name of the asset. It should be unique.
+ * @param array  $asset The array with the asset configuration
  *
  * @return bool
  */
