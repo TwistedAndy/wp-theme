@@ -44,15 +44,13 @@ function tw_find_image($text) {
 /**
  * Get the link to an image with specified size
  *
- * @param string $image_url URL of the image
- * @param array|string $size Size of the image
+ * @param string       $image_url Image url
+ * @param array|string $size      Size of the image
  *
  * @return string
  */
 
 function tw_create_thumb($image_url, $size) {
-
-	global $_wp_additional_image_sizes;
 
 	$result = '';
 
@@ -64,46 +62,37 @@ function tw_create_thumb($image_url, $size) {
 
 		if (preg_match('#(.*?)\.(gif|jpg|jpeg|png|bmp)$#is', $filename, $matches)) {
 
-			if (is_array($size) or (is_string($size) and $size != 'full')) {
+			$sizes = tw_get_thumb_sizes(true);
 
-				$crop = true;
-				$width = 0;
-				$height = 0;
+			$width = 0;
+			$height = 0;
+			$crop = true;
 
-				if (is_string($size) and !empty($size) and !empty($_wp_additional_image_sizes[$size])) {
+			if (is_array($size)) {
+				$width = (isset($size[0])) ? intval($size[0]) : 0;
+				$height = (isset($size[1])) ? intval($size[1]) : 0;
+				$crop = (isset($size[2])) ? $size[2] : true;
+			} elseif (is_string($size) and isset($sizes[$size]) and $size != 'full') {
+				$width = (isset($sizes[$size]['width'])) ? intval($sizes[$size]['width']) : 0;
+				$height = (isset($sizes[$size]['height'])) ? intval($sizes[$size]['height']) : 0;
+				$crop = (isset($sizes[$size]['crop'])) ? $sizes[$size]['crop'] : true;
+			}
 
-					$width = $_wp_additional_image_sizes[$size]['width'];
-					$height = $_wp_additional_image_sizes[$size]['height'];
-					$crop = $_wp_additional_image_sizes[$size]['crop'];
+			if ($width > 0 or $height > 0) {
 
-				} elseif (is_array($size) and $size) {
+				$filename = '/cache/' . $matches[1] . '-' . $width . 'x' . $height . '-' . hash('crc32', $image_url, false) . '.' . $matches[2];
 
-					if (isset($size[0])) {
-						$width = $size[0];
-					}
+				$upload_dir = wp_upload_dir();
 
-					if (isset($size[1])) {
-						$height = $size[1];
-					}
-
-					if (isset($size[2])) {
-						$crop = $size[2];
-					}
-
+				if (!empty($upload_dir['basedir']) and !empty($upload_dir['baseurl'])) {
+					$directory = $upload_dir['basedir'];
+					$directory_uri = $upload_dir['baseurl'];
 				} else {
-
-					$width = $_wp_additional_image_sizes['thumbnail']['width'];
-					$height = $_wp_additional_image_sizes['thumbnail']['height'];
-					$crop = $_wp_additional_image_sizes['thumbnail']['crop'];
-
+					$directory = get_template_directory();
+					$directory_uri = get_template_directory_uri();
 				}
 
-				$width = intval($width);
-				$height = intval($height);
-
-				$filename = '/includes/cache/' . $matches[1] . '-' . $width . '-' . $height . '.' . $matches[2];
-
-				if (!is_file(get_template_directory() . $filename)) {
+				if (!is_file($directory . $filename)) {
 
 					$site_url = get_option('siteurl');
 
@@ -123,14 +112,14 @@ function tw_create_thumb($image_url, $size) {
 
 					if (!is_wp_error($editor)) {
 						$editor->resize($width, $height, $crop);
-						$editor->save(get_template_directory() . $filename);
+						$editor->save($directory . $filename);
 					} else {
 						return $image_url;
 					}
 
 				}
 
-				$result = get_template_directory_uri() . $filename;
+				$result = $directory_uri . $filename;
 
 			} else {
 
@@ -148,51 +137,162 @@ function tw_create_thumb($image_url, $size) {
 
 
 /**
- * Get the thumbnail for a given post
+ * Get registered image sizes with dimensions
  *
- * @param bool|WP_Post $post Post object, ACF image array, attachment ID or "false" to use the current post
- * @param string|array $size Size of the thumbnail
- * @param string $before     Code to prepend to the breadcrumbs
- * @param string $after      Code to append to the breadcrumbs
- * @param array $atts        Array with attributes
- * @param bool $thumb_only   Do not find the images in the post content
+ * @param bool $include_hidden Include hidden thumbnail sizes to the result
+ *
+ * @return array
+ */
+
+function tw_get_thumb_sizes($include_hidden = true) {
+
+	$sizes = tw_get_setting('cache', 'thumb_sizes_registered');
+
+	if (!$sizes) {
+
+		$sizes_default = array('thumbnail', 'medium', 'medium_large', 'large');
+
+		foreach ($sizes_default as $size) {
+
+			$sizes[$size] = array(
+				'width' => get_option($size . '_size_w'),
+				'height' => get_option($size . '_size_h'),
+				'crop' => get_option($size . '_crop')
+			);
+
+		}
+
+		$sizes = array_merge($sizes, wp_get_additional_image_sizes());
+
+		tw_set_setting('cache', 'thumb_sizes_registered', $sizes);
+
+	}
+
+	if ($include_hidden) {
+
+		$sizes_hidden = tw_get_setting('cache', 'thumb_sizes_hidden');
+
+		if (!$sizes_hidden) {
+
+			$sizes_hidden = array();
+
+			$sizes_registered = tw_get_setting('thumbs');
+
+			if ($sizes_registered and is_array($sizes_registered)) {
+
+				foreach ($sizes_registered as $name => $size) {
+
+					if (!empty($size['hidden'])) {
+
+						$sizes_hidden[$name] = $size;
+
+					}
+
+				}
+
+			}
+
+			tw_set_setting('cache', 'thumb_sizes_hidden', $sizes_hidden);
+
+		}
+
+		$sizes = array_merge($sizes, $sizes_hidden);
+
+	}
+
+	return $sizes;
+
+}
+
+
+/**
+ * Get the thumbnail url
+ *
+ * @param int|array|WP_Post $image WordPress Post object, ACF image array or an attachment ID
+ * @param string|array      $size  Size of the thumbnail
  *
  * @return string
  */
 
-function tw_thumb($post = false, $size = '', $before = '', $after = '', $atts = array(), $thumb_only = false) {
+function tw_get_thumb_link($image, $size) {
 
-	$thumb = '';
+	if (is_object($image) and !empty($image->ID) and has_post_thumbnail($image->ID)) {
+		$image = get_post_thumbnail_id($image->ID);
+	}
+
+	$sizes = tw_get_thumb_sizes(false);
+
+	if (is_string($size) and (isset($sizes[$size]) or $size == 'full')) {
+
+		if (is_array($image) and !empty($image['url'])) {
+
+			if (!empty($image['sizes'][$size])) {
+
+				$url = $image['sizes'][$size];
+
+			} else {
+
+				$url = $image['url'];
+
+			}
+
+		} else {
+
+			$url = wp_get_attachment_image_url($image, $size);
+
+		}
+
+	} else {
+
+		if (is_array($image) and !empty($image['url'])) {
+
+			$url = tw_create_thumb($image['url'], $size);
+
+		} else {
+
+			$url = tw_create_thumb(wp_get_attachment_image_url($image, 'full'), $size);
+
+		}
+
+	}
+
+	return $url;
+
+}
+
+
+/**
+ * Get the thumbnail with given size
+ *
+ * @param int|array|WP_Post $image             WordPress Post object, ACF image array or an attachment ID
+ * @param string|array      $size              Size of the thumbnail
+ * @param string            $before            Code before thumbnail
+ * @param string            $after             Code after thumbnail
+ * @param array             $atts              Array with attributes
+ * @param bool              $search_in_content Search the images in the post content
+ *
+ * @return string
+ */
+
+function tw_thumb($image, $size = '', $before = '', $after = '', $atts = array(), $search_in_content = false) {
+
+	$alt = '';
 	$thumb_class = '';
 	$link_class = '';
 	$link_href = false;
 	$link_image_size = false;
 
-	$sizes = tw_get_setting('cache', 'image_sizes');
-
-	if ($post === false) {
-		$post = get_post();
-	}
-
-	if (!$sizes) {
-		$sizes = get_intermediate_image_sizes();
-		$sizes[] = 'full';
-		tw_set_setting('cache', 'image_sizes', $sizes);
-	}
-
-	if (empty($size) or (is_string($size) and !in_array($size, $sizes))) {
-		$size = 'thumbnail';
-	}
-
 	if (!empty($atts['link'])) {
 
-		if ($atts['link'] == 'url' and !empty($post->ID)) {
+		if ($atts['link'] == 'url' and !empty($image->ID)) {
 
-			$link_href = get_permalink($post->ID);
+			$link_href = get_permalink($image);
 
 		} else {
 
-			if (in_array($atts['link'], $sizes)) {
+			$sizes = tw_get_thumb_sizes();
+
+			if (is_array($atts['link']) or $atts['link'] == 'full' or !empty($sizes[$atts['link']])) {
 				$link_image_size = $atts['link'];
 			} else {
 				$link_href = $atts['link'];
@@ -200,79 +300,34 @@ function tw_thumb($post = false, $size = '', $before = '', $after = '', $atts = 
 
 		}
 
-		unset($atts['link']);
-
 	}
 
 	if (!empty($atts['link_class'])) {
 		$link_class = ' class="' . $atts['link_class'] . '"';
-		unset($atts['link_class']);
 	}
 
 	if (!empty($atts['class'])) {
 		$thumb_class = ' class="' . $atts['class'] . '"';
 	}
 
-	if (is_object($post) and !empty($post->ID) and has_post_thumbnail($post->ID)) {
+	$thumb = tw_get_thumb_link($image, $size);
 
-		if ($link_image_size) {
+	if (!$thumb and $search_in_content and !empty($image->post_content)) {
+		$thumb = tw_create_thumb(tw_find_image($image->post_content), $size);
+	}
 
-			$thumb = wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $link_image_size);
+	if (is_object($image) and !empty($image->ID) and has_post_thumbnail($image)) {
+		$image = get_post_thumbnail_id($image);
+	} elseif (is_array($image) and !empty($image['id'])) {
+		$image = $image['id'];
+	}
 
-			if (!empty($thumb[0])) {
-				$link_href = $thumb[0];
-			}
+	if (is_numeric($image)) {
+		$alt = trim(strip_tags(get_post_meta($image, '_wp_attachment_image_alt', true)));
+	}
 
-		}
-
-		$thumb = get_the_post_thumbnail($post->ID, $size, $atts);
-
-	} elseif (is_numeric($post)) {
-
-		if ($link_image_size) {
-
-			$thumb = wp_get_attachment_image_src($post, $link_image_size);
-
-			if (!empty($thumb[0])) {
-				$link_href = $thumb[0];
-			}
-
-		}
-
-		$thumb = wp_get_attachment_image($post, $size, false, $atts);
-
-	} elseif (is_array($post) and !empty($post['url'])) {
-
-		if (is_string($size) and !empty($post['sizes'][$size])) {
-			$image = $post['sizes'][$size];
-		} else {
-			$image = tw_create_thumb($post['url'], $size);
-		}
-
-		if ($image) {
-
-			if ($link_image_size and !$link_href) {
-				$link_href = tw_create_thumb($post['url'], $link_image_size);
-			}
-
-			$thumb = '<img src="' . $image . '" alt="' . $post['alt'] . '"' . $thumb_class . ' />';
-
-		}
-
-	} elseif (!$thumb_only and !empty($post->post_content)) {
-
-		$image = tw_create_thumb(tw_find_image($post->post_content), $size);
-
-		if ($image) {
-
-			if ($link_image_size and !$link_href) {
-				$link_href = tw_create_thumb($image, $link_image_size);
-			}
-
-			$thumb = '<img src="' . $image . '" alt="' . $post->post_title . '"' . $thumb_class . ' />';
-
-		}
-
+	if ($link_image_size and !$link_href) {
+		$link_href = tw_get_thumb_link($image, $link_image_size);
 	}
 
 	if ($link_href) {
@@ -281,7 +336,7 @@ function tw_thumb($post = false, $size = '', $before = '', $after = '', $atts = 
 	}
 
 	if ($thumb) {
-		$thumb = $before . $thumb . $after;
+		$thumb = $before . '<img src="' . $thumb . '" alt="' . $alt . '"' . $thumb_class . ' />' . $after;
 	}
 
 	return $thumb;

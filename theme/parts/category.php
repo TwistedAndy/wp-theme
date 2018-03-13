@@ -6,7 +6,7 @@
 
 		<div class="post">
 
-			<?php echo tw_thumb(false, 'post', '<div class="thumb">', '</div>'); ?>
+			<?php echo tw_thumb(get_post(), 'post', '', '', array('link' => 'url', 'link_class' => 'thumb')); ?>
 
 			<div class="body">
 				<a class="title" href="<?php the_permalink(); ?>"><?php the_title(); ?></a>

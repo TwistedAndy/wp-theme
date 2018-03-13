@@ -55,45 +55,49 @@ function tw_setup() {
 
 		add_theme_support('post-thumbnails');
 
-		$thumbs = tw_get_setting('thumbs');
+		$sizes = tw_get_setting('thumbs');
 
-		if (is_array($thumbs)) {
+		if (is_array($sizes)) {
 
-			foreach ($thumbs as $name => $thumb) {
+			foreach ($sizes as $name => $size) {
 
-				$crop = (isset($thumb['crop'])) ? $thumb['crop'] : true;
+				if (empty($size['hidden'])) {
 
-				if (!isset($thumb['width'])) {
-					$thumb['width'] = 0;
-				}
+					$crop = (isset($size['crop'])) ? $size['crop'] : true;
 
-				if (!isset($thumb['height'])) {
-					$thumb['height'] = 0;
-				}
-
-				if (in_array($name, array('thumbnail', 'medium', 'large'))) {
-
-					if (get_option($name . '_size_w') != $thumb['width']) {
-						update_option($name . '_size_w', $thumb['width']);
+					if (!isset($size['width'])) {
+						$size['width'] = 0;
 					}
 
-					if (get_option($name . '_size_h') != $thumb['height']) {
-						update_option($name . '_size_h', $thumb['height']);
+					if (!isset($size['height'])) {
+						$size['height'] = 0;
 					}
 
-					if (isset($thumb['crop']) and get_option($name . '_crop') != $crop) {
-						update_option($name . '_crop', $crop);
+					if (in_array($name, array('thumbnail', 'medium', 'medium_large', 'large'))) {
+
+						if (get_option($name . '_size_w') != $size['width']) {
+							update_option($name . '_size_w', $size['width']);
+						}
+
+						if (get_option($name . '_size_h') != $size['height']) {
+							update_option($name . '_size_h', $size['height']);
+						}
+
+						if (isset($size['crop']) and get_option($name . '_crop') != $crop) {
+							update_option($name . '_crop', $crop);
+						}
+
+					} else {
+
+						add_image_size($name, $size['width'], $size['height'], $crop);
+
 					}
 
-				} else {
+					if (isset($size['thumb']) and $size['thumb']) {
 
-					add_image_size($name, $thumb['width'], $thumb['height'], $crop);
+						set_post_thumbnail_size($size['width'], $size['height'], $crop);
 
-				}
-
-				if (isset($thumb['thumb']) and $thumb['thumb']) {
-
-					set_post_thumbnail_size($thumb['width'], $thumb['height'], $crop);
+					}
 
 				}
 

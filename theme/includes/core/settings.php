@@ -36,7 +36,7 @@ function tw_get_setting($group = false, $name = false, $key = false) {
 
 		}
 
-	} elseif ($group and isset($tw_settings[$group])) {
+	} elseif ($group and $name == false and isset($tw_settings[$group])) {
 
 		$result = $tw_settings[$group];
 

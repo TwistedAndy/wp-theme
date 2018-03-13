@@ -38,7 +38,7 @@ function tw_load_posts() {
 			<?php foreach ($items as $item) { ?>
 
 				<div class="post">
-					<?php echo tw_thumb($item, 'post', '<div class="thumb">', '</div>'); ?>
+					<?php echo tw_thumb($item, 'post', '', '', array('link' => 'url', 'link_class' => 'thumb')); ?>
 					<div class="text">
 						<a class="title" href="<?php echo get_permalink($item->ID); ?>"><?php echo tw_title($item); ?></a>
 						<p><?php echo tw_text($item, 400); ?></p>
@@ -87,48 +87,49 @@ function tw_load_button($load_posts_number = false, $ignore_max_page = false) {
 
 		<script type="text/javascript">
 
-			var offset = <?php echo $offset; ?>;
-			var number = <?php echo $load_posts_number; ?>;
-			var max_offset = <?php echo $max_offset; ?>;
-			var more_button = jQuery('.more');
+			jQuery(function($){
 
-			more_button.click(function() {
+				var offset = <?php echo $offset; ?>,
+					number = <?php echo $load_posts_number; ?>,
+					max_offset = <?php echo $max_offset; ?>,
+					more_button = $('.more'),
+					el;
 
-				if (offset < max_offset) {
+				more_button.click(function() {
 
-					jQuery.ajax({
-						type: "POST",
-						data: {
-							action: 'load_posts',
-							category: '<?php echo get_query_var('cat'); ?>',
-							tag: '<?php echo get_query_var('tag_id'); ?>',
-							search: '<?php echo get_query_var('s'); ?>',
-							offset: offset,
-							number: number
-						},
-						url: '<?php echo admin_url('admin-ajax.php'); ?>',
-						dataType: 'html',
-						success: function(data) {
-							if (data) {
-								var el = jQuery(data);
-								el.hide();
-								more_button.before(el);
-								el.slideDown();
-								offset = offset + number;
-								if (offset >= max_offset || number == -1) {
+					if (offset < max_offset) {
+
+						$.ajax({
+							type: "POST", data: {
+								action: 'load_posts',
+								category: '<?php echo get_query_var('cat'); ?>',
+								tag: '<?php echo get_query_var('tag_id'); ?>',
+								search: '<?php echo get_query_var('s'); ?>',
+								offset: offset,
+								number: number
+							}, url: '<?php echo admin_url('admin-ajax.php'); ?>', dataType: 'html', success: function(data) {
+								if (data) {
+									el = $(data);
+									el.hide();
+									more_button.before(el);
+									el.slideDown();
+									offset = offset + number;
+									if (offset >= max_offset || number == -1) {
+										more_button.remove();
+									}
+								} else {
 									more_button.remove();
 								}
-							} else {
-								more_button.remove();
 							}
-						}
-					});
+						});
 
-				} else {
+					} else {
 
-					more_button.remove();
+						more_button.remove();
 
-				}
+					}
+
+				});
 
 			});
 
