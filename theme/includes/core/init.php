@@ -7,7 +7,7 @@
  * @version 2.0
  */
 
-define('TW_INC', __DIR__);
+define('TW_INC', dirname(__DIR__));
 define('TW_ROOT', dirname(TW_INC));
 
 include_once TW_INC . '/core/loader.php';

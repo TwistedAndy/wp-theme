@@ -7,93 +7,57 @@
  * @version 1.0
  */
 
-add_action('wp_ajax_nopriv_send_email', 'tw_send_email');
-add_action('wp_ajax_send_email', 'tw_send_email');
+add_action('wp_ajax_nopriv_request_call', 'tw_ajax_callback');
+add_action('wp_ajax_request_call', 'tw_ajax_callback');
 
-function tw_send_email() {
+function tw_ajax_callback() {
 
 	if (isset($_POST['nonce']) and wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
 
 		$errors = array();
 
+		$fields = array(
+			'name' => array(
+				'error' => 'Неверно указано имя',
+				'pattern' => '#^[a-zA-Zа-яА-Я0-9 -.]{2,}$#ui'
+			),
+			'email' => array(
+				'error' => 'Неверно указан e-mail',
+				'pattern' => '#^[^\@]+@.*\.[a-z]{2,6}$#i'
+			),
+			'message' => array(
+				'error' => 'Введите сообщение',
+				'pattern' => '#^.{4,}$#i'
+			),
+			'phone' => array(
+				'error' => 'Неверно указан телефон',
+				'pattern' => '#^[0-9 +\- ()]{4,}$#i'
+			)
+		);
+
 		foreach ($_POST as $k => $v) {
-
 			$_POST[$k] = htmlspecialchars($v);
-
-		}
-
-		if (isset($_POST['email'])) {
-
-			$fields = array(
-				'name' => array(
-					'error' => 'Неверно указано имя',
-					'pattern' => '#^[a-zA-Zа-яА-Я0-9 -.]{2,}$#ui'
-				),
-				'email' => array(
-					'error' => 'Неверно указан e-mail',
-					'pattern' => '#^[^\@]+@.*\.[a-z]{2,6}$#i'
-				),
-				'message' => array(
-					'error' => 'Введите сообщение',
-					'pattern' => '#^.{4,}$#i'
-				)
-			);
-
-			$is_callback = false;
-
-		} else {
-
-			$fields = array(
-				'name' => array(
-					'error' => 'Неверно указано имя',
-					'pattern' => '#^[a-zA-Zа-яА-Я0-9 -.]{2,}$#ui'
-				),
-				'phone' => array(
-					'error' => 'Неверно указан телефон',
-					'pattern' => '#^[0-9 +\- ()]{4,}$#i'
-				)
-			);
-
-			$is_callback = true;
-
 		}
 
 		foreach ($fields as $k => $v) {
-
 			if (isset($_POST[$k]) and !preg_match($v['pattern'], $_POST[$k]) and !(isset($v['empty']) and $v['empty'] and $_POST[$k] == '')) {
-
 				$errors[$k] = $v['error'];
-
 			}
-
 		}
 
 		if (count($errors) == 0) {
 
 			$to = get_option('admin_email');
 
-			if ($is_callback) {
-
-				$subject = "Заказ обратного звонка от " . $_POST['name'] . " (" . $_POST['phone'] . ")";
-				$message = "
-				<p><b>Имя:</b> " . $_POST['name'] . "</p>
-				<p><b>Телефон:</b> " . $_POST['phone'] . "</p>";
-
-				$_POST['email'] = $to;
-
-			} else {
-
-				$subject = "Сообщение от посетителя";
-				$message = "
-				<p><b>Имя:</b> " . $_POST['name'] . "</p>
-				<p><b>E-mail:</b> " . $_POST['email'] . "</p>
-				<p><b>Сообщение:</b> " . $_POST['message'] . "</p>";
-
-			}
+			$subject = "Сообщение от посетителя";
+			$message = "
+			<p><b>Имя:</b> " . $_POST['name'] . "</p>
+			<p><b>E-mail:</b> " . $_POST['email'] . "</p>
+			<p><b>Телефон:</b> " . $_POST['phone'] . "</p>
+			<p><b>Сообщение:</b> " . $_POST['message'] . "</p>";
 
 			$headers = array();
 			$headers[] = 'Content-type: text/html; charset=utf-8';
-			$headers[] = 'From: ' . $_POST['name'] . ' <' . $_POST['email'] . '>';
 
 			if (wp_mail($to, $subject, $message, $headers)) {
 
@@ -124,7 +88,7 @@ function tw_send_email() {
 	<input type="text" value="" placeholder="Ваш e-mail" name="email" />
 	<textarea cols="40" rows="5" placeholder="Сообщение" name="message"></textarea>
 	<input type="submit" value="Отправить" />
-	<input type="hidden" name="action" value="send_email" />
+	<input type="hidden" name="action" value="request_call" />
 	<input type="hidden" name="nonce" value="<?php echo wp_create_nonce('ajax-nonce'); ?>" />
 </form>
 

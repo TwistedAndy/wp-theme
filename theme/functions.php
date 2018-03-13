@@ -1,3 +1,3 @@
 <?php
 
-include_once(__DIR__ . '/includes/init.php');
+include_once(__DIR__ . '/includes/core/init.php');

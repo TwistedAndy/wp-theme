@@ -93,7 +93,7 @@ foreach ($files as $file) {
  *  Include theme settings
  */
 
-tw_load_file('', 'settings');
+tw_load_file('..', 'settings');
 
 
 /**
