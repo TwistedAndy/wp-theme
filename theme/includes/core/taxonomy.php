@@ -100,17 +100,18 @@ function tw_post_category_threads($post_id = false) {
 
 
 /**
- * Getall post categories as a links
+ * Get names or links to all post categories
  *
  * @param bool|int $post_id    Post ID or false for the current post
  * @param bool     $with_link  Wrap each category with the link
- * @param bool     $only_first Return only first category
- * @param string   $class      Class for the link
+ * @param string   $class      Link class
  *
- * @return array|string
+ * @return array
  */
 
-function tw_post_category_list($post_id = false, $with_link = true, $only_first = true, $class = '') {
+function tw_post_category_list($post_id = false, $with_link = true, $class = '') {
+
+	$result = array();
 
 	if ($post_id == false) {
 		$post_id = get_the_ID();
@@ -127,14 +128,8 @@ function tw_post_category_list($post_id = false, $with_link = true, $only_first 
 
 	if (is_array($categories) and $categories) {
 
-		$result = array();
-
 		if ($class) {
 			$class = ' class="' . $class . '"';
-		}
-
-		if ($only_first) {
-			$categories = array($categories[0]);
 		}
 
 		foreach ($categories as $category) {
@@ -145,9 +140,31 @@ function tw_post_category_list($post_id = false, $with_link = true, $only_first 
 			}
 		}
 
-	} else {
+	}
 
-		$result = '';
+	return $result;
+
+}
+
+
+/**
+ * Get the link to the first post category
+ *
+ * @param bool|int $post_id Post ID or false for the current post
+ * @param string   $class   Link class
+ *
+ * @return string
+ */
+
+function tw_post_category_link($post_id = false, $class = '') {
+
+	$result = '';
+
+	$categories = tw_post_category_list($post_id, true, $class);
+
+	if ($categories and !empty($categories[0])) {
+
+		$result = $categories[0];
 
 	}
 
@@ -157,16 +174,16 @@ function tw_post_category_list($post_id = false, $with_link = true, $only_first 
 
 
 /**
- * Get all post categories as a comma-separated values
+ * Get all post categories as a comma-separated values or an array
  *
- * @param bool|int $post_id        Post ID or false for the current post
- * @param bool     $return_array   Return categories as an array
- * @param bool     $include_parent Include all parent categories
+ * @param bool|int $post_id         Post ID or false for the current post
+ * @param bool     $return_as_array Return categories as an array
+ * @param bool     $include_parent  Include parent categories
  *
  * @return array|string
  */
 
-function tw_post_categories($post_id = false, $return_array = false, $include_parent = false) {
+function tw_post_categories($post_id = false, $return_as_array = false, $include_parent = false) {
 
 	if ($post_id == false) {
 		$post_id = get_the_ID();
@@ -197,7 +214,7 @@ function tw_post_categories($post_id = false, $return_array = false, $include_pa
 
 	}
 
-	if ($return_array) {
+	if ($return_as_array) {
 		return $categories;
 	} else {
 		return implode(',', $categories);
