@@ -165,6 +165,18 @@ if (tw_get_setting('styles')) {
 
 		$style_formats = tw_get_setting('styles');
 
+		if (!empty($array['style_formats'])) {
+
+			$existing_formats = json_decode($array['style_formats'], true);
+
+			if (is_array($existing_formats)) {
+
+				$style_formats = array_merge($existing_formats, $style_formats);
+
+			}
+
+		}
+
 		$array['style_formats'] = json_encode($style_formats);
 
 		return $array;
@@ -172,9 +184,9 @@ if (tw_get_setting('styles')) {
 	}
 
 
-	add_filter('mce_buttons_2', 'tw_enable_fromat_button');
+	add_filter('mce_buttons_2', 'tw_enable_format_button');
 
-	function tw_enable_fromat_button($buttons) {
+	function tw_enable_format_button($buttons) {
 
 		array_unshift($buttons, 'styleselect');
 
@@ -190,6 +202,7 @@ if (tw_get_setting('styles')) {
 		function tw_add_editor_styles() {
 
 			add_editor_style('editor-style.css');
+
 		}
 
 	}
