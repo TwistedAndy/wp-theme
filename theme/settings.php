@@ -14,8 +14,9 @@ $settings['thumbs'] = array(
 	),
 	'slide' => array(
 		'width' => 500,
-		'height' => 360
-	),
+		'height' => 360,
+		'hidden' => true
+	)
 );
 
 
@@ -39,9 +40,9 @@ $settings['assets'] = array(
 
 $settings['sidebars'] = array(
 	array(
-		'name' => 'Блок справа в сайдбаре',
+		'name' => 'Сайдбар',
 		'id' => 'sidebar',
-		'description' => 'Область для виджетов в сайдбаре',
+		'description' => 'Область для виджетов сбоку',
 		'before_widget' => '<div class="widget %2$s">',
 		'after_widget' => '</div>',
 		'before_title' => '<div class="title">',
@@ -51,21 +52,21 @@ $settings['sidebars'] = array(
 
 
 $settings['types'] = array(
-	'receipt' => array(
+	'project' => array(
 		'labels' => array(
-			'name' => 'Рецепты',
-			'singular_name' => 'Рецепт',
-			'new_item' => 'Новый рецепт',
-			'add_new' => 'Добавить рецепт',
-			'add_new_item' => 'Добавить рецепт',
-			'edit_item' => 'Редактироовать рецепт',
-			'view_item' => 'Просмотреть рецепт',
-			'all_items' => 'Все рецепты',
-			'search_items' => 'Искать рецепты',
-			'not_found' => 'Рецепт не найден',
-			'not_found_in_trash' => 'Рецепт не найден в корзине',
+			'name' => 'Работы',
+			'singular_name' => 'Работа',
+			'new_item' => 'Новая работа',
+			'add_new' => 'Добавить работу',
+			'add_new_item' => 'Добавить работу',
+			'edit_item' => 'Редактироовать работу',
+			'view_item' => 'Просмотреть работу',
+			'all_items' => 'Все работы',
+			'search_items' => 'Искать работы',
+			'not_found' => 'Работа не найдена',
+			'not_found_in_trash' => 'Работа не найдена в корзине',
 		),
-		'description' => 'Каталог рецептов сайта',
+		'description' => 'Выполненные работы',
 		'public' => true,
 		'publicly_queryable' => true,
 		'show_ui' => true,
@@ -73,45 +74,45 @@ $settings['types'] = array(
 		'show_in_nav_menus' => true,
 		'show_in_admin_bar' => true,
 		'menu_position' => 10,
-		'menu_icon' => 'dashicons-heart', /* https://developer.wordpress.org/resource/dashicons/ */
-		'hierarchical' => false,
+		'menu_icon' => 'dashicons-camera', /* https://developer.wordpress.org/resource/dashicons/ */
+		'hierarchical' => true,
 		'supports' => array('title', 'editor', 'excerpt', 'author', 'thumbnail', 'custom-fields', 'comments'),
 		'has_archive' => true,
-		'rewrite' => array('slug' => 'recipes', 'with_front' => false, 'hierarchical' => false),
+		'rewrite' => array('slug' => 'projects', 'with_front' => true, 'hierarchical' => false),
 		'query_var' => true,
-		'taxonomies' => array('receipts')
+		'taxonomies' => array('projects')
 	),
 );
 
 
 $settings['taxonomies'] = array(
 	array(
-		'name' => 'receipts',
-		'types' => array('receipt'),
+		'name' => 'projects',
+		'types' => array('project'),
 		'args' => array(
 			'label' => '',
 			'labels' => array(
-				'name' => 'Категории рецептов',
-				'singular_name' => 'Категория рецепта',
+				'name' => 'Категории работ',
+				'singular_name' => 'Категория работы',
 				'search_items' => 'Поиск категорий',
 				'all_items' => 'Все категории',
 				'parent_item' => 'Родительская категория',
 				'parent_item_colon' => 'Родительская категория:',
-				'edit_item' => 'Редактировать категорию рецепта',
+				'edit_item' => 'Редактировать категорию работы',
 				'update_item' => 'Обновить категорию',
 				'add_new_item' => 'Новая категория',
 				'new_item_name' => 'Имя категория',
-				'menu_name' => 'Категории рецептов',
+				'menu_name' => 'Категории работ',
 			),
 			'query_var' => true,
 			'public' => true,
 			'show_in_nav_menus' => true,
 			'show_ui' => true,
-			'show_tagcloud' => true,
+			'show_tagcloud' => false,
 			'hierarchical' => true,
 			'update_count_callback' => '',
-			'rewrite' => array('slug' => 'receipts', 'with_front' => false, 'hierarchical' => true),
-			'show_admin_column' => false,
+			'rewrite' => array('slug' => 'works', 'with_front' => true, 'hierarchical' => true),
+			'show_admin_column' => true,
 			'show_in_quick_edit' => null,
 		)
 	),
@@ -145,11 +146,12 @@ $settings['modules'] = array(
 		'include_subcats' => true,
 	),
 	'actions' => array(
-		'caption_padding' => 20,
+		'caption_padding' => 0,
 		'menu_clean' => false,
 		'menu_active' => true,
 		'fix_caption' => true,
-		'clean_header' => true
+		'clean_header' => true,
+		'comment_reply' => false
 	),
 	'breadcrumbs' => true,
 	'comments' => true,

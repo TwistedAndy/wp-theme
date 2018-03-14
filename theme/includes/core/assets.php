@@ -73,7 +73,8 @@ function tw_register_assets() {
 			}
 
 			tw_register_asset($name, $asset);
-			tw_set_setting('registered_assets', $name, $asset);
+
+			tw_set_setting('assets', $name, $asset);
 
 		}
 
@@ -209,20 +210,14 @@ add_action('wp_enqueue_scripts', 'tw_enqueue_assets');
 
 function tw_enqueue_assets() {
 
-	$registered_assets = tw_get_setting('registered_assets');
+	$assets = tw_get_setting('assets');
 
-	if ($registered_assets) {
+	if ($assets) {
 
-		foreach ($registered_assets as $name => $asset) {
+		foreach ($assets as $name => $asset) {
 
 			if ((is_array($asset) and !empty($asset['display'])) or $asset === true) {
 				tw_enqueue_asset($name);
-			}
-
-			if (!empty($asset['deps'])) {
-				foreach ($asset['deps'] as $dep) {
-					tw_enqueue_asset($dep);
-				}
 			}
 
 		}

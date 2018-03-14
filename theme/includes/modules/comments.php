@@ -111,7 +111,8 @@ function tw_comment_form($args = array(), $post_id = 0) {
 	$args = wp_parse_args($args, apply_filters('comment_form_defaults', $defaults));
 
 	if (!empty($_GET['replytocom'])) {
-		$author = sprintf($args['title_reply_to'], '<a href="#comment-' . get_comment_ID() . '">' . get_comment_author(get_comment(intval($_GET['replytocom']))) . '</a>');
+		$comment_id = intval($_GET['replytocom']);
+		$author = sprintf($args['title_reply_to'], '<a href="#comment-' . get_comment_ID() . '">' . get_comment_author(get_comment($comment_id)) . '</a>');
 		$args['title_reply'] = $author . $args['cancel_reply_before'] . get_cancel_comment_reply_link($args['cancel_reply_link']) . $args['cancel_reply_after'];
 	}
 

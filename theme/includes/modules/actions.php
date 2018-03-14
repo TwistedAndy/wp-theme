@@ -153,3 +153,22 @@ if (tw_get_setting('modules', 'actions', 'fix_caption')) {
 	}
 
 }
+
+
+/**
+ * Enqueue comment reply script for threaded comments
+ */
+
+if (tw_get_setting('modules', 'actions', 'comment_reply')) {
+
+	add_action('wp_enqueue_scripts', 'tw_enqueue_comment_reply');
+
+	function tw_enqueue_comment_reply() {
+
+		if (is_singular() and comments_open() and get_option('thread_comments')) {
+			wp_enqueue_script('comment-reply');
+		}
+
+	}
+
+}
