@@ -7,6 +7,7 @@ $settings['menu'] = array(
 
 $settings['thumbs'] = array(
 	'post' => array(
+		'label' => 'Рубрика',
 		'width' => 240,
 		'height' => 180,
 		'thumb' => true,

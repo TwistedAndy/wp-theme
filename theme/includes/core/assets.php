@@ -10,7 +10,7 @@
 
 
 /**
- * Register a set of default and custom assets
+ * Register all custom assets
  */
 
 add_action('init', 'tw_register_assets');
@@ -84,7 +84,7 @@ function tw_register_assets() {
 
 
 /**
- * Register a single asset
+ * Register single asset
  *
  * @param string $name  Name of the asset. It should be unique.
  * @param array  $asset The array with the asset configuration
@@ -99,7 +99,7 @@ function tw_register_asset($name, $asset) {
 		$dir = get_template_directory_uri() . '/assets/';
 
 		$defaults = array(
-			'deps' => array('jquery'),
+			'deps' => array(),
 			'style' => '',
 			'script' => '',
 			'footer' => true,
@@ -203,7 +203,7 @@ function tw_register_asset($name, $asset) {
 
 
 /**
- * Enqueue all previously registered assets
+ * Enqueue all registered assets
  */
 
 add_action('wp_enqueue_scripts', 'tw_enqueue_assets');
@@ -228,7 +228,9 @@ function tw_enqueue_assets() {
 
 
 /**
- * @param string $name Name of the previously registered asset.
+ * Enqueue single asset
+ *
+ * @param string $name Name of the asset.
  *
  * @return bool
  */

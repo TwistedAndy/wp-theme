@@ -22,7 +22,7 @@ add_action('after_setup_theme', 'tw_setup');
 function tw_setup() {
 
 	/**
-	 * Add support for title tag and HTML5 galleries
+	 * Add support for the title tag and HTML5 galleries
 	 */
 
 	add_theme_support('title-tag');
@@ -104,6 +104,49 @@ function tw_setup() {
 			}
 
 		}
+
+	}
+
+}
+
+
+/**
+ * Add custom image sizes to the media editor
+ */
+
+if (tw_get_setting('thumbs')) {
+
+	add_filter('image_size_names_choose', 'tw_add_editor_image_sizes');
+
+	function tw_add_editor_image_sizes($sizes) {
+
+		$theme_sizes = tw_get_setting('thumbs');
+
+		if (is_array($theme_sizes)) {
+
+			$array = array();
+
+			foreach ($theme_sizes as $name => $size) {
+
+				if (empty($size['hidden'])) {
+
+					if (!empty($size['label'])) {
+						$label = $size['label'];
+					} else {
+						$label = ucfirst($name);
+					}
+
+					$array[$name] = $label;
+
+				}
+
+			}
+
+			$sizes = array_merge($sizes, $array);
+
+		}
+
+		return $sizes;
 
 	}
 
