@@ -76,7 +76,7 @@ $settings['types'] = array(
 		'show_in_admin_bar' => true,
 		'menu_position' => 10,
 		'menu_icon' => 'dashicons-camera', /* https://developer.wordpress.org/resource/dashicons/ */
-		'hierarchical' => true,
+		'hierarchical' => false,
 		'supports' => array('title', 'editor', 'excerpt', 'author', 'thumbnail', 'custom-fields', 'comments'),
 		'has_archive' => true,
 		'rewrite' => array('slug' => 'projects', 'with_front' => true, 'hierarchical' => false),
@@ -154,7 +154,11 @@ $settings['modules'] = array(
 		'clean_header' => true,
 		'comment_reply' => false
 	),
-	'breadcrumbs' => true,
+	'breadcrumbs' => array(
+		'microdata' => 'json',
+		'include_archive' => false,
+		'include_current' => true
+	),
 	'comments' => true,
 	'custom' => true,
 	'cyrdate' => array(
