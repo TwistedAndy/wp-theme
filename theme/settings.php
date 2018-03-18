@@ -159,6 +159,7 @@ $settings['modules'] = array(
 		'include_archive' => false,
 		'include_current' => true
 	),
+	'blocks' => true,
 	'comments' => true,
 	'custom' => true,
 	'cyrdate' => array(
