@@ -91,7 +91,7 @@ if (tw_get_setting('modules', 'acf', 'include_subcats')) {
 				if ($options['ajax']) {
 					$categories = $options['post_taxonomy'];
 				} else {
-					$categories = tw_post_categories($post_id, true, true);
+					$categories = tw_post_terms($post_id, 'category', true, true);
 				}
 
 				if ($rule['operator'] == '==') $return = true; else $return = false;
