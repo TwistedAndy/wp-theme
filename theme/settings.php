@@ -159,11 +159,14 @@ $settings['modules'] = array(
 		'include_archive' => false,
 		'include_current' => true
 	),
-	'blocks' => true,
 	'comments' => true,
 	'custom' => true,
 	'cyrdate' => array(
 		'english_convert' => false
+	),
+	'blocks' => array(
+		'option_field' => 'blocks_default',
+		'load_default' => true,
 	),
 	'cyrtolat' => true,
 	'pageviews' => true,
