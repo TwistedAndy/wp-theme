@@ -31,14 +31,12 @@
 				});
 
 				buttons.click(function() {
-					var el = $(this);
-					el.addClass('active').siblings().removeClass('active');
-					carousel.flickity('select', el.index());
+					carousel.flickity('select', $(this).index());
 				});
 
 				carousel.on('select.flickity', function() {
 					var flkty = carousel.data('flickity');
-					buttons.eq(flkty.selectedIndex).addClass('active').siblings().removeClass('active');
+					buttons.removeClass('active').eq(flkty.selectedIndex).addClass('active');
 				});
 
 			});
