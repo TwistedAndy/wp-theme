@@ -43,6 +43,7 @@ function tw_pagination($args = array(), $query = false) {
 		'base' => '',
 		'add_args' => array(),
 		'add_frag' => '',
+		'url' => false,
 		'page' => false,
 		'max_page' => false
 	);
@@ -61,7 +62,11 @@ function tw_pagination($args = array(), $query = false) {
 
 		global $wp_rewrite;
 
-		$url_parts = explode('?', html_entity_decode(get_pagenum_link()));
+		if (empty($args['url'])) {
+			$args['url'] = html_entity_decode(get_pagenum_link());
+		}
+
+		$url_parts = explode('?', $args['url']);
 
 		if (!empty($url_parts[0])) {
 
