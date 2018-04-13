@@ -42,24 +42,22 @@ function tw_pagination($args = array(), $query = false) {
 		'format' => '',
 		'base' => '',
 		'add_args' => array(),
-		'add_frag' => ''
+		'add_frag' => '',
+		'page' => false,
+		'max_page' => false
 	);
 
 	$args = wp_parse_args($args, $defaults);
 
-	if ($args['type'] == 'comments') {
+	$paged = tw_page_number($args, $query);
 
-		$paged = intval(get_query_var('cpage'));
-		$max_page = intval(get_comment_pages_count());
+	$max_page = tw_page_total($args, $query);
 
-	} elseif ($args['type'] == 'page') {
+	if ($max_page < 2) {
+		return '';
+	}
 
-		global $page, $numpages;
-
-		$paged = intval($page);
-		$max_page = intval($numpages);
-
-	} else {
+	if ($args['type'] != 'comments' and $args['type'] != 'page') {
 
 		global $wp_rewrite;
 
@@ -109,22 +107,6 @@ function tw_pagination($args = array(), $query = false) {
 
 		}
 
-		if (!$query or !($query instanceof WP_Query)) {
-			global $wp_query;
-			$query = $wp_query;
-		}
-
-		$paged = isset($query->query_vars['paged']) ? intval($query->query_vars['paged']) : 1;
-		$max_page = isset($query->max_num_pages) ? intval($query->max_num_pages) : 1;
-
-	}
-
-	if ($max_page < 2) {
-		return '';
-	}
-
-	if ($paged == 0) {
-		$paged = 1;
 	}
 
 	$result = $args['before'];
@@ -265,5 +247,97 @@ function tw_page_link($page_number, $args = array()) {
 	}
 
 	return $link;
+
+}
+
+
+/**
+ * Get current page number
+ *
+ * @param array         $args  Array with configuration
+ * @param bool|WP_Query $query Custom WordPress query
+ *
+ * @return int
+ */
+
+function tw_page_number($args = array(), $query = false) {
+
+	if (!empty($args['page'])) {
+
+		$page_number = $args['page'];
+
+	} elseif (!empty($args['type']) and $args['type'] == 'comments') {
+
+		$page_number = get_query_var('cpage');
+
+	} elseif (!empty($args['type']) and $args['type'] == 'page') {
+
+		global $page;
+
+		$page_number = $page;
+
+	} else {
+
+		if (!$query or !($query instanceof WP_Query)) {
+			global $wp_query;
+			$query = $wp_query;
+		}
+
+		$page_number = $query->get('paged', 1);
+
+	}
+
+	$page_number = intval($page_number);
+
+	if ($page_number < 1) {
+		$page_number = 1;
+	}
+
+	return $page_number;
+
+}
+
+
+/**
+ * Get total pages count
+ *
+ * @param array         $args  Array with configuration
+ * @param bool|WP_Query $query Custom WordPress query
+ *
+ * @return int
+ */
+
+function tw_page_total($args = array(), $query = false) {
+
+	if (!empty($args['max_page'])) {
+
+		$max_page = $args['max_page'];
+
+	} elseif (!empty($args['type']) and $args['type'] == 'comments') {
+
+		$max_page = get_comment_pages_count();
+
+	} elseif (!empty($args['type']) and $args['type'] == 'page') {
+
+		global $numpages;
+
+		$max_page = $numpages;
+
+	} else {
+
+		if (!$query or !($query instanceof WP_Query)) {
+			global $wp_query;
+			$query = $wp_query;
+		}
+
+		$max_page = 1;
+
+		if (isset($query->max_num_pages)) {
+			$max_page = $query->max_num_pages;
+		}
+
+	}
+
+	return intval($max_page);
 
 }
