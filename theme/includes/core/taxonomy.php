@@ -30,6 +30,8 @@ function tw_term_thread($term_id = false, $include_parents = true, $include_chil
 
 	if (is_object($term) and $term instanceof WP_Term) {
 
+		$term_id = $term->term_id;
+
 		$taxonomy = $term->taxonomy;
 
 		$cache_key = $taxonomy . '_thread_' . $term_id . '_' . intval($include_parents) . intval($include_children);

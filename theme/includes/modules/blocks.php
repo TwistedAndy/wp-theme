@@ -27,16 +27,12 @@ function tw_get_blocks($blocks = 'blocks', $post_id = false) {
 	}
 
 	if ($blocks and is_array($blocks)) {
+		
+		foreach ($blocks as $block) {
 
-		if (is_array($blocks)) {
+			if (!empty($block['acf_fc_layout'])) {
 
-			foreach ($blocks as $block) {
-
-				if (!empty($block['acf_fc_layout'])) {
-
-					tw_get_block($block);
-
-				}
+				tw_get_block($block);
 
 			}
 
