@@ -72,21 +72,22 @@ $settings['assets'] = array(
 	'template' => array(
 		'deps' => array('jquery'),
 		'style' => array(
-			'css/style.css'
-		),
+            'css/style.css',
+        ),
 		'script' => array(
-			'scripts/theme.js'
-		),
-		'footer' => true,
+            'scripts/theme.js',
+        ),
 		'localize' => array(
 			'ajaxurl' => admin_url('admin-ajax.php')
 		),
+		'footer' => true,
 		'display' => true
 	),
-	'nivo' => false,
-	'styler' => false,
-	'fancybox' => false,
-	'flickity' => false,
+	'nivo' => true,
+	'styler' => array(
+		'style' => '',
+		'display' => true
+	)
 );
 ```
 
@@ -106,7 +107,7 @@ Each array may have this fields:
 
 `display` - enqueue the asset. If you set this value to `false` all the asset scripts and styles will be registered, but not enqueued. In this case you can enqueue them manually using the `tw_enqueue_asset` or the default `wp_enqueue_script` and `wp_enqueue_style` functions. Default: ``false``
 
-Each asset may have the default configuration in `assets/plugins/{$asset_name}/index.php`. In this case, you can specify `true` to enqueue the asset or `false` to register it without enqueuing. You can overwrite the default settings by specifying an array in this configuration.
+Each asset may have the default configuration in `assets/plugins/{$asset_name}/index.php`. If this file exists, the asset will be automatically registered. The default settings can be modified by specifying an array in this configuration. Also you can specify the `true` value just to enqueue the asset.
 
 
 ### Sidebars, custom post types, and taxonomies
@@ -133,13 +134,6 @@ You can specify your own styles for TinyMCE editor. If you create the `editor-st
 ### AJAX handlers and modules
 
 ```php
-$settings['ajax'] = array(
-	'email' => false,
-	'rating' => false,
-	'posts' => false,
-	'comments' => false
-);
-
 
 $settings['modules'] = array(
 	'acf' => array(
@@ -162,14 +156,13 @@ $settings['modules'] = array(
 		'include_archive' => false,
 		'include_current' => true
 	),
-	'blocks' => true,
-	'comments' => true,
-	'custom' => true,
 	'cyrdate' => array(
 		'english_convert' => false
 	),
-	'cyrtolat' => true,
-	'pageviews' => true,
+	'blocks' => array(
+		'option_field' => 'blocks_default',
+		'load_default' => true,
+	),
 	'pagination' => array(
 		'prev' => '&#9668;',
 		'next' => '&#9658;',
@@ -179,7 +172,7 @@ $settings['modules'] = array(
 );
 ```
 
-All the AJAX handlers and modules are located in `includes/ajax` and `includes/modules` folders. To include new file you need to add it to the array and specify `true` or a not empty array with settings as an value. Use function `tw_get_setting` to get the settings (`tw_get_setting('modules', 'pagination', 'first')`, for example). You can place all your custom code in `custom.php`.
+All the AJAX handlers and modules are located in a separate files in `includes/ajax` and `includes/modules` folders. They are included automatically. Use the function `tw_get_setting` to get the module settings (`tw_get_setting('modules', 'pagination', 'first')`, for example). Also you can place some of your custom code in `custom.php` file.
 
 
 ### Widgets
