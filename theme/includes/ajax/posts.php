@@ -1,37 +1,65 @@
 <?php
 /**
- * Load more posts in the list
+ * Load more posts using AJAX
  *
  * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
  * @version 1.0
  */
 
-add_action('wp_ajax_nopriv_load_posts', 'tw_load_posts');
-add_action('wp_ajax_load_posts', 'tw_load_posts');
+/*
+add_action('wp_ajax_nopriv_load_posts', 'tw_ajax_load_posts');
+add_action('wp_ajax_load_posts', 'tw_ajax_load_posts');
+*/
 
-function tw_load_posts() {
+function tw_ajax_load_posts() {
 
-	$fields = array('category', 'tag', 'search', 'offset', 'number');
+	$fields = array('object', 'offset', 'number');
+
 	$params = array();
 
 	foreach ($fields as $field) {
 		if (isset($_REQUEST[$field])) {
-			$params[$field] = htmlspecialchars($_REQUEST[$field]);
+			$params[$field] = intval($_REQUEST[$field]);
 		} else {
-			$params[$field] = '';
+			$params[$field] = 0;
 		}
 	}
 
-	if ($params['number']) {
+	if ($params['number'] > 0) {
 
 		$args = array(
 			'numberposts' => $params['number'],
-			'offset' => $params['offset'],
-			'category' => $params['category'],
-			'tag_id' => $params['tag'],
-			's' => $params['search']
+			'offset' => $params['offset']
 		);
+
+		if (!empty($_REQUEST['search'])) {
+			$args['s'] = esc_attr($_REQUEST['search']);
+		}
+
+		if (isset($_REQUEST['type'])) {
+
+			$types = get_post_types(array('publicly_queryable' => true));
+
+			if (in_array($_REQUEST['type'], $types)) {
+
+				$args['post_type'] = $_REQUEST['type'];
+
+			}
+
+		}
+
+		if ($params['object'] > 0 and !empty($_REQUEST['taxonomy']) and taxonomy_exists($_REQUEST['taxonomy'])) {
+
+			$args['tax_query'] = array(
+				array(
+					'taxonomy' => $_REQUEST['taxonomy'],
+					'field' => 'term_id',
+					'terms' => $params['object']
+				)
+			);
+
+		}
 
 		if ($items = get_posts($args)) { ?>
 
@@ -55,13 +83,13 @@ function tw_load_posts() {
 
 }
 
-function tw_load_button($load_posts_number = false, $ignore_max_page = false) {
+function tw_ajax_load_button($load_posts_number = false) {
 
 	global $wp_query;
 
 	$max_page = intval($wp_query->max_num_pages);
 
-	if ($ignore_max_page or $max_page > 1) {
+	if ($max_page > 1) {
 
 		wp_enqueue_script('jquery');
 
@@ -75,11 +103,33 @@ function tw_load_button($load_posts_number = false, $ignore_max_page = false) {
 			$paged = 1;
 		}
 
-		if ($load_posts_number == false) {
+		if (empty($load_posts_number)) {
 			$load_posts_number = $posts_per_page;
 		}
 
 		$offset = $paged * $posts_per_page;
+
+		$term_id = 0;
+		$taxonomy = 0;
+		$search = '';
+		$type = get_post_type();
+		$object = get_queried_object();
+
+		if (isset($object->term_id)) {
+
+			$term_id = $object->term_id;
+
+			$taxonomy = $object->projects;
+
+		} elseif (is_post_type_archive() or is_single()) {
+
+			$taxonomy = tw_post_taxonomy();
+
+		} elseif (is_search()) {
+
+			$search = get_search_query();
+
+		}
 
 		?>
 
@@ -90,42 +140,48 @@ function tw_load_button($load_posts_number = false, $ignore_max_page = false) {
 			jQuery(function($){
 
 				var offset = <?php echo $offset; ?>,
-					number = <?php echo $load_posts_number; ?>,
 					max_offset = <?php echo $max_offset; ?>,
-					more_button = $('.more'),
-					el;
+					number = <?php echo $load_posts_number; ?>,
+					wrapper = $('.posts'),
+					button = $('.more'),
+					posts;
 
-				more_button.click(function() {
+				button.click(function() {
 
 					if (offset < max_offset) {
 
 						$.ajax({
-							type: "POST", data: {
+							type: "POST",
+							data: {
 								action: 'load_posts',
-								category: '<?php echo get_query_var('cat'); ?>',
-								tag: '<?php echo get_query_var('tag_id'); ?>',
-								search: '<?php echo get_query_var('s'); ?>',
 								offset: offset,
-								number: number
-							}, url: '<?php echo admin_url('admin-ajax.php'); ?>', dataType: 'html', success: function(data) {
+								number: number,
+								object: <?php echo $term_id; ?>,
+								taxonomy: '<?php echo $taxonomy; ?>',
+								search: '<?php echo $search; ?>',
+								type: '<?php echo $type; ?>'
+							},
+							url: '<?php echo admin_url('admin-ajax.php'); ?>',
+							dataType: 'html',
+							success: function(data) {
 								if (data) {
-									el = $(data);
-									el.hide();
-									more_button.before(el);
-									el.slideDown();
+									posts = $(data);
+									posts.hide();
+									wrapper.append(posts);
+									posts.slideDown();
 									offset = offset + number;
-									if (offset >= max_offset || number == -1) {
-										more_button.remove();
+									if (offset >= max_offset) {
+										button.remove();
 									}
 								} else {
-									more_button.remove();
+									button.remove();
 								}
 							}
 						});
 
 					} else {
 
-						more_button.remove();
+						button.remove();
 
 					}
 

@@ -1,18 +1,20 @@
 <?php
 /**
- * Rate post
+ * Rate the post
  *
  * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
  * @version 1.0
  */
 
-add_action('wp_ajax_nopriv_post_rating', 'tw_post_rating');
-add_action('wp_ajax_post_rating', 'tw_post_rating');
+/*
+add_action('wp_ajax_nopriv_post_rating', 'tw_ajax_post_rating');
+add_action('wp_ajax_post_rating', 'tw_ajax_post_rating');
+*/
 
-function tw_post_rating() {
+function tw_ajax_post_rating() {
 
-	if (isset($_POST['rating_vote']) and isset($_POST['nonce']) and wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
+	if (!empty($_POST['rating_vote']) and !empty($_POST['nonce']) and wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
 
 		$timebeforerevote = 120;
 
@@ -27,52 +29,45 @@ function tw_post_rating() {
 		}
 
 		if (in_array($ip, array_keys($rating_IP))) {
+
 			$time = $rating_IP[$ip];
+
 			$now = time();
+
 			if (round(($now - $time) / 60) < $timebeforerevote) {
 				echo json_encode(array('error' => 'Вы уже голосовали'));
 				exit();
 			}
+
+		} else {
+
+			$rating_IP[$ip] = time();
+
+			update_post_meta($post_id, 'rating_IP', $rating_IP);
+
 		}
 
+
 		$rating_vote = intval($_POST['rating_vote']);
+
 		if ($rating_vote > 5 or $rating_vote < 0) {
 			exit();
 		}
 
-		$rating_value = get_post_meta($post_id, 'rating_value', true);
-		if (empty($rating_value)) {
-			delete_post_meta($post_id, 'rating_value');
-			add_post_meta($post_id, 'rating_value', '0');
-			$rating_value = 0;
-		}
 
-		$rating_votes = get_post_meta($post_id, 'rating_votes', true);
-		if (empty($rating_votes)) {
-			delete_post_meta($post_id, 'rating_votes');
-			add_post_meta($post_id, 'rating_votes', '0');
-			$rating_votes = 0;
-		}
-
-		$rating_sum = get_post_meta($post_id, 'rating_sum', true);
-		if (empty($rating_sum)) {
-			delete_post_meta($post_id, 'rating_sum');
-			add_post_meta($post_id, 'rating_sum', '0');
-			$rating_sum = 0;
-		}
-
-		$rating_IP[$ip] = time();
-
-		$rating_sum = $rating_sum + $rating_vote;
-
+		$rating_votes = intval(get_post_meta($post_id, 'rating_votes', true));
 		$rating_votes++;
+		update_post_meta($post_id, 'rating_votes', $rating_votes);
+
+
+		$rating_sum = intval(get_post_meta($post_id, 'rating_sum', true));
+		$rating_sum = $rating_sum + $rating_vote;
+		update_post_meta($post_id, 'rating_sum', $rating_sum);
+
 
 		$rating_value = round($rating_sum / $rating_votes, 3);
-
-		update_post_meta($post_id, 'rating_IP', $rating_IP);
-		update_post_meta($post_id, 'rating_votes', $rating_votes);
 		update_post_meta($post_id, 'rating_value', $rating_value);
-		update_post_meta($post_id, 'rating_sum', $rating_sum);
+
 
 		$result = array(
 			'rating' => round($rating_value, 0),
@@ -87,46 +82,24 @@ function tw_post_rating() {
 
 }
 
-/**
- * Get the votes information
- *
- * @param $post_id
- *
- * @return array
- */
-
-function tw_get_rating($post_id) {
-
-	$rating_sum = get_post_meta($post_id, 'rating_sum', true);
-	$rating_votes = get_post_meta($post_id, 'rating_votes', true);
-
-	if ($rating_votes == 0) {
-		$rating_votes = 1;
-	}
-
-	return array(
-		'rating' => round($rating_sum / $rating_votes, 1),
-		'votes' => intval($rating_votes)
-	);
-
-}
-
 
 /*
 
 <?php
+
 $rating = get_post_meta(get_the_ID(), 'rating_value', true);
+
 if (empty($rating)) {
-	delete_post_meta(get_the_ID(), 'rating_value');
-	add_post_meta(get_the_ID(), 'rating_value', '0');
 	$rating = 0;
+	update_post_meta(get_the_ID(), 'rating_value', $rating);
 } else {
 	$rating = round($rating, 0);
 }
+
 ?>
 <div class="rating" data-id="<?php the_ID(); ?>">
 	<?php for ($i = 0; $i < 5; $i++) { ?>
-	<span<?php if ($rating > $i) echo ' class="active"'; ?>></span>
+	<span<?php echo ($rating > $i) ? ' class="active"' : ''; ?>></span>
 	<?php } ?>
 </div>
 
@@ -134,9 +107,9 @@ jQuery(function($){
 
 	$('.rating').each(function(){
 
-		var rating = parseInt($('span.active', this).length);
-		var post_id = parseInt($(this).data('id'));
-		var element = $(this);
+		var element = $(this),
+			rating = parseInt($('span.active', this).length),
+			post_id = parseInt(element.data('id'));
 
 		$('span', this).each(function(i){
 
@@ -164,26 +137,17 @@ jQuery(function($){
 				});
 			});
 
-			$(this).hover(
-				function(){
-					$('span', element).removeClass('active');
-					$('span:lt(' + num + ')', element).addClass('active');
-				},
-				function(){
-
-				}
-			);
+			$(this).on('mouseover', function(){
+				$('span', element).removeClass('active');
+				$('span:lt(' + num + ')', element).addClass('active');
+			});
 
 		});
 
-		element.hover(
-			function(){
-			},
-			function(){
-				$('span', this).removeClass('active');
-				$('span:lt(' + rating + ')', this).addClass('active');
-			}
-		);
+		element.on('mouseout', function(){
+			$('span', this).removeClass('active');
+			$('span:lt(' + rating + ')', this).addClass('active');
+		});
 
 	});
 

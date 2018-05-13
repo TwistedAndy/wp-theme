@@ -7,10 +7,12 @@
  * @version 1.0
  */
 
-add_action('wp_ajax_nopriv_request_call', 'tw_ajax_callback');
-add_action('wp_ajax_request_call', 'tw_ajax_callback');
+/*
+add_action('wp_ajax_nopriv_request_call', 'tw_ajax_feedback');
+add_action('wp_ajax_request_call', 'tw_ajax_feedback');
+*/
 
-function tw_ajax_callback() {
+function tw_ajax_feedback() {
 
 	if (isset($_POST['nonce']) and wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
 
@@ -94,50 +96,46 @@ function tw_ajax_callback() {
 
 <script type="text/javascript">
 
-jQuery(function($){
+	jQuery(function($){
 
-	$('form').submit(function(e){
+		$('form').submit(function(e){
 
-		var form = $(this), el;
+			var form = $(this), message;
 
-		$.ajax({
-			url: '<?php echo admin_url('admin-ajax.php'); ?>',
-			type: 'post',
-			dataType: 'json',
-			data: $('input:text, input:hidden, input:checked, textarea, select', form),
-			success: function(data) {
+			$.ajax({
+				url: '<?php echo admin_url('admin-ajax.php'); ?>',
+				type: 'post',
+				dataType: 'json',
+				data: form.serialize(),
+				success: function(data) {
 
-				$('.error', form).remove();
+					$('.error, .success', form).remove();
 
-				$('input, textarea, select', form).removeClass('incorrect');
-
-				if (data['errors']) {
-					for (i in data['errors']) {
-						el = $('<div class="error">' + data['errors'][i] + '</div>');
-						$('[name=' + i + ']', form).addClass('incorrect').after(el);
-						el.hide();
-						el.slideDown();
+					if (data['errors']) {
+						for (i in data['errors']) {
+							message = $('<div class="error">' + data['errors'][i] + '</div>');
+							$('[name=' + i + ']', form).after(message);
+							message.hide().slideDown();
+						}
 					}
-				}
 
-				if (data['text']) {
-					el = $('<div class="success">' + data['text'] + '</div>');
-					form.append(el);
-					el.hide();
-					el.slideDown();
-					$('input[type="text"], textarea, select', form).val('');
-				}
+					if (data['text']) {
+						message = $('<div class="success">' + data['text'] + '</div>');
+						form.append(message);
+						message.hide().slideDown();
+						form[0].reset();
+					}
 
-			}
+				}
+			});
+
+			e.preventDefault();
+
+			return false;
+
 		});
 
-		e.preventDefault();
-
-		return false;
-
 	});
-
-});
 
 </script>
 
