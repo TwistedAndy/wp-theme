@@ -8,71 +8,73 @@
  */
 
 /**
- * Include template core files and modules
+ * Include some or all files in folder
  *
- * @param string $folder
- * @param string $file
+ * @param string            $folder Full folder path
+ * @param string|array|bool $files  Array with file names, single file name or true to load all files
  *
  * @return bool
  */
 
-function tw_load_file($folder, $file) {
+function tw_load_files($folder, $files = true) {
 
-	if (empty($folder)) {
-		$folder = '';
-	} else {
-		$folder .= '/';
-	}
-
-	$filename = TW_INC . '/' . $folder . $file . '.php';
-
-	$filename = apply_filters('tw_load_file', $filename, $folder, $file);
-
-	if (is_file($filename)) {
-
-		include_once($filename);
-
-		return true;
-
-	} else {
+	if (empty($files) or empty($folder) or !is_dir($folder)) {
 
 		return false;
 
 	}
 
-}
+	if (is_string($files)) {
 
+		$files = array($files);
 
-/**
- * Include enabled modules
- *
- * @param string $folder
- * @param string $files
- */
+	} elseif (is_bool($files)) {
 
-function tw_load_files($folder, $files = '') {
+		$files = scandir($folder);
 
-	if (is_string($folder) and empty($files)) {
-		$files = tw_get_setting($folder);
+		if (is_array($files)) {
+
+			$result = array();
+
+			foreach ($files as $file) {
+
+				if (strpos($file, '.php') !== false) {
+
+					$result[] = str_replace('.php', '', $file);
+
+				}
+
+			}
+
+			$files = $result;
+
+		}
+
 	}
 
 	if (is_array($files)) {
 
-		foreach ($files as $file => $enabled) {
+		foreach ($files as $file) {
 
-			if ($enabled) {
-				tw_load_file($folder, $file);
+			$filename = $folder . '/' . $file . '.php';
+
+			if (is_file($filename)) {
+
+				include_once($filename);
+
 			}
 
 		}
 
 	}
 
+	return true;
+
 }
 
 
 /**
- * Include core files
+ * Include the core files
  */
 
 $files = array(
@@ -84,27 +86,25 @@ $files = array(
 	'widget'
 );
 
-foreach ($files as $file) {
-	tw_load_file('core', $file);
-}
+tw_load_files(TW_INC . '/core', $files);
 
 
 /**
- *  Include theme settings
+ *  Include the theme settings
  */
 
-tw_load_file('..', 'settings');
+tw_load_files(TW_ROOT, 'settings');
 
 
 /**
- * Include theme modules
+ * Include the theme modules
  */
 
-tw_load_files('modules');
+tw_load_files(TW_INC . '/modules');
 
 
 /**
- * Include custom AJAX handlers
+ * Include the custom AJAX handlers
  */
 
-tw_load_files('ajax');
+tw_load_files(TW_INC . '/ajax');

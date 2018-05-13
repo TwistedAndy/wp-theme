@@ -34,7 +34,7 @@ function tw_setup() {
 	 * Load translations for the theme
 	 */
 
-	load_theme_textdomain('wp-theme', get_template_directory() . '/languages');
+	load_theme_textdomain('wp-theme', TW_ROOT . '/languages');
 
 
 	/**
@@ -111,7 +111,7 @@ function tw_setup() {
 
 
 /**
- * Add custom image sizes to the media editor
+ * Add the custom image sizes to the media editor
  */
 
 if (tw_get_setting('thumbs')) {
@@ -154,7 +154,7 @@ if (tw_get_setting('thumbs')) {
 
 
 /**
- * Register custom editor styles
+ * Register the custom editor styles
  */
 
 if (tw_get_setting('styles')) {
@@ -211,7 +211,7 @@ if (tw_get_setting('styles')) {
 
 
 /**
- * Register custom post types
+ * Register the custom post types
  */
 
 if (tw_get_setting('types')) {
@@ -238,7 +238,7 @@ if (tw_get_setting('types')) {
 
 
 /**
- * Register custom taxonomies
+ * Register the custom taxonomies
  */
 
 if (tw_get_setting('taxonomies')) {
@@ -265,7 +265,7 @@ if (tw_get_setting('taxonomies')) {
 
 
 /**
- * Register custom sidebars
+ * Register the custom sidebars
  */
 
 if (tw_get_setting('sidebars')) {
@@ -292,7 +292,7 @@ if (tw_get_setting('sidebars')) {
 
 
 /**
- * Register and include custom widgets
+ * Register and include the custom widgets
  */
 
 if (tw_get_setting('widgets')) {
@@ -307,10 +307,18 @@ if (tw_get_setting('widgets')) {
 
 			foreach ($widgets as $file => $active) {
 
-				$result = tw_load_file('widgets', $file);
+				if ($active) {
 
-				if ($result) {
-					register_widget('twisted_widget_' . $file);
+					$filename = TW_INC . '/widgets/' . $file . '.php';
+
+					if (is_file($filename)) {
+
+						include_once($filename);
+
+						register_widget('twisted_widget_' . $file);
+
+					}
+
 				}
 
 			}

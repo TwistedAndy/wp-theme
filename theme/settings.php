@@ -130,14 +130,6 @@ $settings['styles'] = array(
 );
 
 
-$settings['ajax'] = array(
-	'email' => false,
-	'rating' => false,
-	'posts' => false,
-	'comments' => false
-);
-
-
 $settings['modules'] = array(
 	'acf' => array(
 		'require_acf' => true,
@@ -159,8 +151,6 @@ $settings['modules'] = array(
 		'include_archive' => false,
 		'include_current' => true
 	),
-	'comments' => true,
-	'custom' => true,
 	'cyrdate' => array(
 		'english_convert' => false
 	),
@@ -168,8 +158,6 @@ $settings['modules'] = array(
 		'option_field' => 'blocks_default',
 		'load_default' => true,
 	),
-	'cyrtolat' => true,
-	'pageviews' => true,
 	'pagination' => array(
 		'prev' => '&#9668;',
 		'next' => '&#9658;',
