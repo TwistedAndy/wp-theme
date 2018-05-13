@@ -24,18 +24,18 @@ $settings['thumbs'] = array(
 $settings['assets'] = array(
 	'template' => array(
 		'deps' => array('jquery'),
-		'style' => 'css/style.css',
-		'script' => 'scripts/theme.js',
-		'footer' => true,
+		'style' => array(
+            'css/style.css',
+        ),
+		'script' => array(
+            'scripts/theme.js',
+        ),
 		'localize' => array(
 			'ajaxurl' => admin_url('admin-ajax.php')
 		),
+		'footer' => true,
 		'display' => true
 	),
-	'nivo' => false,
-	'styler' => false,
-	'fancybox' => false,
-	'flickity' => false,
 );
 
 

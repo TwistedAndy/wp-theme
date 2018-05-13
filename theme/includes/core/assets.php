@@ -10,7 +10,7 @@
 
 
 /**
- * Register all custom assets
+ * Register all custom assets with their configuration
  */
 
 add_action('init', 'tw_register_assets');
@@ -19,13 +19,21 @@ function tw_register_assets() {
 
 	$assets = tw_get_setting('assets');
 
-	if (!empty($assets) and is_array($assets)) {
+	if (empty($assets)) {
+		$assets = array();
+	}
 
-		foreach ($assets as $name => $asset) {
+	$base_directory = TW_ROOT . '/assets/plugins/';
 
-			$filename = TW_ROOT . '/assets/plugins/' . $name . '/index.php';
+	$directories = scandir($base_directory);
 
-			$defaults = false;
+	if (is_array($directories)) {
+
+		$directories = array_diff($directories, array('..', '.'));
+
+		foreach ($directories as $directory) {
+
+			$filename = $base_directory . $directory . '/index.php';
 
 			if (is_file($filename)) {
 
@@ -40,7 +48,9 @@ function tw_register_assets() {
 						}
 
 						foreach ($array['script'] as $key => $value) {
-							$array['script'][$key] = 'plugins/' . $name . '/' . $array['script'][$key];
+							if (strpos($value, 'http') !== 0) {
+								$array['script'][$key] = 'plugins/' . $directory . '/' . $value;
+							}
 						}
 
 					}
@@ -52,31 +62,43 @@ function tw_register_assets() {
 						}
 
 						foreach ($array['style'] as $key => $value) {
-							$array['style'][$key] = 'plugins/' . $name . '/' . $array['style'][$key];
+							if (strpos($value, 'http') !== 0) {
+								$array['style'][$key] = 'plugins/' . $directory . '/' . $value;
+							}
 						}
 
 					}
 
-					$defaults = $array;
+					if (isset($assets[$directory])) {
+
+						if (is_array($assets[$directory])) {
+							$assets[$directory] = wp_parse_args($assets[$directory], $array);
+						} elseif (is_bool($assets[$directory]) and $assets[$directory]) {
+							$assets[$directory] = $array;
+							$assets[$directory]['display'] = true;
+						} else {
+							$assets[$directory] = $array;
+						}
+
+					} else {
+
+						$assets[$directory] = $array;
+
+					}
 
 				}
 
 			}
 
-			if (is_array($asset) and $defaults) {
-				$asset = wp_parse_args($asset, $defaults);
-			} elseif (is_bool($asset) and $asset) {
-				$asset = $defaults;
-				$asset['display'] = true;
-			} elseif ($defaults) {
-				$asset = $defaults;
-			}
-
-			tw_register_asset($name, $asset);
-
-			tw_set_setting('assets', $name, $asset);
-
 		}
+
+	}
+
+	foreach ($assets as $name => $asset) {
+
+		tw_register_asset($name, $asset);
+
+		tw_set_setting('assets', $name, $asset);
 
 	}
 
@@ -84,7 +106,7 @@ function tw_register_assets() {
 
 
 /**
- * Register single asset
+ * Register a single asset
  *
  * @param string $name  Name of the asset. It should be unique.
  * @param array  $asset The array with the asset configuration
@@ -96,7 +118,7 @@ function tw_register_asset($name, $asset) {
 
 	if (is_array($asset)) {
 
-		$dir = get_template_directory_uri() . '/assets/';
+		$base_url = get_template_directory_uri() . '/assets/';
 
 		$defaults = array(
 			'deps' => array(),
@@ -136,7 +158,7 @@ function tw_register_asset($name, $asset) {
 					}
 
 					if (strpos($script, 'http') !== 0) {
-						$script = $dir . $script;
+						$script = $base_url . $script;
 					}
 
 					wp_register_script($current_key, $script, $asset['deps'], null, $asset['footer']);
@@ -182,7 +204,7 @@ function tw_register_asset($name, $asset) {
 					}
 
 					if (strpos($style, 'http') !== 0) {
-						$style = $dir . $style;
+						$style = $base_url . $style;
 					}
 
 					wp_register_style($current_key, $style, $deps, null);
@@ -228,7 +250,7 @@ function tw_enqueue_assets() {
 
 
 /**
- * Enqueue single asset
+ * Enqueue a single asset
  *
  * @param string $name Name of the asset.
  *
