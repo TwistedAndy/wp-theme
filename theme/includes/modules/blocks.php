@@ -23,7 +23,7 @@
 function tw_get_blocks($blocks = 'blocks', $post_id = false) {
 
 	if (is_string($blocks)) {
-		$blocks = get_field('blocks', $post_id);
+		$blocks = get_field($blocks, $post_id);
 	}
 
 	if ($blocks and is_array($blocks)) {
