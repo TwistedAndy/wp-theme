@@ -95,17 +95,38 @@ One item in the array represents one asset. The key is the asset name, the value
 
 Each array may have this fields:
 
-`deps` - an array of registered script and style handles this asset depends on. Default: `array()`
+`deps` - an array of registered script and style handles this asset depends on. Possible values:
+
+- Name of the registered asset, script or style
+- Array with names
+- Array with 'script' and/or 'style' elements:
+
+```php
+'deps' => array(
+    'script' => 'jquery',
+    'style' => array('dashicons', 'wp-color-picker')
+)
+``` 
+ 
+ Default value:
+ ```php
+'deps' => array(
+	'style' => array(),
+	'script' => array()
+),
+```
 
 `style` - a string or an array of strings with the path to stylesheet files. The files will be enqueued in the same order as you specify them. Default: `''`
 
 `script` - a string or an array of strings with the path to JavaScript files. Default: `''`
 
-`localize` - an array with JavaScript data. It will be available as `$asset_name` array (`template.ajaxurl`, for example). See [wp localize script](https://codex.wordpress.org/Function_Reference/wp_localize_script). Default: `array()`
+`localize` - an array with JavaScript data. It will be available as `$asset_name` array (`template.ajaxurl`, for example). See [wp localize script](https://codex.wordpress.org/Function_Reference/wp_localize_script). Also you can specyfy the function that returns an array. It will be called on script enqueuing. Default: `array()`
  
 `footer` - output the asset in the footer. Default: `true`
 
-`display` - enqueue the asset. If you set this value to `false` all the asset scripts and styles will be registered, but not enqueued. In this case you can enqueue them manually using the `tw_enqueue_asset` or the default `wp_enqueue_script` and `wp_enqueue_style` functions. Default: ``false``
+`version` - the asset version number. Default: `null`
+
+`display` - enqueue the asset. If you set this value to `false` all the asset scripts and styles will be registered, but not enqueued. In this case you can enqueue them manually using the `tw_enqueue_asset` or the default `wp_enqueue_script` and `wp_enqueue_style` functions. Also you can specify the function that returns `true` or `false`. It will be called on script enqueuing. Default: ``false``
 
 Each asset may have the default configuration in `assets/plugins/{$asset_name}/index.php`. If this file exists, the asset will be automatically registered. The default settings can be modified by specifying an array in this configuration. Also you can specify the `true` value just to enqueue the asset.
 
