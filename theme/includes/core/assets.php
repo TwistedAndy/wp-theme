@@ -52,7 +52,7 @@ function tw_register_assets() {
 						}
 
 						if (is_array($asset)) {
-							$asset = wp_parse_args($asset, $array);
+							$asset = wp_parse_args($array, $asset);
 						}
 
 					}
@@ -77,11 +77,7 @@ function tw_register_assets() {
 			$directory = '';
 		}
 
-		$asset = tw_normalize_asset($asset, $directory);
-
-		tw_register_asset($name, $asset);
-
-		tw_set_setting('assets', $name, $asset);
+		tw_register_asset($name, $asset, $directory);
 
 	}
 
@@ -91,17 +87,22 @@ function tw_register_assets() {
 /**
  * Register a single asset
  *
- * @param string $name  Name of the asset. It should be unique.
- * @param array  $asset The array with the asset configuration
+ * @param string $name      Name of the asset. It should be unique.
+ * @param array  $asset     The array with the asset configuration
+ * @param string $directory Folder for styles and scripts. The base directory is {$theme_url}/assets/
  *
  * @return bool
  */
 
-function tw_register_asset($name, $asset) {
+function tw_register_asset($name, $asset, $directory = '') {
 
 	if (is_array($asset)) {
 
+		$asset = tw_normalize_asset($asset, $directory);
+
 		$asset = apply_filters('tw/asset/register/' . $name, $asset);
+
+		tw_set_setting('assets', $name, $asset);
 
 		if (empty($asset['prefix'])) {
 			$asset_name = $name;
@@ -142,7 +143,7 @@ function tw_register_asset($name, $asset) {
 					if ($type == 'script') {
 						wp_register_script($current_key, $file, $deps[$type], $asset['version'], $asset['footer']);
 					} elseif ($type == 'style') {
-						wp_register_style($current_key, $file, $deps[$type], $deps[$type], null);
+						wp_register_style($current_key, $file, $deps[$type], $asset['version']);
 					}
 
 					$i--;
@@ -164,7 +165,7 @@ function tw_register_asset($name, $asset) {
  * Normalize the asset configuration and check the dependencies
  *
  * @param array  $asset     The array with the asset configuration
- * @param string $directory Base directory for styles and scripts
+ * @param string $directory Folder for styles and scripts. The base directory is {$theme_url}/assets/
  *
  * @return array
  */
