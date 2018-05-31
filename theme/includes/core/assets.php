@@ -164,7 +164,7 @@ function tw_register_asset($name, $asset, $directory = '') {
 /**
  * Normalize the asset configuration and check the dependencies
  *
- * @param array  $asset     The array with the asset configuration
+ * @param array  $asset     Array with asset configuration
  * @param string $directory Folder for styles and scripts. The base directory is {$theme_url}/assets/
  *
  * @return array
@@ -300,8 +300,6 @@ function tw_enqueue_assets() {
 
 		foreach ($assets as $name => $asset) {
 
-			$asset = apply_filters('tw/asset/enqueue/' . $name, $asset);
-
 			if (!empty($asset['display'])) {
 
 				if (is_callable($asset['display'])) {
@@ -309,27 +307,7 @@ function tw_enqueue_assets() {
 				}
 
 				if ($asset['display']) {
-
-					if (empty($asset['prefix'])) {
-						$asset_name = $name;
-					} else {
-						$asset_name = $asset['prefix'] . $name;
-					}
-
-					if (!empty($asset['localize'])) {
-
-						if (is_callable($asset['localize'])) {
-							$asset['localize'] = call_user_func($asset['localize']);
-						}
-
-						if (is_array($asset['localize'])) {
-							wp_localize_script($asset_name, $name, $asset['localize']);
-						}
-
-					}
-
-					tw_enqueue_asset($asset_name);
-
+					tw_enqueue_asset($name);
 				}
 
 			}
@@ -344,19 +322,45 @@ function tw_enqueue_assets() {
 /**
  * Enqueue a single asset
  *
- * @param string $name Name of the asset.
+ * @param string $name Name of the asset
  *
  * @return bool
  */
 
 function tw_enqueue_asset($name) {
+	
+	$asset = tw_get_setting('assets', $name);
 
-	if (wp_script_is($name, 'registered')) {
-		wp_enqueue_script($name);
+	$asset_name = $name;
+
+	if (is_array($asset)) {
+
+		$asset = apply_filters('tw/asset/enqueue/' . $name, $asset);
+
+		if (!empty($asset['prefix'])) {
+			$asset_name = $asset['prefix'] . $name;
+		}
+
+		if (!empty($asset['localize'])) {
+
+			if (is_callable($asset['localize'])) {
+				$asset['localize'] = call_user_func($asset['localize']);
+			}
+
+			if (is_array($asset['localize'])) {
+				wp_localize_script($asset_name, $name, $asset['localize']);
+			}
+
+		}
+
+	}
+	
+	if (wp_script_is($asset_name, 'registered')) {
+		wp_enqueue_script($asset_name);
 	}
 
-	if (wp_style_is($name, 'registered')) {
-		wp_enqueue_style($name);
+	if (wp_style_is($asset_name, 'registered')) {
+		wp_enqueue_style($asset_name);
 	}
 
 	return false;
