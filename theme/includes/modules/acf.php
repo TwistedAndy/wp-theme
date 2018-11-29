@@ -80,38 +80,58 @@ if (tw_get_setting('modules', 'acf', 'include_subcats')) {
 
 	function tw_match_subcategories($match, $rule, $options) {
 
-		if (in_array($rule['operator'], array('==', '!=')) and strpos($rule['value'], 'category:') === 0) {
+		$data = acf_decode_taxonomy_term($rule['value']);
+		
+		if (!empty($data['taxonomy']) and !empty($data['term']) and !empty($options['post_id'])) {
 
-			$category = get_category_by_slug(urldecode(str_replace('category:', '', $rule['value'])));
+			if (is_numeric($data['term'])) {
+				$term = get_term_by('id', $data['term'], $data['taxonomy']);
+			} else {
+				$term = get_term_by('slug', $data['term'], $data['taxonomy']);
+			}
 
-			if ($category and $post_id = intval($options['post_id'])) {
+			if ($term instanceof WP_Term) {
 
-				$category_id = $category->cat_ID;
+				$post_id = intval($options['post_id']);
 
-				if ($options['ajax']) {
-					$categories = $options['post_taxonomy'];
+				$term_id = $term->term_id;
+
+				if (!empty($options['ajax']) and !empty($options['post_terms'][$data['taxonomy']])) {
+					$terms = $options['post_terms'][$data['taxonomy']];
 				} else {
-					$categories = tw_post_terms($post_id, 'category', true, true);
+					$terms = tw_post_terms($post_id, $data['taxonomy'], true, true);
 				}
 
-				if ($rule['operator'] == '==') $return = true; else $return = false;
+				if (is_array($terms) and count($terms) > 0) {
 
-				if (is_array($categories) and $categories) {
-					if (in_array($category_id, $categories)) {
-						return $return;
+					if ($rule['operator'] == '==') {
+						$return = true;
 					} else {
-						foreach ($categories as $category) {
-							if ($parents = get_ancestors($category, 'category')) {
-								if (in_array($category_id, $parents)) return $return;
+						$return = false;
+					}
+
+					if (in_array($term_id, $terms)) {
+
+						return $return;
+
+					} else {
+
+						foreach ($terms as $category) {
+							if ($parents = get_ancestors($category, $data['taxonomy'])) {
+								if (in_array($term_id, $parents)) {
+									return $return;
+								}
 							}
 						}
+
 					}
+					
 				}
 
 			}
 
 		}
-
+		
 		return $match;
 
 	}
