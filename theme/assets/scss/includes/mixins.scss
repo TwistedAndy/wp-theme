@@ -1,0 +1,139 @@
+@mixin clear() {
+	*zoom: 1;
+	&:after {
+		display: table;
+		content: '';
+		clear: both;
+	}
+}
+
+@mixin justify() {
+	text-align: justify;
+	line-height: 0;
+	font-size: 1px;
+	&:after {
+		display: inline-block;
+		content: '';
+		width: 100%;
+		height: 0;
+		visibility: hidden;
+		overflow: hidden;
+	}
+}
+
+@mixin opacity($opacity) {
+	opacity: $opacity;
+	$opacity-ie: $opacity * 100;
+	filter: alpha(opacity=$opacity-ie);
+}
+
+@mixin placeholder() {
+
+	&:-ms-input-placeholder {
+		@content
+	}
+
+	&:-moz-placeholder {
+		@content
+	}
+
+	&::-moz-placeholder {
+		@content
+	}
+
+	&::-webkit-input-placeholder {
+		@content
+	}
+
+}
+
+@mixin media($width) {
+	@media (max-width: $width + px) {
+		@content;
+	}
+}
+
+@mixin desktop_large() {
+	@media (max-width: $desktop_large + px) {
+		@content;
+	}
+}
+
+@mixin desktop_small() {
+	@media (max-width: $desktop_small + px) {
+		@content;
+	}
+}
+
+@mixin tablet_large() {
+	@media (max-width: $tablet_large + px) {
+		@content;
+	}
+}
+
+@mixin tablet_small() {
+	@media (max-width: $tablet_small + px) {
+		@content;
+	}
+}
+
+@mixin phone_large() {
+	@media (max-width: $phone_large + px) {
+		@content;
+	}
+}
+
+@mixin phone_small() {
+	@media (max-width: $phone_small + px) {
+		@content;
+	}
+}
+
+@mixin sprite($name, $scale: 1, $type: 'svg') {
+
+	$icons: null;
+
+	@if $type == 'svg' {
+		$icons: $icons_svg;
+	} @else {
+		$icons: $icons_png;
+	}
+
+	$icon: map-get($icons, 'ico_' + $name);
+	$sprite: map-get($icons, 'sprite');
+
+	$width: (map-get($icon, width) * $scale) + px;
+	$height: (map-get($icon, height) * $scale) + px;
+
+	$offsetX: (map-get($icon, x) * $scale);
+	$offsetY: (map-get($icon, y) * $scale);
+
+	@if $type != 'svg' {
+		$offsetX: -$offsetX;
+		$offsetY: -$offsetY;
+	}
+
+	$offsetX: $offsetX + px;
+	$offsetY: $offsetY + px;
+
+	$spriteWidth: (map-get($sprite, width) * $scale) + px;
+	$spriteHeight: (map-get($sprite, height) * $scale) + px;
+
+	background: url('../images/sprite.' + $type) $offsetX $offsetY no-repeat;
+	background-size: $spriteWidth $spriteHeight ;
+	width: $width;
+	height: $height;
+
+}
+
+@mixin sprite_png($name, $scale: 1) {
+
+	@include sprite($name, $scale, 'png');
+
+}
+
+@mixin sprite_svg($name, $scale: 1) {
+
+	@include sprite($name, $scale, 'svg');
+
+}

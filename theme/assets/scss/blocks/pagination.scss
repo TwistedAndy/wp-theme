@@ -1,0 +1,34 @@
+/* Стили для пагинации */
+
+.pagination {
+	display: block;
+	position: relative;
+	text-align: center;
+
+	span, a {
+		display: inline-block;
+		margin: 0 2px;
+		padding: 2px 7px;
+		text-decoration: none;
+		vertical-align: middle;
+	}
+
+	span {
+		background-color: $color_background;
+		color: $color_main;
+	}
+
+	a:hover {
+		color: #0d7b0d;
+	}
+
+	.extend {
+		background: transparent;
+	}
+
+	span.next, span.prev {
+		background: transparent;
+		color: #0d7b0d;
+	}
+
+}

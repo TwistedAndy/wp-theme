@@ -7,7 +7,7 @@
 }
 
 .comments {
-	margin: 30px 0;
+	margin-bottom: 30px;
 
 	h3 {
 		display: block;
@@ -19,7 +19,7 @@
 	}
 
 	.pagination {
-		margin-top: 20px;
+		margin-top: 30px;
 	}
 
 }
@@ -32,7 +32,7 @@
 		background: #f5f5f5;
 	}
 
-	+ .comment, .comment {
+	& + .comment, .comment {
 		margin-top: 20px;
 	}
 
@@ -55,7 +55,7 @@
 			border-radius: 5px;
 		}
 
-		+ .comment_body {
+		& + .comment_body {
 			margin-left: 75px;
 		}
 
@@ -112,7 +112,7 @@
 				background: #cccccc;
 			}
 
-			+ a {
+			& + a {
 				margin-left: 5px;
 			}
 

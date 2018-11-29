@@ -1,11 +1,19 @@
-@import "variables";
+@import 'includes/sprite.svg';
 
-@import "mixins";
+@import 'includes/sprite.png';
 
-@import "reset";
+@import 'includes/variables';
 
-@import "common";
+@import 'includes/mixins';
 
-@import "content";
+@import 'base/reset';
 
-@import "comments";
+@import 'base/fonts';
+
+@import 'base/global';
+
+@import 'base/header';
+
+@import 'blocks/*';
+
+@import 'base/footer';

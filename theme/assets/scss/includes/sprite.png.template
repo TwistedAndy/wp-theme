@@ -1,0 +1,29 @@
+{{#extend "scss"}}
+
+{{#content "sprites-comment"}}
+$icons_png: (
+{{/content}}
+
+{{#content "sprites"}}
+{{#each sprites}}
+	{{name}}: (
+		width: {{width}},
+	    height: {{height}},
+	    x: {{x}},
+	    y: {{y}}
+    ),
+{{/each}}
+{{/content}}
+
+{{#content "spritesheet"}}
+	sprite: (
+		width: {{spritesheet.width}},
+		height: {{spritesheet.height}}
+	),
+{{/content}}
+
+{{#content "spritesheet-functions"}}
+);
+{{/content}}
+
+{{/extend}}

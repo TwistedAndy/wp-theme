@@ -1,0 +1,100 @@
+.modal_box {
+	display: flex;
+	visibility: hidden;
+	align-items: center;
+	justify-content: center;
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	overflow-x: hidden;
+	overflow-y: auto;
+	background-color: rgba(#000000, 0.8);
+	transition: 0.5s;
+	padding: 20px;
+	opacity: 0;
+	z-index: 10;
+
+	&.is_visible {
+		visibility: visible;
+		opacity: 1;
+
+		.modal {
+			top: 0;
+		}
+
+	}
+
+	.modal {
+		display: block;
+		position: relative;
+		top: -600px;
+		overflow: hidden;
+		width: 100%;
+		max-width: 500px;
+		margin: auto;
+		padding: 40px;
+		background-color: #ffffff;
+		text-align: center;
+		transition: 0.5s;
+	}
+
+	.close {
+		display: block;
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		background: none;
+		border: none;
+		outline: none;
+		width: 18px;
+		height: 18px;
+		cursor: pointer;
+
+		&:after, &:before {
+			content: '';
+			position: absolute;
+			top: 50%;
+			left: 0;
+			right: 0;
+			transform: translateY(-50%) rotate(45deg);
+			display: block;
+			width: 100%;
+			height: 1px;
+			background-color: #000000;
+			transition: 0.2s;
+		}
+
+		&:before {
+			transform: translateY(-50%) rotate(-45deg);
+		}
+
+		&:hover {
+
+			&:before, &:after {
+				background-color: #009900;
+			}
+
+		}
+
+	}
+
+	@include desktop_small {
+
+		.modal {
+			padding: 20px;
+		}
+
+	}
+
+	@include phone_small {
+		padding: 10px;
+
+		.modal {
+			padding: 10px;
+		}
+
+	}
+
+}
