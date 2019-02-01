@@ -86,8 +86,8 @@ if (!is_admin() and tw_get_setting('modules', 'actions', 'clean_header')) {
 		remove_action('wp_head', 'wp_generator');
 		remove_action('wp_head', 'rsd_link');
 		remove_action('wp_head', 'rel_canonical');
-		remove_action('wp_head', 'feed_links', 10);
-		remove_action('wp_head', 'feed_links_extra', 10);
+		remove_action('wp_head', 'feed_links', 2);
+		remove_action('wp_head', 'feed_links_extra', 3);
 		remove_action('wp_head', 'wc_products_rss_feed', 10);
 		remove_action('wp_head', 'wlwmanifest_link');
 		remove_action('wp_head', 'index_rel_link');
