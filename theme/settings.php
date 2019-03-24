@@ -31,7 +31,8 @@ $settings['assets'] = array(
             'scripts/theme.js',
         ),
 		'localize' => array(
-			'ajaxurl' => admin_url('admin-ajax.php')
+			'ajaxurl' => admin_url('admin-ajax.php'),
+			'nonce' => wp_create_nonce('ajax-nonce')
 		),
 		'footer' => true,
 		'display' => true

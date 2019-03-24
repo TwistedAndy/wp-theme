@@ -8,13 +8,13 @@
  */
 
 /*
-add_action('wp_ajax_nopriv_request_call', 'tw_ajax_feedback');
-add_action('wp_ajax_request_call', 'tw_ajax_feedback');
+add_action('wp_ajax_nopriv_feedback', 'tw_ajax_feedback');
+add_action('wp_ajax_feedback', 'tw_ajax_feedback');
 */
 
 function tw_ajax_feedback() {
 
-	if (isset($_POST['nonce']) and wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
+	if (isset($_POST['noncer']) and wp_verify_nonce($_POST['noncer'], 'ajax-nonce')) {
 
 		$errors = array();
 
@@ -47,21 +47,26 @@ function tw_ajax_feedback() {
 			}
 		}
 
+		if (empty($_POST['agree'])) {
+			$errors['agree'] = 'Вы должны принять пользовательское соглашение';
+		}
+
 		if (count($errors) == 0) {
 
 			$to = get_option('admin_email');
 
 			$subject = "Сообщение от посетителя";
-			$message = "
-			<p><b>Имя:</b> " . $_POST['name'] . "</p>
-			<p><b>E-mail:</b> " . $_POST['email'] . "</p>
-			<p><b>Телефон:</b> " . $_POST['phone'] . "</p>
-			<p><b>Сообщение:</b> " . $_POST['message'] . "</p>";
+
+			$message = array();
+			$message[] = '<p><b>Имя:</b> ' . $_POST['name'] . '</p>';
+			$message[] = '<p><b>E-mail:</b> ' . $_POST['email'] . '</p>';
+			$message[] = '<p><b>Телефон:</b> ' . $_POST['phone'] . '</p>';
+			$message[] = '<p><b>Сообщение:</b> ' . $_POST['message'] . '</p>';
 
 			$headers = array();
 			$headers[] = 'Content-type: text/html; charset=utf-8';
 
-			if (wp_mail($to, $subject, $message, $headers)) {
+			if (wp_mail($to, $subject, implode("\n", $message), $headers)) {
 
 				echo(json_encode(array('text' => "Ваш запрос был успешно отправлен")));
 
@@ -85,57 +90,58 @@ function tw_ajax_feedback() {
 
 /*
 
-<form action="<?php echo admin_url('admin-ajax.php'); ?>" method="post">
-	<input type="text" value="" placeholder="Как вас зовут" name="name" />
-	<input type="text" value="" placeholder="Ваш e-mail" name="email" />
-	<textarea cols="40" rows="5" placeholder="Сообщение" name="message"></textarea>
-	<input type="submit" value="Отправить" />
-	<input type="hidden" name="action" value="request_call" />
-	<input type="hidden" name="nonce" value="<?php echo wp_create_nonce('ajax-nonce'); ?>" />
-</form>
-
 <script type="text/javascript">
 
-	jQuery(function($){
+	jQuery(function($) {
 
-		$('form').submit(function(e){
+	$('form').submit(function(e) {
 
-			var form = $(this), message;
+		var form = $(this), message, data = form.serializeArray();
 
-			$.ajax({
-				url: '<?php echo admin_url('admin-ajax.php'); ?>',
-				type: 'post',
-				dataType: 'json',
-				data: form.serialize(),
-				success: function(data) {
-
-					$('.error, .success', form).remove();
-
-					if (data['errors']) {
-						for (i in data['errors']) {
-							message = $('<div class="error">' + data['errors'][i] + '</div>');
-							$('[name=' + i + ']', form).after(message);
-							message.hide().slideDown();
-						}
-					}
-
-					if (data['text']) {
-						message = $('<div class="success">' + data['text'] + '</div>');
-						form.append(message);
-						message.hide().slideDown();
-						form[0].reset();
-					}
-
-				}
-			});
-
-			e.preventDefault();
-
-			return false;
-
+		data.push({
+			name: 'action',
+			value: 'feedback'
 		});
 
+		data.push({
+			name: 'noncer',
+			value: template.nonce
+		});
+
+		$.ajax({
+			url: template.ajaxurl,
+			type: 'post',
+			dataType: 'json',
+			data: data,
+			success: function(data) {
+
+				$('.error, .success', form).remove();
+
+				if (data['errors']) {
+					for (var i in data['errors']) {
+						message = $('<div class="error">' + data['errors'][i] + '</div>');
+						$('[name=' + i + ']', form).parent().append(message);
+						message.hide().slideDown();
+					}
+				}
+
+				if (data['text']) {
+					message = $('<div class="success">' + data['text'] + '</div>');
+					form.append(message);
+					message.hide().slideDown();
+					form[0].reset();
+				}
+
+			}
+		});
+
+		e.preventDefault();
+
+		return false;
+
 	});
+
+});
 
 </script>
 
