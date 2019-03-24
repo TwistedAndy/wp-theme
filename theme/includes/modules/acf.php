@@ -270,7 +270,7 @@ if (tw_get_setting('modules', 'acf', 'google_api')) {
  * Declare a fallback function for the ACF plugin
  */
 
-if (!function_exists('get_field')) {
+if (!function_exists('get_field') and !is_admin()) {
 
 	function get_field($field, $post_id = false) {
 
