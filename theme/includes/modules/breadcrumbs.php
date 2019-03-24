@@ -89,16 +89,20 @@ function tw_build_breadcrumb($breadcrumbs, $separator, $microdata = false, $firs
 
 			$result .= '<a href="' . $breadcrumb['link'] . '"' . $class . ' rel="v:url" property="v:title">' . $breadcrumb['title'] . '</a>' . $separator;
 
-			$result .= tw_build_breadcrumb($breadcrumbs, $separator, $microdata);
-
-			$result .= '</span>';
-
 		} else {
 
-			$result = '<a href="' . $breadcrumb['link'] . '"' . $class . '>' . $breadcrumb['title'] . '</a>' . $separator;
+			$result = '<a href="' . $breadcrumb['link'] . '"' . $class . '>' . $breadcrumb['title'] . '</a>';
 
-			$result .= tw_build_breadcrumb($breadcrumbs, $separator, $microdata);
+		}
 
+		if (empty($breadcrumb['class']) or $breadcrumb['class'] != 'last') {
+			$result .= $separator;
+		}
+
+		$result .= tw_build_breadcrumb($breadcrumbs, $separator, $microdata);
+
+		if ($microdata) {
+			$result .= '</span>';
 		}
 
 	}
