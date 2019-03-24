@@ -14,9 +14,9 @@
 
 if (tw_get_setting('modules', 'actions', 'menu_active')) {
 
-	add_filter('nav_menu_css_class', 'tw_nav_class', 10, 1);
+	add_filter('nav_menu_css_class', 'tw_filter_menu_active', 10, 1);
 
-	function tw_nav_class($classes) {
+	function tw_filter_menu_active($classes) {
 
 		$active_classes = array(
 			'current-menu-item',
@@ -47,14 +47,14 @@ if (tw_get_setting('modules', 'actions', 'menu_active')) {
 
 
 /**
- * Clean the menu item from the additional classes
+ * Clean menu items from the additional classes
  */
 
 if (tw_get_setting('modules', 'actions', 'menu_clean')) {
 
-	add_filter('nav_menu_css_class', 'tw_nav_classes_clean', 20, 1);
+	add_filter('nav_menu_css_class', 'tw_filter_menu_clean', 20);
 
-	function tw_nav_classes_clean($classes) {
+	function tw_filter_menu_clean($classes) {
 
 		$new_classes = array();
 
@@ -79,9 +79,9 @@ if (tw_get_setting('modules', 'actions', 'menu_clean')) {
 
 if (!is_admin() and tw_get_setting('modules', 'actions', 'clean_header')) {
 
-	add_action('after_setup_theme', 'tw_clean_header', 10);
+	add_action('after_setup_theme', 'tw_action_clean_header', 20);
 
-	function tw_clean_header() {
+	function tw_action_clean_header() {
 
 		remove_action('wp_head', 'wp_generator');
 		remove_action('wp_head', 'rsd_link');
@@ -100,12 +100,17 @@ if (!is_admin() and tw_get_setting('modules', 'actions', 'clean_header')) {
 
 	}
 
-	add_filter('wp_default_scripts', 'tw_remove_jquery_migrate');
 
-	function tw_remove_jquery_migrate($scripts) {
+	add_filter('wp_default_scripts', 'tw_filter_remove_migrate');
 
-		$scripts->remove('jquery');
-		$scripts->add('jquery', false, array('jquery-core'));
+	function tw_filter_remove_migrate($scripts) {
+
+		if ($scripts instanceof WP_Scripts) {
+
+			$scripts->remove('jquery');
+			$scripts->add('jquery', false, array('jquery-core'));
+
+		}
 
 		return $scripts;
 
@@ -118,11 +123,11 @@ if (!is_admin() and tw_get_setting('modules', 'actions', 'clean_header')) {
  * Add the max-width property to the default caption shortcode and fix its width
  */
 
-if (tw_get_setting('modules', 'actions', 'fix_caption')) {
+if (tw_get_setting('modules', 'actions', 'caption_responsive')) {
 
-	add_filter('img_caption_shortcode', 'tw_fix_caption', 10, 3);
+	add_filter('img_caption_shortcode', 'tw_filter_resonsive_caption', 10, 3);
 
-	function tw_fix_caption($value = false, $attr = array(), $content = '') {
+	function tw_filter_resonsive_caption($value = false, $attr = array(), $content = '') {
 
 		$atts = shortcode_atts(array(
 			'id' => '',
@@ -159,9 +164,9 @@ if (tw_get_setting('modules', 'actions', 'fix_caption')) {
 
 if (tw_get_setting('modules', 'actions', 'image_quality')) {
 
-	add_action('jpeg_quality', 'tw_change_image_quality');
+	add_action('jpeg_quality', 'tw_action_image_quality');
 
-	function tw_change_image_quality() {
+	function tw_action_image_quality() {
 
 		$quality = intval(tw_get_setting('modules', 'actions', 'image_quality'));
 
@@ -184,11 +189,13 @@ if (tw_get_setting('modules', 'actions', 'image_quality')) {
 
 if (tw_get_setting('modules', 'actions', 'exclude_medium')) {
 
-	add_filter('intermediate_image_sizes', function($sizes) {
+	add_filter('intermediate_image_sizes', 'tw_filter_exclude_medium');
+
+	function tw_filter_exclude_medium($sizes) {
 
 		return array_diff($sizes, ['medium_large']);
 
-	});
+	}
 
 }
 
@@ -199,9 +206,9 @@ if (tw_get_setting('modules', 'actions', 'exclude_medium')) {
 
 if (tw_get_setting('modules', 'actions', 'fixed_header')) {
 
-	add_action('get_header', 'tw_remove_admin_login_header');
+	add_action('get_header', 'tw_action_fixed_header');
 
-	function tw_remove_admin_login_header() {
+	function tw_action_fixed_header() {
 
 		remove_action('wp_head', '_admin_bar_bump_cb');
 	}
@@ -215,9 +222,9 @@ if (tw_get_setting('modules', 'actions', 'fixed_header')) {
 
 if (tw_get_setting('modules', 'actions', 'comment_reply')) {
 
-	add_action('wp_enqueue_scripts', 'tw_enqueue_comment_reply');
+	add_action('wp_enqueue_scripts', 'tw_action_comment_reply');
 
-	function tw_enqueue_comment_reply() {
+	function tw_action_comment_reply() {
 
 		if (is_singular() and comments_open() and get_option('thread_comments')) {
 			wp_enqueue_script('comment-reply');

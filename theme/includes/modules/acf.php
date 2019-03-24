@@ -18,19 +18,9 @@ function tw_acf_get_current_id() {
 
 	$post_id = false;
 
-	if (is_category()) {
+	if (is_category() or is_tag() or is_tax()) {
 
-		$post_id = 'category_' . get_query_var('cat');
-
-	} elseif (is_tag() or is_tax()) {
-
-		$queried_object = get_queried_object();
-
-		if (!empty($queried_object->taxonomy) and !empty($queried_object->term_id)) {
-
-			$post_id = $queried_object->taxonomy . '_' . $queried_object->term_id;
-
-		}
+		$post_id = get_queried_object();
 
 	} elseif (is_singular()) {
 
@@ -47,11 +37,11 @@ function tw_acf_get_current_id() {
  * Add new options page for the theme settings
  */
 
-if (tw_get_setting('modules', 'acf', 'option_page') and function_exists('acf_add_options_page')) {
+if (tw_get_setting('modules', 'acf', 'options_page') and function_exists('acf_add_options_page')) {
 
-	add_action('init', 'tw_acf_add_options_page');
+	add_action('init', 'tw_action_add_options_page');
 
-	function tw_acf_add_options_page() {
+	function tw_action_add_options_page() {
 
 		acf_add_options_page(array(
 			'page_title' => __('Edit the theme settings', 'wp-theme'),
@@ -76,9 +66,9 @@ if (tw_get_setting('modules', 'acf', 'option_page') and function_exists('acf_add
 
 if (tw_get_setting('modules', 'acf', 'include_subcats')) {
 
-	add_filter('acf/location/rule_match/post_category', 'tw_match_subcategories', 10, 3);
+	add_filter('acf/location/rule_match/post_category', 'tw_filter_match_subcategories', 10, 3);
 
-	function tw_match_subcategories($match, $rule, $options) {
+	function tw_filter_match_subcategories($match, $rule, $options) {
 
 		$data = acf_decode_taxonomy_term($rule['value']);
 		
@@ -145,9 +135,9 @@ if (tw_get_setting('modules', 'acf', 'include_subcats')) {
 
 if (tw_get_setting('modules', 'acf', 'category_rules')) {
 
-	add_filter('acf/location/rule_types', 'tw_acf_location_rules_types');
+	add_filter('acf/location/rule_types', 'tw_filter_location_rules_types');
 
-	function tw_acf_location_rules_types($choices) {
+	function tw_filter_location_rules_types($choices) {
 
 		$choices[__('Taxonomy', 'wp-theme')] = array(
 			'tax_category' => __('Category', 'wp-theme'),
@@ -159,11 +149,11 @@ if (tw_get_setting('modules', 'acf', 'category_rules')) {
 
 	}
 
-	add_filter('acf/location/rule_values/tax_category', 'tw_acf_location_rules_values_category');
-	add_filter('acf/location/rule_values/tax_category_all', 'tw_acf_location_rules_values_category');
-	add_filter('acf/location/rule_values/tax_category_sub', 'tw_acf_location_rules_values_category');
+	add_filter('acf/location/rule_values/tax_category', 'tw_filter_location_rules_values_category');
+	add_filter('acf/location/rule_values/tax_category_all', 'tw_filter_location_rules_values_category');
+	add_filter('acf/location/rule_values/tax_category_sub', 'tw_filter_location_rules_values_category');
 
-	function tw_acf_location_rules_values_category($choices) {
+	function tw_filter_location_rules_values_category($choices) {
 
 		$categories = get_categories(array(
 			'hide_empty' => false,
@@ -183,11 +173,11 @@ if (tw_get_setting('modules', 'acf', 'category_rules')) {
 		return $choices;
 	}
 
-	add_filter('acf/location/rule_match/tax_category', 'tw_acf_location_rules_match_category', 10, 3);
-	add_filter('acf/location/rule_match/tax_category_sub', 'tw_acf_location_rules_match_category', 10, 3);
-	add_filter('acf/location/rule_match/tax_category_all', 'tw_acf_location_rules_match_category', 10, 3);
+	add_filter('acf/location/rule_match/tax_category', 'tw_filter_location_rules_match_category', 10, 3);
+	add_filter('acf/location/rule_match/tax_category_sub', 'tw_filter_location_rules_match_category', 10, 3);
+	add_filter('acf/location/rule_match/tax_category_all', 'tw_filter_location_rules_match_category', 10, 3);
 
-	function tw_acf_location_rules_match_category($match, $rule, $options) {
+	function tw_filter_location_rules_match_category($match, $rule, $options) {
 
 		if (!empty($_REQUEST['tag_ID'])) {
 
@@ -228,9 +218,9 @@ if (tw_get_setting('modules', 'acf', 'category_rules')) {
 
 if (tw_get_setting('modules', 'acf', 'json_enable')) {
 
-	add_filter('acf/settings/save_json', 'tw_json_save_point');
+	add_filter('acf/settings/save_json', 'tw_filter_json_save');
 
-	function tw_json_save_point() {
+	function tw_filter_json_save() {
 
 		$path = get_stylesheet_directory() . '/includes/acf';
 
@@ -240,9 +230,9 @@ if (tw_get_setting('modules', 'acf', 'json_enable')) {
 
 	}
 
-	add_filter('acf/settings/load_json', 'tw_json_load_point');
+	add_filter('acf/settings/load_json', 'tw_filter_json_load');
 
-	function tw_json_load_point($paths) {
+	function tw_filter_json_load($paths) {
 
 		unset($paths[0]);
 
@@ -260,26 +250,16 @@ if (tw_get_setting('modules', 'acf', 'json_enable')) {
 
 
 /**
- * Declare the fallback function if the Advanced Custom Fields plugin is disabled
+ * Add an API key for the Google Maps field
  */
 
-if (!function_exists('get_field') and !is_admin()) {
+if (tw_get_setting('modules', 'acf', 'google_api')) {
 
-	function get_field($field, $post_id = false) {
+	add_filter('acf/settings/google_api_key', 'tw_filter_google_api');
 
-		if (!$post_id) $post_id = intval(get_the_ID());
+	function tw_filter_google_api() {
 
-		return get_post_meta($post_id, $field, false);
-
-	}
-
-	if (tw_get_setting('modules', 'acf', 'require_acf')) {
-
-		add_action('wp_footer', 'tw_acf_fallback', 100);
-
-		function tw_acf_fallback() {
-			echo '<p style="font-size: 15px; font-family: sans-serif; line-height: 130%; text-align: center; padding: 10px 15px; background: #FDF4F4; border-top: 1px solid #CD9393; color: #8C3535;">Для полноценной работы шаблона необходимо включить плагин Advanced Custom Fields в настройках</p>';
-		}
+		return 'AIzaSyAJ5QTsj4apSnVK-6T7HMQfUW5-RljJTQ4';
 
 	}
 
@@ -287,9 +267,49 @@ if (!function_exists('get_field') and !is_admin()) {
 
 
 /**
- * Add an API key for the Google Maps field
+ * Declare a fallback function for the ACF plugin
  */
 
-add_filter('acf/settings/google_api_key', function() {
-	return 'AIzaSyAJ5QTsj4apSnVK-6T7HMQfUW5-RljJTQ4';
-});
+if (!function_exists('get_field')) {
+
+	function get_field($field, $post_id = false) {
+
+		$value = false;
+
+		if (is_numeric($post_id)) {
+
+			if (empty($post_id)) {
+				$post_id = intval(get_the_ID());
+			}
+
+			$value = get_post_meta($post_id, $field, true);
+
+		} elseif ($post_id instanceof WP_Term) {
+
+			$value = get_term_meta($post_id->term_id, $field, true);
+
+		} elseif ($post_id instanceof WP_User) {
+
+			$value = get_user_meta($post_id->ID, $field, true);
+
+		} elseif ($post_id == 'option' or $post_id == 'options') {
+
+			$value = get_option($field);
+
+		} elseif (strpos($post_id, '_') !== false) {
+
+			$parts = explode('_', $post_id);
+
+			if ($parts[0] == 'category' or taxonomy_exists($parts[0])) {
+				$value = get_term_meta($parts[1], $field, true);
+			} elseif ($parts[0] == 'user') {
+				$value = get_user_meta($parts[1], $field, true);
+			}
+
+		}
+
+		return $value;
+
+	}
+
+}

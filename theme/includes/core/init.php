@@ -17,9 +17,9 @@ include_once TW_INC . '/core/loader.php';
  * Main theme configuration
  */
 
-add_action('after_setup_theme', 'tw_setup');
+add_action('after_setup_theme', 'tw_action_setup');
 
-function tw_setup() {
+function tw_action_setup() {
 
 	/**
 	 * Add support for the title tag and HTML5 galleries
@@ -116,9 +116,9 @@ function tw_setup() {
 
 if (tw_get_setting('thumbs')) {
 
-	add_filter('image_size_names_choose', 'tw_add_editor_image_sizes');
+	add_filter('image_size_names_choose', 'tw_filter_editor_image_sizes');
 
-	function tw_add_editor_image_sizes($sizes) {
+	function tw_filter_editor_image_sizes($sizes) {
 
 		$theme_sizes = tw_get_setting('thumbs');
 
@@ -159,9 +159,9 @@ if (tw_get_setting('thumbs')) {
 
 if (tw_get_setting('styles')) {
 
-	add_filter('tiny_mce_before_init', 'tw_register_styles');
+	add_filter('tiny_mce_before_init', 'tw_filter_editor_styles');
 
-	function tw_register_styles($array) {
+	function tw_filter_editor_styles($array) {
 
 		$style_formats = tw_get_setting('styles');
 
@@ -184,9 +184,9 @@ if (tw_get_setting('styles')) {
 	}
 
 
-	add_filter('mce_buttons_2', 'tw_enable_format_button');
+	add_filter('mce_buttons_2', 'tw_filter_editor_format_button');
 
-	function tw_enable_format_button($buttons) {
+	function tw_filter_editor_format_button($buttons) {
 
 		array_unshift($buttons, 'styleselect');
 
@@ -197,9 +197,9 @@ if (tw_get_setting('styles')) {
 
 	if (file_exists(TW_ROOT . '/editor-style.css')) {
 
-		add_action('init', 'tw_add_editor_styles');
+		add_action('init', 'tw_action_editor_stylesheet');
 
-		function tw_add_editor_styles() {
+		function tw_action_editor_stylesheet() {
 
 			add_editor_style('editor-style.css');
 
@@ -216,9 +216,9 @@ if (tw_get_setting('styles')) {
 
 if (tw_get_setting('types')) {
 
-	add_action('init', 'tw_post_type');
+	add_action('init', 'tw_action_post_types');
 
-	function tw_post_type() {
+	function tw_action_post_types() {
 
 		$types = tw_get_setting('types');
 
@@ -243,9 +243,9 @@ if (tw_get_setting('types')) {
 
 if (tw_get_setting('taxonomies')) {
 
-	add_action('init', 'tw_taxonomies');
+	add_action('init', 'tw_action_taxonomies');
 
-	function tw_taxonomies() {
+	function tw_action_taxonomies() {
 
 		$taxonomies = tw_get_setting('taxonomies');
 
@@ -270,9 +270,9 @@ if (tw_get_setting('taxonomies')) {
 
 if (tw_get_setting('sidebars')) {
 
-	add_action('widgets_init', 'tw_sidebars_init');
+	add_action('widgets_init', 'tw_action_sidebars');
 
-	function tw_sidebars_init() {
+	function tw_action_sidebars() {
 
 		$sidebars = tw_get_setting('sidebars');
 
@@ -297,9 +297,9 @@ if (tw_get_setting('sidebars')) {
 
 if (tw_get_setting('widgets')) {
 
-	add_action('widgets_init', 'tw_widgets_init');
+	add_action('widgets_init', 'tw_action_widgets');
 
-	function tw_widgets_init() {
+	function tw_action_widgets() {
 
 		$widgets = tw_get_setting('widgets');
 

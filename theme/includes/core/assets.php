@@ -85,6 +85,39 @@ function tw_register_assets() {
 
 
 /**
+ * Enqueue all registered assets
+ */
+
+add_action('wp_enqueue_scripts', 'tw_enqueue_assets');
+
+function tw_enqueue_assets() {
+
+	$assets = tw_get_setting('assets');
+
+	if ($assets) {
+
+		foreach ($assets as $name => $asset) {
+
+			if (!empty($asset['display'])) {
+
+				if (is_callable($asset['display'])) {
+					$asset['display'] = call_user_func($asset['display']);
+				}
+
+				if ($asset['display']) {
+					tw_enqueue_asset($name);
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+
+/**
  * Register a single asset
  *
  * @param string $name      Name of the asset. It should be unique.
@@ -154,6 +187,55 @@ function tw_register_asset($name, $asset, $directory = '') {
 
 		}
 
+	}
+
+	return false;
+
+}
+
+
+/**
+ * Enqueue a single asset
+ *
+ * @param string $name Name of the asset
+ *
+ * @return bool
+ */
+
+function tw_enqueue_asset($name) {
+	
+	$asset = tw_get_setting('assets', $name);
+
+	$asset_name = $name;
+
+	if (is_array($asset)) {
+
+		$asset = apply_filters('tw/asset/enqueue/' . $name, $asset);
+
+		if (!empty($asset['prefix'])) {
+			$asset_name = $asset['prefix'] . $name;
+		}
+
+		if (!empty($asset['localize'])) {
+
+			if (is_callable($asset['localize'])) {
+				$asset['localize'] = call_user_func($asset['localize']);
+			}
+
+			if (is_array($asset['localize'])) {
+				wp_localize_script($asset_name, $name, $asset['localize']);
+			}
+
+		}
+
+	}
+	
+	if (wp_script_is($asset_name, 'registered')) {
+		wp_enqueue_script($asset_name);
+	}
+
+	if (wp_style_is($asset_name, 'registered')) {
+		wp_enqueue_style($asset_name);
 	}
 
 	return false;
@@ -283,86 +365,5 @@ function tw_normalize_asset($asset, $directory = '') {
 	}
 
 	return $asset;
-
-}
-
-/**
- * Enqueue all registered assets
- */
-
-add_action('wp_enqueue_scripts', 'tw_enqueue_assets');
-
-function tw_enqueue_assets() {
-
-	$assets = tw_get_setting('assets');
-
-	if ($assets) {
-
-		foreach ($assets as $name => $asset) {
-
-			if (!empty($asset['display'])) {
-
-				if (is_callable($asset['display'])) {
-					$asset['display'] = call_user_func($asset['display']);
-				}
-
-				if ($asset['display']) {
-					tw_enqueue_asset($name);
-				}
-
-			}
-
-		}
-
-	}
-
-}
-
-
-/**
- * Enqueue a single asset
- *
- * @param string $name Name of the asset
- *
- * @return bool
- */
-
-function tw_enqueue_asset($name) {
-	
-	$asset = tw_get_setting('assets', $name);
-
-	$asset_name = $name;
-
-	if (is_array($asset)) {
-
-		$asset = apply_filters('tw/asset/enqueue/' . $name, $asset);
-
-		if (!empty($asset['prefix'])) {
-			$asset_name = $asset['prefix'] . $name;
-		}
-
-		if (!empty($asset['localize'])) {
-
-			if (is_callable($asset['localize'])) {
-				$asset['localize'] = call_user_func($asset['localize']);
-			}
-
-			if (is_array($asset['localize'])) {
-				wp_localize_script($asset_name, $name, $asset['localize']);
-			}
-
-		}
-
-	}
-	
-	if (wp_script_is($asset_name, 'registered')) {
-		wp_enqueue_script($asset_name);
-	}
-
-	if (wp_style_is($asset_name, 'registered')) {
-		wp_enqueue_style($asset_name);
-	}
-
-	return false;
 
 }
