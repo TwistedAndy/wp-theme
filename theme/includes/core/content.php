@@ -199,6 +199,23 @@ function tw_text($post = false, $length = 250, $allowed_tags = false, $find = ' 
 
 
 /**
+ * Get the formatted phone number for a link href attribute
+ *
+ * @param string $string String with phone number
+ *
+ * @return string
+ */
+
+function tw_phone($string) {
+
+	$string = 'tel:' . str_replace(array(' ', '(', ')', '-'), '', $string);
+
+	return $string;
+
+}
+
+
+/**
  * Get the date and time for a given post
  *
  * @param bool|WP_Post $post   Post object of false to use the current one
