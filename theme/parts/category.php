@@ -4,16 +4,7 @@
 
 	<?php while (have_posts()) { the_post(); ?>
 
-		<div class="post">
-
-			<?php echo tw_thumb(get_post(), 'post', '', '', array('link' => 'url', 'link_class' => 'thumb')); ?>
-
-			<div class="body">
-				<a class="title" href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-				<p><?php echo tw_text(false, 400); ?></p>
-			</div>
-
-		</div>
+		<?php tw_template_part('post', get_post()); ?>
 
 	<?php } ?>
 

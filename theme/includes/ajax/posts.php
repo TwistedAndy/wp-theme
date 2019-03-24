@@ -26,6 +26,12 @@ function tw_ajax_load_posts() {
 		}
 	}
 
+	$template = 'post';
+
+	if (!empty($_REQUEST['template']) and in_array($_REQUEST['template'], array('post'))) {
+		$template = esc_attr($_REQUEST['template']);
+	}
+
 	if ($params['number'] > 0) {
 
 		$args = array(
@@ -61,21 +67,15 @@ function tw_ajax_load_posts() {
 
 		}
 
-		if ($items = get_posts($args)) { ?>
+		if ($items = get_posts($args)) {
 
-			<?php foreach ($items as $item) { ?>
+			foreach ($items as $item) {
 
-				<div class="post">
-					<?php echo tw_thumb($item, 'post', '', '', array('link' => 'url', 'link_class' => 'thumb')); ?>
-					<div class="text">
-						<a class="title" href="<?php echo get_permalink($item->ID); ?>"><?php echo tw_title($item); ?></a>
-						<p><?php echo tw_text($item, 400); ?></p>
-					</div>
-				</div>
+				tw_template_part($template, $item);
 
-			<?php } ?>
+			}
 
-		<?php }
+		}
 
 	}
 
@@ -83,28 +83,33 @@ function tw_ajax_load_posts() {
 
 }
 
-function tw_ajax_load_button($load_posts_number = false) {
+
+function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $number = false) {
 
 	global $wp_query;
 
-	$max_page = intval($wp_query->max_num_pages);
+	if (empty($query) or !($query instanceof WP_Query)) {
+		$query = $wp_query;
+	}
+
+	$max_page = intval($query->max_num_pages);
 
 	if ($max_page > 1) {
 
 		wp_enqueue_script('jquery');
 
-		$posts_per_page = intval(get_query_var('posts_per_page'));
+		$posts_per_page = intval($query->query_vars['posts_per_page']);
 
-		$max_offset = intval($wp_query->found_posts);
+		$max_offset = intval($query->found_posts);
 
-		$paged = intval(get_query_var('paged'));
+		$paged = intval($query->query_vars['paged']);
 
 		if ($paged == 0) {
 			$paged = 1;
 		}
 
-		if (empty($load_posts_number)) {
-			$load_posts_number = $posts_per_page;
+		if ($number == false) {
+			$number = $posts_per_page;
 		}
 
 		$offset = $paged * $posts_per_page;
@@ -112,10 +117,10 @@ function tw_ajax_load_button($load_posts_number = false) {
 		$term_id = 0;
 		$taxonomy = 0;
 		$search = '';
-		$type = get_post_type();
+		$type = get_post_type($query->post);
 		$object = get_queried_object();
 
-		if (isset($object->term_id)) {
+		if ($object instanceof WP_Term) {
 
 			$term_id = $object->term_id;
 
@@ -141,8 +146,8 @@ function tw_ajax_load_button($load_posts_number = false) {
 
 				var offset = <?php echo $offset; ?>,
 					max_offset = <?php echo $max_offset; ?>,
-					number = <?php echo $load_posts_number; ?>,
-					wrapper = $('.posts'),
+					number = <?php echo $number; ?>,
+					wrapper = $('<?php echo $wrapper; ?>'),
 					button = $('.more'),
 					posts;
 
@@ -156,6 +161,7 @@ function tw_ajax_load_button($load_posts_number = false) {
 								action: 'load_posts',
 								offset: offset,
 								number: number,
+								template: '<?php echo $template; ?>',
 								object: <?php echo $term_id; ?>,
 								taxonomy: '<?php echo $taxonomy; ?>',
 								search: '<?php echo $search; ?>',
