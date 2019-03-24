@@ -85,13 +85,11 @@ if (!is_admin() and tw_get_setting('modules', 'actions', 'clean_header')) {
 
 		remove_action('wp_head', 'wp_generator');
 		remove_action('wp_head', 'rsd_link');
-		remove_action('wp_head', 'rel_canonical');
 		remove_action('wp_head', 'feed_links', 2);
 		remove_action('wp_head', 'feed_links_extra', 3);
 		remove_action('wp_head', 'wc_products_rss_feed', 10);
 		remove_action('wp_head', 'wlwmanifest_link');
-		remove_action('wp_head', 'index_rel_link');
-		remove_action('wp_head', 'wp_shortlink_wp_head');
+		remove_action('wp_head', 'wp_shortlink_wp_head', 10);
 		remove_action('wp_head', 'wp_oembed_add_host_js');
 		remove_action('wp_head', 'wp_oembed_add_discovery_links');
 		remove_action('wp_head', 'print_emoji_detection_script', 7);
@@ -150,6 +148,62 @@ if (tw_get_setting('modules', 'actions', 'fix_caption')) {
 
 		return '<div ' . $atts['id'] . $atts['class'] . $style . '>' . do_shortcode($content) . '<p class="wp-caption-text">' . $atts['caption'] . '</p></div>';
 
+	}
+
+}
+
+
+/**
+ * Set the default image compression quality
+ */
+
+if (tw_get_setting('modules', 'actions', 'image_quality')) {
+
+	add_action('jpeg_quality', 'tw_change_image_quality');
+
+	function tw_change_image_quality() {
+
+		$quality = intval(tw_get_setting('modules', 'actions', 'image_quality'));
+
+		if ($quality <= 0 or $quality > 100) {
+			$quality = 82;
+		}
+
+		echo $quality;
+
+		return $quality;
+
+	}
+
+}
+
+
+/**
+ * Set the default image compression quality
+ */
+
+if (tw_get_setting('modules', 'actions', 'exclude_medium')) {
+
+	add_filter('intermediate_image_sizes', function($sizes) {
+
+		return array_diff($sizes, ['medium_large']);
+
+	});
+
+}
+
+
+/**
+ * Remove some WordPress inline styles for the admin bar
+ */
+
+if (tw_get_setting('modules', 'actions', 'fixed_header')) {
+
+	add_action('get_header', 'tw_remove_admin_login_header');
+
+	function tw_remove_admin_login_header() {
+
+		remove_action('wp_head', '_admin_bar_bump_cb');
 	}
 
 }

@@ -140,11 +140,13 @@ $settings['modules'] = array(
 	),
 	'actions' => array(
 		'caption_padding' => 0,
+		'image_quality' => 90,
 		'menu_clean' => false,
 		'menu_active' => true,
 		'fix_caption' => true,
 		'clean_header' => true,
-		'comment_reply' => false
+		'comment_reply' => false,
+		'exclude_medium' => true,
 	),
 	'breadcrumbs' => array(
 		'microdata' => 'json',
