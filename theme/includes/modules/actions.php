@@ -174,8 +174,6 @@ if (tw_get_setting('modules', 'actions', 'image_quality')) {
 			$quality = 82;
 		}
 
-		echo $quality;
-
 		return $quality;
 
 	}

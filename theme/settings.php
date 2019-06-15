@@ -144,6 +144,7 @@ $settings['modules'] = array(
 		'menu_clean' => false,
 		'menu_active' => true,
 		'clean_header' => true,
+		'fixed_header' => false,
 		'comment_reply' => false,
 		'exclude_medium' => true,
 		'caption_padding' => 0,
