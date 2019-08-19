@@ -26,7 +26,7 @@ function tw_pagination($args = array(), $query = false) {
 	}
 
 	$defaults = array(
-		'before' => '<div class="pagination">',
+		'before' => '<div class="pagination_box">',
 		'after' => '</div>',
 		'prev' => '&laquo;',
 		'next' => '&raquo;',

@@ -7,6 +7,7 @@ var gulp = require('gulp'),
 	postcss = require('gulp-postcss'),
 	mqpacker = require('css-mqpacker'),
 	imagemin = require('gulp-imagemin'),
+	browsersync = require('browser-sync'),
 	gloablize = require('gulp-sass-glob'),
 	beautify = require('gulp-cssbeautify'),
 	sourcemaps = require('gulp-sourcemaps'),
@@ -23,8 +24,9 @@ var folder = {
 
 var options = {
 	autoprefixer: {
-		browsers: ['last 2 versions'],
-		cascade: false
+		browsers: ['last 2 versions', 'ie 10'],
+		cascade: false,
+		grid: 'autoplace'
 	},
 	plumber: {
 		errorHandler: notify.onError({
@@ -94,8 +96,26 @@ var options = {
 		outputStyle: 'expanded',
 		indentType: 'tab',
 		indentWidth: 1
+	},
+	styles: [
+		'scss/*.scss',
+		'scss/base/*.scss',
+		'scss/blocks/*.scss',
+		'scss/includes/*.scss'
+	],
+	browsersync: {
+		server: {
+			baseDir: './'
+		},
+		notify: false
 	}
 };
+
+
+gulp.task('browsersync', function() {
+	browsersync.init(options.browsersync);
+});
+
 
 gulp.task('imagemin', function() {
 
@@ -115,6 +135,7 @@ gulp.task('sprite_svg', function() {
 	.pipe(gulp.dest('./'));
 
 });
+
 
 gulp.task('sprite_png', function() {
 
@@ -156,9 +177,9 @@ gulp.task('scss_full', function() {
 
 gulp.task('watch', function() {
 
-	gulp.watch('scss/**/*.scss', ['scss_fast']);
+	gulp.watch(options.styles, gulp.parallel('scss_fast'));
 
 });
 
 
-gulp.task('default', ['watch']);
+gulp.task('default', gulp.parallel('watch'));
