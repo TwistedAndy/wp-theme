@@ -3,14 +3,14 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: Тема оформления для WordPress\n"
-"POT-Creation-Date: 2016-12-13 22:20+0200\n"
+"POT-Creation-Date: 2019-08-19 19:21+0300\n"
 "PO-Revision-Date: 2016-06-12 10:55+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.8\n"
+"X-Generator: Poedit 2.2.3\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-WPHeader: style.css\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -20,165 +20,161 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.js\n"
 
-#: includes/acf.php:53
-msgid "Edit the theme settings"
-msgstr ""
-
-#: includes/acf.php:54
-msgid "Theme settings"
-msgstr ""
-
-#: includes/acf.php:60
-msgid "Refresh"
-msgstr ""
-
-#: includes/acf.php:126
-msgid "Taxonomy"
-msgstr ""
-
-#: includes/acf.php:127
-msgid "Category"
-msgstr ""
-
-#: includes/acf.php:128
-msgid "Subcategories"
-msgstr ""
-
-#: includes/acf.php:129
-msgid "Category and subcategories"
-msgstr ""
-
-#: includes/comment.php:61
+#: comments.php:32 includes/modules/comments.php:65
 #, php-format
 msgid "You need to <a href=\"%s\">login</a> to post a comment."
 msgstr ""
 
-#: includes/comment.php:63
+#: comments.php:34 includes/modules/comments.php:67
 #, php-format
 msgid ""
 "You've logged in as <a class=\"login\" href=\"%1$s\">%2$s</a> <a class="
 "\"logout\" href=\"%3$s\">[log out]</a>"
 msgstr ""
 
-#: includes/comment.php:77
-msgid "Your name"
-msgstr ""
-
-#: includes/comment.php:78
-msgid "Your e-mail"
-msgstr ""
-
-#: includes/comment.php:79
-msgid "Site"
-msgstr ""
-
-#: includes/comment.php:97
-msgid "Leave a Reply"
-msgstr ""
-
-#: includes/comment.php:98
-#, php-format
-msgid "Leave a Reply to %s"
-msgstr ""
-
-#: includes/comment.php:103
-msgid "Cancel reply"
-msgstr ""
-
-#: includes/comment.php:104
-msgid "Post Comment"
-msgstr ""
-
-#: includes/comment.php:197
-msgid "Sorry, but comments are closed."
-msgstr ""
-
-#: includes/common.php:46
+#: includes/core/content.php:278
 msgid "Page not found"
 msgstr ""
 
-#: includes/common.php:50
+#: includes/core/content.php:282
 #, php-format
 msgid "Search results for %s"
 msgstr ""
 
-#: includes/common.php:54
+#: includes/core/content.php:286
 #, php-format
 msgid "Posts with tag <i>%s</i>"
 msgstr ""
 
-#: includes/common.php:58
+#: includes/core/content.php:290
 #, php-format
 msgid "Posts of <i>%s</i>"
 msgstr ""
 
-#: includes/common.php:62 includes/common.php:66
+#: includes/core/content.php:294 includes/core/content.php:298
 #, php-format
 msgid "Posts for <i>%s</i>"
 msgstr ""
 
-#: includes/common.php:70
+#: includes/core/content.php:302
 #, php-format
 msgid "Posts for <i>%s</i> year"
 msgstr ""
 
-#: includes/common.php:75
+#: includes/core/content.php:307
 #, php-format
 msgid " - page %d"
 msgstr ""
 
-#: includes/common.php:142
-msgid "Home"
-msgstr ""
-
-#: includes/common.php:1014
+#: includes/core/content.php:329
 msgid "There are no posts in this category"
 msgstr ""
 
-#: includes/common.php:1016
+#: includes/core/content.php:333
 msgid "No products were found matching your selection."
 msgstr ""
 
-#: includes/common.php:1018
+#: includes/core/content.php:337
 msgid "The requested post is not found"
 msgstr ""
 
-#: includes/common.php:1020
+#: includes/core/content.php:341
 #, php-format
 msgid "There are no posts with tag <i>%s</i>"
 msgstr ""
 
-#: includes/common.php:1022
+#: includes/core/content.php:345
 msgid "There are no posts for requested day"
 msgstr ""
 
-#: includes/common.php:1024
+#: includes/core/content.php:349
 msgid "There are no posts for requested month"
 msgstr ""
 
-#: includes/common.php:1026
+#: includes/core/content.php:353
 msgid "There are no posts for requested year"
 msgstr ""
 
-#: includes/common.php:1028
+#: includes/core/content.php:357
 msgid "There are no posts by this author"
 msgstr ""
 
-#: includes/common.php:1030
+#: includes/core/content.php:361
 msgid "Sorry, but there is nothing to show by requested address"
 msgstr ""
 
-#: includes/common.php:1032
+#: includes/core/content.php:365
 #, php-format
 msgid "There are no information matching the query <i>%s</i>"
 msgstr ""
 
-#: includes/common.php:1034
+#: includes/core/content.php:369
 msgid "There are no posts to show"
+msgstr ""
+
+#: includes/modules/acf.php:47 includes/modules/acf.php:48
+msgid "Theme Settings"
+msgstr ""
+
+#: includes/modules/acf.php:54
+msgid "Refresh"
+msgstr ""
+
+#: includes/modules/acf.php:142
+msgid "Taxonomy"
+msgstr ""
+
+#: includes/modules/acf.php:143
+msgid "Category"
+msgstr ""
+
+#: includes/modules/acf.php:144
+msgid "Subcategories"
+msgstr ""
+
+#: includes/modules/acf.php:145
+msgid "Category and subcategories"
+msgstr ""
+
+#: includes/modules/breadcrumbs.php:132
+msgid "Home"
+msgstr ""
+
+#: includes/modules/comments.php:81
+msgid "Your name"
+msgstr ""
+
+#: includes/modules/comments.php:82
+msgid "Your e-mail"
+msgstr ""
+
+#: includes/modules/comments.php:83
+msgid "Site"
+msgstr ""
+
+#: includes/modules/comments.php:98
+msgid "Leave a Reply"
+msgstr ""
+
+#: includes/modules/comments.php:99
+#, php-format
+msgid "Leave a Reply to %s"
+msgstr ""
+
+#: includes/modules/comments.php:104
+msgid "Cancel reply"
+msgstr ""
+
+#: includes/modules/comments.php:105
+msgid "Post Comment"
 msgstr ""
 
 #: parts/comment.php:15
 msgid "This comment is not approved yet."
+msgstr ""
+
+#: parts/reply.php:61
+msgid "Sorry, but comments are closed."
 msgstr ""
 
 #. Theme Name of the plugin/theme
@@ -194,7 +190,7 @@ msgid "Тема для сайта"
 msgstr ""
 
 #. Author of the plugin/theme
-msgid "Тониевич Андрей"
+msgid "Toniievych Andrii"
 msgstr ""
 
 #. Author URI of the plugin/theme

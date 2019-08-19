@@ -44,8 +44,8 @@ if (tw_get_setting('modules', 'acf', 'options_page') and function_exists('acf_ad
 	function tw_action_add_options_page() {
 
 		acf_add_options_page(array(
-			'page_title' => __('Edit the theme settings', 'wp-theme'),
-			'menu_title' => __('Theme settings', 'wp-theme'),
+			'page_title' => __('Theme Settings', 'wp-theme'),
+			'menu_title' => __('Theme Settings', 'wp-theme'),
 			'menu_slug' => 'theme-settings',
 			'capability' => 'manage_options',
 			'redirect' => false,

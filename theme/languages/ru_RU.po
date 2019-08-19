@@ -1,53 +1,25 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2016-12-13 22:20+0200\n"
-"PO-Revision-Date: 2016-12-13 22:20+0200\n"
-"Last-Translator: Toniyevych Andriy <toniyevych@gmail.com>\n"
+"POT-Creation-Date: 2019-08-19 19:21+0300\n"
+"PO-Revision-Date: 2019-08-19 19:21+0300\n"
+"Last-Translator: Toniievych Andrii <toniyevych@gmail.com>\n"
 "Language-Team: \n"
 "Language: ru_RU\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.8\n"
+"X-Generator: Poedit 2.2.3\n"
 "X-Poedit-Basepath: .\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: includes/acf.php:53
-msgid "Edit the theme settings"
-msgstr "Редактирование настроек темы и данных на сайте"
-
-#: includes/acf.php:54
-msgid "Theme settings"
-msgstr "Настройки темы"
-
-#: includes/acf.php:60
-msgid "Refresh"
-msgstr "Обновить"
-
-#: includes/acf.php:126
-msgid "Taxonomy"
-msgstr "Таксономия"
-
-#: includes/acf.php:127
-msgid "Category"
-msgstr "Категория"
-
-#: includes/acf.php:128
-msgid "Subcategories"
-msgstr "Подкатегории"
-
-#: includes/acf.php:129
-msgid "Category and subcategories"
-msgstr "Категория и подкатегории"
-
-#: includes/comment.php:61
+#: comments.php:32 includes/modules/comments.php:65
 #, php-format
 msgid "You need to <a href=\"%s\">login</a> to post a comment."
 msgstr "Вы должны <a href=\"%s\">войти</a>, чтобы оставить комментарий."
 
-#: includes/comment.php:63
+#: comments.php:34 includes/modules/comments.php:67
 #, php-format
 msgid ""
 "You've logged in as <a class=\"login\" href=\"%1$s\">%2$s</a> <a class="
@@ -56,126 +28,150 @@ msgstr ""
 "Вы вошли как <a class=\"login\" href=\"%1$s\">%2$s</a> <a class=\"logout\" "
 "href=\"%3$s\">[выйти]</a>"
 
-#: includes/comment.php:77
-msgid "Your name"
-msgstr "Ваше имя"
-
-#: includes/comment.php:78
-msgid "Your e-mail"
-msgstr "Ваш email"
-
-#: includes/comment.php:79
-msgid "Site"
-msgstr "Адрес сайта"
-
-#: includes/comment.php:97
-msgid "Leave a Reply"
-msgstr "Ответить"
-
-#: includes/comment.php:98
-#, php-format
-msgid "Leave a Reply to %s"
-msgstr "Ответить на %s"
-
-#: includes/comment.php:103
-msgid "Cancel reply"
-msgstr "Отменить"
-
-#: includes/comment.php:104
-msgid "Post Comment"
-msgstr "Отправить"
-
-#: includes/comment.php:197
-msgid "Sorry, but comments are closed."
-msgstr "Извините, но комментирование этой записи отключено."
-
-#: includes/common.php:46
+#: includes/core/content.php:278
 msgid "Page not found"
 msgstr "Страница не найдена"
 
-#: includes/common.php:50
+#: includes/core/content.php:282
 #, php-format
 msgid "Search results for %s"
 msgstr "Результаты поиска по запросу: %s"
 
-#: includes/common.php:54
+#: includes/core/content.php:286
 #, php-format
 msgid "Posts with tag <i>%s</i>"
 msgstr "Записи с тегом <i>%s</i>"
 
-#: includes/common.php:58
+#: includes/core/content.php:290
 #, php-format
 msgid "Posts of <i>%s</i>"
 msgstr "Записи пользователя <i>%s</i>"
 
-#: includes/common.php:62 includes/common.php:66
+#: includes/core/content.php:294 includes/core/content.php:298
 #, php-format
 msgid "Posts for <i>%s</i>"
 msgstr "Записи за <i>%s</i> года"
 
-#: includes/common.php:70
+#: includes/core/content.php:302
 #, php-format
 msgid "Posts for <i>%s</i> year"
 msgstr "Записи за <i>%s</i> год"
 
-#: includes/common.php:75
+#: includes/core/content.php:307
 #, php-format
 msgid " - page %d"
 msgstr " - %d страница"
 
-#: includes/common.php:142
-msgid "Home"
-msgstr "Главная"
-
-#: includes/common.php:1014
+#: includes/core/content.php:329
 msgid "There are no posts in this category"
 msgstr "В данной рубрике записи не обнаружены"
 
-#: includes/common.php:1016
+#: includes/core/content.php:333
 msgid "No products were found matching your selection."
 msgstr ""
 
-#: includes/common.php:1018
+#: includes/core/content.php:337
 msgid "The requested post is not found"
 msgstr "Запись не обнаружена"
 
-#: includes/common.php:1020
+#: includes/core/content.php:341
 #, php-format
 msgid "There are no posts with tag <i>%s</i>"
 msgstr "С тегом <i>%s</i> записи не обнаружены"
 
-#: includes/common.php:1022
+#: includes/core/content.php:345
 msgid "There are no posts for requested day"
 msgstr "За этот день записи не обнаружены"
 
-#: includes/common.php:1024
+#: includes/core/content.php:349
 msgid "There are no posts for requested month"
 msgstr "За этот месяц записи не обнаружены"
 
-#: includes/common.php:1026
+#: includes/core/content.php:353
 msgid "There are no posts for requested year"
 msgstr "За этот год записи не обнаружены"
 
-#: includes/common.php:1028
+#: includes/core/content.php:357
 msgid "There are no posts by this author"
 msgstr "У этого автора записи отсутствуют"
 
-#: includes/common.php:1030
+#: includes/core/content.php:361
 msgid "Sorry, but there is nothing to show by requested address"
 msgstr "Извините, но по данному адресу записи не обнаружены"
 
-#: includes/common.php:1032
+#: includes/core/content.php:365
 #, php-format
 msgid "There are no information matching the query <i>%s</i>"
 msgstr "По запросу <i>%s</i> ничего не найдено"
 
-#: includes/common.php:1034
+#: includes/core/content.php:369
 msgid "There are no posts to show"
 msgstr "Записи не обнаружены"
+
+#: includes/modules/acf.php:47 includes/modules/acf.php:48
+msgid "Theme Settings"
+msgstr "Настройки темы"
+
+#: includes/modules/acf.php:54
+msgid "Refresh"
+msgstr "Обновить"
+
+#: includes/modules/acf.php:142
+msgid "Taxonomy"
+msgstr "Таксономия"
+
+#: includes/modules/acf.php:143
+msgid "Category"
+msgstr "Категория"
+
+#: includes/modules/acf.php:144
+msgid "Subcategories"
+msgstr "Подкатегории"
+
+#: includes/modules/acf.php:145
+msgid "Category and subcategories"
+msgstr "Категория и подкатегории"
+
+#: includes/modules/breadcrumbs.php:132
+msgid "Home"
+msgstr "Главная"
+
+#: includes/modules/comments.php:81
+msgid "Your name"
+msgstr "Ваше имя"
+
+#: includes/modules/comments.php:82
+msgid "Your e-mail"
+msgstr "Ваш email"
+
+#: includes/modules/comments.php:83
+msgid "Site"
+msgstr "Адрес сайта"
+
+#: includes/modules/comments.php:98
+msgid "Leave a Reply"
+msgstr "Ответить"
+
+#: includes/modules/comments.php:99
+#, php-format
+msgid "Leave a Reply to %s"
+msgstr "Ответить на %s"
+
+#: includes/modules/comments.php:104
+msgid "Cancel reply"
+msgstr "Отменить"
+
+#: includes/modules/comments.php:105
+msgid "Post Comment"
+msgstr "Отправить"
 
 #: parts/comment.php:15
 msgid "This comment is not approved yet."
 msgstr "Этот комментарий ожидает модерации."
+
+#: parts/reply.php:61
+msgid "Sorry, but comments are closed."
+msgstr "Извините, но комментирование этой записи отключено."
 
 #. Theme Name of the plugin/theme
 msgid "Тема"
@@ -190,12 +186,15 @@ msgid "Тема для сайта"
 msgstr ""
 
 #. Author of the plugin/theme
-msgid "Тониевич Андрей"
+msgid "Toniievych Andrii"
 msgstr ""
 
 #. Author URI of the plugin/theme
 msgid "http://www.maultalk.com/topic139110.html"
 msgstr ""
+
+#~ msgid "Edit the theme settings"
+#~ msgstr "Редактирование настроек темы и данных на сайте"
 
 #~ msgid "An error occured"
 #~ msgstr "Произошла ошибка"
