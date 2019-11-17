@@ -7,15 +7,21 @@
  * @version 1.0
  */
 
-
+/*
 add_action('wp_ajax_nopriv_load_posts', 'tw_ajax_load_posts');
 add_action('wp_ajax_load_posts', 'tw_ajax_load_posts');
+*/
 
 function tw_ajax_load_posts() {
 
+	$result = array(
+		'result' => '',
+		'more' => false
+	);
+
 	if (isset($_POST['noncer']) and wp_verify_nonce($_POST['noncer'], 'ajax-nonce')) {
 
-		$fields = array('object', 'offset', 'number');
+		$fields = array('offset', 'number');
 
 		$params = array();
 
@@ -27,16 +33,26 @@ function tw_ajax_load_posts() {
 			}
 		}
 
+		if (!empty($_REQUEST['terms']) and is_array($_REQUEST['terms'])) {
+
+			$params['terms'] = array();
+
+			foreach ($_REQUEST['terms'] as $object) {
+				$params['terms'][] = intval($object);
+			}
+
+		}
+
 		$template = 'post';
 
-		if (!empty($_REQUEST['template']) and in_array($_REQUEST['template'], array('post', 'testimonial'))) {
+		if (!empty($_REQUEST['template']) and in_array($_REQUEST['template'], array('post', 'testimonial', 'community', 'gallery'))) {
 			$template = esc_attr($_REQUEST['template']);
 		}
 
 		if ($params['number'] > 0) {
 
 			$args = array(
-				'numberposts' => $params['number'],
+				'posts_per_page' => $params['number'],
 				'offset' => $params['offset']
 			);
 
@@ -56,39 +72,80 @@ function tw_ajax_load_posts() {
 
 			}
 
-			if ($params['object'] > 0) {
+			if (!empty($params['terms'])) {
 
-				$term = get_term($params['object']);
+				$tax_query = array();
 
-				if ($term instanceof WP_Term) {
+				$terms = array();
 
-					$args['tax_query'] = array(
-						array(
-							'taxonomy' => $term->taxonomy,
-							'field' => 'term_id',
-							'terms' => $term->term_id
-						)
+				foreach ($params['terms'] as $term_id) {
+
+					if ($term_id > 0) {
+
+						$term = get_term($term_id);
+
+						if ($term instanceof WP_Term) {
+
+							$terms[$term->taxonomy][] = $term->term_id;
+
+						}
+
+					}
+
+				}
+
+				foreach ($terms as $taxonomy => $ids) {
+
+					$tax_query[] = array(
+						'taxonomy' => $taxonomy,
+						'field' => 'term_id',
+						'terms' => $ids,
+						'operator' => 'IN'
 					);
 
 				}
 
-			}
+				if ($tax_query) {
 
-			if ($items = get_posts($args)) {
-
-				foreach ($items as $item) {
-
-					tw_template_part($template, $item);
+					$args['tax_query'] = array_merge(array('relation' => 'AND'), $tax_query);
 
 				}
 
 			}
+
+			$query = new WP_Query($args);
+
+			if ($query->have_posts()) {
+
+				if (($params['number'] + $params['offset']) < $query->found_posts) {
+					$result['more'] = true;
+				}
+
+				ob_start();
+
+				while ($query->have_posts()) {
+
+					$query->the_post();
+
+					tw_template_part($template, $query->post);
+
+				}
+
+				$result['result'] = ob_get_contents();
+
+			} else {
+
+				$result['result'] = '<div class="message">Nothing had been found</div>';
+
+			}
+
+			ob_end_clean();
 
 		}
 
 	}
 
-	exit();
+	wp_send_json($result);
 
 }
 
@@ -101,130 +158,155 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 		$query = $wp_query;
 	}
 
-	$max_page = intval($query->max_num_pages);
+	$posts_per_page = intval($query->query_vars['posts_per_page']);
 
-	if ($max_page > 1) {
+	$paged = intval($query->query_vars['paged']);
 
-		$posts_per_page = intval($query->query_vars['posts_per_page']);
+	if ($paged == 0) {
+		$paged = 1;
+	}
 
-		$max_offset = intval($query->found_posts);
+	if ($number == false) {
+		$number = $posts_per_page;
+	}
 
-		$paged = intval($query->query_vars['paged']);
+	$offset = $paged * $posts_per_page;
 
-		if ($paged == 0) {
-			$paged = 1;
+	$hidden = true;
+
+	if ($offset < $query->found_posts) {
+		$hidden = false;
+	}
+
+	$terms = array();
+	$search = '';
+	$type = get_post_type($query->post);
+	$object = $query->get_queried_object();
+
+	if ($object instanceof WP_Term) {
+		
+		$terms[] = $object->term_id;
+		
+		$tax_query = $query->get('tax_query');
+		
+		if ($tax_query) {
+			
+			foreach ($tax_query as $tax) {
+				
+				if (is_array($tax['terms']) and (empty($tax['operator']) or $tax['operator'] == 'IN')) {
+					
+					$terms = array_merge($terms, $tax['terms']);
+					
+				}
+				
+			}
+			
 		}
 
-		if ($number == false) {
-			$number = $posts_per_page;
-		}
-
-		$offset = $paged * $posts_per_page;
-
-		$term_id = 0;
-		$search = '';
-		$type = get_post_type($query->post);
-		$object = $query->get_queried_object();
-
-		if ($object instanceof WP_Term) {
-			$term_id = $object->term_id;
-		}
-
-		if ($query->is_search()) {
-			$search = get_search_query();
-		}
-
-		$args = array(
-			'number' => $number,
-			'offset' => $offset,
-			'max' => $max_offset,
-			'type' => $type,
-			'object' => $term_id,
-			'search' => $search,
-			'wrapper' => $wrapper,
-			'template' => $template
-		);
-
-		?>
-
-		<div class="buttons">
-			<div class="button" data-loader="<?php echo htmlspecialchars(json_encode($args), ENT_QUOTES, 'UTF-8'); ?>">Load More</div>
-		</div>
-
-		<?php
+		$terms = array_values(array_unique($terms));
 
 	}
 
+	if ($query->is_search()) {
+		$search = get_search_query();
+	}
+
+	$args = array(
+		'number' => $number,
+		'offset' => $offset,
+		'type' => $type,
+		'terms' => $terms,
+		'search' => $search,
+		'wrapper' => $wrapper,
+		'template' => $template
+	);
+
+	?>
+
+	<div class="buttons">
+		<div class="button<?php echo ($hidden ? ' hidden' : ''); ?>" data-loader="<?php echo htmlspecialchars(json_encode($args), ENT_QUOTES, 'UTF-8'); ?>">Load More</div>
+	</div>
+
+	<?php
+
 }
 
-
 /*
+
 jQuery(function($){
 
 	$('.button[data-loader]').each(function() {
 
 		var button = $(this), data = button.data('loader');
 
-		if (data && data.offset < data.max) {
+		var offset = data.offset;
 
-			var offset = data.offset;
+		var section = button.parents(data.wrapper);
 
-			var wrapper = $(data.wrapper).find('.items');
+		var wrapper = section.find('.items');
 
-			if (wrapper.length === 1) {
+		wrapper.on('reset', function() {
 
-				data.action = 'load_posts';
-				data.noncer = template.nonce;
+			wrapper.css('height', wrapper.outerHeight());
 
-				button.click(function() {
+			wrapper.children().remove();
 
-					$.ajax({
-						url: template.ajaxurl,
-						type: 'post',
-						dataType: 'html',
-						data: data,
-						success: function(response) {
+			offset = 0;
 
-							if (response) {
+			data.offset = 0;
 
-								var posts = $(response);
+			button.trigger('click');
 
-								posts.hide();
+		});
 
-								wrapper.append(posts);
+		button.click(function() {
 
-								posts.slideDown();
+			data = button.data('loader');
 
-								offset = offset + data.number;
+			data.action = 'load_posts';
 
-								data.offset = offset;
+			data.noncer = template.nonce;
 
-								if (offset >= data.max) {
-									button.remove();
-								}
+			$.ajax({
+				url: template.ajaxurl,
+				type: 'post',
+				dataType: 'json',
+				data: data,
+				success: function(response) {
 
-							} else {
+					if (response['result']) {
 
-								button.remove();
+						var posts = $(response['result']);
 
-							}
+						wrapper.append(posts);
 
+						wrapper.css('height', 'auto');
+
+						offset = offset + data.number;
+
+						data.offset = offset;
+
+						if (response['more']) {
+							button.removeClass('hidden');
+						} else {
+							button.addClass('hidden');
 						}
 
-					});
+						section.trigger('init');
 
-				})
+					} else {
 
-			}
+						button.addClass('hidden');
 
-		} else {
+					}
 
-			button.remove();
+				}
 
-		}
+			});
+
+		});
 
 	});
 
 });
-
 */
