@@ -1,0 +1,345 @@
+/* Styles for the content editor */
+
+.content {
+	display: block;
+	position: relative;
+
+	@include clear();
+
+	p, & > table, & > ul, & > ol, .table_wrapper {
+		margin-bottom: $margin_content;
+	}
+
+	ul, ol {
+		display: block;
+		position: relative;
+
+		ul, ol {
+			display: block;
+			margin-left: 0;
+			padding-top: 15px;
+		}
+
+	}
+
+	li {
+		display: block;
+		position: relative;
+		margin-bottom: 15px;
+		padding-left: 20px;
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
+	}
+
+	ul {
+
+		& > li {
+
+			&:before {
+				content: '';
+				display: block;
+				position: absolute;
+				top: 9px;
+				left: 0;
+				width: 6px;
+				height: 6px;
+				background-color: #ecc571;
+				border-radius: 50%;
+			}
+
+		}
+
+	}
+
+	ol {
+		counter-reset: list;
+
+		& > li {
+			counter-increment: list;
+
+			&:before {
+				content: counter(list) '.';
+				display: block;
+				position: absolute;
+				top: 0;
+				left: 0;
+				font-weight: 700;
+				text-align: center;
+			}
+
+		}
+
+	}
+
+	img {
+		width: auto;
+		height: auto;
+		max-width: 100%;
+	}
+
+	table {
+		width: auto;
+		max-width: 100%;
+		border-spacing: 0;
+		border-collapse: collapse;
+	}
+
+	td, th {
+		padding: 5px 10px;
+		border: 1px solid darken($color_background, 10%);
+	}
+
+	.table_wrapper {
+		overflow: auto;
+	}
+
+	& > :last-child {
+		margin-bottom: 0;
+	}
+
+	@include desktop_small {
+
+		p, & > table, & > ul, & > ol, .table_wrapper {
+			margin-bottom: ($margin_content - 5px);
+		}
+
+	}
+
+	@include tablet_large {
+
+		.table_wrapper {
+			display: block;
+			overflow-x: auto;
+			overflow-y: hidden;
+		}
+
+	}
+
+}
+
+
+/* WordPress default alignment classes */
+
+.content {
+
+	.alignleft {
+		float: left;
+		margin: 0 $margin_content $margin_content 0;
+	}
+
+	.alignright {
+		float: right;
+		margin: 0 0 $margin_content $margin_content;
+	}
+
+	.alignnone {
+		width: 100%;
+		height: auto;
+		margin: 0 0 $margin_content;
+	}
+
+	.aligncenter {
+		display: block;
+		max-width: 100%;
+		margin: 0 auto $margin_content;
+	}
+	
+	@include tablet_large {
+
+		.alignright, .alignleft {
+			float: none;
+			display: block;
+			margin: 0 auto #{$margin_content - 5px};
+			text-align: center;
+		}
+
+	}
+
+}
+
+
+/* Blockquote */
+
+.content {
+
+	blockquote {
+		display: block;
+		overflow: hidden;
+		margin-bottom: $margin_content;
+		padding: ($margin_content - 5px) $margin_content;
+		background: $color_background;
+
+		:last-child {
+			margin-bottom: 0;
+		}
+
+	}
+
+}
+
+
+/* Image with caption */
+
+.content {
+
+	.wp-caption-text {
+		display: block;
+		margin: 0;
+		text-align: center;
+	}
+
+	.wp-caption {
+		display: block;
+		box-sizing: border-box;
+		overflow: hidden;
+		margin-bottom: $margin_content;
+		padding: 10px;
+		background: $color_background;
+
+		.wp-caption-text {
+			padding: 10px 10px 0;
+		}
+
+		a, img {
+			display: block;
+			position: relative;
+			margin: 0;
+		}
+
+	}
+
+}
+
+
+/* Gallery */
+
+.content {
+
+	.gallery {
+		display: flex;
+		align-items: flex-start;
+		justify-content: flex-start;
+		flex-wrap: wrap;
+		position: relative;
+		overflow: hidden;
+		margin: 0 -5px 10px;
+
+		&-columns-1 .gallery-item {
+			width: 100%;
+		}
+
+		&-columns-2 .gallery-item {
+			width: 50%;
+		}
+
+		&-columns-4 .gallery-item {
+			width: 25%;
+		}
+
+		&-columns-5 .gallery-item {
+			width: 20%;
+		}
+
+		&-columns-6 .gallery-item {
+			width: 16.66%;
+		}
+
+		&-columns-7 .gallery-item {
+			width: 14.28%;
+		}
+
+		&-columns-8 .gallery-item {
+			width: 12.5%;
+		}
+
+		&-columns-9 .gallery-item {
+			width: 11.11%;
+		}
+
+		&-columns-6 .gallery-caption,
+		&-columns-7 .gallery-caption,
+		&-columns-8 .gallery-caption,
+		&-columns-9 .gallery-caption {
+			display: none;
+		}
+
+	}
+
+	.gallery-item {
+		display: inline-block;
+		box-sizing: border-box;
+		width: 33.33%;
+		margin: 0 0 10px;
+		padding: 0 5px;
+		vertical-align: top;
+	}
+
+	.gallery-icon {
+		display: block;
+		margin: 0;
+		padding: 0;
+
+		a, img {
+			display: block;
+			width: 100%;
+			height: auto;
+			margin: 0;
+			padding: 0;
+		}
+
+	}
+
+	.gallery-caption {
+		display: block;
+		padding: 10px;
+		background: $color_background;
+	}
+
+	@include tablet_large() {
+
+		.gallery {
+
+			&-columns-2 .gallery-item {
+				width: 100%;
+			}
+
+			&-columns-4 .gallery-item, &-columns-5 .gallery-item {
+				width: 50%;
+			}
+
+			&-columns-6 .gallery-item, &-columns-7 .gallery-item {
+				width: 33.33%;
+			}
+
+			&-columns-8 .gallery-item, &-columns-9 .gallery-item {
+				width: 25%;
+			}
+
+		}
+
+	}
+
+	@include phone_large() {
+
+		.gallery {
+
+			&-columns-3 .gallery-item, &-columns-4 .gallery-item, &-columns-5 .gallery-item {
+				width: 100%;
+			}
+
+			&-columns-6 .gallery-item, &-columns-7 .gallery-item {
+				width: 50%;
+			}
+
+			&-columns-8 .gallery-item, &-columns-9 .gallery-item {
+				width: 33.33%;
+			}
+
+		}
+
+	}
+
+}

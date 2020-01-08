@@ -1,0 +1,96 @@
+input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[type="tel"], input[type="number"], select, textarea {
+	display: block;
+	box-sizing: border-box;
+	position: relative;
+	width: 100%;
+	padding: 10px 15px;
+	background: $color_white;
+	border: 1px solid rgba($color_main, 0.2);
+	font-family: $font_main;
+	font-size: 16px;
+	font-weight: 400;
+	line-height: 1.25;
+	transition: 0.2s;
+	border-radius: 0;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
+	z-index: 2;
+
+	&:focus {
+		border-color: rgba($color_main, 0.4);
+		outline: none;
+	}
+
+}
+
+textarea {
+	overflow: auto;
+	resize: vertical;
+	height: 200px;
+}
+
+select::-ms-expand {
+	display: none;
+}
+
+.checkbox {
+	display: inline-block;
+
+	input {
+		display: block;
+		visibility: hidden;
+		position: absolute;
+		left: -1000px;
+
+		& + span {
+			display: block;
+			position: relative;
+			padding-left: 30px;
+			font-size: 16px;
+			font-weight: 400;
+			line-height: 1.25;
+			cursor: pointer;
+
+			&:before, &:after {
+				content: '';
+				display: block;
+				box-sizing: border-box;
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 20px;
+				height: 20px;
+				background-color: $color_white;
+				border: 1px solid #1f50b4;
+				z-index: 1;
+			}
+
+			&:after {
+				top: 6px;
+				left: 6px;
+				width: 8px;
+				height: 8px;
+				background-color: #1f50b4;
+				border: none;
+				opacity: 0;
+				z-index: 2;
+			}
+
+		}
+
+		&:checked + span {
+
+			&:before {
+				border-color: #1f50b4;
+			}
+
+			&:after {
+				opacity: 1;
+			}
+
+		}
+
+	}
+
+}

@@ -1,0 +1,34 @@
+%button {
+	display: inline-block;
+	box-sizing: border-box;
+	position: relative;
+	overflow: hidden;
+	margin: 0;
+	padding: 10px 20px;
+	background: #1f50b4;
+	border: 1px solid #1f50b4;
+	border-radius: 0;
+	font-size: 16px;
+	font-weight: 400;
+	line-height: 20px;
+	color: $color_white;
+	text-align: center;
+	text-transform: uppercase;
+	transition: 0.2s;
+	cursor: pointer;
+	z-index: 2;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
+
+	&:hover {
+		background-color: $color_white;
+		border-color: #1f50b4;
+		color: #1f50b4;
+	}
+
+}
+
+.button, input[type="submit"], input[type="button"], button {
+	@extend %button;
+}

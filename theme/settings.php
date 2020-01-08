@@ -25,10 +25,10 @@ $settings['assets'] = array(
 	'template' => array(
 		'deps' => array('jquery'),
 		'style' => array(
-            'css/style.css',
+            'build/style.css',
         ),
 		'script' => array(
-            'scripts/theme.js',
+            'build/scripts.js',
         ),
 		'localize' => array(
 			'ajaxurl' => admin_url('admin-ajax.php'),

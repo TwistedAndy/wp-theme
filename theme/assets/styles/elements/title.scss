@@ -1,0 +1,19 @@
+%title {
+	display: block;
+	position: relative;
+	font-size: 36px;
+	font-weight: 500;
+	line-height: 1.1;
+	text-transform: uppercase;
+	margin: 0 0 20px;
+
+	@include desktop_small {
+		font-size: 28px;
+		margin-bottom: 15px;
+	}
+
+	@include tablet_small {
+		font-size: 24px;
+	}
+
+}

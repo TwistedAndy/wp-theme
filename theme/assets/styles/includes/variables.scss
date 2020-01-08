@@ -1,11 +1,16 @@
 $font_main: Arial, sans-serif;
 
 $color_main: #333333;
+$color_white: #ffffff;
 $color_background: #f5f5f5;
 
-$content_margin: 25px;
+$margin_content: 25px;
 
-$desktop_large: 1210;
+$margin_desktop: 60px;
+$margin_tablet: 40px;
+$margin_phone: 30px;
+
+$desktop_large: 1170 + 30 * 2;
 $desktop_small: 1024;
 
 $tablet_large: 768;

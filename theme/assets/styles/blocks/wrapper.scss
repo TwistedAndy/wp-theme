@@ -1,0 +1,50 @@
+.wrapper_box {
+	display: block;
+	position: relative;
+
+	.fixed {
+		display: flex;
+		align-items: flex-start;
+		flex-direction: row;
+		flex-wrap: nowrap;
+	}
+
+	.main {
+		display: block;
+		flex-basis: 0;
+		flex-grow: 1;
+		position: relative;
+		order: 1;
+	}
+
+	.sidebar {
+		display: block;
+		flex-grow: 0;
+		flex-shrink: 0;
+		width: 270px;
+		margin-left: 30px;
+		order: 2;
+	}
+
+	@include desktop_small {
+
+		.fixed {
+			flex-wrap: wrap;
+			justify-content: center;
+		}
+
+		.main {
+			width: 100%;
+			order: 1;
+		}
+
+		.sidebar {
+			margin-left: 0;
+			width: 100%;
+			max-width: 320px;
+			order: 2;
+		}
+
+	}
+
+}

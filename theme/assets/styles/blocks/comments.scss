@@ -1,13 +1,8 @@
-/* Стили для оформления комментариев */
-
-.comments, .comment, .comment_avatar, .comment_inner, .comment_info, .comment_body {
-	display: block;
-	position: relative;
-	overflow: hidden;
-}
+/* Comment form */
 
 .comments {
-	margin-bottom: 30px;
+
+	@extend %block;
 
 	h3 {
 		display: block;
@@ -18,26 +13,23 @@
 		color: #333333;
 	}
 
-	.pagination {
-		margin-top: 30px;
-	}
-
 }
 
 .comment {
+	display: block;
+	position: relative;
 
 	.comment_inner {
-		padding: 15px;
-		border-radius: 10px;
-		background: #f5f5f5;
+		display: flex;
+		align-items: flex-start;
 	}
 
 	& + .comment, .comment {
-		margin-top: 20px;
+		margin-top: 30px;
 	}
 
 	.comment {
-		margin-left: 35px;
+		margin-left: 30px;
 	}
 
 	&.depth-3 .comment {
@@ -45,47 +37,44 @@
 	}
 
 	.comment_avatar {
-		float: left;
+		display: block;
+		position: relative;
+		flex-grow: 0;
+		flex-shrink: 0;
+		margin-right: 20px;
 		width: 60px;
 		height: 60px;
 
 		img {
+			display: block;
+			position: relative;
 			width: 100%;
 			height: auto;
-			border-radius: 5px;
-		}
-
-		& + .comment_body {
-			margin-left: 75px;
 		}
 
 	}
 
+	.comment_body {
+		display: block;
+		position: relative;
+		flex-grow: 1;
+	}
+
 	.comment_info {
-		margin-bottom: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 10px;
 	}
 
 	.comment_author {
 		display: block;
-		float: left;
-		font-weight: bold;
-		font-size: 15px;
+		font-weight: 700;
 	}
 
 	.comment_date {
 		display: block;
-		float: right;
-		font-size: 14px;
-		color: #666666;
-	}
-
-	.comment_body {
-		font-style: normal;
-
-		p {
-			margin-bottom: 12px;
-		}
-
+		margin-left: auto;
 	}
 
 	.comment_on_moderation {
@@ -122,7 +111,8 @@
 
 }
 
-/* Стили для оформления формы комментариев */
+
+/* Comment reply form */
 
 .comment-reply-title {
 	display: block;
@@ -150,48 +140,8 @@
 }
 
 .comment-respond {
-	width: auto;
 	max-width: 600px;
-	margin: 30px auto;
-
-	input[type="text"], textarea {
-		display: block;
-		box-sizing: border-box;
-		width: auto;
-		max-width: 200px;
-		height: auto;
-		padding: 5px 10px;
-		margin: 0 0 15px;
-		border: 1px solid #cccccc;
-		border-radius: 5px;
-		font-weight: normal;
-		font-size: 14px;
-		line-height: 130%;
-	}
-
-	textarea {
-		overflow: auto;
-		max-width: 100%;
-		height: 160px;
-	}
-
-	input[type="submit"] {
-		display: inline-block;
-		padding: 5px 15px;
-		border: 0;
-		border-radius: 5px;
-		background: #aaaaaa;
-		text-align: center;
-		font-size: 15px;
-		line-height: 130%;
-		color: #ffffff;
-		cursor: pointer;
-
-		&:hover {
-			background: #cccccc;
-		}
-
-	}
+	margin: 0 auto 30px;
 
 	p {
 		margin-bottom: 15px;

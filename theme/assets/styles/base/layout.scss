@@ -1,0 +1,106 @@
+html, body {
+	height: 100%;
+}
+
+#site {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	overflow: hidden;
+	min-height: 100%;
+}
+
+.main_box {
+	display: block;
+	flex-grow: 1;
+	flex-shrink: 0;
+	overflow: hidden;
+	position: relative;
+	width: 100%;
+}
+
+.fixed {
+	box-sizing: border-box;
+	position: relative;
+	width: 100%;
+	max-width: $desktop_large + px;
+	margin: 0 auto;
+	padding: 0 30px;
+	z-index: 2;
+
+	.fixed {
+		padding: 0;
+	}
+
+	@include desktop_small {
+		padding: 0 20px;
+	}
+
+}
+
+
+%block {
+	display: block;
+	position: relative;
+	margin-bottom: $margin_desktop;
+	z-index: 2;
+
+	.header_box + & {
+		margin-top: $margin_desktop;
+	}
+
+	@include desktop_small {
+		margin-bottom: $margin_tablet;
+
+		.header_box + & {
+			margin-top: $margin_tablet;
+		}
+
+	}
+
+	@include tablet_small {
+		margin-bottom: $margin_phone;
+
+		.header_box + & {
+			margin-top: $margin_phone;
+		}
+
+	}
+
+}
+
+.has_background {
+	padding: $margin_desktop 0;
+	background-color: $color_background;
+
+	&:last-child {
+		margin-bottom: 0;
+	}
+
+	.header_box + & {
+		margin-top: 0;
+	}
+
+	.has_background + & {
+		margin-top: -$margin_desktop;
+	}
+
+	@include desktop_small {
+		padding: $margin_tablet 0;
+
+		.has_background + & {
+			margin-top: -$margin_tablet;
+		}
+
+	}
+
+	@include tablet_small {
+		padding: $margin_phone 0;
+
+		.has_background + & {
+			margin-top: -$margin_phone;
+		}
+
+	}
+
+}

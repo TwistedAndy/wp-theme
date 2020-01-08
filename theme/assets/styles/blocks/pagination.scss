@@ -1,14 +1,15 @@
-/* Стили для пагинации */
-
-.pagination {
-	display: block;
-	position: relative;
+.pagination_box {
 	text-align: center;
+
+	@extend %block;
 
 	span, a {
 		display: inline-block;
-		margin: 0 2px;
-		padding: 2px 7px;
+		margin: 0 3px;
+		font-size: 16px;
+		font-weight: 400;
+		line-height: 1.25;
+		padding: 2px 6px;
 		text-decoration: none;
 		vertical-align: middle;
 	}

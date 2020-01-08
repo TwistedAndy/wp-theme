@@ -1,16 +1,18 @@
 @mixin clear() {
-	*zoom: 1;
+
 	&:after {
 		display: table;
 		content: '';
 		clear: both;
 	}
+
 }
 
 @mixin justify() {
 	text-align: justify;
 	line-height: 0;
 	font-size: 1px;
+
 	&:after {
 		display: inline-block;
 		content: '';
@@ -19,21 +21,12 @@
 		visibility: hidden;
 		overflow: hidden;
 	}
-}
 
-@mixin opacity($opacity) {
-	opacity: $opacity;
-	$opacity-ie: $opacity * 100;
-	filter: alpha(opacity=$opacity-ie);
 }
 
 @mixin placeholder() {
 
 	&:-ms-input-placeholder {
-		@content
-	}
-
-	&:-moz-placeholder {
 		@content
 	}
 
