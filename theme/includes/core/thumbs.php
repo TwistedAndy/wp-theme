@@ -111,10 +111,40 @@ function tw_create_thumb($image_url, $size) {
 					$editor = wp_get_image_editor($image_path);
 
 					if (!is_wp_error($editor)) {
+
+						$image_size = $editor->get_size();
+
+						if (!empty($image_size['width']) and !empty($image_size['height'])) {
+
+							$image_width = $image_size['width'];
+							$image_height = $image_size['height'];
+
+							if (empty($crop) or empty($width) or empty($height)) {
+								$ratio = $image_width / $image_height;
+							} else {
+								$ratio = $width / $height;
+							}
+
+							if ($width > 0 and $width > $image_width) {
+								$width = $image_width;
+								$height = round($height / $ratio);
+							}
+
+							if ($height > 0 and $height > $image_height) {
+								$height = $image_height;
+								$width = round($width / $ratio);
+							}
+
+						}
+
 						$editor->resize($width, $height, $crop);
+
 						$editor->save($directory . $filename);
+
 					} else {
+
 						return $image_url;
+
 					}
 
 				}
