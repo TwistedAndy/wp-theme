@@ -304,17 +304,17 @@ function tw_get_thumb_link($image, $size) {
  * @param string|array      $size              Size of the thumbnail
  * @param string            $before            Code before thumbnail
  * @param string            $after             Code after thumbnail
- * @param array             $atts              Array with attributes
+ * @param array             $attributes        Array with attributes
  * @param bool              $search_in_content Search the images in the post content
  *
  * @return string
  */
 
-function tw_thumb($image, $size = '', $before = '', $after = '', $atts = array(), $search_in_content = false) {
+function tw_thumb($image, $size = '', $before = '', $after = '', $attributes = array(), $search_in_content = false) {
 
 	$thumb = tw_get_thumb_link($image, $size);
 
-	if ($thumb == '' and $search_in_content and is_object($image) and !empty($image->post_content)) {
+	if ($search_in_content and empty($thumb) and $image instanceof WP_Post and !empty($image->post_content)) {
 		$thumb = tw_create_thumb(tw_find_image($image->post_content), $size);
 	}
 
@@ -323,9 +323,9 @@ function tw_thumb($image, $size = '', $before = '', $after = '', $atts = array()
 		$link_href = false;
 		$link_image_size = false;
 
-		if (!empty($atts['link'])) {
+		if (!empty($attributes['link'])) {
 
-			if ($atts['link'] == 'url' and is_object($image) and $image instanceof WP_Post) {
+			if ($attributes['link'] == 'url' and is_object($image) and $image instanceof WP_Post) {
 
 				$link_href = get_permalink($image);
 
@@ -333,38 +333,26 @@ function tw_thumb($image, $size = '', $before = '', $after = '', $atts = array()
 
 				$sizes = tw_get_thumb_sizes();
 
-				if (is_array($atts['link']) or $atts['link'] == 'full' or !empty($sizes[$atts['link']])) {
-					$link_image_size = $atts['link'];
+				if (is_array($attributes['link']) or $attributes['link'] == 'full' or !empty($sizes[$attributes['link']])) {
+					$link_image_size = $attributes['link'];
 				} else {
-					$link_href = $atts['link'];
+					$link_href = $attributes['link'];
 				}
 
 			}
 
 		}
 
-		if (!empty($atts['link_class'])) {
-			$link_class = ' class="' . $atts['link_class'] . '"';
-		} else {
-			$link_class = '';
-		}
-
-		if (!empty($atts['class'])) {
-			$thumb_class = ' class="' . $atts['class'] . '"';
-		} else {
-			$thumb_class = '';
-		}
-
 		if (is_object($image) and $image instanceof WP_Post) {
-			$image = get_post_thumbnail_id($image);
+			$image = get_post_meta($image->ID, '_thumbnail_id', true);
 		} elseif (is_array($image) and !empty($image['id'])) {
 			$image = $image['id'];
 		}
 
 		if (is_numeric($image)) {
-			$alt = trim(strip_tags(get_post_meta($image, '_wp_attachment_image_alt', true)));
-		} else {
-			$alt = '';
+			$attributes['alt'] = trim(strip_tags(get_post_meta($image, '_wp_attachment_image_alt', true)));
+		} elseif (empty($attributes['alt'])) {
+			$attributes['alt'] = '';
 		}
 
 		if ($link_image_size and !$link_href) {
@@ -372,12 +360,47 @@ function tw_thumb($image, $size = '', $before = '', $after = '', $atts = array()
 		}
 
 		if ($link_href) {
+
+			$link_class = '';
+
+			if (!empty($attributes['link_class'])) {
+				$link_class = ' class="' . $attributes['link_class'] . '"';
+			}
+
 			$before = $before . '<a href="' . $link_href . '"' . $link_class . '>';
 			$after = '</a>' . $after;
+
+		}
+
+		if (!empty($attributes['lazy'])) {
+			$attributes['loading'] = 'lazy';
+		}
+
+		if (!empty($attributes['image_before'])) {
+			$before = $before . $attributes['image_before'];
+		}
+
+		if (!empty($attributes['image_after'])) {
+			$after = $attributes['image_after'] . $after;
+		}
+
+		$data = array();
+		$list = array('loading', 'alt', 'class', 'id', 'width', 'height', 'style');
+
+		foreach ($attributes as $key => $attribute) {
+			if (in_array($key, $list) or strpos($attribute, 'data') === 0) {
+				$data[] = $key . '="' . esc_attr($attribute) . '"';
+			}
+		}
+
+		if ($data) {
+			$data = ' ' . implode(' ', $data);
+		} else {
+			$data = '';
 		}
 
 		if ($thumb) {
-			$thumb = $before . '<img src="' . $thumb . '" alt="' . $alt . '"' . $thumb_class . ' />' . $after;
+			$thumb = $before . '<img src="' . $thumb . '"' . $data . ' />' . $after;
 		}
 
 	}
