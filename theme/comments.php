@@ -1,21 +1,18 @@
 <?php if (post_password_required()) return; ?>
 
-<div id="comments">
+<section class="comments_box">
 
 	<?php if (have_comments()) { ?>
 
-		<div class="heading_box">Комментарии</div>
+		<h2>Comments</h2>
 
-		<div class="comments_box">
-
+		<div class="comments">
 			<?php wp_list_comments(array('callback' => 'tw_comment', 'style' => 'div', 'format' => 'xhtml')); ?>
-
 		</div>
 
 		<?php echo tw_pagination(array('type' => 'comments')); ?>
 
 	<?php } ?>
-
 
 	<?php
 
@@ -35,17 +32,23 @@
 
 	comment_form(array(
 		'fields' => array(
-			'author' => '<div class="fields"><div class="field"><input placeholder="Ваше имя" name="author" type="text" value="' . esc_attr($commenter['comment_author']) . '" size="30" required="required" /></div>',
-			'email' => '<div class="field"><input placeholder="Контактная почта" name="email" type="text" value="' . esc_attr($commenter['comment_author_email']) . '" size="30" required="required" /></div></div>'
+			'author' => '<input placeholder="' . __('Name') . '" name="author" type="text" value="' . esc_attr($commenter['comment_author']) . '" required />',
+			'email' => '<input placeholder="' . __('Email') . '" name="email" type="text" value="' . esc_attr($commenter['comment_author_email']) . '" required />'
 		),
-		'comment_field' => '<textarea id="comment" name="comment" cols="45" rows="8" required="required" placeholder="Ваш комментарий"></textarea>',
+		'comment_field' => '<textarea id="comment" name="comment" required="required" placeholder="' . __('Comment', 'noun') . '" maxlength="65525"></textarea>',
 		'must_log_in' => '<p class="must-log-in">' . $login_text . '</p>',
 		'logged_in_as' => '<p class="logged-in-as">' . $logout_text . '</p>',
-		'label_submit' => 'Комментировать',
-		'title_reply' => 'Добавить комментарий',
-		'title_reply_before' => '<div id="reply-title" class="comment-reply-title">',
-		'title_reply_after' => '</div>',
-		'submit_field' => '<div class="buttons form-submit">%1$s %2$s</div>',
-	)); ?>
+		'label_submit' => __('Post Comment'),
+		'title_reply' => __('Leave a Reply'),
+		'title_reply_before' => '<h2 id="reply-title" class="comment-reply-title">',
+		'title_reply_after' => '</h2>',
+		'comment_notes_before' => '',
+		'submit_field' => '<div class="form-submit">%1$s %2$s</div>',
+	));
 
-</div>
+	?>
+
+</section>
+
+
+

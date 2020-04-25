@@ -1,154 +1,154 @@
-/* Comment form */
-
-.comments {
+.comments_box {
 
 	@extend %block;
 
-	h3 {
-		display: block;
-		margin-bottom: 12px;
-		font-weight: normal;
-		font-size: 18px;
-		line-height: 130%;
-		color: #333333;
+	h2 {
+		@extend h3;
+		margin-bottom: 20px;
+		text-transform: none;
 	}
 
-}
+	p {
+		margin: 0 0 15px;
 
-.comment {
-	display: block;
-	position: relative;
+		&:last-child {
+			margin-bottom: 0;
+		}
 
-	.comment_inner {
+	}
+
+	.comments, .comment {
+		display: block;
+		position: relative;
+		margin-bottom: 40px;
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
+	}
+
+	.comment {
+		margin-bottom: 30px;
+
+		&.depth-3 .comment {
+			margin-left: 0;
+		}
+
+		.comment {
+			margin-top: 30px;
+			margin-left: 40px;
+		}
+
+	}
+
+	.inner {
 		display: flex;
 		align-items: flex-start;
 	}
 
-	& + .comment, .comment {
-		margin-top: 30px;
-	}
-
-	.comment {
-		margin-left: 30px;
-	}
-
-	&.depth-3 .comment {
-		margin-left: 0;
-	}
-
-	.comment_avatar {
+	.photo {
 		display: block;
-		position: relative;
 		flex-grow: 0;
 		flex-shrink: 0;
-		margin-right: 20px;
 		width: 60px;
-		height: 60px;
+		margin-right: 20px;
 
 		img {
 			display: block;
-			position: relative;
 			width: 100%;
 			height: auto;
 		}
 
 	}
 
-	.comment_body {
+	.contents {
 		display: block;
 		position: relative;
+		overflow: hidden;
 		flex-grow: 1;
+		min-width: 0;
 	}
 
-	.comment_info {
+	.heading {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		margin-bottom: 10px;
+		margin-bottom: 12px;
 	}
 
-	.comment_author {
+	.author {
 		display: block;
+		margin-right: auto;
 		font-weight: 700;
 	}
 
-	.comment_date {
-		display: block;
-		margin-left: auto;
+	.date {
+		margin-left: 10px;
 	}
 
-	.comment_on_moderation {
-		font-style: italic;
-		color: #990000;
-	}
+	.content {
+		margin: 0;
 
-	.comment_buttons {
-		margin-top: 12px;
-		text-align: right;
-		font-size: 13px;
-		line-height: 130%;
-		color: #990000;
+		p {
+			margin-bottom: 15px;
 
-		a {
-			display: inline-block;
-			padding: 3px 10px;
-			border-radius: 5px;
-			background: #aaaaaa;
-			color: #ffffff;
-			text-decoration: none;
-
-			&:hover {
-				background: #cccccc;
-			}
-
-			& + a {
-				margin-left: 5px;
+			&:last-child {
+				margin-bottom: 0;
 			}
 
 		}
 
 	}
 
-}
-
-
-/* Comment reply form */
-
-.comment-reply-title {
-	display: block;
-	margin-bottom: 12px;
-	font-weight: normal;
-	font-size: 18px;
-	line-height: 130%;
-	color: #333333;
-
-	a {
-		color: #953c21;
+	.comment_on_moderation {
+		color: #990000;
+		font-style: italic;
 	}
 
-	small, small a {
-		font-size: 16px;
-		color: #555555;
+	.buttons {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		margin-top: 15px;
+	}
+
+	.comment-respond {
+		display: block;
+		position: relative;
+		max-width: 480px;
+		margin: 0 auto;
+	}
+
+	.comment-reply-title {
+		line-height: 24px;
+
+		a {
+			color: #953c21;
+		}
+
+		small {
+			display: inline-block;
+			float: right;
+			line-height: 1;
+		}
+
+	}
+
+	.buttons a, .comment-reply-title small a {
+		display: block;
+		padding: 4px 10px;
+		margin-left: 10px;
+		background: #777777;
+		color: #ffffff;
+		font-size: 12px;
+		font-weight: 600;
+		line-height: 16px;
 		text-decoration: none;
-		text-transform: lowercase;
-	}
+		transition: 0.2s;
+		cursor: pointer;
 
-	small a:hover {
-		text-decoration: underline;
-	}
-
-}
-
-.comment-respond {
-	max-width: 600px;
-	margin: 0 auto 30px;
-
-	p {
-		margin-bottom: 15px;
-
-		&.form-submit {
-			overflow: hidden;
-			width: 100%;
+		&:hover {
+			background: #aaaaaa;
 		}
 
 	}
@@ -168,6 +168,57 @@
 
 	.login {
 		color: #953c21;
+	}
+
+	.fields {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		margin: 0 -10px;
+
+		.field {
+			width: 100%;
+			padding: 0 10px;
+
+			&_author, &_email {
+				width: 50%;
+			}
+
+		}
+
+	}
+
+	.field {
+		display: block;
+		position: relative;
+		box-sizing: border-box;
+		margin: 0 0 20px;
+	}
+
+	@include desktop_small {
+
+		.comment {
+			margin-bottom: 20px;
+
+			.comment {
+				margin-top: 20px;
+				margin-left: 20px;
+			}
+
+		}
+
+	}
+
+	@include tablet_small {
+
+		.fields {
+
+			.field {
+				width: 100%;
+			}
+
+		}
+
 	}
 
 }
