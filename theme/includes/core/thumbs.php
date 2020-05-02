@@ -127,12 +127,12 @@ function tw_create_thumb($image_url, $size) {
 
 							if ($width > 0 and $width > $image_width) {
 								$width = $image_width;
-								$height = round($height / $ratio);
+								$height = round($width / $ratio);
 							}
 
 							if ($height > 0 and $height > $image_height) {
 								$height = $image_height;
-								$width = round($width / $ratio);
+								$width = round($height / $ratio);
 							}
 
 						}
