@@ -21,7 +21,7 @@ function tw_ajax_load_posts() {
 
 	if (isset($_POST['noncer']) and wp_verify_nonce($_POST['noncer'], 'ajax-nonce')) {
 
-		$fields = array('offset', 'number');
+		$fields = array('offset', 'number', 'author');
 
 		$params = array();
 
@@ -33,52 +33,43 @@ function tw_ajax_load_posts() {
 			}
 		}
 
-		if (!empty($_REQUEST['terms']) and is_array($_REQUEST['terms'])) {
-
-			$params['terms'] = array();
-
-			foreach ($_REQUEST['terms'] as $object) {
-				$params['terms'][] = intval($object);
-			}
-
-		}
-
 		$template = 'post';
 
-		if (!empty($_REQUEST['template']) and in_array($_REQUEST['template'], array('post', 'testimonial', 'community', 'gallery'))) {
+		if (!empty($_REQUEST['template']) and in_array($_REQUEST['template'], array('post', 'offer', 'coupon'))) {
 			$template = esc_attr($_REQUEST['template']);
 		}
 
 		if ($params['number'] > 0) {
 
 			$args = array(
-				'posts_per_page' => $params['number'],
-				'offset' => $params['offset']
+				'post_status' => 'publish',
+				'offset' => $params['offset'],
+				'posts_per_page' => $params['number']
 			);
 
 			if (!empty($_REQUEST['search'])) {
 				$args['s'] = esc_attr($_REQUEST['search']);
 			}
 
-			if (isset($_REQUEST['type'])) {
+			if (!empty($_REQUEST['type'])) {
 
 				$types = get_post_types(array('publicly_queryable' => true));
 
 				if (in_array($_REQUEST['type'], $types)) {
-
 					$args['post_type'] = $_REQUEST['type'];
-
 				}
 
 			}
 
-			if (!empty($params['terms'])) {
+			if (!empty($_REQUEST['terms']) and is_array($_REQUEST['terms'])) {
 
 				$tax_query = array();
 
 				$terms = array();
 
-				foreach ($params['terms'] as $term_id) {
+				foreach ($_REQUEST['terms'] as $term_id) {
+
+					$term_id = intval($term_id);
 
 					if ($term_id > 0) {
 
@@ -108,6 +99,63 @@ function tw_ajax_load_posts() {
 				if ($tax_query) {
 
 					$args['tax_query'] = array_merge(array('relation' => 'AND'), $tax_query);
+
+				}
+
+			}
+
+			if (!empty($_REQUEST['author'])) {
+				$args['author'] = $params['author'];
+			}
+
+			if (!empty($_REQUEST['query_meta']) and is_array($_REQUEST['query_meta'])) {
+				$args['meta_query'] = $_REQUEST['query_meta'];
+			}
+
+			if (!empty($_REQUEST['query_order']) and is_array($_REQUEST['query_order'])) {
+
+				foreach ($_REQUEST['query_order'] as $key => $value) {
+					$key = trim(esc_attr($key));
+					$value = trim(esc_attr($value));
+					$args['orderby'][$key] = $value;
+				}
+
+			}
+
+			if (!empty($_REQUEST['query_direction']) and in_array($_REQUEST['query_direction'], array('ASC', 'DESC'))) {
+				$args['order'] = $_REQUEST['query_direction'];
+			}
+
+			if (!empty($_REQUEST['order']) and in_array($_REQUEST['order'], array('date', 'views', 'title', 'comment_count', 'author'))) {
+
+				$order = esc_attr($_REQUEST['order']);
+
+				$args['orderby'] = $order;
+
+				$args['order'] = 'DESC';
+
+				if ($order == 'title') {
+
+					$args['order'] = 'ASC';
+
+				} elseif ($order == 'views') {
+
+					$args['meta_query']['views'] = array(
+						'key' => 'views',
+						'compare' => 'EXISTS',
+					);
+
+				}
+
+				if (is_array($args['orderby'])) {
+
+					$args['orderby'][$order] = $args['order'];
+
+				} else {
+
+					$args['orderby'] = array(
+						$order => $args['order']
+					);
 
 				}
 
@@ -192,8 +240,8 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 		if ($tax_query) {
 			
 			foreach ($tax_query as $tax) {
-				
-				if (is_array($tax['terms']) and (empty($tax['operator']) or $tax['operator'] == 'IN')) {
+
+				if (is_array($tax) and is_array($tax['terms']) and (empty($tax['operator']) or $tax['operator'] == 'IN')) {
 					
 					$terms = array_merge($terms, $tax['terms']);
 					
@@ -211,6 +259,12 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 		$search = get_search_query();
 	}
 
+	if ($query->is_author()) {
+		$author = get_queried_object_id();
+	} else {
+		$author = 0;
+	}
+
 	$args = array(
 		'number' => $number,
 		'offset' => $offset,
@@ -218,18 +272,23 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 		'terms' => $terms,
 		'search' => $search,
 		'wrapper' => $wrapper,
-		'template' => $template
+		'template' => $template,
+		'author' => $author,
+		'query_meta' => $query->get('meta_query'),
+		'query_order' => $query->get('orderby'),
+		'query_direction' => $query->get('order')
 	);
 
 	?>
 
 	<div class="buttons">
-		<div class="button<?php echo ($hidden ? ' hidden' : ''); ?>" data-loader="<?php echo htmlspecialchars(json_encode($args), ENT_QUOTES, 'UTF-8'); ?>">Load More</div>
+		<div class="button outlined<?php echo ($hidden ? ' hidden' : ''); ?>" data-loader="<?php echo htmlspecialchars(json_encode($args), ENT_QUOTES, 'UTF-8'); ?>">Show More</div>
 	</div>
 
 	<?php
 
 }
+
 
 /*
 

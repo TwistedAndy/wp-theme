@@ -22,7 +22,7 @@ function tw_get_views($post_id = false) {
 		$post_id = get_the_ID();
 	}
 
-	$count = intval(get_post_meta($post_id, 'post_views_count', true));
+	$count = intval(get_post_meta($post_id, 'views', true));
 
 	return $count;
 
@@ -45,6 +45,6 @@ function tw_set_views($post_id = false) {
 
 	$count++;
 
-	update_post_meta($post_id, 'post_views_count', $count);
+	update_post_meta($post_id, 'views', $count);
 
 }
