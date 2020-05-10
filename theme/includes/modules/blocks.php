@@ -4,7 +4,7 @@
  *
  * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
- * @version 2.0
+ * @version 2.1
  *
  */
 
@@ -26,15 +26,11 @@ function tw_get_blocks($blocks = 'blocks', $post_id = false) {
 		$blocks = get_field($blocks, $post_id);
 	}
 
-	if ($blocks and is_array($blocks)) {
-		
+	if (is_array($blocks)) {
+
 		foreach ($blocks as $block) {
 
-			if (!empty($block['acf_fc_layout'])) {
-
-				tw_get_block($block);
-
-			}
+			tw_get_block($block);
 
 		}
 
@@ -59,7 +55,7 @@ function tw_get_block($block) {
 
 	$block = tw_get_block_defaults($block);
 
-	if (is_array($block) and !empty($block['acf_fc_layout'])) {
+	if (is_array($block) and !empty($block['acf_fc_layout']) and empty($block['hidden'])) {
 
 		$filename = TW_ROOT . '/blocks/' . $block['acf_fc_layout'] . '.php';
 
@@ -138,5 +134,45 @@ function tw_get_block_defaults($block) {
 	}
 
 	return $block;
+
+}
+
+
+/**
+ * Output the block attributes based on the settings array
+ *
+ * @param string|array $class The block default class
+ * @param array  $block The block array
+ *
+ * @return string
+ */
+
+function tw_block_attributes($class, $block) {
+
+	$classes = array();
+
+	if (is_string($class)) {
+		$classes = array($class);
+	} elseif (is_array($class)) {
+		$classes = $class;
+	}
+
+	$settings = array();
+
+	if (!empty($block['settings'])) {
+		$settings = $block['settings'];
+	}
+
+	if (!empty($settings['has_background'])) {
+		$classes[] = 'has_background';
+	}
+
+	$result = ' class="' . implode(' ', $classes) . '"';
+
+	if (!empty($settings['block_id'])) {
+		$result .= ' id="' . $settings['block_id'] . '"';
+	}
+
+	return $result;
 
 }
