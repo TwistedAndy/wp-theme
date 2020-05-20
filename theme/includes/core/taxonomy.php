@@ -258,59 +258,60 @@ function tw_post_term_link($post_id = false, $taxonomy = 'category', $class = ''
 
 
 /**
- * Check if the current post or category belongs to a given categories
+ * Check if the current post or term belongs to specified terms
  *
- * @param array|int      $category_ids         Single category ID or an array with IDs to check
- * @param array|int|bool $current_category_ids Current category ID. Set false to use current category ID
- * @param bool           $check_parents        Check the parent categories for the current ones
- * @param bool           $check_children       Check the children categories for the current ones
+ * @param array|int      $terms          Single category ID or an array with IDs to check
+ * @param array|int|bool $current_terms  Current category ID. Set false to use current category ID
+ * @param string         $taxonomy       Term taxonomy
+ * @param bool           $check_parents  Check the parent categories for the current ones
+ * @param bool           $check_children Check the children categories for the current ones
  *
  * @return bool
  */
 
-function tw_in_category($category_ids, $current_category_ids = false, $check_parents = true, $check_children = false) {
+function tw_in_terms($terms, $taxonomy = 'category', $current_terms = false, $check_parents = true, $check_children = false) {
 
 	$result = false;
 
-	if (is_array($category_ids)) {
-		$category_ids = array_map('intval', $category_ids);
+	if (is_array($terms)) {
+		$terms = array_map('intval', $terms);
 	} else {
-		$category_ids = array(intval($category_ids));
+		$terms = array(intval($terms));
 	}
 
-	if ($current_category_ids or is_single()) {
+	if ($current_terms or is_single()) {
 
-		if ($current_category_ids) {
+		if ($current_terms) {
 
-			if (is_array($current_category_ids)) {
-				$categories = array_map('intval', $current_category_ids);
+			if (is_array($current_terms)) {
+				$current_terms = array_map('intval', $current_terms);
 			} else {
-				$categories = array(intval($current_category_ids));
+				$current_terms = array(intval($current_terms));
 			}
 
 		} else {
 
-			$categories = tw_post_terms(false, 'category',  true, true);
+			$current_terms = tw_post_terms(false, $taxonomy, true, true);
 
 		}
 
-		if (is_array($categories) and $categories) {
+		if (is_array($current_terms) and $current_terms) {
 
-			foreach ($category_ids as $category_id) {
+			foreach ($terms as $term) {
 
-				if (in_array($category_id, $categories)) {
+				if (in_array($term, $current_terms)) {
 
 					$result = true;
 
 				} elseif ($check_parents or $check_children) {
 
-					foreach ($categories as $category) {
+					foreach ($current_terms as $current_term) {
 
-						$category_thread = tw_term_thread($category, $check_parents, $check_children);
+						$term_thread = tw_term_thread($current_term, $check_parents, $check_children);
 
-						if (is_array($category_thread) and $category_thread) {
+						if (is_array($term_thread) and $term_thread) {
 
-							if (in_array($category_id, $category_thread)) {
+							if (in_array($term, $term_thread)) {
 								$result = true;
 								break;
 							}
@@ -329,22 +330,22 @@ function tw_in_category($category_ids, $current_category_ids = false, $check_par
 
 		}
 
-	} elseif (is_category()) {
+	} elseif (is_category() or is_tax()) {
 
-		$current_category_id = intval(get_query_var('cat'));
+		$current_term = get_queried_object_id();
 
-		foreach ($category_ids as $category_id) {
+		foreach ($terms as $term) {
 
-			if ($category_id == $current_category_id) {
+			if ($term == $current_term) {
 
 				$result = true;
 
 			} else {
 
-				$category_thread = tw_term_thread($category_id, false, true);
+				$term_thread = tw_term_thread($term, false, true);
 
-				if (is_array($category_thread) and $category_thread) {
-					$result = in_array($current_category_id, $category_thread);
+				if (is_array($term_thread) and $term_thread) {
+					$result = in_array($current_term, $term_thread);
 				}
 
 			}

@@ -22,21 +22,31 @@
 
 function tw_get_blocks($blocks = 'blocks', $post_id = false) {
 
+	ob_start();
+
 	if (is_string($blocks)) {
 		$blocks = get_field($blocks, $post_id);
 	}
 
-	if (is_array($blocks)) {
-
+	if ($blocks and is_array($blocks)) {
+		
 		foreach ($blocks as $block) {
 
-			tw_get_block($block);
+			if (!empty($block['acf_fc_layout'])) {
+
+				tw_get_block($block);
+
+			}
 
 		}
 
 	}
 
-	return false;
+	$result = ob_get_contents();
+
+	ob_end_clean();
+
+	return $result;
 
 }
 
