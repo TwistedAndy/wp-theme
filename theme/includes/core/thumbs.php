@@ -128,12 +128,12 @@ function tw_create_thumb($image_url, $size, $image_id = 0) {
 
 						$image_size = $editor->get_size();
 
-						if (!empty($image_size['width']) and !empty($image_size['height'])) {
+						if (!empty($crop) and !empty($image_size['width']) and !empty($image_size['height'])) {
 
 							$image_width = $image_size['width'];
 							$image_height = $image_size['height'];
 
-							if (empty($crop) or empty($width) or empty($height)) {
+							if (empty($width) or empty($height)) {
 								$ratio = $image_width / $image_height;
 							} else {
 								$ratio = $width / $height;
