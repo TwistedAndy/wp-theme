@@ -72,6 +72,42 @@ function tw_term_thread($term_id = false, $include_parents = true, $include_chil
 
 
 /**
+ * Convert a simple terms list with a hierarchical array
+ *
+ * @param WP_Term[] $terms  Array with terms
+ * @param int       $parent Parent term ID
+ *
+ * @return WP_Term[]
+ */
+
+function tw_term_tree($terms, $parent = 0) {
+
+	$branch = array();
+
+	foreach ($terms as $term) {
+
+		if ($term->parent == $parent) {
+
+			$children = tw_term_tree($terms, $term->term_id);
+
+			if ($children) {
+				$term->children = $children;
+			}
+
+			$branch[$term->term_id] = $term;
+
+			unset($terms[$term->term_id]);
+
+		}
+
+	}
+
+	return $branch;
+
+}
+
+
+/**
  * Build an array with the post terms and their parents
  *
  * @param bool|int    $post_id  Post ID or false for the current post
