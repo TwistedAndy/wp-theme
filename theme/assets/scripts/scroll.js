@@ -4,15 +4,15 @@ jQuery(function($) {
 
 	$('a[href*="#"]').click(function() {
 
-		let href = this.href;
+		var href = this.href;
 
-		let link = document.location.protocol + "//" + document.location.hostname + document.location.pathname;
+		var link = document.location.protocol + '//' + document.location.hostname + document.location.pathname;
 
 		if (href && href.indexOf('#') !== false) {
 
-			let parts = href.split('#');
-			
-			let selector = '';
+			var parts = href.split('#');
+
+			var selector = '';
 
 			if (parts.length > 1 && link === parts[0]) {
 				selector = parts[1];
@@ -21,7 +21,7 @@ jQuery(function($) {
 			}
 
 			if (selector) {
-				scrollTo($("#" + selector));
+				smoothScrollTo($('#' + selector));
 				return false;
 			}
 
@@ -29,35 +29,28 @@ jQuery(function($) {
 
 	});
 
-	let location = document.location.href;
-
-	if (location.indexOf('#') !== false) {
-
-		location = location.split('#');
-
-		if (location[1]) {
-
-			scrollTo($('#' + location[1]));
-
-		}
-
+	if (window.location.hash) {
+		smoothScrollTo($(window.location.hash));
 	}
-
-	function scrollTo(element) {
-
-		let $ = jQuery;
-
-		if (element.length > 0) {
-
-			let offset = element.offset().top - 60;
-
-			$('html, body').stop().animate({
-				'scrollTop': offset
-			}, 1000);
-
-		}
-
-	}
-
 
 });
+
+function smoothScrollTo(element, speed) {
+
+	var $ = jQuery;
+
+	speed = parseInt(speed) || 1000;
+
+	element = $(element);
+
+	if (element.length > 0) {
+
+		var offset = element.offset().top - 140;
+
+		$('html, body').stop().animate({
+			'scrollTop': offset
+		}, speed);
+
+	}
+
+}
