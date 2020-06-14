@@ -296,13 +296,11 @@ jQuery(function($){
 
 	$('.button[data-loader]').each(function() {
 
-		var button = $(this), data = button.data('loader');
-
-		var offset = data.offset;
-
-		var section = button.parents(data.wrapper);
-
-		var wrapper = section.find('.items');
+		var button = $(this), data = button.data('loader'),
+			offset = data.offset,
+			section = button.parents(data.wrapper),
+			wrapper = section.find('.items'),
+			loader = $('<div class="loading"><span></span><span></span><span></span></div>');
 
 		wrapper.on('reset', function() {
 
@@ -359,8 +357,15 @@ jQuery(function($){
 
 					}
 
+				},
+				beforeSend: function() {
+					wrapper.append(loader);
+					loader.addClass('is_visible');
+				},
+				complete: function() {
+					loader.removeClass('is_visible');
+					wrapper.removeClass('loading');
 				}
-
 			});
 
 		});
@@ -368,4 +373,62 @@ jQuery(function($){
 	});
 
 });
+
+.loading {
+	display: flex;
+	position: relative;
+	overflow: hidden;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 0;
+	padding: 0;
+	margin: 0;
+	text-align: center;
+	transition: 0.3s;
+	z-index: 3;
+
+	&.is_visible {
+		height: 60px;
+
+		span {
+			width: 20px;
+			height: 20px;
+		}
+
+	}
+
+	span {
+		display: inline-block;
+		flex-grow: 0;
+		flex-shrink: 0;
+		width: 0;
+		height: 0;
+		margin: 0 5px;
+		border-radius: 100%;
+		background-color: #eeeeee;
+		animation: spinner 1.4s infinite ease-in-out both;
+		transition: width 0.4s, height 0.4s;
+
+		&:nth-child(3n + 1) {
+			animation-delay: -0.32s;
+		}
+
+		&:nth-child(3n + 2) {
+			animation-delay: -0.16s;
+		}
+
+	}
+
+}
+
+@keyframes spinner {
+	0%, 80%, 100% {
+		transform: scale(0);
+	}
+	40% {
+		transform: scale(1.0);
+	}
+}
+
 */
