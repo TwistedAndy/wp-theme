@@ -10,12 +10,12 @@
 
 
 /**
- * Register all custom assets with their configuration
+ * Register all custom assets
  */
 
-add_action('init', 'tw_register_assets', 50);
+add_action('init', 'tw_assets_register', 20);
 
-function tw_register_assets() {
+function tw_assets_register() {
 
 	$assets = tw_get_setting('assets');
 
@@ -77,7 +77,7 @@ function tw_register_assets() {
 			$directory = '';
 		}
 
-		tw_register_asset($name, $asset, $directory);
+		tw_asset_register($name, $asset, $directory);
 
 	}
 
@@ -88,9 +88,9 @@ function tw_register_assets() {
  * Enqueue all registered assets
  */
 
-add_action('wp_enqueue_scripts', 'tw_enqueue_assets');
+add_action('wp_enqueue_scripts', 'tw_assets_enqueue', 20);
 
-function tw_enqueue_assets() {
+function tw_assets_enqueue() {
 
 	$assets = tw_get_setting('assets');
 
@@ -105,7 +105,7 @@ function tw_enqueue_assets() {
 				}
 
 				if ($asset['display']) {
-					tw_enqueue_asset($name);
+					tw_asset_enqueue($name);
 				}
 
 			}
@@ -127,11 +127,11 @@ function tw_enqueue_assets() {
  * @return bool
  */
 
-function tw_register_asset($name, $asset, $directory = '') {
+function tw_asset_register($name, $asset, $directory = '') {
 
 	if (is_array($asset)) {
 
-		$asset = tw_normalize_asset($asset, $directory);
+		$asset = tw_asset_normalize($asset, $directory);
 
 		$asset = apply_filters('tw/asset/register/' . $name, $asset);
 
@@ -202,7 +202,7 @@ function tw_register_asset($name, $asset, $directory = '') {
  * @return bool
  */
 
-function tw_enqueue_asset($name) {
+function tw_asset_enqueue($name) {
 	
 	$asset = tw_get_setting('assets', $name);
 
@@ -244,7 +244,7 @@ function tw_enqueue_asset($name) {
 
 
 /**
- * Normalize the asset configuration and check the dependencies
+ * Normalize an asset configuration and check dependencies
  *
  * @param array  $asset     Array with asset configuration
  * @param string $directory Folder for styles and scripts. The base directory is {$theme_url}/assets/
@@ -252,7 +252,7 @@ function tw_enqueue_asset($name) {
  * @return array
  */
 
-function tw_normalize_asset($asset, $directory = '') {
+function tw_asset_normalize($asset, $directory = '') {
 
 	if (is_array($asset)) {
 
