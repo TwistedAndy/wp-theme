@@ -207,8 +207,41 @@ if (tw_get_setting('modules', 'actions', 'fixed_header')) {
 	add_action('get_header', 'tw_action_fixed_header');
 
 	function tw_action_fixed_header() {
-
 		remove_action('wp_head', '_admin_bar_bump_cb');
+	}
+
+}
+
+
+/**
+ * Remove some WordPress inline styles for the admin bar
+ */
+
+if (tw_get_setting('modules', 'actions', 'svg_support')) {
+
+	add_filter('upload_mimes', 'tw_action_svg_support');
+
+	function tw_action_svg_support($mimes) {
+
+		$mimes['svg'] = 'image/svg+xml';
+
+		return $mimes;
+
+	}
+
+}
+
+
+/**
+ * Remove additional image sizes
+ */
+
+if (tw_get_setting('modules', 'actions', 'clean_thumbs')) {
+
+	add_filter('intermediate_image_sizes', 'tw_action_clean_thumbs');
+
+	function tw_action_clean_thumbs($sizes) {
+		return array_diff($sizes, array('medium_large', '1536x1536', '2048x2048'));
 	}
 
 }
