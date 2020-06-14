@@ -59,47 +59,9 @@ function tw_action_setup() {
 
 		if (is_array($sizes)) {
 
-			foreach ($sizes as $name => $size) {
+			foreach ($sizes as $name => $data) {
 
-				if (empty($size['hidden'])) {
-
-					$crop = (isset($size['crop'])) ? $size['crop'] : true;
-
-					if (!isset($size['width'])) {
-						$size['width'] = 0;
-					}
-
-					if (!isset($size['height'])) {
-						$size['height'] = 0;
-					}
-
-					if (in_array($name, array('thumbnail', 'medium', 'medium_large', 'large'))) {
-
-						if (get_option($name . '_size_w') != $size['width']) {
-							update_option($name . '_size_w', $size['width']);
-						}
-
-						if (get_option($name . '_size_h') != $size['height']) {
-							update_option($name . '_size_h', $size['height']);
-						}
-
-						if (isset($size['crop']) and get_option($name . '_crop') != $crop) {
-							update_option($name . '_crop', $crop);
-						}
-
-					} else {
-
-						add_image_size($name, $size['width'], $size['height'], $crop);
-
-					}
-
-					if (isset($size['thumb']) and $size['thumb']) {
-
-						set_post_thumbnail_size($size['width'], $size['height'], $crop);
-
-					}
-
-				}
+				tw_thumb_add_size($name, $data);
 
 			}
 

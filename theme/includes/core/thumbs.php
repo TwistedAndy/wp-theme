@@ -4,39 +4,225 @@
  *
  * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
- * @version 2.1
+ * @version 2.2
  */
 
 
 /**
- * Find the first image and return its link
+ * Get the thumbnail with given size
  *
- * @param string $text
+ * @param int|array|WP_Post $image      A post object, ACF image array, or an attachment ID
+ * @param string|array      $size       Size of the image
+ * @param string            $before     Code before thumbnail
+ * @param string            $after      Code after thumbnail
+ * @param array             $attributes Array with attributes
  *
  * @return string
  */
 
-function tw_find_image($text) {
+function tw_thumb($image, $size = 'full', $before = '', $after = '', $attributes = array()) {
 
-	preg_match_all('/<img.+src=[\'"]([^\'"]+)[\'"].*>/i', $text, $matches);
+	$thumb = tw_thumb_link($image, $size);
 
-	if (isset($matches[1][0]) and $matches[1][0]) {
+	if ($thumb) {
 
-		$image = $matches[1][0];
+		$link_href = false;
+		$link_image_size = false;
 
-		if (strpos($image, '/') === 0) {
-			$image = get_site_url() . $image;
-		} elseif (strpos($image, 'wp-content') === 0) {
-			$image = get_site_url() . '/' . $image;
+		if (!empty($attributes['link'])) {
+
+			if ($attributes['link'] == 'url' and $image instanceof WP_Post) {
+
+				$link_href = get_permalink($image);
+
+			} else {
+
+				$sizes = tw_thumb_get_sizes();
+
+				if (is_array($attributes['link']) or $attributes['link'] == 'full' or !empty($sizes[$attributes['link']])) {
+					$link_image_size = $attributes['link'];
+				} else {
+					$link_href = $attributes['link'];
+				}
+
+			}
+
 		}
 
-		return esc_url($image);
+		if ($image instanceof WP_Post) {
+			$image = get_post_meta($image->ID, '_thumbnail_id', true);
+		} elseif (is_array($image) and !empty($image['id'])) {
+			$image = $image['id'];
+		}
 
-	} else {
+		if (is_numeric($image)) {
+			$attributes['alt'] = trim(strip_tags(get_post_meta($image, '_wp_attachment_image_alt', true)));
+		} elseif (empty($attributes['alt'])) {
+			$attributes['alt'] = '';
+		}
 
-		return '';
+		if ($link_image_size and !$link_href) {
+			$link_href = tw_thumb_link($image, $link_image_size);
+		}
+
+		if ($link_href) {
+
+			$link_class = '';
+
+			if (!empty($attributes['link_class'])) {
+				$link_class = ' class="' . $attributes['link_class'] . '"';
+			}
+
+			$before = $before . '<a href="' . $link_href . '"' . $link_class . '>';
+			$after = '</a>' . $after;
+
+		}
+
+		if (!empty($attributes['lazy'])) {
+			$attributes['loading'] = 'lazy';
+		}
+
+		if (!empty($attributes['before'])) {
+			$before = $before . $attributes['before'];
+		}
+
+		if (!empty($attributes['after'])) {
+			$after = $attributes['after'] . $after;
+		}
+
+		$data = array();
+		$list = array('loading', 'alt', 'class', 'id', 'width', 'height', 'style');
+
+		foreach ($attributes as $key => $attribute) {
+			if (in_array($key, $list) or strpos($attribute, 'data') === 0) {
+				$data[] = $key . '="' . esc_attr($attribute) . '"';
+			}
+		}
+
+		if ($data) {
+			$data = ' ' . implode(' ', $data);
+		} else {
+			$data = '';
+		}
+
+		if ($thumb) {
+			$thumb = $before . '<img src="' . $thumb . '"' . $data . ' />' . $after;
+		}
 
 	}
+
+	return $thumb;
+
+}
+
+
+/**
+ * Get the thumbnail url
+ *
+ * @param int|array|WP_Post $image WordPress Post object, ACF image array or an attachment ID
+ * @param string|array      $size  Size of the thumbnail
+ *
+ * @return string
+ */
+
+function tw_thumb_link($image, $size = 'full') {
+
+	$thumb_url = '';
+
+	if ($image instanceof WP_Post) {
+		$image = intval(get_post_meta($image->ID, '_thumbnail_id', true));
+	}
+
+	if (is_array($image) and !empty($image['sizes']) and !empty($image['ID'])) {
+
+		if (is_string($size) and !empty($image['sizes'][$size])) {
+			$thumb_url = $image['sizes'][$size];
+		} else {
+			$image = intval($image['ID']);
+		}
+
+	}
+
+	if (empty($image)) {
+		return $thumb_url;
+	}
+
+	if (is_numeric($image)) {
+
+		$file = get_post_meta($image, '_wp_attached_file', true);
+
+		$uploads = wp_upload_dir(null, false);
+
+		if ($file and !empty($uploads['basedir']) and !empty($uploads['baseurl'])) {
+
+			if (0 === strpos($file, $uploads['basedir'])) {
+				$image_url = str_replace($uploads['basedir'], $uploads['baseurl'], $file);
+			} else {
+				$image_url = $uploads['baseurl'] . '/' . $file;
+			}
+
+			if (is_string($size) and $size != 'full') {
+
+				$meta = get_post_meta($image, '_wp_attachment_metadata', true);
+
+				if (is_array($meta) and !empty($meta['sizes'][$size]) and !empty($meta['sizes'][$size]['file'])) {
+					$thumb_url = path_join(dirname($image_url), $meta['sizes'][$size]['file']);
+				} else {
+					$thumb_url = tw_thumb_create($image_url, $size, $image);
+				}
+
+			} elseif (is_array($size)) {
+
+				$thumb_url = tw_thumb_create($image_url, $size, $image['id']);
+
+			} else {
+
+				$thumb_url = $image_url;
+
+			}
+
+		}
+
+	} elseif (is_string($image)) {
+
+		$path = '/assets/images/' . $image;
+
+		if (file_exists(TW_ROOT . $path)) {
+			$thumb_url = tw_thumb_create(get_template_directory_uri() . $path, $size);
+		}
+
+	}
+
+	return apply_filters('wp_get_attachment_url', $thumb_url, $image);
+
+}
+
+
+/**
+ * Get the thumbnail as a background image
+ *
+ * @param int|array|WP_Post $image A post object, ACF image or an attachment ID
+ * @param string|array      $size  Size of the image
+ * @param bool              $style Include the style attribute
+ *
+ * @return string
+ */
+
+function tw_thumb_background($image, $size = 'full', $style = true) {
+
+	$thumb = tw_thumb_link($image, $size);
+
+	if ($thumb) {
+
+		$thumb = 'background-image: url(' . esc_url($thumb) . ');';
+
+		if ($style) {
+			$thumb = ' style="' . $thumb . '"';
+		}
+
+	}
+
+	return $thumb;
 
 }
 
@@ -51,7 +237,7 @@ function tw_find_image($text) {
  * @return string
  */
 
-function tw_create_thumb($image_url, $size, $image_id = 0) {
+function tw_thumb_create($image_url, $size, $image_id = 0) {
 
 	$thumb_url = '';
 
@@ -67,7 +253,7 @@ function tw_create_thumb($image_url, $size, $image_id = 0) {
 
 		if (preg_match('#(.*?)\.(gif|jpg|jpeg|png|bmp)$#is', $filename, $matches)) {
 
-			$sizes = tw_get_thumb_sizes(true);
+			$sizes = tw_thumb_get_sizes(true);
 
 			$width = 0;
 			$height = 0;
@@ -94,7 +280,7 @@ function tw_create_thumb($image_url, $size, $image_id = 0) {
 					$hash = '_' . hash('crc32', $image_url, false);
 				}
 
-				$filename = '/cache/' . $image_id . $matches[1] . '_' . $width . 'x' . $height . $hash . '.' . $matches[2];
+				$filename = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id . $matches[1] . $hash . '.' . $matches[2];
 
 				$upload_dir = wp_upload_dir();
 
@@ -183,20 +369,20 @@ function tw_create_thumb($image_url, $size, $image_id = 0) {
 /**
  * Get registered image sizes with dimensions
  *
- * @param bool $include_hidden Include hidden thumbnail sizes to the result
+ * @param bool $hidden Include hidden thumbnail sizes to the result
  *
  * @return array
  */
 
-function tw_get_thumb_sizes($include_hidden = true) {
+function tw_thumb_get_sizes($hidden = true) {
 
 	$sizes = tw_get_setting('cache', 'thumb_sizes_registered');
 
 	if (!$sizes) {
 
-		$sizes_default = array('thumbnail', 'medium', 'medium_large', 'large');
+		$default = array('thumbnail', 'medium', 'medium_large', 'large');
 
-		foreach ($sizes_default as $size) {
+		foreach ($default as $size) {
 
 			$sizes[$size] = array(
 				'width' => get_option($size . '_size_w'),
@@ -212,35 +398,13 @@ function tw_get_thumb_sizes($include_hidden = true) {
 
 	}
 
-	if ($include_hidden) {
+	if ($hidden) {
 
-		$sizes_hidden = tw_get_setting('cache', 'thumb_sizes_hidden');
+		$hidden = tw_get_setting('cache', 'thumb_sizes_hidden');
 
-		if (!$sizes_hidden) {
-
-			$sizes_hidden = array();
-
-			$sizes_registered = tw_get_setting('thumbs');
-
-			if ($sizes_registered and is_array($sizes_registered)) {
-
-				foreach ($sizes_registered as $name => $size) {
-
-					if (!empty($size['hidden'])) {
-
-						$sizes_hidden[$name] = $size;
-
-					}
-
-				}
-
-			}
-
-			tw_set_setting('cache', 'thumb_sizes_hidden', $sizes_hidden);
-
+		if (is_array($hidden)) {
+			$sizes = array_merge($sizes, $hidden);
 		}
-
-		$sizes = array_merge($sizes, $sizes_hidden);
 
 	}
 
@@ -250,211 +414,68 @@ function tw_get_thumb_sizes($include_hidden = true) {
 
 
 /**
- * Get the thumbnail url
+ * Register a new thumbnail size
  *
- * @param int|array|WP_Post $image WordPress Post object, ACF image array or an attachment ID
- * @param string|array      $size  Size of the thumbnail
+ * @param string $name Size label
+ * @param array  $data Array with thumbnail data
  *
- * @return string
+ * @return void
  */
 
-function tw_get_thumb_link($image, $size = 'full') {
+function tw_thumb_add_size($name, $data) {
 
-	$thumb_url = '';
+	$hidden = tw_get_setting('cache', 'thumb_sizes_hidden');
 
-	if (empty($image)) {
-		return $thumb_url;
+	if (empty($hidden)) {
+		$hidden = array();
 	}
 
-	if ($image instanceof WP_Post) {
-		$image = get_post_meta($image->ID, '_thumbnail_id', true);
-	}
+	if (empty($data['hidden'])) {
 
-	if (is_string($image) and !is_numeric($image)) {
+		if (!isset($size['crop'])) {
+			$size['crop'] = true;
+		}
 
-		$path = '/assets/images/' . $image;
+		if (!isset($data['width'])) {
+			$data['width'] = 0;
+		}
 
-		if (file_exists(TW_ROOT . $path)) {
-			$thumb_url = tw_create_thumb(get_template_directory_uri() . $path, $size);
+		if (!isset($data['height'])) {
+			$data['height'] = 0;
+		}
+
+		if (in_array($name, array('thumbnail', 'medium', 'medium_large', 'large'))) {
+
+			if (get_option($name . '_size_w') != $data['width']) {
+				update_option($name . '_size_w', $data['width']);
+			}
+
+			if (get_option($name . '_size_h') != $data['height']) {
+				update_option($name . '_size_h', $data['height']);
+			}
+
+			if (isset($data['crop']) and get_option($name . '_crop') != $size['crop']) {
+				update_option($name . '_crop', $size['crop']);
+			}
+
+		} else {
+
+			add_image_size($name, $data['width'], $data['height'], $size['crop']);
+
+		}
+
+		if (isset($data['thumb']) and $data['thumb']) {
+
+			set_post_thumbnail_size($data['width'], $data['height'], $size['crop']);
+
 		}
 
 	} else {
 
-		$sizes = tw_get_thumb_sizes(false);
+		$hidden[$name] = $data;
 
-		if (is_string($size) and (isset($sizes[$size]) or $size == 'full')) {
-
-			if (is_array($image) and !empty($image['url'])) {
-
-				if (!empty($image['sizes'][$size])) {
-
-					$thumb_url = $image['sizes'][$size];
-
-				} else {
-
-					$thumb_url = $image['url'];
-
-				}
-
-			} elseif (is_numeric($image)) {
-
-				$thumb_url = wp_get_attachment_image_url($image, $size);
-
-			}
-
-		} else {
-
-			if (is_array($image) and !empty($image['url'])) {
-
-				$thumb_url = tw_create_thumb($image['url'], $size, $image['id']);
-
-			} elseif (is_numeric($image)) {
-
-				$thumb_url = tw_create_thumb(wp_get_attachment_image_url($image, 'full'), $size, $image);
-
-			}
-
-		}
+		tw_set_setting('cache', 'thumb_sizes_hidden', $hidden);
 
 	}
-
-	return $thumb_url;
-
-}
-
-
-/**
- * Get the thumbnail with given size
- *
- * @param int|array|WP_Post $image      A post object, ACF image or an attachment ID
- * @param string|array      $size       Size of the image
- * @param string            $before     Code before thumbnail
- * @param string            $after      Code after thumbnail
- * @param array             $attributes Array with attributes
- *
- * @return string
- */
-
-function tw_thumb($image, $size = 'full', $before = '', $after = '', $attributes = array()) {
-
-	$thumb = tw_get_thumb_link($image, $size);
-
-	if ($thumb) {
-
-		$link_href = false;
-		$link_image_size = false;
-
-		if (!empty($attributes['link'])) {
-
-			if ($attributes['link'] == 'url' and $image instanceof WP_Post) {
-
-				$link_href = get_permalink($image);
-
-			} else {
-
-				$sizes = tw_get_thumb_sizes();
-
-				if (is_array($attributes['link']) or $attributes['link'] == 'full' or !empty($sizes[$attributes['link']])) {
-					$link_image_size = $attributes['link'];
-				} else {
-					$link_href = $attributes['link'];
-				}
-
-			}
-
-		}
-
-		if ($image instanceof WP_Post) {
-			$image = get_post_meta($image->ID, '_thumbnail_id', true);
-		} elseif (is_array($image) and !empty($image['id'])) {
-			$image = $image['id'];
-		}
-
-		if (is_numeric($image)) {
-			$attributes['alt'] = trim(strip_tags(get_post_meta($image, '_wp_attachment_image_alt', true)));
-		} elseif (empty($attributes['alt'])) {
-			$attributes['alt'] = '';
-		}
-
-		if ($link_image_size and !$link_href) {
-			$link_href = tw_get_thumb_link($image, $link_image_size);
-		}
-
-		if ($link_href) {
-
-			$link_class = '';
-
-			if (!empty($attributes['link_class'])) {
-				$link_class = ' class="' . $attributes['link_class'] . '"';
-			}
-
-			$before = $before . '<a href="' . $link_href . '"' . $link_class . '>';
-			$after = '</a>' . $after;
-
-		}
-
-		if (!empty($attributes['lazy'])) {
-			$attributes['loading'] = 'lazy';
-		}
-
-		if (!empty($attributes['before'])) {
-			$before = $before . $attributes['before'];
-		}
-
-		if (!empty($attributes['after'])) {
-			$after = $attributes['after'] . $after;
-		}
-
-		$data = array();
-		$list = array('loading', 'alt', 'class', 'id', 'width', 'height', 'style');
-
-		foreach ($attributes as $key => $attribute) {
-			if (in_array($key, $list) or strpos($attribute, 'data') === 0) {
-				$data[] = $key . '="' . esc_attr($attribute) . '"';
-			}
-		}
-
-		if ($data) {
-			$data = ' ' . implode(' ', $data);
-		} else {
-			$data = '';
-		}
-
-		if ($thumb) {
-			$thumb = $before . '<img src="' . $thumb . '"' . $data . ' />' . $after;
-		}
-
-	}
-
-	return $thumb;
-
-}
-
-
-/**
- * Get the thumbnail as a background image
- *
- * @param int|array|WP_Post $image A post object, ACF image or an attachment ID
- * @param string|array      $size  Size of the image
- * @param bool              $style Include the style attribute
- *
- * @return string
- */
-
-function tw_thumb_background($image, $size = 'full', $style = true) {
-
-	$thumb = tw_get_thumb_link($image, $size);
-
-	if ($thumb) {
-
-		$thumb = 'background-image: url(' . esc_url($thumb) . ');';
-
-		if ($style) {
-			$thumb = ' style="' . $thumb . '"';
-		}
-
-	}
-
-	return $thumb;
 
 }
