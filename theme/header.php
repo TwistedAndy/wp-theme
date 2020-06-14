@@ -7,7 +7,7 @@
 </head>
 <body <?php body_class(); ?>>
 
-	<?php wp_body_open(); ?>
+	<?php do_action('wp_body_open'); ?>
 
 	<?php echo get_site_url(); ?>
 
