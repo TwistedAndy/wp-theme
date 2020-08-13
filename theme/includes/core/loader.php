@@ -56,7 +56,7 @@ function tw_load_files($folder, $files = true) {
 
 		foreach ($files as $file) {
 
-			$filename = $folder . '/' . $file . '.php';
+			$filename = $folder . DIRECTORY_SEPARATOR . $file . '.php';
 
 			if (is_file($filename)) {
 

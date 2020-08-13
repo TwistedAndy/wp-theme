@@ -22,7 +22,7 @@ function tw_template_part($name, $item = array(), $folder = 'parts') {
 		$folder = trailingslashit($folder);
 	}
 
-	$filename = TW_ROOT . '/' . $folder . $name . '.php';
+	$filename = TW_ROOT . DIRECTORY_SEPARATOR . $folder . $name . '.php';
 
 	if (is_array($item)) {
 		extract($item);

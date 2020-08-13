@@ -218,7 +218,7 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 		$number = $posts_per_page;
 	}
 
-	$offset = $paged * $posts_per_page;
+	$offset = $paged * $posts_per_page + intval($query->query_vars['offset']);
 
 	$hidden = true;
 
@@ -292,23 +292,22 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 
 /*
 
-jQuery(function($){
+jQuery(function($) {
 
-	$('.button[data-loader]').each(function() {
+	$('[data-loader]').each(function() {
 
-		var button = $(this), data = button.data('loader'),
-			offset = data.offset,
+		var button = $(this),
+			data = button.data('loader'),
 			section = button.parents(data.wrapper),
-			wrapper = section.find('.items'),
-			loader = $('<div class="loading"><span></span><span></span><span></span></div>');
+			wrapper = section.find('.items');
+
+		var	loader = $('<div class="loading"><span></span><span></span><span></span></div>');
 
 		wrapper.on('reset', function() {
 
-			wrapper.css('height', wrapper.outerHeight());
+			data = button.data('loader');
 
 			wrapper.children().remove();
-
-			offset = 0;
 
 			data.offset = 0;
 
@@ -317,8 +316,6 @@ jQuery(function($){
 		});
 
 		button.click(function() {
-
-			data = button.data('loader');
 
 			data.action = 'load_posts';
 
@@ -337,11 +334,7 @@ jQuery(function($){
 
 						wrapper.append(posts);
 
-						wrapper.css('height', 'auto');
-
-						offset = offset + data.number;
-
-						data.offset = offset;
+						data.offset = data.offset + data.number;
 
 						if (response['more']) {
 							button.removeClass('hidden');
@@ -366,6 +359,7 @@ jQuery(function($){
 					loader.removeClass('is_visible');
 					wrapper.removeClass('loading');
 				}
+
 			});
 
 		});

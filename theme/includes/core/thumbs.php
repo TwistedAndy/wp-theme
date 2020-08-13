@@ -50,15 +50,20 @@ function tw_thumb($image, $size = 'full', $before = '', $after = '', $attributes
 		}
 
 		if ($image instanceof WP_Post) {
+			if (empty($attributes['alt'])) {
+				$attributes['alt'] = $image->post_title;
+			}
 			$image = get_post_meta($image->ID, '_thumbnail_id', true);
 		} elseif (is_array($image) and !empty($image['id'])) {
 			$image = $image['id'];
 		}
 
-		if (is_numeric($image)) {
-			$attributes['alt'] = trim(strip_tags(get_post_meta($image, '_wp_attachment_image_alt', true)));
-		} elseif (empty($attributes['alt'])) {
-			$attributes['alt'] = '';
+		if (!isset($attributes['alt'])) {
+			if (is_numeric($image)) {
+				$attributes['alt'] = trim(strip_tags(get_post_meta($image, '_wp_attachment_image_alt', true)));
+			} else {
+				$attributes['alt'] = '';
+			}
 		}
 
 		if ($link_image_size and !$link_href) {
@@ -332,7 +337,7 @@ function tw_thumb_create($image_url, $size, $image_id = 0) {
 
 							if ($height > 0 and $height > $image_height) {
 								$height = $image_height;
-								$width = round($height / $ratio);
+								$width = round($height * $ratio);
 							}
 
 						}

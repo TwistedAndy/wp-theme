@@ -19,6 +19,7 @@ if (tw_get_setting('modules', 'actions', 'menu_active')) {
 	function tw_filter_menu_active($classes) {
 
 		$active_classes = array(
+			'current_page_parent',
 			'current-menu-item',
 			'current-menu-ancestor',
 			'current-post-ancestor',
