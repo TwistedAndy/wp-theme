@@ -4,7 +4,7 @@
  *
  * @author  Toniievych Andrii <toniyevych@gmail.com>
  * @package wp-theme
- * @version 2.2
+ * @version 2.3
  */
 
 
@@ -196,6 +196,8 @@ function tw_thumb_link($image, $size = 'full') {
 			$thumb_url = tw_thumb_create(get_template_directory_uri() . $path, $size);
 		}
 
+		$image = 0;
+
 	}
 
 	return apply_filters('wp_get_attachment_url', $thumb_url, $image);
@@ -346,6 +348,8 @@ function tw_thumb_create($image_url, $size, $image_id = 0) {
 
 						$editor->save($directory . $filename);
 
+						do_action('tw_thumb_created', $directory . $filename, $directory_uri . $filename, $image_id);
+
 					} else {
 
 						return $image_url;
@@ -484,3 +488,137 @@ function tw_thumb_add_size($name, $data) {
 	}
 
 }
+
+
+/**
+ * Integration with popular image compressing plugins
+ */
+
+add_action('tw_thumb_created', function($file, $url, $image_id) {
+
+	if (is_readable($file)) {
+
+		if (class_exists('WP_Smush')) {
+
+			/* Integration with the Smush plugin */
+
+			$smush = WP_Smush::get_instance()->core()->mod->smush;
+
+			if ($smush instanceof \Smush\Core\Modules\Smush) {
+				$smush->do_smushit($file);
+			}
+
+		} elseif (function_exists('ewww_image_optimizer')) {
+
+			/* Integration with the EWWW Image Optimizer and EWWW Image Optimizer Cloud plugins */
+
+			ewww_image_optimizer($file, 4, false, false);
+
+		} elseif (class_exists('Tiny_Compress')) {
+
+			/* Integration with the TinyPNG plugin */
+
+			if (defined('TINY_API_KEY')) {
+				$api_key = TINY_API_KEY;
+			} else {
+				$api_key = get_option('tinypng_api_key');
+			}
+
+			$compressor = Tiny_Compress::create($api_key);
+
+			if ($compressor instanceof Tiny_Compress and $compressor->get_status()->ok) {
+
+				try {
+					$compressor->compress_file($file, false);
+				} catch (Tiny_Exception $e) {
+
+				}
+
+			}
+
+		} elseif (class_exists('WRIO_Plugin') and class_exists('WIO_OptimizationTools')) {
+
+			/* Integration with the Webcraftic Robin image optimizer */
+
+			$image_processor = WIO_OptimizationTools::getImageProcessor();
+
+			$optimization_level = WRIO_Plugin::app()->getPopulateOption('image_optimization_level', 'normal');
+
+			if ($optimization_level == 'custom') {
+				$optimization_level = intval(WRIO_Plugin::app()->getPopulateOption('image_optimization_level_custom', 100));
+			}
+
+			$image_data = $image_processor->process(array(
+				'image_url' => $url,
+				'image_path' => $file,
+				'quality' => $image_processor->quality($optimization_level),
+				'save_exif' => WRIO_Plugin::app()->getPopulateOption('save_exif_data', false),
+				'is_thumb' => false,
+			));
+
+			if (!is_wp_error($image_data) and empty($image_data['not_need_replace']) and !empty($image_data['optimized_img_url']) and strpos($image_data['optimized_img_url'], 'http') === 0) {
+
+				$temp_file = $file . '.tmp';
+
+				$fp = fopen($temp_file, 'w+');
+
+				if ($fp === false) {
+					return;
+				}
+
+				$ch = curl_init($image_data['optimized_img_url']);
+				curl_setopt($ch, CURLOPT_FILE, $fp);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+				curl_exec($ch);
+
+				if (curl_errno($ch)) {
+					return;
+				}
+
+				$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+				curl_close($ch);
+
+				fclose($fp);
+
+				if ($status == 200) {
+
+					$type = mime_content_type($temp_file);
+
+					$types = array(
+						'image/png' => 'png',
+						'image/bmp' => 'bmp',
+						'image/jpeg' => 'jpg',
+						'image/pjpeg' => 'jpg',
+						'image/gif' => 'gif',
+						'image/svg' => 'svg',
+						'image/svg+xml' => 'svg',
+					);
+
+					if (!empty($types[$type])) {
+						copy($temp_file, $file);
+					}
+
+					unlink($temp_file);
+
+				}
+
+			}
+
+		} elseif (class_exists('\Imagify\Optimization\File')) {
+
+			$file = new \Imagify\Optimization\File($file);
+
+			$file->optimize(array(
+				'backup' => false,
+				'optimization_level' => 1,
+				'keep_exif' => false,
+				'convert' => '',
+				'context' => 'wp',
+			));
+
+		}
+
+	}
+
+}, 10, 3);
