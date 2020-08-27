@@ -21,6 +21,8 @@
 
 	<?php echo tw_breadcrumbs('','<div class="breadcrumbs">', '</div>'); ?>
 
+	<a href="<?php echo get_site_url(); ?>" class="logo" aria-label="<?php echo esc_attr(get_bloginfo('name', 'display')); ?>"></a>
+
 	<form action="<?php echo esc_url(home_url('/')); ?>" method="get">
 		<input type="text" value="<?php echo get_search_query(); ?>" placeholder="Search" name="s" />
 		<input type="submit" value="<?php echo esc_attr_x('Search', 'submit button'); ?>" />

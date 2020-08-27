@@ -35,7 +35,7 @@ function tw_ajax_load_posts() {
 
 		$template = 'post';
 
-		if (!empty($_REQUEST['template']) and in_array($_REQUEST['template'], array('post', 'offer', 'coupon'))) {
+		if (!empty($_REQUEST['template'])) {
 			$template = esc_attr($_REQUEST['template']);
 		}
 
@@ -161,6 +161,26 @@ function tw_ajax_load_posts() {
 
 			}
 
+			foreach (array('post__in', 'post__not_in') as $param) {
+
+				if (!empty($_REQUEST[$param]) and is_array($_REQUEST[$param])) {
+
+					foreach ($_REQUEST[$param] as $key => $value) {
+						if (is_numeric($value)) {
+							$_REQUEST[$param][$key] = intval($value);
+						} else {
+							unset($_REQUEST[$param][$key]);
+						}
+					}
+
+					if (!empty($_REQUEST[$param])) {
+						$args[$param] = $_REQUEST[$param];
+					}
+
+				}
+
+			}
+
 			$query = new WP_Query($args);
 
 			if ($query->have_posts()) {
@@ -218,7 +238,7 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 		$number = $posts_per_page;
 	}
 
-	$offset = $paged * $posts_per_page + intval($query->query_vars['offset']);
+	$offset = $paged * $posts_per_page;
 
 	$hidden = true;
 
@@ -265,6 +285,18 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 		$author = 0;
 	}
 
+	$post_in = $query->get('post__in');
+
+	if (!is_array($post_in)) {
+		$post_in = array();
+	}
+
+	$post_not = $query->get('post__not_in');
+
+	if (!is_array($post_not)) {
+		$post_not = array();
+	}
+
 	$args = array(
 		'number' => $number,
 		'offset' => $offset,
@@ -274,6 +306,8 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 		'wrapper' => $wrapper,
 		'template' => $template,
 		'author' => $author,
+		'post__in' => $post_in,
+		'post__not_in' => $post_not,
 		'query_meta' => $query->get('meta_query'),
 		'query_order' => $query->get('orderby'),
 		'query_direction' => $query->get('order')
@@ -282,7 +316,7 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 	?>
 
 	<div class="buttons">
-		<div class="button outlined<?php echo ($hidden ? ' hidden' : ''); ?>" data-loader="<?php echo htmlspecialchars(json_encode($args), ENT_QUOTES, 'UTF-8'); ?>">Show More</div>
+		<div class="button<?php echo ($hidden ? ' hidden' : ''); ?>" data-loader="<?php echo htmlspecialchars(json_encode($args), ENT_QUOTES, 'UTF-8'); ?>">Show More</div>
 	</div>
 
 	<?php
