@@ -320,23 +320,37 @@ function tw_asset_normalize($asset, $directory = '') {
 						continue;
 					}
 
-					if (!empty($asset['deps'][$type])) {
+					$asset_deps = array();
+
+					if (!empty($asset['deps'][$type]) and is_array($asset['deps'][$type])) {
 
 						if (is_string($asset['deps'][$type])) {
 							$asset['deps'][$type] = array($asset['deps'][$type]);
 						}
 
-						$asset_deps = $asset['deps'][$type];
+						if (!empty($asset['deps'][$type][0]) and is_string($asset['deps'][$type][0])) {
+							$asset_deps = $asset['deps'][$type];
+						}
 
 					} else {
-
-						$asset_deps = $asset['deps'];
-
+						
+						if ($type !== 'script' and !empty($asset['deps']['script']) and is_string($asset['deps']['script'][0])) {
+							$asset_deps = array_merge($asset_deps, $asset['deps']['script']);
+						}
+						
+						if ($type !== 'style' and !empty($asset['deps']['style']) and is_string($asset['deps']['style'][0])) {
+							$asset_deps = array_merge($asset_deps, $asset['deps']['style']);
+						}
+						
+						if (isset($asset['deps'][0]) and is_string($asset['deps'][0])) {
+							$asset_deps = array_merge($asset_deps, $asset['deps']);
+						}
+						
 					}
 
 					foreach ($asset_deps as $key => $dep) {
 
-						if (is_array($assets) and !empty($assets[$dep][$type])) {
+						if (is_array($assets) and !empty($assets[$dep]) and !empty($assets[$dep][$type])) {
 
 							$deps[$type][] = $prefix . $dep;
 

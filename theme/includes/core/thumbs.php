@@ -491,10 +491,14 @@ function tw_thumb_add_size($name, $data) {
 
 
 /**
- * Integration with popular image compressing plugins
+ * Compress the image using popular compressing plugins
+ *
+ * @param string $file     Full path to the image
+ * @param string $url      Image URL
+ * @param int    $image_id Image ID
  */
 
-add_action('tw_thumb_created', function($file, $url, $image_id) {
+function tw_thumb_compress($file, $url, $image_id = 0) {
 
 	if (is_readable($file)) {
 
@@ -621,4 +625,11 @@ add_action('tw_thumb_created', function($file, $url, $image_id) {
 
 	}
 
-}, 10, 3);
+}
+
+
+/**
+ * Integration with popular image compressing plugins
+ */
+
+add_action('tw_thumb_created', 'tw_thumb_compress', 10, 3);
