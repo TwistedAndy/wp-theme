@@ -2,9 +2,9 @@
 /**
  * Comment library
  *
- * @author  Toniievych Andrii <toniyevych@gmail.com>
- * @package wp-theme
- * @version 2.0
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @package Twee
+ * @version 3.0
  */
 
 
@@ -17,7 +17,6 @@
  * @param array       $args
  * @param int         $depth
  */
-
 function tw_comment($comment, $args, $depth) {
 
 	$GLOBALS['comment'] = $comment;
@@ -28,11 +27,7 @@ function tw_comment($comment, $args, $depth) {
 		echo '<div id="div-comment-' . get_comment_ID() . '">';
 	}
 
-	$filename = TW_ROOT . '/parts/comment.php';
-
-	if (is_file($filename)) {
-		include($filename);
-	}
+	echo tw_template_part('comment', ['comment' => $comment]);
 
 	if ('div' != $args['style']) {
 		echo '</div>';
@@ -44,7 +39,6 @@ function tw_comment($comment, $args, $depth) {
 /**
  * Move the comment message field to the bottom and add a class to the cookies consent field
  */
-
 add_filter('comment_form_fields', function($fields) {
 
 	if (!empty($fields['comment'])) {
@@ -72,8 +66,9 @@ add_filter('comment_form_fields', function($fields) {
 });
 
 
-/* Add a wrapper for comment fields */
-
+/*
+ * Add a wrapper for comment fields
+ */
 add_action('comment_form_before_fields', function() {
 	echo '<div class="fields">';
 });

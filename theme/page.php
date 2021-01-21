@@ -4,29 +4,29 @@ get_header();
 
 the_post();
 
-if (!is_front_page()) {
-	the_title('<div class="fixed"><h1>', '</h1></div>');
-}
+$blocks = get_field('blocks');
 
-tw_get_blocks('blocks');
+echo tw_get_blocks($blocks);
 
-if (get_the_content()) {
+if (get_the_content()) { ?>
 
-?>
+	<section class="content_box">
 
-<div class="content_box">
+		<div class="fixed">
 
-	<div class="fixed">
+			<div class="content">
 
-		<div class="content">
+				<?php if (empty($blocks)) { ?>
+					<?php the_title('<h1>', '</h1>'); ?>
+				<?php } ?>
 
-			<?php the_content(); ?>
+				<?php the_content(); ?>
+
+			</div>
 
 		</div>
 
-	</div>
-
-</div>
+	</section>
 
 <?php }
 

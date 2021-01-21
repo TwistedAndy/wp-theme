@@ -1,22 +1,20 @@
 <?php
 /**
- * Basic widget class
+ * Base Widget Class
  *
- * @author  Toniievych Andrii <toniyevych@gmail.com>
- * @package wp-theme
- * @version 2.0
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @package Twee
+ * @version 3.0
  */
 
-class Twisted_Widget extends WP_Widget {
+namespace Twee;
 
-	/**
-	 * @var array Array with widget fields
-	 */
+class Widget extends \WP_Widget {
 
-	public $fields;
+	public $fields = [];
 
 
-	public function __construct($id_base, $name, $widget_options = array(), $control_options = array()) {
+	public function __construct($id_base, $name, $widget_options = [], $control_options = []) {
 
 		parent::__construct($id_base, $name, $widget_options, $control_options);
 
@@ -31,25 +29,26 @@ class Twisted_Widget extends WP_Widget {
 	 *
 	 * @return array
 	 */
-
 	public function update($new_instance, $old_instance) {
 
 		return $this->fields_load($new_instance);
 
 	}
 
+
 	/**
 	 * Load and validate widget fields
 	 *
-	 * @param array $instance   The current widget settings
-	 * @param bool $skip_filter Skip the filter function
+	 * @param array $instance    The current widget settings
+	 * @param bool  $skip_filter Skip the filter function
 	 *
 	 * @return array
 	 */
-
 	public function fields_load($instance, $skip_filter = true) {
 
-		if (!$instance) $instance = array();
+		if (empty($instance)) {
+			$instance = [];
+		}
 
 		if (!empty($this->fields) and is_array($this->fields)) {
 
@@ -89,7 +88,6 @@ class Twisted_Widget extends WP_Widget {
 	 *
 	 * @return array
 	 */
-
 	public function form($instance) {
 
 		return $this->fields_render($instance);
@@ -104,7 +102,6 @@ class Twisted_Widget extends WP_Widget {
 	 *
 	 * @return array
 	 */
-
 	public function fields_render($instance) {
 
 		$instance = $this->fields_load($instance);
@@ -113,11 +110,12 @@ class Twisted_Widget extends WP_Widget {
 
 			foreach ($this->fields as $name => $field) { ?>
 
-				<p><label for="<?php echo $this->get_field_id($name); ?>"><?php echo $field['name']; ?>:</label>
+				<p>
+					<label for="<?php echo $this->get_field_id($name); ?>"><?php echo $field['name']; ?>:</label>
 
 					<?php if ($field['type'] == 'textarea') { ?>
 
-						<textarea class="widefat" rows="8" cols="20" id="<?php echo $this->get_field_id($name); ?>" name="<?php echo $this->get_field_name($name); ?>"><?php echo esc_attr($instance[$name]); ?></textarea>
+						<textarea class="widefat" rows="4" cols="20" id="<?php echo $this->get_field_id($name); ?>" name="<?php echo $this->get_field_name($name); ?>"><?php echo esc_attr($instance[$name]); ?></textarea>
 
 					<?php } elseif (isset($field['values']) and $field['values']) { ?>
 

@@ -2,9 +2,9 @@
 /**
  * Rate the post
  *
- * @author  Toniievych Andrii <toniyevych@gmail.com>
- * @package wp-theme
- * @version 1.0
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @package Twee
+ * @version 3.0
  */
 
 /*

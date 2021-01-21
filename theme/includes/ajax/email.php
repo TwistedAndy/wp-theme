@@ -2,9 +2,9 @@
 /**
  * Validate and send email
  *
- * @author  Toniievych Andrii <toniyevych@gmail.com>
- * @package wp-theme
- * @version 1.0
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @package Twee
+ * @version 3.0
  */
 
 /*
@@ -14,135 +14,284 @@ add_action('wp_ajax_feedback', 'tw_ajax_feedback');
 
 function tw_ajax_feedback() {
 
-	if (isset($_POST['noncer']) and wp_verify_nonce($_POST['noncer'], 'ajax-nonce')) {
+	$result = [
+		'text' => '',
+		'errors' => []
+	];
 
-		$errors = array();
-
-		$fields = array(
-			'name' => array(
-				'error' => 'Неверно указано имя',
-				'pattern' => '#^[a-zA-Zа-яА-Я0-9 -.]{2,}$#ui'
-			),
-			'email' => array(
-				'error' => 'Неверно указан e-mail',
-				'pattern' => '#^[^\@]+@.*\.[a-z]{2,6}$#i'
-			),
-			'message' => array(
-				'error' => 'Введите сообщение',
-				'pattern' => '#^.{4,}$#i'
-			),
-			'phone' => array(
-				'error' => 'Неверно указан телефон',
-				'pattern' => '#^[0-9 +\- ()]{4,}$#i'
-			)
-		);
+	if (!empty($_POST['type']) and isset($_POST['noncer']) and wp_verify_nonce($_POST['noncer'], 'ajax-nonce')) {
 
 		foreach ($_POST as $k => $v) {
-			$_POST[$k] = htmlspecialchars($v);
-		}
 
-		foreach ($fields as $k => $v) {
-			if (isset($_POST[$k]) and !preg_match($v['pattern'], $_POST[$k]) and !(isset($v['empty']) and $v['empty'] and $_POST[$k] == '')) {
-				$errors[$k] = $v['error'];
+			if (is_array($v)) {
+				$_POST[$k] = array_map('htmlspecialchars', $v);
+			} else {
+				$_POST[$k] = htmlspecialchars($v);
 			}
+
 		}
 
-		if (empty($_POST['agree'])) {
-			$errors['agree'] = 'Вы должны принять пользовательское соглашение';
+		$recipient = get_option('admin_email');
+
+		$errors = [];
+
+		$required = [
+			'name' => '#^[a-zA-Z0-9 -.]{2,}$#ui',
+			'subject' => '#^.{2,}$#ui',
+			'email' => '#^[^\@]+@.*\.[a-z]{2,6}$#i',
+			'phone' => '#^[0-9 . -+ ()]{7,12}$#i',
+		];
+
+		$fields = [
+			'first_name' => 'First Name',
+			'last_name' => 'Last Name',
+			'phone' => 'Phone',
+			'email' => 'E-mail',
+			'subject' => 'Subject',
+			'message' => 'Message',
+		];
+
+		$type = intval($_POST['type']);
+
+		if ($type == 1) {
+
+			$subject = 'Request from ' . $_POST['name'];
+
+			$required['message'] = [
+				'error' => 'Please type a message',
+				'pattern' => '#^.{10,}$#ui'
+			];
+
+		} else {
+
+			$subject = 'Request from a client';
+
+		}
+
+		foreach ($required as $key => $field) {
+
+			if (!is_array($field)) {
+				$field = ['pattern' => $field];
+			}
+
+			if (empty($field['error'])) {
+
+				$label = $fields[$key];
+
+				if (!empty($fields[$key])) {
+					$label = $fields[$key];
+				}
+
+				if (empty($_POST[$key])) {
+					$field['error'] = $label . ' is required';
+				} else {
+					$field['error'] = $label . ' is not valid';
+				}
+
+			}
+
+			if (!isset($_POST[$key]) or !preg_match($field['pattern'], $_POST[$key])) {
+				$errors[$key] = $field['error'];
+			}
 		}
 
 		if (count($errors) == 0) {
 
-			$to = get_option('admin_email');
+			$message = [];
 
-			$subject = "Сообщение от посетителя";
+			foreach ($fields as $key => $field) {
 
-			$message = array();
-			$message[] = '<p><b>Имя:</b> ' . $_POST['name'] . '</p>';
-			$message[] = '<p><b>E-mail:</b> ' . $_POST['email'] . '</p>';
-			$message[] = '<p><b>Телефон:</b> ' . $_POST['phone'] . '</p>';
-			$message[] = '<p><b>Сообщение:</b> ' . $_POST['message'] . '</p>';
+				if (!empty($_POST[$key])) {
 
-			$headers = array();
+					$value = $_POST[$key];
+
+					$message[] = '<p><b>' . $field . ':</b> ' . $value . '</p>';
+
+				}
+
+			}
+
+			$headers = [];
+
 			$headers[] = 'Content-type: text/html; charset=utf-8';
 
-			if (wp_mail($to, $subject, implode("\n", $message), $headers)) {
+			$files = [];
 
-				echo(json_encode(array('text' => "Ваш запрос был успешно отправлен")));
+			foreach (['artwork'] as $name) {
+
+				$file = tw_session_get_file($name);
+
+				if ($file and file_exists($file['file'])) {
+					$files[$name] = $file;
+				}
+
+			}
+
+			if (wp_mail($recipient, $subject, implode("\n", $message), $headers, $files)) {
+
+				if ($files) {
+					foreach ($files as $name => $file) {
+						unlink($file);
+						tw_session_set_file($name, false);
+					}
+				}
+
+				$result['text'] = __('Thanks! We will contact you soon!', 'twee');
 
 			} else {
 
-				echo(json_encode(array('text' => "Ошибка. Запрос не отправлен из-за ошибки сервера")));
+				$result['text'] = __('Error. Please, try again a bit later', 'twee');
 
 			}
 
 		} else {
 
-			echo(json_encode(array('errors' => $errors)));
+			$result['errors'] = $errors;
 
 		}
 
 	}
 
-	exit();
+	wp_send_json($result);
 
 }
 
 /*
+add_action('wp_ajax_nopriv_process_file', 'tw_ajax_process_file');
+add_action('wp_ajax_process_file', 'tw_ajax_process_file');
+*/
 
-<script type="text/javascript">
+function tw_ajax_process_file() {
 
-	jQuery(function($) {
+	$errors = [];
 
-	$('form').submit(function(e) {
+	$result = [
+		'text' => '',
+		'errors' => [],
+		'files' => []
+	];
 
-		var form = $(this), message, data = form.serializeArray();
+	$files = [
+		'artwork' => 'Please attach the artwork',
+	];
 
-		data.push({
-			name: 'action',
-			value: 'feedback'
-		});
+	add_filter('upload_dir', function($dir) {
 
-		data.push({
-			name: 'noncer',
-			value: template.nonce
-		});
+		if (!is_array($dir)) {
+			$dir = [];
+		}
+	
+		$dir['path'] = $dir['basedir'] . '/cache/emails';
+		$dir['url'] = $dir['basedir'] . '/cache/emails';
+		$dir['subdir'] = '/cache/emails';
+	
+		return $dir;
+	
+	});
 
-		$.ajax({
-			url: template.ajaxurl,
-			type: 'post',
-			dataType: 'json',
-			data: data,
-			success: function(data) {
+	foreach ($files as $key => $value) {
 
-				$('.error, .success', form).remove();
+		if (!empty($_FILES[$key])) {
 
-				if (data['errors']) {
-					for (var i in data['errors']) {
-						message = $('<div class="error">' + data['errors'][i] + '</div>');
-						$('[name=' + i + ']', form).parent().append(message);
-						message.hide().slideDown();
-					}
-				}
+			$file = tw_session_get_file($key);
 
-				if (data['text']) {
-					message = $('<div class="success">' + data['text'] + '</div>');
-					form.append(message);
-					message.hide().slideDown();
-					form[0].reset();
+			$file_id = md5($_FILES[$key]['name'] . $_FILES[$key]['size']);
+
+			if (!empty($file) and file_exists($file['file'])) {
+
+				if ($file['id'] === $file_id) {
+					continue;
+				} else {
+					unlink($file['file']);
+					tw_session_set_file($key, false);
 				}
 
 			}
-		});
 
-		e.preventDefault();
+			$args = [
+				'test_form' => false,
+			];
 
-		return false;
+			if ($key === 'artwork') {
 
-	});
+				$args['mimes'] = [
+					'jpg|jpeg|jpe' => 'image/jpeg',
+					'gif' => 'image/gif',
+					'png' => 'image/png',
+					'bmp' => 'image/bmp',
+					'tiff|tif' => 'image/tiff',
+					'pdf' => 'application/pdf',
+				];
 
-});
+				$args['unique_filename_callback'] = function($directory, $name, $ext) {
+					return 'cache_' . date('m_d_Y_') . substr(md5($name . time()), 0, 8) . $ext;
+				};
 
-</script>
+			}
 
-*/
+			$file = wp_handle_upload($_FILES[$key], $args);
+
+			if ($file and empty($file['error'])) {
+
+				$file['id'] = $file_id;
+
+				$file['name'] = htmlspecialchars($_FILES[$key]['name']);
+
+				tw_session_set_file($key, $file);
+
+				$result['files'][$key] = sprintf(__('File <b>%1$s</b> was uploaded. <span class="remove" data-name="%2$s" aria-label="Remove"></span>', 'twee'), $file['name'], $key);
+
+			} else {
+
+				if (empty($file['error'])) {
+					$file['error'] = __('Something went wrong', 'twee');
+				}
+
+				$errors[$key] = $file['error'];
+				$result['files'][$key] = '';
+
+			}
+
+		}
+
+	}
+
+	$result['errors'] = $errors;
+
+	wp_send_json($result);
+
+}
+
+
+add_action('wp_ajax_nopriv_remove_file', 'tw_ajax_remove_file');
+add_action('wp_ajax_remove_file', 'tw_ajax_remove_file');
+
+function tw_ajax_remove_file() {
+
+	$result = [
+		'text' => '',
+		'errors' => [],
+		'files' => []
+	];
+
+	if (!empty($_REQUEST['filename'])) {
+
+		$filename = htmlspecialchars($_REQUEST['filename']);
+
+		$file = tw_session_get_file($filename);
+
+		if (!empty($file) and file_exists($file['file'])) {
+
+			$result['files'][$filename] = 'File <b>' . $file['name'] . '</b> was removed.';
+
+			unlink($file['file']);
+
+			tw_session_set_file($filename, false);
+
+		}
+
+	}
+
+	wp_send_json($result);
+
+}

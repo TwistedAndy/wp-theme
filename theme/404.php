@@ -1,11 +1,19 @@
 <?php get_header(); ?>
 
-	<div class="content">
+<section class="content_box">
 
-		<?php echo tw_wp_title('<h1>', '</h1>'); ?>
+	<div class="fixed">
 
-		<p><?php echo tw_not_found_text(); ?></p>
+		<div class="content">
+
+			<?php echo tw_wp_title('<h1>', '</h1>'); ?>
+
+			<p><?php echo __('The page you are looking for doesn\'t exist.', 'twee'); ?></p>
+
+		</div>
 
 	</div>
+
+</section>
 
 <?php get_footer(); ?>

@@ -1,293 +1,97 @@
 <?php
 /**
- * Asset management library. It allows to register and enqueue
- * the styles, scripts and the localization strings
+ * Asset Management Library
  *
- * @author  Toniievych Andrii <toniyevych@gmail.com>
- * @package wp-theme
- * @version 2.0
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @package Twee
+ * @version 3.0
  */
 
+namespace Twee;
 
-/**
- * Register all custom assets
- */
+class Assets {
 
-add_action('init', 'tw_assets_register', 20);
+	protected $assets = [];
 
-function tw_assets_register() {
 
-	$assets = tw_get_setting('assets');
+	public function __construct() {
 
-	if (empty($assets)) {
-		$assets = array();
+		add_action('init', [$this, 'actionRegister'], 30);
+
+		add_action('wp_enqueue_scripts', [$this, 'actionEnqueue'], 30);
+
 	}
 
-	$base_directory = TW_ROOT . '/assets/plugins/';
 
-	$directories = scandir($base_directory);
+	/**
+	 * Register all custom assets
+	 */
+	public function actionRegister() {
 
-	if (is_array($directories)) {
+		$base = TW_ROOT . 'assets' . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR;
 
-		$directories = array_diff($directories, array('..', '.'));
+		$directories = scandir($base);
 
-		foreach ($directories as $directory) {
+		if (is_array($directories)) {
 
-			$filename = $base_directory . $directory . '/index.php';
+			$directories = array_diff($directories, ['..', '.']);
 
-			if (is_file($filename)) {
+			foreach ($directories as $name) {
 
-				$asset = include($filename);
+				$filename = $base . $name . DIRECTORY_SEPARATOR . 'index.php';
 
-				if (is_array($asset)) {
+				if (is_file($filename)) {
 
-					if (isset($assets[$directory])) {
+					$asset = include($filename);
 
-						$array = $assets[$directory];
+					if (is_array($asset)) {
 
-						if (is_callable($array) or is_bool($array)) {
-							$array = array(
-								'display' => $array
-							);
+						if (!empty($this->assets[$name])) {
+
+							if (is_callable($this->assets[$name]) or is_bool($this->assets[$name])) {
+								$asset['display'] = $this->assets[$name];
+							} elseif (is_array($this->assets[$name])) {
+								$asset = wp_parse_args($this->assets[$name], $asset);
+							}
+
 						}
 
-						if (is_array($asset)) {
-							$asset = wp_parse_args($array, $asset);
-						}
+						$asset['directory'] = 'plugins/' . $name;
+
+						$this->add($name, $asset);
 
 					}
 
-					$assets[$directory] = $asset;
-
 				}
 
 			}
 
 		}
 
-	}
-
-	tw_set_setting(false, 'assets', $assets);
-
-	foreach ($assets as $name => $asset) {
-
-		if (is_array($directories) and in_array($name, $directories)) {
-			$directory = 'plugins/' . $name . '/';
-		} else {
-			$directory = '';
-		}
-
-		tw_asset_register($name, $asset, $directory);
-
-	}
-
-}
-
-
-/**
- * Enqueue all registered assets
- */
-
-add_action('wp_enqueue_scripts', 'tw_assets_enqueue', 20);
-
-function tw_assets_enqueue() {
-
-	$assets = tw_get_setting('assets');
-
-	if ($assets) {
-
-		foreach ($assets as $name => $asset) {
-
-			if (!empty($asset['display'])) {
-
-				if (is_callable($asset['display'])) {
-					$asset['display'] = call_user_func($asset['display']);
-				}
-
-				if ($asset['display']) {
-					tw_asset_enqueue($name);
-				}
-
-			}
-
+		foreach ($this->assets as $name => $asset) {
+			$this->register($name, $asset);
 		}
 
 	}
 
-}
 
+	/**
+	 * Enqueue all registered assets
+	 */
+	public function actionEnqueue() {
 
-/**
- * Register a single asset
- *
- * @param string $name      Name of the asset. It should be unique.
- * @param array  $asset     The array with the asset configuration
- * @param string $directory Folder for styles and scripts. The base directory is {$theme_url}/assets/
- *
- * @return bool
- */
+		if (!empty($this->assets)) {
 
-function tw_asset_register($name, $asset, $directory = '') {
+			foreach ($this->assets as $name => $asset) {
 
-	if (is_array($asset)) {
+				if (!empty($asset['display'])) {
 
-		$asset = tw_asset_normalize($asset, $directory);
-
-		$asset = apply_filters('tw/asset/register/' . $name, $asset);
-
-		tw_set_setting('assets', $name, $asset);
-
-		if (empty($asset['prefix'])) {
-			$asset_name = $name;
-		} else {
-			$asset_name = $asset['prefix'] . $name;
-		}
-
-		$deps = array();
-
-		foreach (array('script', 'style') as $type) {
-
-			if (!empty($asset[$type]) and is_array($asset[$type])) {
-
-				$i = count($asset[$type]) - 1;
-
-				$current_key = false;
-
-				if (!empty($asset['deps'][$type]) and is_array($asset['deps'][$type])) {
-					$deps[$type] = $asset['deps'][$type];
-				} else {
-					$deps[$type] = array();
-				}
-
-				foreach ($asset[$type] as $file) {
-
-					$previous_key = $current_key;
-
-					if ($i == 0) {
-						$current_key = $asset_name;
-					} else {
-						$current_key = $asset_name . '-' . $i;
+					if (is_callable($asset['display'])) {
+						$asset['display'] = call_user_func($asset['display']);
 					}
 
-					if ($previous_key) {
-						$deps[$type][] = $previous_key;
-					}
-
-					if ($type == 'script') {
-						wp_register_script($current_key, $file, $deps[$type], $asset['version'], $asset['footer']);
-					} elseif ($type == 'style') {
-						wp_register_style($current_key, $file, $deps[$type], $asset['version']);
-					}
-
-					$i--;
-
-				}
-
-			}
-
-		}
-
-	}
-
-	return false;
-
-}
-
-
-/**
- * Enqueue a single asset
- *
- * @param string $name Name of the asset
- *
- * @return bool
- */
-
-function tw_asset_enqueue($name) {
-	
-	$asset = tw_get_setting('assets', $name);
-
-	$asset_name = $name;
-
-	if (is_array($asset)) {
-
-		$asset = apply_filters('tw/asset/enqueue/' . $name, $asset);
-
-		if (!empty($asset['prefix'])) {
-			$asset_name = $asset['prefix'] . $name;
-		}
-
-		if (!empty($asset['localize'])) {
-
-			if (is_callable($asset['localize'])) {
-				$asset['localize'] = call_user_func($asset['localize']);
-			}
-
-			if (is_array($asset['localize'])) {
-				wp_localize_script($asset_name, $name, $asset['localize']);
-			}
-
-		}
-
-	}
-	
-	if (wp_script_is($asset_name, 'registered')) {
-		wp_enqueue_script($asset_name);
-	}
-
-	if (wp_style_is($asset_name, 'registered')) {
-		wp_enqueue_style($asset_name);
-	}
-
-	return false;
-
-}
-
-
-/**
- * Normalize an asset configuration and check dependencies
- *
- * @param array  $asset     Array with asset configuration
- * @param string $directory Folder for styles and scripts. The base directory is {$theme_url}/assets/
- *
- * @return array
- */
-
-function tw_asset_normalize($asset, $directory = '') {
-
-	if (is_array($asset)) {
-
-		$base_url = get_template_directory_uri() . '/assets/';
-
-		$defaults = array(
-			'deps' => array(
-				'style' => array(),
-				'script' => array()
-			),
-			'style' => '',
-			'script' => '',
-			'footer' => true,
-			'prefix' => 'tw_',
-			'version' => null,
-			'display' => false,
-			'localize' => array()
-		);
-
-		$asset = wp_parse_args($asset, $defaults);
-
-		foreach (array('style', 'script') as $type) {
-
-			if (!empty($asset[$type])) {
-
-				if (is_string($asset[$type])) {
-					$asset[$type] = array($asset[$type]);
-				}
-
-				foreach ($asset[$type] as $key => $value) {
-
-					if (strpos($value, 'http') !== 0) {
-
-						$asset[$type][$key] = $base_url . $directory . $value;
-
+					if ($asset['display']) {
+						$this->enqueue($name);
 					}
 
 				}
@@ -296,88 +100,273 @@ function tw_asset_normalize($asset, $directory = '') {
 
 		}
 
-		if (!empty($asset['deps'])) {
+	}
 
-			if (is_string($asset['deps'])) {
-				$asset['deps'] = array($asset['deps']);
+
+	/**
+	 * Add an asset configuration
+	 *
+	 * @param string              $name  Unique name of the asset
+	 * @param array|callable|bool $asset An array with asset configuration, callable, or bool
+	 */
+	public function add($name, $asset) {
+		if (is_string($name) and (is_array($asset) or is_callable($asset) or is_bool($asset))) {
+			$this->assets[$name] = $asset;
+		}
+	}
+
+
+	/**
+	 * Register a single asset
+	 *
+	 * @param string $name  Unique name of the asset
+	 * @param array  $asset An array with the asset configuration
+	 */
+	public function register($name, $asset) {
+
+		if (is_string($name) and is_array($asset)) {
+
+			$asset = $this->normalize($asset);
+
+			$this->assets[$name] = $asset;
+
+			$asset = apply_filters('twee_asset_register', $asset, $name);
+
+			if (!empty($asset['prefix'])) {
+				$name = $asset['prefix'] . $name;
 			}
 
-			if (is_array($asset['deps'])) {
+			$deps = [];
 
-				$assets = tw_get_setting('assets');
+			foreach (['script', 'style'] as $type) {
 
-				if (empty($asset['prefix'])) {
-					$prefix = '';
-				} else {
-					$prefix = $asset['prefix'];
-				}
+				if (!empty($asset[$type]) and is_array($asset[$type])) {
 
-				$deps = array();
+					$i = count($asset[$type]) - 1;
 
-				foreach (array('script', 'style') as $type) {
-
-					if (isset($asset['deps'][$type]) and empty($asset['deps'][$type])) {
-						continue;
-					}
-
-					$asset_deps = array();
+					$current_key = false;
 
 					if (!empty($asset['deps'][$type]) and is_array($asset['deps'][$type])) {
-
-						if (is_string($asset['deps'][$type])) {
-							$asset['deps'][$type] = array($asset['deps'][$type]);
-						}
-
-						if (!empty($asset['deps'][$type][0]) and is_string($asset['deps'][$type][0])) {
-							$asset_deps = $asset['deps'][$type];
-						}
-
+						$deps[$type] = $asset['deps'][$type];
 					} else {
-						
-						if ($type !== 'script' and !empty($asset['deps']['script']) and is_string($asset['deps']['script'][0])) {
-							$asset_deps = array_merge($asset_deps, $asset['deps']['script']);
-						}
-						
-						if ($type !== 'style' and !empty($asset['deps']['style']) and is_string($asset['deps']['style'][0])) {
-							$asset_deps = array_merge($asset_deps, $asset['deps']['style']);
-						}
-						
-						if (isset($asset['deps'][0]) and is_string($asset['deps'][0])) {
-							$asset_deps = array_merge($asset_deps, $asset['deps']);
-						}
-						
+						$deps[$type] = [];
 					}
 
-					foreach ($asset_deps as $key => $dep) {
+					foreach ($asset[$type] as $file) {
 
-						if (is_array($assets) and !empty($assets[$dep]) and !empty($assets[$dep][$type])) {
+						$previous_key = $current_key;
 
-							$deps[$type][] = $prefix . $dep;
+						if ($i == 0) {
+							$current_key = $name;
+						} else {
+							$current_key = $name . '-' . $i;
+						}
+
+						if ($previous_key) {
+							$deps[$type][] = $previous_key;
+						}
+
+						if ($type == 'script') {
+							wp_register_script($current_key, $file, $deps[$type], $asset['version'], $asset['footer']);
+						} elseif ($type == 'style') {
+							wp_register_style($current_key, $file, $deps[$type], $asset['version']);
+						}
+
+						$i--;
+
+					}
+
+				}
+
+			}
+
+		}
+
+	}
+
+
+	/**
+	 * Enqueue a single asset
+	 *
+	 * @param string $name Name of the asset
+	 */
+	public function enqueue($name) {
+
+		$asset_name = $name;
+
+		if (!empty($this->assets[$name])) {
+
+			$asset = apply_filters('twee_asset_enqueue', $this->assets[$name], $name);
+
+			if (!empty($asset['prefix'])) {
+				$asset_name = $asset['prefix'] . $name;
+			}
+
+			if (!empty($asset['localize'])) {
+
+				if (is_callable($asset['localize'])) {
+					$asset['localize'] = call_user_func($asset['localize']);
+				}
+
+				if (is_array($asset['localize'])) {
+					wp_localize_script($asset_name, $name, $asset['localize']);
+				}
+
+			}
+
+		}
+
+		if (wp_script_is($asset_name, 'registered')) {
+			wp_enqueue_script($asset_name);
+		}
+
+		if (wp_style_is($asset_name, 'registered')) {
+			wp_enqueue_style($asset_name);
+		}
+
+	}
+
+
+	/**
+	 * Normalize an asset and check dependencies
+	 *
+	 * @param array $asset An array with asset configuration
+	 *
+	 * @return array
+	 */
+	public function normalize($asset) {
+
+		if (is_array($asset)) {
+
+			$base_url = get_template_directory_uri() . '/assets/';
+
+			$defaults = [
+				'deps' => [
+					'style' => [],
+					'script' => []
+				],
+				'style' => '',
+				'script' => '',
+				'footer' => true,
+				'prefix' => 'tw_',
+				'version' => null,
+				'display' => false,
+				'directory' => '',
+				'localize' => []
+			];
+
+			$asset = wp_parse_args($asset, $defaults);
+
+			foreach (['style', 'script'] as $type) {
+
+				if (!empty($asset[$type])) {
+
+					if (is_string($asset[$type])) {
+						$asset[$type] = [$asset[$type]];
+					}
+
+					foreach ($asset[$type] as $key => $link) {
+
+						if (strpos($link, 'http') !== 0 and strpos($link, '//') !== 0) {
+
+							$directory = '';
+
+							if (!empty($asset['directory'])) {
+								$directory = trailingslashit($asset['directory']);
+							}
+
+							$asset[$type][$key] = $base_url . $directory . $link;
+
+						}
+
+					}
+
+				}
+
+			}
+
+			if (!empty($asset['deps'])) {
+
+				if (is_string($asset['deps'])) {
+					$asset['deps'] = [$asset['deps']];
+				}
+
+				if (is_array($asset['deps'])) {
+
+					if (empty($asset['prefix'])) {
+						$prefix = '';
+					} else {
+						$prefix = $asset['prefix'];
+					}
+
+					$deps = [];
+
+					foreach (['script', 'style'] as $type) {
+
+						if (isset($asset['deps'][$type]) and empty($asset['deps'][$type])) {
+							continue;
+						}
+
+						$asset_deps = [];
+
+						if (!empty($asset['deps'][$type]) and is_array($asset['deps'][$type])) {
+
+							if (is_string($asset['deps'][$type])) {
+								$asset['deps'][$type] = [$asset['deps'][$type]];
+							}
+
+							if (!empty($asset['deps'][$type][0]) and is_string($asset['deps'][$type][0])) {
+								$asset_deps = $asset['deps'][$type];
+							}
 
 						} else {
 
-							if ($type == 'script' and wp_script_is($dep, 'registered')) {
-								$deps[$type][] = $dep;
+							if ($type !== 'script' and !empty($asset['deps']['script']) and is_string($asset['deps']['script'][0])) {
+								$asset_deps = array_merge($asset_deps, $asset['deps']['script']);
 							}
 
-							if ($type == 'style' and wp_style_is($dep, 'registered')) {
-								$deps[$type][] = $dep;
+							if ($type !== 'style' and !empty($asset['deps']['style']) and is_string($asset['deps']['style'][0])) {
+								$asset_deps = array_merge($asset_deps, $asset['deps']['style']);
+							}
+
+							if (isset($asset['deps'][0]) and is_string($asset['deps'][0])) {
+								$asset_deps = array_merge($asset_deps, $asset['deps']);
+							}
+
+						}
+
+						foreach ($asset_deps as $key => $dep) {
+
+							if (is_array($this->assets) and !empty($this->assets[$dep]) and !empty($this->assets[$dep][$type])) {
+
+								$deps[$type][] = $prefix . $dep;
+
+							} else {
+
+								if ($type == 'script' and wp_script_is($dep, 'registered')) {
+									$deps[$type][] = $dep;
+								}
+
+								if ($type == 'style' and wp_style_is($dep, 'registered')) {
+									$deps[$type][] = $dep;
+								}
+
 							}
 
 						}
 
 					}
 
-				}
+					$asset['deps'] = $deps;
 
-				$asset['deps'] = $deps;
+				}
 
 			}
 
 		}
 
-	}
+		return $asset;
 
-	return $asset;
+	}
 
 }

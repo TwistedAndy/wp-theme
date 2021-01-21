@@ -14,7 +14,7 @@
 			<?php comment_text(get_comment_ID()); ?>
 
 			<?php if ($comment->comment_approved == '0') { ?>
-				<p class="comment_on_moderation"><?php echo __('This comment is not approved yet.', 'wp-theme'); ?></p>
+				<p class="comment_on_moderation"><?php echo __('This comment is not approved yet.', 'twee'); ?></p>
 			<?php } ?>
 
 		</div>

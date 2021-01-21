@@ -4,7 +4,7 @@
 
 	<?php while (have_posts()) { the_post(); ?>
 
-		<?php tw_template_part('post', get_post()); ?>
+		<?php echo tw_template_part('post', get_post()); ?>
 
 	<?php } ?>
 
@@ -14,7 +14,7 @@
 
 	<div class="content">
 
-		<p><?php echo tw_not_found_text(); ?></p>
+		<p><?php echo __('No posts found.'); ?></p>
 
 	</div>
 

@@ -1,16 +1,28 @@
-<?php get_header(); ?>
+<?php
 
-<?php the_post(); ?>
+get_header();
 
-	<div class="content">
+the_post();
 
-		<?php the_title('<h1>', '</h1>'); ?>
+tw_asset_enqueue('fancybox');
 
-		<?php the_content(); ?>
+?>
+
+<section class="content_box">
+
+	<div class="fixed">
+
+		<div class="content">
+
+			<?php the_title('<h1>', '</h1>'); ?>
+
+			<?php the_content(); ?>
+
+		</div>
 
 	</div>
 
-<?php echo tw_pagination(array('type' => 'page')); ?>
+</section>
 
 <?php if (comments_open() or get_comments_number()) comments_template(); ?>
 

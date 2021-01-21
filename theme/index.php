@@ -1,5 +1,7 @@
-<?php get_header(); ?>
+<?php
 
-<?php get_template_part('parts/category'); ?>
+get_header();
 
-<?php get_footer(); ?>
+get_template_part('parts/category');
+
+get_footer();

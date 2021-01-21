@@ -2,9 +2,9 @@
 /**
  * Load more posts using AJAX
  *
- * @author  Toniievych Andrii <toniyevych@gmail.com>
- * @package wp-theme
- * @version 1.0
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @package Twee
+ * @version 3.0
  */
 
 /*
@@ -14,16 +14,16 @@ add_action('wp_ajax_load_posts', 'tw_ajax_load_posts');
 
 function tw_ajax_load_posts() {
 
-	$result = array(
+	$result = [
 		'result' => '',
 		'more' => false
-	);
+	];
 
 	if (isset($_POST['noncer']) and wp_verify_nonce($_POST['noncer'], 'ajax-nonce')) {
 
-		$fields = array('offset', 'number', 'author');
+		$fields = ['offset', 'number', 'author'];
 
-		$params = array();
+		$params = [];
 
 		foreach ($fields as $field) {
 			if (isset($_REQUEST[$field])) {
@@ -41,11 +41,11 @@ function tw_ajax_load_posts() {
 
 		if ($params['number'] > 0) {
 
-			$args = array(
+			$args = [
 				'post_status' => 'publish',
 				'offset' => $params['offset'],
 				'posts_per_page' => $params['number']
-			);
+			];
 
 			if (!empty($_REQUEST['search'])) {
 				$args['s'] = esc_attr($_REQUEST['search']);
@@ -53,19 +53,25 @@ function tw_ajax_load_posts() {
 
 			if (!empty($_REQUEST['type'])) {
 
-				$types = get_post_types(array('publicly_queryable' => true));
+				$types = get_post_types(['publicly_queryable' => true]);
 
-				if (in_array($_REQUEST['type'], $types)) {
-					$args['post_type'] = $_REQUEST['type'];
+				$types = array_values($types);
+
+				$types[] = 'offer';
+
+				if (!is_array($_REQUEST['type'])) {
+					$_REQUEST['type'] = [$_REQUEST['type']];
 				}
+
+				$args['post_type'] = array_unique(array_intersect($types, $_REQUEST['type']));
 
 			}
 
+			$tax_query = [];
+
 			if (!empty($_REQUEST['terms']) and is_array($_REQUEST['terms'])) {
 
-				$tax_query = array();
-
-				$terms = array();
+				$terms = [];
 
 				foreach ($_REQUEST['terms'] as $term_id) {
 
@@ -87,25 +93,41 @@ function tw_ajax_load_posts() {
 
 				foreach ($terms as $taxonomy => $ids) {
 
-					$tax_query[] = array(
+					$tax_query[] = [
 						'taxonomy' => $taxonomy,
 						'field' => 'term_id',
 						'terms' => $ids,
 						'operator' => 'IN'
-					);
-
-				}
-
-				if ($tax_query) {
-
-					$args['tax_query'] = array_merge(array('relation' => 'AND'), $tax_query);
+					];
 
 				}
 
 			}
 
-			if (!empty($_REQUEST['author'])) {
-				$args['author'] = $params['author'];
+			if (!empty($_REQUEST['query_tax']) and is_array($_REQUEST['query_tax'])) {
+
+				foreach ($_REQUEST['query_tax'] as $key => $value) {
+
+					if ($key === 'relation' and in_array($value, ['AND', 'OR'])) {
+						$tax_query['relation'] = $value;
+					}
+
+					if (is_numeric($key) and is_array($value)) {
+						$tax_query[] = $value;
+					}
+
+				}
+
+			}
+
+			if ($tax_query) {
+
+				if (empty($tax_query['relation'])) {
+					$tax_query['relation'] = 'AND';
+				}
+
+				$args['tax_query'] = $tax_query;
+
 			}
 
 			if (!empty($_REQUEST['query_meta']) and is_array($_REQUEST['query_meta'])) {
@@ -122,11 +144,11 @@ function tw_ajax_load_posts() {
 
 			}
 
-			if (!empty($_REQUEST['query_direction']) and in_array($_REQUEST['query_direction'], array('ASC', 'DESC'))) {
+			if (!empty($_REQUEST['query_direction']) and in_array($_REQUEST['query_direction'], ['ASC', 'DESC'])) {
 				$args['order'] = $_REQUEST['query_direction'];
 			}
 
-			if (!empty($_REQUEST['order']) and in_array($_REQUEST['order'], array('date', 'views', 'title', 'comment_count', 'author'))) {
+			if (!empty($_REQUEST['order']) and in_array($_REQUEST['order'], ['date', 'views', 'title', 'comment_count', 'author'])) {
 
 				$order = esc_attr($_REQUEST['order']);
 
@@ -140,10 +162,10 @@ function tw_ajax_load_posts() {
 
 				} elseif ($order == 'views') {
 
-					$args['meta_query']['views'] = array(
+					$args['meta_query']['views'] = [
 						'key' => 'views',
 						'compare' => 'EXISTS',
-					);
+					];
 
 				}
 
@@ -153,9 +175,9 @@ function tw_ajax_load_posts() {
 
 				} else {
 
-					$args['orderby'] = array(
+					$args['orderby'] = [
 						$order => $args['order']
-					);
+					];
 
 				}
 
@@ -181,6 +203,10 @@ function tw_ajax_load_posts() {
 
 			}
 
+			if (!empty($_REQUEST['author'])) {
+				$args['author'] = $params['author'];
+			}
+
 			$query = new WP_Query($args);
 
 			if ($query->have_posts()) {
@@ -189,25 +215,16 @@ function tw_ajax_load_posts() {
 					$result['more'] = true;
 				}
 
-				ob_start();
-
 				while ($query->have_posts()) {
-
 					$query->the_post();
-
-					tw_template_part($template, $query->post);
-
+					$result['result'] .= tw_template_part($template, $query->post);
 				}
-
-				$result['result'] = ob_get_contents();
 
 			} else {
 
 				$result['result'] = '<div class="message">Nothing had been found</div>';
 
 			}
-
-			ob_end_clean();
 
 		}
 
@@ -246,29 +263,29 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 		$hidden = false;
 	}
 
-	$terms = array();
+	$terms = [];
 	$search = '';
-	$type = get_post_type($query->post);
+	$type = $query->query_vars['post_type'];
 	$object = $query->get_queried_object();
 
 	if ($object instanceof WP_Term) {
-		
+
 		$terms[] = $object->term_id;
-		
+
 		$tax_query = $query->get('tax_query');
-		
+
 		if ($tax_query) {
-			
+
 			foreach ($tax_query as $tax) {
 
 				if (is_array($tax) and is_array($tax['terms']) and (empty($tax['operator']) or $tax['operator'] == 'IN')) {
-					
+
 					$terms = array_merge($terms, $tax['terms']);
-					
+
 				}
-				
+
 			}
-			
+
 		}
 
 		$terms = array_values(array_unique($terms));
@@ -288,16 +305,16 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 	$post_in = $query->get('post__in');
 
 	if (!is_array($post_in)) {
-		$post_in = array();
+		$post_in = [];
 	}
 
 	$post_not = $query->get('post__not_in');
 
 	if (!is_array($post_not)) {
-		$post_not = array();
+		$post_not = [];
 	}
 
-	$args = array(
+	$args = [
 		'number' => $number,
 		'offset' => $offset,
 		'type' => $type,
@@ -308,155 +325,18 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 		'author' => $author,
 		'post__in' => $post_in,
 		'post__not_in' => $post_not,
+		'query_tax' => $query->get('tax_query'),
 		'query_meta' => $query->get('meta_query'),
 		'query_order' => $query->get('orderby'),
 		'query_direction' => $query->get('order')
-	);
+	];
 
 	?>
 
 	<div class="buttons">
-		<div class="button<?php echo ($hidden ? ' hidden' : ''); ?>" data-loader="<?php echo htmlspecialchars(json_encode($args), ENT_QUOTES, 'UTF-8'); ?>">Show More</div>
+		<div class="button<?php echo($hidden ? ' hidden' : ''); ?>" data-loader="<?php echo htmlspecialchars(json_encode($args), ENT_QUOTES, 'UTF-8'); ?>"><?php _e('Show More', 'twee'); ?></div>
 	</div>
 
 	<?php
 
 }
-
-
-/*
-
-jQuery(function($) {
-
-	$('[data-loader]').each(function() {
-
-		var button = $(this),
-			data = button.data('loader'),
-			section = button.parents(data.wrapper),
-			wrapper = section.find('.items');
-
-		var	loader = $('<div class="loading"><span></span><span></span><span></span></div>');
-
-		wrapper.on('reset', function() {
-
-			data = button.data('loader');
-
-			wrapper.children().remove();
-
-			data.offset = 0;
-
-			button.trigger('click');
-
-		});
-
-		button.click(function() {
-
-			data.action = 'load_posts';
-
-			data.noncer = template.nonce;
-
-			$.ajax({
-				url: template.ajaxurl,
-				type: 'post',
-				dataType: 'json',
-				data: data,
-				success: function(response) {
-
-					if (response['result']) {
-
-						var posts = $(response['result']);
-
-						wrapper.append(posts);
-
-						data.offset = data.offset + data.number;
-
-						if (response['more']) {
-							button.removeClass('hidden');
-						} else {
-							button.addClass('hidden');
-						}
-
-						section.trigger('init');
-
-					} else {
-
-						button.addClass('hidden');
-
-					}
-
-				},
-				beforeSend: function() {
-					wrapper.append(loader);
-					loader.addClass('is_visible');
-				},
-				complete: function() {
-					loader.removeClass('is_visible');
-					wrapper.removeClass('loading');
-				}
-
-			});
-
-		});
-
-	});
-
-});
-
-.loading {
-	display: flex;
-	position: relative;
-	overflow: hidden;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	height: 0;
-	padding: 0;
-	margin: 0;
-	text-align: center;
-	transition: 0.3s;
-	z-index: 3;
-
-	&.is_visible {
-		height: 60px;
-
-		span {
-			width: 20px;
-			height: 20px;
-		}
-
-	}
-
-	span {
-		display: inline-block;
-		flex-grow: 0;
-		flex-shrink: 0;
-		width: 0;
-		height: 0;
-		margin: 0 5px;
-		border-radius: 100%;
-		background-color: #eeeeee;
-		animation: spinner 1.4s infinite ease-in-out both;
-		transition: width 0.4s, height 0.4s;
-
-		&:nth-child(3n + 1) {
-			animation-delay: -0.32s;
-		}
-
-		&:nth-child(3n + 2) {
-			animation-delay: -0.16s;
-		}
-
-	}
-
-}
-
-@keyframes spinner {
-	0%, 80%, 100% {
-		transform: scale(0);
-	}
-	40% {
-		transform: scale(1.0);
-	}
-}
-
-*/

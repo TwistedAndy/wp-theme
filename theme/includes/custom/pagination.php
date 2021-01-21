@@ -1,10 +1,10 @@
 <?php
 /**
- * Pagination library
+ * Pagination Library
  *
- * @author  Toniievych Andrii <toniyevych@gmail.com>
- * @package wp-theme
- * @version 2.0
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @package Twee
+ * @version 3.0
  */
 
 
@@ -16,17 +16,10 @@
  *
  * @return string
  */
+function tw_pagination($args = [], $query = false) {
 
-function tw_pagination($args = array(), $query = false) {
-
-	$theme_settings = tw_get_setting('modules', 'pagination');
-
-	if ($theme_settings and is_array($theme_settings) and is_array($args)) {
-		$args = wp_parse_args($args, $theme_settings);
-	}
-
-	$defaults = array(
-		'before' => '<div role="navigation" aria-label="' . esc_attr__('Pages', 'wp-theme') . '" class="pagination_box">',
+	$defaults = [
+		'before' => '<div role="navigation" aria-label="' . esc_attr__('Pages', 'twee') . '" class="pagination_box">',
 		'after' => '</div>',
 		'prev' => '&laquo;',
 		'next' => '&raquo;',
@@ -41,12 +34,12 @@ function tw_pagination($args = array(), $query = false) {
 		'type' => 'posts',
 		'format' => '',
 		'base' => '',
-		'add_args' => array(),
+		'add_args' => [],
 		'add_frag' => '',
 		'url' => false,
 		'page' => false,
 		'max_page' => false
-	);
+	];
 
 	$args = wp_parse_args($args, $defaults);
 
@@ -145,7 +138,7 @@ function tw_pagination($args = array(), $query = false) {
 	}
 
 	if ($args['first'] !== false and $start_page >= 2 and ($number + 1) < $max_page) {
-		$result .= '<a aria-label="' . esc_attr__('First Page', 'wp-theme') . '" class="prev first" href="' . tw_page_link(1, $args) . '">' . (($args['first'] != 'first') ? $args['first'] : 1) . '</a>';
+		$result .= '<a aria-label="' . esc_attr__('First Page', 'twee') . '" class="prev first" href="' . tw_page_link(1, $args) . '">' . (($args['first'] != 'first') ? $args['first'] : 1) . '</a>';
 		if ($args['dots_left'] and $start_page != 2) {
 			$result .= '<span class="extend">' . $args['dots_left'] . '</span>';
 		}
@@ -153,7 +146,7 @@ function tw_pagination($args = array(), $query = false) {
 
 	if ($args['prev'] !== false) {
 		if ($paged != 1) {
-			$result .= '<a aria-label="' . esc_attr__('Previous Page', 'wp-theme') . '" class="prev" href="' . tw_page_link(($paged - 1), $args) . '">' . $args['prev'] . '</a>';
+			$result .= '<a aria-label="' . esc_attr__('Previous Page', 'twee') . '" class="prev" href="' . tw_page_link(($paged - 1), $args) . '">' . $args['prev'] . '</a>';
 		} elseif ($args['inactive']) {
 			$result .= '<span class="prev">' . $args['prev'] . '</span>';
 		}
@@ -163,7 +156,7 @@ function tw_pagination($args = array(), $query = false) {
 		if ($i == $paged) {
 			$result .= '<span aria-current="page" class="current">' . $i . '</span>';
 		} else {
-			$result .= '<a aria-label="' . esc_attr(sprintf(__('Page %d', 'wp-theme'), $i)) . '" href="' . tw_page_link($i, $args) . '">' . $i . '</a>';
+			$result .= '<a aria-label="' . esc_attr(sprintf(__('Page %d', 'twee'), $i)) . '" href="' . tw_page_link($i, $args) . '">' . $i . '</a>';
 		}
 	}
 
@@ -181,7 +174,7 @@ function tw_pagination($args = array(), $query = false) {
 
 	if ($args['next'] !== false) {
 		if ($paged != $end_page) {
-			$result .= '<a aria-label="' . esc_attr__('Next Page', 'wp-theme') . '" class="next" href="' . tw_page_link(($paged + 1), $args) . '">' . $args['next'] . '</a>';
+			$result .= '<a aria-label="' . esc_attr__('Next Page', 'twee') . '" class="next" href="' . tw_page_link(($paged + 1), $args) . '">' . $args['next'] . '</a>';
 		} elseif ($args['inactive']) {
 			$result .= '<span class="next">' . $args['next'] . '</span>';
 		}
@@ -191,7 +184,7 @@ function tw_pagination($args = array(), $query = false) {
 		if ($args['dots_right'] and $end_page != ($max_page - 1)) {
 			$result .= '<span class="extend">' . $args['dots_right'] . '</span>';
 		}
-		$result .= '<a aria-label="' . esc_attr__('Last Page', 'wp-theme') . '" class="next last" href="' . tw_page_link($max_page, $args) . '">' . (($args['last'] != 'last') ? $args['last'] : $max_page) . '</a>';
+		$result .= '<a aria-label="' . esc_attr__('Last Page', 'twee') . '" class="next last" href="' . tw_page_link($max_page, $args) . '">' . (($args['last'] != 'last') ? $args['last'] : $max_page) . '</a>';
 	}
 
 	$result .= $args['after'];
@@ -209,8 +202,7 @@ function tw_pagination($args = array(), $query = false) {
  *
  * @return string
  */
-
-function tw_page_link($page_number, $args = array()) {
+function tw_page_link($page_number, $args = []) {
 
 	if (is_array($args) and isset($args['type'])) {
 		$type = $args['type'];
@@ -226,7 +218,7 @@ function tw_page_link($page_number, $args = array()) {
 
 	} elseif ($type == 'page') {
 
-		$link = str_replace(array('<a href="', '">'), '', _wp_link_page($page_number));
+		$link = str_replace(['<a href="', '">'], '', _wp_link_page($page_number));
 		$link = apply_filters('wp_link_pages_link', $link, $page_number);
 
 	} else {
@@ -264,8 +256,7 @@ function tw_page_link($page_number, $args = array()) {
  *
  * @return int
  */
-
-function tw_page_number($args = array(), $query = false) {
+function tw_page_number($args = [], $query = false) {
 
 	if (!empty($args['page'])) {
 
@@ -311,8 +302,7 @@ function tw_page_number($args = array(), $query = false) {
  *
  * @return int
  */
-
-function tw_page_total($args = array(), $query = false) {
+function tw_page_total($args = [], $query = false) {
 
 	if (!empty($args['max_page'])) {
 
