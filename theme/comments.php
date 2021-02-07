@@ -47,6 +47,7 @@
 			'title_reply_before' => '<h2 id="reply-title" class="comment-reply-title">',
 			'title_reply_after' => '</h2>',
 			'comment_notes_before' => '',
+			'class_submit' => 'submit button',
 			'submit_field' => '<div class="form-submit">%1$s %2$s</div>',
 		));
 

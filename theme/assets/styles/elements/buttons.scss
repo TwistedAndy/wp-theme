@@ -1,17 +1,32 @@
-%button {
-	display: inline-block;
+button {
 	box-sizing: border-box;
+	padding: 0;
+	border: none;
+	background: none;
+	transition: 0.2s;
+	cursor: pointer;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+%button {
+	display: inline-flex;
 	position: relative;
-	overflow: hidden;
-	margin: 0;
+	align-items: center;
+	align-content: center;
+	justify-content: center;
+	box-sizing: border-box;
 	padding: 10px 20px;
-	background: #1f50b4;
-	border: 1px solid #1f50b4;
-	border-radius: 0;
+	margin: 0;
+	border: 1px solid $color_accent;
+	border-radius: $radius_regular;
+	background: $color_accent 50% 50% no-repeat;
+	background-size: 19px 19px;
+	color: $color_white;
 	font-size: 16px;
 	font-weight: 400;
 	line-height: 20px;
-	color: $color_white;
 	text-align: center;
 	text-transform: uppercase;
 	transition: 0.2s;
@@ -22,13 +37,38 @@
 	appearance: none;
 
 	&:hover {
-		background-color: $color_white;
 		border-color: #1f50b4;
+		background-color: $color_white;
 		color: #1f50b4;
 	}
 
 }
 
-.button, input[type="submit"], input[type="button"], button {
+.button {
 	@extend %button;
+
+	&.is_hidden {
+		display: none;
+	}
+
+	&.is_loading, &.is_loading:hover {
+		border-color: lighten($color_main, 20%);
+		background-color: transparent;
+		background-image: url(../images/ico_loading.svg);
+		color: transparent;
+	}
+
+}
+
+.buttons {
+	display: block;
+	margin: 0 -5px -10px;
+	font-size: 0;
+	line-height: 0;
+
+	.button {
+		min-width: auto;
+		margin: 0 5px 10px;
+	}
+
 }

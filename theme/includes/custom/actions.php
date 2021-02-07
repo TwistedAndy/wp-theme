@@ -219,9 +219,12 @@ add_filter('pings_open', '__return_false');
  */
 add_action('wp_default_scripts', function($scripts) {
 
+	$scripts->remove('jquery');
+
 	if (is_admin()) {
-		$scripts->remove('jquery');
-		$scripts->add('jquery', false, array('jquery-core', 'jquery-migrate'), '1.12.4-wp');
+		$scripts->add('jquery', false, array('jquery-core', 'jquery-migrate'), '3.5.1');
+	} else {
+		$scripts->add('jquery', false, array('jquery-core'), '3.5.1');
 	}
 
 }, 20);

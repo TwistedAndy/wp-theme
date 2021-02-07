@@ -8,11 +8,11 @@
  */
 
 /*
-add_action('wp_ajax_nopriv_load_posts', 'tw_ajax_load_posts');
-add_action('wp_ajax_load_posts', 'tw_ajax_load_posts');
+add_action('wp_ajax_nopriv_loader', 'tw_ajax_loader');
+add_action('wp_ajax_loader', 'tw_ajax_loader');
 */
 
-function tw_ajax_load_posts() {
+function tw_ajax_loader() {
 
 	$result = [
 		'result' => '',
@@ -134,12 +134,20 @@ function tw_ajax_load_posts() {
 				$args['meta_query'] = $_REQUEST['query_meta'];
 			}
 
-			if (!empty($_REQUEST['query_order']) and is_array($_REQUEST['query_order'])) {
+			if (!empty($_REQUEST['query_order'])) {
 
-				foreach ($_REQUEST['query_order'] as $key => $value) {
-					$key = trim(esc_attr($key));
-					$value = trim(esc_attr($value));
-					$args['orderby'][$key] = $value;
+				if (is_array($_REQUEST['query_order'])) {
+
+					foreach ($_REQUEST['query_order'] as $key => $value) {
+						$key = trim(esc_attr($key));
+						$value = trim(esc_attr($value));
+						$args['orderby'][$key] = $value;
+					}
+
+				} else {
+
+					$args['orderby'] = trim(esc_sql($_REQUEST['query_order']));
+
 				}
 
 			}
@@ -235,7 +243,7 @@ function tw_ajax_load_posts() {
 }
 
 
-function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $number = false) {
+function tw_loader_button($wrapper, $template = 'post', $query = false, $number = false) {
 
 	global $wp_query;
 
@@ -334,7 +342,7 @@ function tw_ajax_load_button($wrapper, $template = 'post', $query = false, $numb
 	?>
 
 	<div class="buttons">
-		<div class="button<?php echo($hidden ? ' hidden' : ''); ?>" data-loader="<?php echo htmlspecialchars(json_encode($args), ENT_QUOTES, 'UTF-8'); ?>"><?php _e('Show More', 'twee'); ?></div>
+		<div class="button<?php echo($hidden ? ' is_hidden' : ''); ?>" data-loader="<?php echo htmlspecialchars(json_encode($args), ENT_QUOTES, 'UTF-8'); ?>"><?php _e('Show More', 'twee'); ?></div>
 	</div>
 
 	<?php

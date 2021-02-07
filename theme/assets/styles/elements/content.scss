@@ -6,8 +6,25 @@
 
 	@include clear();
 
+	h1, h2, h3, h4, h5, h6 {
+		margin: #{$margin_content + 10px} 0 #{$margin_content - 10px};
+
+		&:first-child {
+			margin-top: -0.25em;
+		}
+
+	}
+
 	p, & > table, & > ul, & > ol, .table_wrapper {
 		margin-bottom: $margin_content;
+	}
+
+	p {
+
+		& + ul, & + ol {
+			margin-top: -10px;
+		}
+
 	}
 
 	ul, ol {
@@ -16,8 +33,8 @@
 
 		ul, ol {
 			display: block;
-			margin-left: 0;
 			padding-top: 15px;
+			margin-left: 0;
 		}
 
 	}
@@ -25,8 +42,8 @@
 	li {
 		display: block;
 		position: relative;
-		margin-bottom: 15px;
 		padding-left: 20px;
+		margin-bottom: 15px;
 
 		&:last-child {
 			margin-bottom: 0;
@@ -46,8 +63,8 @@
 				left: 0;
 				width: 6px;
 				height: 6px;
-				background-color: #ecc571;
 				border-radius: 50%;
+				background-color: $color_main;
 			}
 
 		}
@@ -75,9 +92,8 @@
 	}
 
 	img {
-		width: auto;
-		height: auto;
 		max-width: 100%;
+		height: auto;
 	}
 
 	table {
@@ -89,7 +105,7 @@
 
 	td, th {
 		padding: 5px 10px;
-		border: 1px solid darken($color_background, 10%);
+		border: 1px solid $color_border;
 	}
 
 	.table_wrapper {
@@ -100,15 +116,45 @@
 		margin-bottom: 0;
 	}
 
+	hr {
+		height: 1px;
+		margin: ($margin_content + 5px) 0;
+		border: none;
+		background-color: $color_border;
+
+		&:first-child {
+			margin-top: 0;
+		}
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
+	}
+
+	a {
+		color: inherit;
+		text-decoration: underline;
+
+		&:hover {
+			text-decoration: none;
+		}
+
+	}
+
+	.button {
+		text-decoration: none;
+	}
+
 	@include desktop_small {
 
 		p, & > table, & > ul, & > ol, .table_wrapper {
 			margin-bottom: ($margin_content - 5px);
 		}
 
-	}
-
-	@include tablet_large {
+		hr {
+			margin: $margin_content 0;
+		}
 
 		.table_wrapper {
 			display: block;
@@ -146,12 +192,12 @@
 		max-width: 100%;
 		margin: 0 auto $margin_content;
 	}
-	
+
 	@include tablet_large {
 
 		.alignright, .alignleft {
-			float: none;
 			display: block;
+			float: none;
 			margin: 0 auto #{$margin_content - 5px};
 			text-align: center;
 		}
@@ -168,8 +214,8 @@
 	blockquote {
 		display: block;
 		overflow: hidden;
-		margin-bottom: $margin_content;
 		padding: ($margin_content - 5px) $margin_content;
+		margin-bottom: $margin_content;
 		background: $color_background;
 
 		:last-child {
@@ -193,10 +239,10 @@
 
 	.wp-caption {
 		display: block;
-		box-sizing: border-box;
 		overflow: hidden;
-		margin-bottom: $margin_content;
+		box-sizing: border-box;
 		padding: 10px;
+		margin-bottom: $margin_content;
 		background: $color_background;
 
 		.wp-caption-text {
@@ -220,11 +266,11 @@
 
 	.gallery {
 		display: flex;
-		align-items: flex-start;
-		justify-content: flex-start;
-		flex-wrap: wrap;
 		position: relative;
 		overflow: hidden;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: flex-start;
 		margin: 0 -5px 10px;
 
 		&-columns-1 .gallery-item {
@@ -272,22 +318,22 @@
 		display: inline-block;
 		box-sizing: border-box;
 		width: 33.33%;
-		margin: 0 0 10px;
 		padding: 0 5px;
+		margin: 0 0 10px;
 		vertical-align: top;
 	}
 
 	.gallery-icon {
 		display: block;
-		margin: 0;
 		padding: 0;
+		margin: 0;
 
 		a, img {
 			display: block;
 			width: 100%;
 			height: auto;
-			margin: 0;
 			padding: 0;
+			margin: 0;
 		}
 
 	}
@@ -340,6 +386,79 @@
 
 		}
 
+	}
+
+}
+
+
+/* Embeds */
+
+.wp-block-embed, .wp-embed-video {
+	display: block;
+	position: relative;
+	width: 100%;
+	margin: #{$margin_content + 5px} auto;
+
+	&:first-child {
+		margin-top: 0;
+	}
+
+	&:last-child {
+		margin-bottom: 0;
+	}
+
+}
+
+.wp-block-embed {
+
+	&.wp-has-aspect-ratio {
+
+		&:before {
+			content: '';
+			display: block;
+			position: relative;
+			width: 100%;
+			padding-bottom: 56.25%;
+		}
+
+		.wp-block-embed__wrapper {
+			display: block;
+			position: absolute;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+		}
+
+		iframe {
+			display: block;
+			width: 100%;
+			height: 100%;
+		}
+
+	}
+
+}
+
+.wp-embed-video {
+
+	&:before {
+		content: '';
+		display: block;
+		position: relative;
+		width: 100%;
+		padding-bottom: 56.25%;
+	}
+
+	iframe {
+		display: block;
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
 	}
 
 }

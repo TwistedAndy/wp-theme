@@ -2,33 +2,26 @@
 
 jQuery(function($) {
 
-	$('.form_box form, form.form_box').each(function() {
+	$('.form_box form, form.form_box, form.comment-form').each(function() {
 
-		var form = $(this), message, button = $('input[type="submit"], .button.send', form);
+		var form = $(this), message,
+			button = $('[type="submit"]', form);
 
 		form.on('submit', function(e) {
-			e.preventDefault();
-			e.stopPropagation();
-			return false;
-		});
-
-		button.on('click', function(e) {
 
 			var data = $(':input', form).serializeArray();
 
+			var action = 'feedback';
+
+			if (form.hasClass('comment-form')) {
+				action = 'comment';
+			}
+
 			if ($('[name="action"]', form).length === 0) {
-
-				var action = $('[name="hidden_action"]', form).val();
-
-				if (!action) {
-					action = 'feedback';
-				}
-
 				data.push({
 					name: 'action',
 					value: action
 				});
-
 			}
 
 			data.push({
@@ -42,15 +35,22 @@ jQuery(function($) {
 				type: 'post',
 				dataType: 'json',
 				beforeSend: function() {
-					button.prop('disabled', true);
+					button.prop('disabled', true).addClass('is_loading');
 				},
 				complete: function() {
-					button.prop('disabled', false);
+					button.prop('disabled', false).removeClass('is_loading');
 				},
 				success: processResponse
 			});
 
+			e.preventDefault();
+
+			e.stopPropagation();
+
+			return false;
+
 		});
+
 
 		form.on('change', 'input:file', function() {
 
@@ -68,10 +68,10 @@ jQuery(function($) {
 				processData: false,
 				contentType: false,
 				beforeSend: function() {
-					button.prop('disabled', true);
+					button.prop('disabled', true).addClass('is_loading');
 				},
 				complete: function() {
-					button.prop('disabled', false);
+					button.prop('disabled', false).removeClass('is_loading');
 				},
 				xhr: function() {
 					var xhr = new XMLHttpRequest();
@@ -116,10 +116,10 @@ jQuery(function($) {
 				type: 'post',
 				dataType: 'json',
 				beforeSend: function() {
-					button.prop('disabled', true);
+					button.prop('disabled', true).addClass('is_loading');
 				},
 				complete: function() {
-					button.prop('disabled', false);
+					button.prop('disabled', false).removeClass('is_loading');
 				},
 				success: processResponse
 			});
@@ -128,7 +128,11 @@ jQuery(function($) {
 
 		function processResponse(data) {
 
-			$('.error', form).remove();
+			$('.error, .success', form).remove();
+
+			if (data.link) {
+				window.location.href = data.link;
+			}
 
 			if (data.errors) {
 				for (let i in data.errors) {
@@ -159,10 +163,6 @@ jQuery(function($) {
 				form.append(message);
 				message.hide().slideDown();
 				form[0].reset();
-			}
-
-			if (data.link) {
-				window.location.href = data.link;
 			}
 
 		}

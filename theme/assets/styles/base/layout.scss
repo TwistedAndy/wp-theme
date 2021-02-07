@@ -4,28 +4,28 @@ html, body {
 
 #site {
 	display: flex;
-	flex-direction: column;
 	position: relative;
 	overflow: hidden;
+	flex-direction: column;
 	min-height: 100%;
 }
 
 .main_box {
 	display: block;
+	position: relative;
+	overflow: hidden;
 	flex-grow: 1;
 	flex-shrink: 0;
-	overflow: hidden;
-	position: relative;
 	width: 100%;
 }
 
 .fixed {
-	box-sizing: border-box;
 	position: relative;
+	box-sizing: border-box;
 	width: 100%;
 	max-width: $desktop_large + px;
+	padding: 0 #{$gap_aside}px;
 	margin: 0 auto;
-	padding: 0 30px;
 	z-index: 2;
 
 	.fixed {
@@ -39,32 +39,18 @@ html, body {
 }
 
 
-%block {
+section, %block {
 	display: block;
 	position: relative;
 	margin-bottom: $margin_desktop;
 	z-index: 2;
 
-	.header_box + & {
-		margin-top: $margin_desktop;
-	}
-
 	@include desktop_small {
 		margin-bottom: $margin_tablet;
-
-		.header_box + & {
-			margin-top: $margin_tablet;
-		}
-
 	}
 
 	@include tablet_small {
 		margin-bottom: $margin_phone;
-
-		.header_box + & {
-			margin-top: $margin_phone;
-		}
-
 	}
 
 }
@@ -78,7 +64,7 @@ html, body {
 	}
 
 	.header_box + & {
-		margin-top: 0;
+		margin-top: -40px;
 	}
 
 	.has_background + & {
@@ -87,6 +73,10 @@ html, body {
 
 	@include desktop_small {
 		padding: $margin_tablet 0;
+
+		.header_box + & {
+			margin-top: -30px;
+		}
 
 		.has_background + & {
 			margin-top: -$margin_tablet;

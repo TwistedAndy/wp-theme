@@ -1,8 +1,11 @@
 .header_box {
 	display: block;
 	position: relative;
+	margin-bottom: 40px;
 	z-index: 10;
 
-
+	@include desktop_small {
+		margin-bottom: 30px;
+	}
 
 }

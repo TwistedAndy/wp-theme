@@ -1,35 +1,75 @@
 .pagination_box {
+	margin: 30px 0 0;
 	text-align: center;
 
-	@extend %block;
-
 	span, a {
-		display: inline-block;
-		margin: 0 3px;
-		font-size: 16px;
-		font-weight: 400;
-		line-height: 1.25;
-		padding: 2px 6px;
-		text-decoration: none;
+		display: inline-flex;
+		position: relative;
+		overflow: hidden;
+		align-items: center;
+		justify-content: center;
+		box-sizing: border-box;
+		min-width: 32px;
+		height: 32px;
+		padding: 0 2px;
+		margin: 0 5px;
+		border: 1px solid $color_border;
+		background-color: transparent;
+		color: rgba($color_main, 0.8);
+		font-size: 12px;
+		font-weight: 700;
+		line-height: 14px;
+		text-align: center;
 		vertical-align: middle;
+		text-decoration: none;
+		transition: 0.2s;
 	}
 
 	span {
-		background-color: $color_background;
-		color: $color_main;
+		border-color: $color_main;
+		background-color: $color_main;
+		color: $color_white;
 	}
 
 	a:hover {
-		color: #0d7b0d;
+		border-color: $color_main;
+		color: $color_main;
 	}
 
 	.extend {
-		background: transparent;
+		border-color: transparent;
 	}
 
-	span.next, span.prev {
-		background: transparent;
-		color: #0d7b0d;
+	.next, .prev {
+		color: transparent;
+
+		&:hover {
+			color: transparent;
+		}
+
+		&:before {
+			content: '';
+			display: block;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 10px;
+			height: 6px;
+			margin-top: -3px;
+			margin-left: -5px;
+			background: url(../images/ico_select.svg) 50% 50% no-repeat;
+			background-size: contain;
+			transform: rotate(-90deg);
+		}
+
+	}
+
+	.prev {
+
+		&:before {
+			transform: rotate(90deg);
+		}
+
 	}
 
 }

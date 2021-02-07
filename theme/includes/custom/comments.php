@@ -27,7 +27,7 @@ function tw_comment($comment, $args, $depth) {
 		echo '<div id="div-comment-' . get_comment_ID() . '">';
 	}
 
-	echo tw_template_part('comment', ['comment' => $comment]);
+	echo tw_template_part('comment', ['comment' => $comment, 'args' => $args, 'depth' => $depth]);
 
 	if ('div' != $args['style']) {
 		echo '</div>';

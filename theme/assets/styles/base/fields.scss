@@ -1,24 +1,24 @@
 input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[type="tel"], input[type="number"], select, textarea {
 	display: block;
-	box-sizing: border-box;
 	position: relative;
+	box-sizing: border-box;
 	width: 100%;
 	padding: 10px 15px;
+	border: 1px solid $color_border;
+	border-radius: $radius_regular;
 	background: $color_white;
-	border: 1px solid rgba($color_main, 0.2);
 	font-family: $font_main;
 	font-size: 16px;
 	font-weight: 400;
 	line-height: 1.25;
 	transition: 0.2s;
-	border-radius: 0;
+	z-index: 2;
 	-moz-appearance: none;
 	-webkit-appearance: none;
 	appearance: none;
-	z-index: 2;
 
 	&:focus {
-		border-color: rgba($color_main, 0.4);
+		border-color: $color_accent;
 		outline: none;
 	}
 
@@ -26,69 +26,107 @@ input[type="text"], input[type="email"], input[type="search"], input[type="passw
 
 textarea {
 	overflow: auto;
-	resize: vertical;
 	height: 200px;
+	resize: vertical;
 }
 
 select::-ms-expand {
 	display: none;
 }
 
-.checkbox {
-	display: inline-block;
+select {
+	padding-right: 30px;
+	background: $color_white url(../images/ico_select.svg) right 12px top 50% no-repeat;
 
-	input {
+	&::-ms-expand {
+		display: none;
+	}
+
+}
+
+input[type="checkbox"], input[type="radio"] {
+	display: block;
+	position: absolute;
+	left: -1000px;
+	visibility: hidden;
+
+	& + span, & + label {
 		display: block;
-		visibility: hidden;
-		position: absolute;
-		left: -1000px;
+		position: relative;
+		padding-left: 30px;
+		color: $color_main;
+		font-size: 16px;
+		line-height: 20px;
+		cursor: pointer;
 
-		& + span {
+		&:before {
+			content: '';
 			display: block;
-			position: relative;
-			padding-left: 30px;
-			font-size: 16px;
-			font-weight: 400;
-			line-height: 1.25;
-			cursor: pointer;
-
-			&:before, &:after {
-				content: '';
-				display: block;
-				box-sizing: border-box;
-				position: absolute;
-				top: 0;
-				left: 0;
-				width: 20px;
-				height: 20px;
-				background-color: $color_white;
-				border: 1px solid #1f50b4;
-				z-index: 1;
-			}
-
-			&:after {
-				top: 6px;
-				left: 6px;
-				width: 8px;
-				height: 8px;
-				background-color: #1f50b4;
-				border: none;
-				opacity: 0;
-				z-index: 2;
-			}
-
+			position: absolute;
+			top: 0;
+			left: 0;
+			box-sizing: border-box;
+			width: 20px;
+			height: 20px;
+			border: 1px solid $color_border;
+			border-radius: $radius_regular;
+			background-color: $color_white;
 		}
 
-		&:checked + span {
+	}
 
-			&:before {
-				border-color: #1f50b4;
-			}
+	&:checked + span, &:checked + label {
 
-			&:after {
-				opacity: 1;
-			}
+		&:before {
+			border-color: $color_main;
+			background: $color_main url(../images/ico_check.svg) 60% 50% no-repeat;
+		}
 
+	}
+
+	@include desktop_small {
+
+		& + span, & + label {
+			font-size: 14px;
+		}
+
+	}
+
+}
+
+input[type="radio"] {
+
+	& + span, & + label {
+
+		&:before, &:after {
+			border-radius: 50%;
+			background: none;
+		}
+
+		&:after {
+			content: '';
+			display: block;
+			position: absolute;
+			top: 6px;
+			left: 6px;
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background-color: $color_main;
+			opacity: 0;
+			z-index: 2;
+		}
+
+	}
+
+	&:checked + span, &:checked + label {
+
+		&:before {
+			background: $color_white;
+		}
+
+		&:after {
+			opacity: 1;
 		}
 
 	}

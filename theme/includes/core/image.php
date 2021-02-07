@@ -235,7 +235,7 @@ class Image {
 
 				} elseif (is_array($size)) {
 
-					$thumb_url = $this->create($image_url, $size, $image['id']);
+					$thumb_url = $this->create($image_url, $size, $image);
 
 				} else {
 
