@@ -140,6 +140,35 @@ function tw_asset_enqueue($name) {
 
 
 /**
+ * Get names or links to all post terms
+ *
+ * @param bool|int $post_id   Post ID or false for the current post
+ * @param string   $taxonomy  Term taxonomy
+ * @param bool     $with_link Wrap term a link
+ * @param string   $class     Link class
+ *
+ * @return array
+ */
+function tw_term_links($post_id = false, $taxonomy = 'category', $class = 'category', $with_link = true) {
+	return App::getTerms()->postTermLinks($post_id, $taxonomy, $class, $with_link);
+}
+
+
+/**
+ * Get the post term IDs as a comma-separated values or as an array
+ *
+ * @param bool|int    $post_id         Post ID or false for the current post
+ * @param bool|string $taxonomy        Post taxonomy
+ * @param bool        $include_parents Include parent terms
+ *
+ * @return array|string
+ */
+function tw_term_list($post_id = false, $taxonomy = false, $include_parents = false) {
+	return App::getTerms()->postTerms($post_id, $taxonomy, $include_parents);
+}
+
+
+/**
  * Render a template with specified data
  *
  * @param string                  $name   Template part name

@@ -25,10 +25,12 @@ App::getAssets()->add('template', [
 	'script' => [
 		'scripts.js',
 	],
-	'localize' => [
-		'ajaxurl' => admin_url('admin-ajax.php'),
-		'nonce' => wp_create_nonce('ajax-nonce')
-	],
+	'localize' => function() {
+		return [
+			'ajaxurl' => admin_url('admin-ajax.php'),
+			'nonce' => wp_create_nonce('ajax-nonce')
+		];
+	},
 	'footer' => true,
 	'display' => true,
 	'version' => '1.0.0',

@@ -70,29 +70,22 @@ function tw_ajax_feedback() {
 
 		foreach ($required as $key => $field) {
 
+			$label = $fields[$key];
+
 			if (!is_array($field)) {
 				$field = ['pattern' => $field];
 			}
 
 			if (empty($field['error'])) {
-
-				$label = $fields[$key];
-
-				if (!empty($fields[$key])) {
-					$label = $fields[$key];
-				}
-
-				if (empty($_POST[$key])) {
-					$field['error'] = $label . ' is required';
-				} else {
-					$field['error'] = $label . ' is not valid';
-				}
-
+				$field['error'] = $label . ' is not valid';
 			}
 
-			if (!isset($_POST[$key]) or !preg_match($field['pattern'], $_POST[$key])) {
+			if (empty($_POST[$key])) {
+				$errors[$key] = $label . ' is required';
+			} elseif (!preg_match($field['pattern'], $_POST[$key])) {
 				$errors[$key] = $field['error'];
 			}
+
 		}
 
 		if (count($errors) == 0) {

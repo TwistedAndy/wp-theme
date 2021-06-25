@@ -9,6 +9,24 @@
 
 
 /**
+ * Increase content width on a term edit screen
+ */
+add_action('admin_head', function() { ?>
+
+	<style>
+		#edittag {
+			max-width: 1920px;
+		}
+
+		.acf-repeater.-table.-empty .acf-table {
+			display: none;
+		}
+	</style>
+
+<?php });
+
+
+/**
  * Add new options page for the theme settings
  */
 add_action('init', 'tw_filter_options_page');

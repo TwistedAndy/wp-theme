@@ -160,7 +160,7 @@ class Image {
 
 		if ($thumb) {
 
-			$thumb = 'background-image: url(' . esc_attr($thumb) . ');';
+			$thumb = 'background-image: url(\'' . esc_attr($thumb) . '\');';
 
 			if ($style) {
 				$thumb = ' style="' . $thumb . '"';

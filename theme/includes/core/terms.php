@@ -292,7 +292,7 @@ class Terms {
 		if (is_array($terms) and $terms) {
 
 			if ($class) {
-				$class = ' class="' . $class . '"';
+				$class = ' class="' . esc_attr($class) . '"';
 			}
 
 			foreach ($terms as $term) {
@@ -300,7 +300,7 @@ class Terms {
 					$result[] = '<a href="' . get_term_link($term->term_id) . '"' . $class . '>' . $term->name . '</a>';
 				} else {
 					if ($class) {
-						$result[] = '<span class="' . $class . '">' . $term->name . '</span>';
+						$result[] = '<span' . $class . '>' . $term->name . '</span>';
 					} else {
 						$result[] = $term->name;
 					}

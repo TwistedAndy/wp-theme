@@ -121,11 +121,19 @@ class Widget extends \WP_Widget {
 
 						<?php if ($field['type'] == 'select') { ?>
 
-							<select class="widefat" id="<?php echo $this->get_field_id($name); ?>" name="<?php echo $this->get_field_name($name); ?>">
-								<?php foreach ($field['values'] as $key => $value) { ?>
-									<option value="<?php echo $key; ?>"<?php if ($instance[$name] == $key) { ?> selected="selected"<?php } ?>><?php echo $value; ?></option>
-								<?php } ?>
-							</select>
+							<?php if (empty($field['multiple'])) { ?>
+								<select class="widefat" id="<?php echo $this->get_field_id($name); ?>" name="<?php echo $this->get_field_name($name); ?>">
+									<?php foreach ($field['values'] as $key => $value) { ?>
+										<option value="<?php echo $key; ?>"<?php echo ($instance[$name] == $key) ? ' selected="selected"' : ''; ?>><?php echo $value; ?></option>
+									<?php } ?>
+								</select>
+							<?php } else { ?>
+								<select class="widefat" id="<?php echo $this->get_field_id($name); ?>" name="<?php echo $this->get_field_name($name); ?>[]" multiple>
+									<?php foreach ($field['values'] as $key => $value) { ?>
+										<option value="<?php echo $key; ?>"<?php echo (is_array($instance[$name]) and in_array($key, $instance[$name])) ? ' selected="selected"': ''; ?>><?php echo $value; ?></option>
+									<?php } ?>
+								</select>
+							<?php } ?>
 
 						<?php } elseif ($field['type'] == 'radio') { ?>
 

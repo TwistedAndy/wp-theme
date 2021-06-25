@@ -177,6 +177,12 @@
 		margin: 0 0 20px;
 	}
 
+	.error {
+		display: block;
+		margin: 10px 16px -8px;
+		color: #ff0000;
+	}
+
 	@include tablet_small {
 
 		.fields {
