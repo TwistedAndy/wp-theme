@@ -98,7 +98,7 @@ function tw_date($post = false, $format = '') {
  * @return string
  */
 function tw_thumb($image, $size = 'full', $before = '', $after = '', $attributes = []) {
-	return App::getImage()->thumb($image, $size, $before, $after, $attributes);
+	return App::getImage()->getThumb($image, $size, $before, $after, $attributes);
 }
 
 
@@ -111,7 +111,7 @@ function tw_thumb($image, $size = 'full', $before = '', $after = '', $attributes
  * @return string
  */
 function tw_thumb_link($image, $size = 'full') {
-	return App::getImage()->link($image, $size);
+	return App::getImage()->getLink($image, $size);
 }
 
 
@@ -125,7 +125,7 @@ function tw_thumb_link($image, $size = 'full') {
  * @return string
  */
 function tw_thumb_background($image, $size = 'full', $style = true) {
-	return App::getImage()->background($image, $size, $style);
+	return App::getImage()->getBackground($image, $size, $style);
 }
 
 

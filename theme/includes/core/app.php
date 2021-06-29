@@ -373,15 +373,7 @@ class App {
 			include $filename;
 		}
 
-		$result = ob_get_contents();
-
-		if (empty($result)) {
-			$result = '';
-		}
-
-		ob_end_clean();
-
-		return $result;
+		return trim(ob_get_clean());
 
 	}
 

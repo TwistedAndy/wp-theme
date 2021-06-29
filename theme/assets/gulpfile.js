@@ -84,13 +84,14 @@ gulp.task('scripts', function() {
 		.pipe(sourcemaps.init())
 		.pipe(concat('scripts.js'))
 		.pipe(babel({
-			'presets': [
+			presets: [
 				[require("@babel/preset-env"), {
 					debug: false,
 					useBuiltIns: false,
 				}]
 			],
-			'compact': true
+			compact: true,
+			comments: false
 		}))
 		.pipe(sourcemaps.write('./', options.sourcemaps.scripts))
 		.pipe(gulp.dest(folders.build));

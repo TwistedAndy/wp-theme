@@ -22,7 +22,7 @@ class Image {
 
 	public function __construct() {
 
-		add_action('twee_thumb_created', [$this, 'compress'], 10, 3);
+		add_action('twee_thumb_created', [$this, 'compressImage'], 10, 3);
 
 		add_filter('image_size_names_choose', [$this, 'filterSizes']);
 
@@ -40,9 +40,9 @@ class Image {
 	 *
 	 * @return string
 	 */
-	public function thumb($image, $size = 'full', $before = '', $after = '', $attributes = []) {
+	public function getThumb($image, $size = 'full', $before = '', $after = '', $attributes = []) {
 
-		$thumb = $this->link($image, $size);
+		$thumb = $this->getLink($image, $size);
 
 		if ($thumb) {
 
@@ -84,14 +84,14 @@ class Image {
 
 			if (!isset($attributes['alt'])) {
 				if (is_numeric($image)) {
-					$attributes['alt'] = trim(strip_tags(get_post_meta($image, '_wp_attachment_image_alt', true)));
+					$attributes['alt'] = get_post_meta($image, '_wp_attachment_image_alt', true);
 				} else {
 					$attributes['alt'] = '';
 				}
 			}
 
 			if ($link_image_size and !$link_href) {
-				$link_href = $this->link($image, $link_image_size);
+				$link_href = $this->getLink($image, $link_image_size);
 			}
 
 			if ($link_href) {
@@ -102,7 +102,7 @@ class Image {
 					$link_class = ' class="' . $attributes['link_class'] . '"';
 				}
 
-				$before = $before . '<a href="' . $link_href . '"' . $link_class . '>';
+				$before = $before . '<a href="' . esc_url($link_href) . '"' . $link_class . '>';
 				$after = '</a>' . $after;
 
 			}
@@ -117,6 +117,13 @@ class Image {
 
 			if (!empty($attributes['after'])) {
 				$after = $attributes['after'] . $after;
+			}
+
+			$data = $this->getSize($size, $image);
+
+			if ($data['width'] > 0 and $data['height'] > 0) {
+				$attributes['width'] = $data['width'];
+				$attributes['height'] = $data['height'];
 			}
 
 			$data = [];
@@ -154,9 +161,9 @@ class Image {
 	 *
 	 * @return string
 	 */
-	public function background($image, $size = 'full', $style = true) {
+	public function getBackground($image, $size = 'full', $style = true) {
 
-		$thumb = $this->link($image, $size);
+		$thumb = $this->getLink($image, $size);
 
 		if ($thumb) {
 
@@ -181,7 +188,7 @@ class Image {
 	 *
 	 * @return string
 	 */
-	public function link($image, $size = 'full') {
+	public function getLink($image, $size = 'full') {
 
 		$thumb_url = '';
 
@@ -230,12 +237,12 @@ class Image {
 					if (is_array($meta) and !empty($meta['sizes'][$size]) and !empty($meta['sizes'][$size]['file'])) {
 						$thumb_url = path_join(dirname($image_url), $meta['sizes'][$size]['file']);
 					} else {
-						$thumb_url = $this->create($image_url, $size, $image);
+						$thumb_url = $this->createThumb($image_url, $size, $image);
 					}
 
 				} elseif (is_array($size)) {
 
-					$thumb_url = $this->create($image_url, $size, $image);
+					$thumb_url = $this->createThumb($image_url, $size, $image);
 
 				} else {
 
@@ -249,14 +256,14 @@ class Image {
 
 			if (strpos($image, 'http') === 0) {
 
-				$thumb_url = $this->create($image, $size);
+				$thumb_url = $this->createThumb($image, $size);
 
 			} else {
 
 				$path = 'assets/images/' . $image;
 
 				if (file_exists(TW_ROOT . $path)) {
-					$thumb_url = $this->create(TW_URL . $path, $size);
+					$thumb_url = $this->createThumb(TW_URL . $path, $size);
 				}
 
 			}
@@ -279,7 +286,7 @@ class Image {
 	 *
 	 * @return string
 	 */
-	public function create($image_url, $size, $image_id = 0) {
+	public function createThumb($image_url, $size, $image_id = 0) {
 
 		$thumb_url = '';
 
@@ -295,11 +302,12 @@ class Image {
 
 			if (preg_match('#(.*?)\.(gif|jpg|jpeg|png|bmp|webp)$#is', $filename, $matches)) {
 
-				$sizes = $this->getSizes(true);
+				$data = $this->getSize($size);
 
-				$width = 0;
-				$height = 0;
-				$crop = true;
+				$width = $data['width'];
+				$height = $data['height'];
+				$crop = $data['crop'];
+
 				$thumb_url = $image_url;
 
 				if (is_array($size)) {
@@ -417,7 +425,7 @@ class Image {
 	 * @param string $url      Image URL
 	 * @param int    $image_id Image ID
 	 */
-	public function compress($file, $url, $image_id = 0) {
+	public function compressImage($file, $url, $image_id = 0) {
 
 		if (is_readable($file)) {
 
@@ -636,6 +644,79 @@ class Image {
 				$this->addSize($size, $data);
 			}
 		}
+
+	}
+
+
+	/**
+	 * Get the image size
+	 *
+	 * @param string|array $size
+	 * @param int          $image_id
+	 *
+	 * @return array
+	 */
+	public function getSize($size, $image_id = 0) {
+
+		$sizes = $this->getSizes(true);
+
+		$width = 0;
+		$height = 0;
+		$crop = true;
+
+		if (is_array($size)) {
+			$width = (isset($size[0])) ? intval($size[0]) : 0;
+			$height = (isset($size[1])) ? intval($size[1]) : 0;
+			$crop = (isset($size[2])) ? $size[2] : true;
+		} elseif (is_string($size) and isset($sizes[$size]) and $size != 'full') {
+			$width = (isset($sizes[$size]['width'])) ? intval($sizes[$size]['width']) : 0;
+			$height = (isset($sizes[$size]['height'])) ? intval($sizes[$size]['height']) : 0;
+			$crop = (isset($sizes[$size]['crop'])) ? $sizes[$size]['crop'] : true;
+		}
+
+		if ($image_id > 0) {
+
+			$meta = get_post_meta($image_id, '_wp_attachment_metadata', true);
+
+			if (!empty($meta['width']) and !empty($meta['height'])) {
+
+				if ($size === 'full') {
+
+					$width = $meta['width'];
+					$height = $meta['height'];
+
+				} elseif (!empty($crop)) {
+
+					$image_width = $meta['width'];
+					$image_height = $meta['height'];
+
+					if (empty($width) or empty($height)) {
+						$ratio = $image_width / $image_height;
+					} else {
+						$ratio = $width / $height;
+					}
+
+					if ($width > 0 and $width > $image_width) {
+						$width = $image_width;
+						$height = round($width / $ratio);
+					}
+
+					if ($height > 0 and $height > $image_height) {
+						$height = $image_height;
+						$width = round($height / $ratio);
+					}
+
+				}
+
+			}
+
+		}
+
+		return [
+			'width' => $width,
+			'height' => $height,
+			'crop' => $crop
+		];
 
 	}
 
