@@ -19,12 +19,25 @@ class Image {
 		'registered' => []
 	];
 
+	protected $upload_dir = '';
+
+	protected $upload_url = '';
 
 	public function __construct() {
 
 		add_action('twee_thumb_created', [$this, 'compressImage'], 10, 3);
 
 		add_filter('image_size_names_choose', [$this, 'filterSizes']);
+
+		$upload_dir = wp_upload_dir();
+
+		if (!empty($upload_dir['basedir']) and !empty($upload_dir['baseurl'])) {
+			$this->upload_dir = $upload_dir['basedir'];
+			$this->upload_url = $upload_dir['baseurl'];
+		} else {
+			$this->upload_dir = get_template_directory();
+			$this->upload_url = get_stylesheet_directory_uri();
+		}
 
 	}
 
@@ -141,9 +154,7 @@ class Image {
 				$data = '';
 			}
 
-			if ($thumb) {
-				$thumb = $before . '<img src="' . $thumb . '"' . $data . ' />' . $after;
-			}
+			$thumb = $before . '<img src="' . $thumb . '"' . $data . ' />' . $after;
 
 		}
 
@@ -218,19 +229,17 @@ class Image {
 
 			$file = get_post_meta($image, '_wp_attached_file', true);
 
-			$uploads = wp_upload_dir(null, false);
+			if ($file) {
 
-			if ($file and !empty($uploads['basedir']) and !empty($uploads['baseurl'])) {
-
-				if (0 === strpos($file, $uploads['basedir'])) {
-					$image_url = str_replace($uploads['basedir'], $uploads['baseurl'], $file);
-				} elseif (strpos($file, 'http') === 0) {
+				if (0 === strpos($file, $this->upload_dir)) {
+					$image_url = str_replace($this->upload_dir, $this->upload_url, $file);
+				} elseif (strpos($file, 'http') === 0 or strpos($file, '//') === 0) {
 					$image_url = $file;
 				} else {
-					$image_url = $uploads['baseurl'] . '/' . $file;
+					$image_url = $this->upload_url . '/' . $file;
 				}
 
-				if (is_string($size) and $size != 'full') {
+				if (is_string($size) and $size !== 'full') {
 
 					$meta = get_post_meta($image, '_wp_attachment_metadata', true);
 
@@ -254,7 +263,7 @@ class Image {
 
 		} elseif (is_string($image)) {
 
-			if (strpos($image, 'http') === 0) {
+			if (strpos($image, 'http') === 0 or strpos($image, '//') === 0) {
 
 				$thumb_url = $this->createThumb($image, $size);
 
@@ -310,39 +319,25 @@ class Image {
 
 				$thumb_url = $image_url;
 
-				if (is_array($size)) {
-					$width = (isset($size[0])) ? intval($size[0]) : 0;
-					$height = (isset($size[1])) ? intval($size[1]) : 0;
-					$crop = (isset($size[2])) ? $size[2] : true;
-				} elseif (is_string($size) and isset($sizes[$size]) and $size != 'full') {
-					$width = (isset($sizes[$size]['width'])) ? intval($sizes[$size]['width']) : 0;
-					$height = (isset($sizes[$size]['height'])) ? intval($sizes[$size]['height']) : 0;
-					$crop = (isset($sizes[$size]['crop'])) ? $sizes[$size]['crop'] : true;
-				}
-
 				if ($width > 0 or $height > 0) {
 
 					if ($image_id > 0) {
 						$image_id = $image_id . '_';
-						$hash = '';
+						$url_hash = '';
 					} else {
 						$image_id = '';
-						$hash = '_' . hash('crc32', $image_url, false);
+						$url_hash = '_' . hash('crc32', $image_url, false);
 					}
 
-					$filename = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id . $matches[1] . $hash . '.' . $matches[2];
-
-					$upload_dir = wp_upload_dir();
-
-					if (!empty($upload_dir['basedir']) and !empty($upload_dir['baseurl'])) {
-						$directory = $upload_dir['basedir'];
-						$directory_uri = $upload_dir['baseurl'];
+					if (is_array($crop)) {
+						$crop_hash = '_' . implode('_', $crop);
 					} else {
-						$directory = get_template_directory();
-						$directory_uri = get_stylesheet_directory_uri();
+						$crop_hash = '';
 					}
 
-					if (!is_file($directory . $filename)) {
+					$filename = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id . $matches[1] . $url_hash . $crop_hash . '.' . $matches[2];
+
+					if (!is_file($this->upload_dir . $filename)) {
 
 						$site_url = get_option('siteurl');
 
@@ -362,36 +357,19 @@ class Image {
 
 						if (!is_wp_error($editor)) {
 
-							$image_size = $editor->get_size();
+							$size = $editor->get_size();
 
-							if (!empty($crop) and !empty($image_size['width']) and !empty($image_size['height'])) {
-
-								$image_width = $image_size['width'];
-								$image_height = $image_size['height'];
-
-								if (empty($width) or empty($height)) {
-									$ratio = $image_width / $image_height;
-								} else {
-									$ratio = $width / $height;
-								}
-
-								if ($width > 0 and $width > $image_width) {
-									$width = $image_width;
-									$height = round($width / $ratio);
-								}
-
-								if ($height > 0 and $height > $image_height) {
-									$height = $image_height;
-									$width = round($height * $ratio);
-								}
-
+							if (!empty($size['width']) and !empty($size['height'])) {
+								$size = $this->calculateSize($size['width'], $size['height'], $width, $height, $data['crop'], $data['aspect']);
+								$width = $size['width'];
+								$height = $size['height'];
 							}
 
 							$editor->resize($width, $height, $crop);
 
-							$editor->save($directory . $filename);
+							$editor->save($this->upload_dir . $filename);
 
-							do_action('twee_thumb_created', $directory . $filename, $directory_uri . $filename, $image_id);
+							do_action('twee_thumb_created', $this->upload_dir . $filename, $this->upload_url . $filename, $image_id);
 
 						} else {
 
@@ -401,7 +379,7 @@ class Image {
 
 					}
 
-					$thumb_url = $directory_uri . $filename;
+					$thumb_url = $this->upload_url . $filename;
 
 				}
 
@@ -414,6 +392,293 @@ class Image {
 		}
 
 		return $thumb_url;
+
+	}
+
+
+	/**
+	 * Calculate a thumbnail size
+	 *
+	 * Use the aspect parameter to keep the aspect ratio
+	 * while cropping small images
+	 *
+	 * @param int        $image_width
+	 * @param int        $image_height
+	 * @param int        $thumb_width
+	 * @param int        $thumb_height
+	 * @param bool|array $crop
+	 * @param bool       $aspect
+	 *
+	 * @return array
+	 */
+	public function calculateSize($image_width, $image_height, $thumb_width, $thumb_height, $crop = true, $aspect = false) {
+
+		$image_ratio = $image_width / $image_height;
+
+		if (empty($thumb_width) or empty($thumb_height)) {
+			$thumb_ratio = $image_ratio;
+		} else {
+			$thumb_ratio = $thumb_width / $thumb_height;
+		}
+
+		if ($crop) {
+
+			if ($thumb_width > $image_width) {
+
+				$thumb_width = $image_width;
+
+				if ($aspect) {
+					$thumb_height = $thumb_width / $thumb_ratio;
+				}
+
+			}
+
+			if ($thumb_height > $image_height) {
+
+				$thumb_height = $image_height;
+
+				if ($aspect) {
+					$thumb_width = $thumb_height * $thumb_ratio;
+				}
+
+			}
+
+		} else {
+
+			if ($image_ratio < $thumb_ratio) {
+				$thumb_width = $thumb_width * $image_ratio / $thumb_ratio;
+			} else {
+				$thumb_height = $thumb_height * $image_ratio / $thumb_ratio;
+			}
+
+			if ($image_width < $thumb_width) {
+				$thumb_width = $image_width;
+				$thumb_height = $thumb_width / $thumb_ratio;
+			}
+
+			if ($image_height < $thumb_height) {
+				$thumb_height = $image_height;
+				$thumb_width = $thumb_height * $thumb_ratio;
+			}
+
+		}
+
+		return [
+			'width' => $thumb_width,
+			'height' => $thumb_height
+		];
+
+	}
+
+
+	/**
+	 * Register a new thumbnail size
+	 *
+	 * @param string $name Size label
+	 * @param array  $data Array with thumbnail data
+	 *
+	 * @return void
+	 */
+	public function addSize($name, $data) {
+
+		if (empty($name) or !is_string($name) or !is_array($data)) {
+			return;
+		}
+
+		if (empty($data['hidden'])) {
+
+			if (!isset($data['crop'])) {
+				$data['crop'] = true;
+			}
+
+			if (!isset($data['width'])) {
+				$data['width'] = 0;
+			}
+
+			if (!isset($data['height'])) {
+				$data['height'] = 0;
+			}
+
+			if (in_array($name, ['thumbnail', 'medium', 'medium_large', 'large'])) {
+
+				if (get_option($name . '_size_w') != $data['width']) {
+					update_option($name . '_size_w', $data['width']);
+				}
+
+				if (get_option($name . '_size_h') != $data['height']) {
+					update_option($name . '_size_h', $data['height']);
+				}
+
+				if (isset($data['crop']) and get_option($name . '_crop') != $data['crop']) {
+					update_option($name . '_crop', $data['crop']);
+				}
+
+			} else {
+
+				add_image_size($name, $data['width'], $data['height'], $data['crop']);
+
+			}
+
+			if (isset($data['thumb']) and $data['thumb']) {
+
+				set_post_thumbnail_size($data['width'], $data['height'], $data['crop']);
+
+			}
+
+		} else {
+
+			$this->sizes['hidden'][$name] = $data;
+
+		}
+
+		$this->sizes['custom'][$name] = $data;
+
+	}
+
+
+	/**
+	 * Register a set of thumbnail sizes
+	 *
+	 * @param array $sizes Array with sizes
+	 *
+	 * @return void
+	 */
+	public function addSizes($sizes) {
+
+		if (is_array($sizes)) {
+			foreach ($sizes as $size => $data) {
+				$this->addSize($size, $data);
+			}
+		}
+
+	}
+
+
+	/**
+	 * Get the image size
+	 *
+	 * @param string|array $size
+	 * @param int          $image_id
+	 *
+	 * @return array
+	 */
+	public function getSize($size, $image_id = 0) {
+
+		$sizes = $this->getSizes(true);
+
+		$result = [
+			'width' => 0,
+			'height' => 0,
+			'crop' => true,
+			'aspect' => false
+		];
+
+		if (is_array($size)) {
+			$result['width'] = (isset($size[0])) ? intval($size[0]) : 0;
+			$result['height'] = (isset($size[1])) ? intval($size[1]) : 0;
+			$result['crop'] = (isset($size[2])) ? $size[2] : true;
+			$result['keep'] = (isset($size[3])) ? $size[3] : true;
+		} elseif (is_string($size) and isset($sizes[$size]) and $size != 'full') {
+			$result['width'] = (isset($sizes[$size]['width'])) ? intval($sizes[$size]['width']) : 0;
+			$result['height'] = (isset($sizes[$size]['height'])) ? intval($sizes[$size]['height']) : 0;
+			$result['crop'] = (isset($sizes[$size]['crop'])) ? $sizes[$size]['crop'] : true;
+			$result['aspect'] = (isset($sizes[$size]['aspect'])) ? $sizes[$size]['aspect'] : false;
+		}
+
+		if ($image_id > 0) {
+
+			$meta = get_post_meta($image_id, '_wp_attachment_metadata', true);
+
+			if (!empty($meta['width']) and !empty($meta['height'])) {
+
+				if ($size === 'full') {
+					$result['width'] = $meta['width'];
+					$result['height'] = $meta['height'];
+				} else {
+					$size = $this->calculateSize($meta['width'], $meta['height'], $result['width'], $result['height'], $result['crop'], $result['aspect']);
+					$result['width'] = $size['width'];
+					$result['height'] = $size['height'];
+				}
+
+			}
+
+		}
+
+		return $result;
+
+	}
+
+
+	/**
+	 * Get registered image sizes with dimensions
+	 *
+	 * @param bool $hidden Include the hidden thumbnail sizes
+	 *
+	 * @return array
+	 */
+	public function getSizes($hidden = true) {
+
+		$sizes = $this->sizes['registered'];
+
+		if (empty($this->sizes['registered'])) {
+
+			$default = ['thumbnail', 'medium', 'medium_large', 'large'];
+
+			foreach ($default as $size) {
+
+				$sizes[$size] = [
+					'width' => get_option($size . '_size_w'),
+					'height' => get_option($size . '_size_h'),
+					'crop' => get_option($size . '_crop')
+				];
+
+			}
+
+			$sizes = array_merge($sizes, wp_get_additional_image_sizes());
+
+			$this->sizes['registered'] = $sizes;
+
+		}
+
+		if ($hidden and !empty($this->sizes['hidden'])) {
+			$sizes = array_merge($sizes, $this->sizes['hidden']);
+		}
+
+		return $sizes;
+
+	}
+
+
+	/**
+	 * Add the registered image sizes to the media editor
+	 *
+	 * @param $sizes array
+	 *
+	 * @return array
+	 */
+	public function filterSizes($sizes) {
+
+		if ($this->sizes['custom']) {
+
+			foreach ($this->sizes['custom'] as $name => $size) {
+
+				if (isset($sizes[$name])) {
+					continue;
+				}
+
+				if (!empty($size['label'])) {
+					$label = $size['label'];
+				} else {
+					$label = ucfirst($name);
+				}
+
+				$sizes[$name] = $label;
+
+			}
+
+		}
+
+		return $sizes;
 
 	}
 
@@ -476,8 +741,7 @@ class Image {
 				$optimization_level = \WRIO_Plugin::app()->getPopulateOption('image_optimization_level', 'normal');
 
 				if ($optimization_level == 'custom') {
-					$optimization_level = intval(\WRIO_Plugin::app()
-						->getPopulateOption('image_optimization_level_custom', 100));
+					$optimization_level = intval(\WRIO_Plugin::app()->getPopulateOption('image_optimization_level_custom', 100));
 				}
 
 				$image_data = $image_processor->process([
@@ -552,236 +816,6 @@ class Image {
 			}
 
 		}
-
-	}
-
-
-	/**
-	 * Add the registered image sizes to the media editor
-	 *
-	 * @param $sizes array
-	 *
-	 * @return array
-	 */
-	public function filterSizes($sizes) {
-
-		if ($this->sizes['custom']) {
-
-			foreach ($this->sizes['custom'] as $name => $size) {
-
-				if (isset($sizes[$name])) {
-					continue;
-				}
-
-				if (!empty($size['label'])) {
-					$label = $size['label'];
-				} else {
-					$label = ucfirst($name);
-				}
-
-				$sizes[$name] = $label;
-
-			}
-
-		}
-
-		return $sizes;
-
-	}
-
-
-	/**
-	 * Get registered image sizes with dimensions
-	 *
-	 * @param bool $hidden Include the hidden thumbnail sizes
-	 *
-	 * @return array
-	 */
-	public function getSizes($hidden = true) {
-
-		$sizes = $this->sizes['registered'];
-
-		if (empty($this->sizes['registered'])) {
-
-			$default = ['thumbnail', 'medium', 'medium_large', 'large'];
-
-			foreach ($default as $size) {
-
-				$sizes[$size] = [
-					'width' => get_option($size . '_size_w'),
-					'height' => get_option($size . '_size_h'),
-					'crop' => get_option($size . '_crop')
-				];
-
-			}
-
-			$sizes = array_merge($sizes, wp_get_additional_image_sizes());
-
-			$this->sizes['registered'] = $sizes;
-
-		}
-
-		if ($hidden and !empty($this->sizes['hidden'])) {
-			$sizes = array_merge($sizes, $this->sizes['hidden']);
-		}
-
-		return $sizes;
-
-	}
-
-
-	/**
-	 * Register a set of thumbnail sizes
-	 *
-	 * @param array $sizes Array with sizes
-	 *
-	 * @return void
-	 */
-	public function addSizes($sizes) {
-
-		if (is_array($sizes)) {
-			foreach ($sizes as $size => $data) {
-				$this->addSize($size, $data);
-			}
-		}
-
-	}
-
-
-	/**
-	 * Get the image size
-	 *
-	 * @param string|array $size
-	 * @param int          $image_id
-	 *
-	 * @return array
-	 */
-	public function getSize($size, $image_id = 0) {
-
-		$sizes = $this->getSizes(true);
-
-		$width = 0;
-		$height = 0;
-		$crop = true;
-
-		if (is_array($size)) {
-			$width = (isset($size[0])) ? intval($size[0]) : 0;
-			$height = (isset($size[1])) ? intval($size[1]) : 0;
-			$crop = (isset($size[2])) ? $size[2] : true;
-		} elseif (is_string($size) and isset($sizes[$size]) and $size != 'full') {
-			$width = (isset($sizes[$size]['width'])) ? intval($sizes[$size]['width']) : 0;
-			$height = (isset($sizes[$size]['height'])) ? intval($sizes[$size]['height']) : 0;
-			$crop = (isset($sizes[$size]['crop'])) ? $sizes[$size]['crop'] : true;
-		}
-
-		if ($image_id > 0) {
-
-			$meta = get_post_meta($image_id, '_wp_attachment_metadata', true);
-
-			if (!empty($meta['width']) and !empty($meta['height'])) {
-
-				if ($size === 'full') {
-
-					$width = $meta['width'];
-					$height = $meta['height'];
-
-				} elseif (!empty($crop)) {
-
-					$image_width = $meta['width'];
-					$image_height = $meta['height'];
-
-					if (empty($width) or empty($height)) {
-						$ratio = $image_width / $image_height;
-					} else {
-						$ratio = $width / $height;
-					}
-
-					if ($width > 0 and $width > $image_width) {
-						$width = $image_width;
-						$height = round($width / $ratio);
-					}
-
-					if ($height > 0 and $height > $image_height) {
-						$height = $image_height;
-						$width = round($height / $ratio);
-					}
-
-				}
-
-			}
-
-		}
-
-		return [
-			'width' => $width,
-			'height' => $height,
-			'crop' => $crop
-		];
-
-	}
-
-
-	/**
-	 * Register a new thumbnail size
-	 *
-	 * @param string $name Size label
-	 * @param array  $data Array with thumbnail data
-	 *
-	 * @return void
-	 */
-	public function addSize($name, $data) {
-
-		if (empty($name) or !is_string($name) or !is_array($data)) {
-			return;
-		}
-
-		if (empty($data['hidden'])) {
-
-			if (!isset($data['crop'])) {
-				$data['crop'] = true;
-			}
-
-			if (!isset($data['width'])) {
-				$data['width'] = 0;
-			}
-
-			if (!isset($data['height'])) {
-				$data['height'] = 0;
-			}
-
-			if (in_array($name, ['thumbnail', 'medium', 'medium_large', 'large'])) {
-
-				if (get_option($name . '_size_w') != $data['width']) {
-					update_option($name . '_size_w', $data['width']);
-				}
-
-				if (get_option($name . '_size_h') != $data['height']) {
-					update_option($name . '_size_h', $data['height']);
-				}
-
-				if (isset($data['crop']) and get_option($name . '_crop') != $data['crop']) {
-					update_option($name . '_crop', $data['crop']);
-				}
-
-			} else {
-
-				add_image_size($name, $data['width'], $data['height'], $data['crop']);
-
-			}
-
-			if (isset($data['thumb']) and $data['thumb']) {
-
-				set_post_thumbnail_size($data['width'], $data['height'], $data['crop']);
-
-			}
-
-		} else {
-
-			$this->sizes['hidden'][$name] = $data;
-
-		}
-
-		$this->sizes['custom'][$name] = $data;
 
 	}
 

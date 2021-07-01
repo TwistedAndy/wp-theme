@@ -49,7 +49,8 @@ App::getImage()->addSizes([
 	'slide' => [
 		'width' => 500,
 		'height' => 360,
-		'hidden' => true
+		'hidden' => true,
+		'aspect' => false
 	]
 ]);
 
