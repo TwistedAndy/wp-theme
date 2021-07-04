@@ -26,9 +26,9 @@ if (!function_exists('array_key_first')) {
 /*
  * Read an ACF field value from a serialized array stored in one meta field
  */
-add_filter('acf/pre_load_value', 'tw_acf_display_options_field', 10, 3);
+add_filter('acf/pre_load_value', 'tw_acf_load_field', 10, 3);
 
-function tw_acf_display_options_field($values, $post_id, $field) {
+function tw_acf_load_field($values, $post_id, $field) {
 
 	/**
 	 * We apply all these changes only to field groups, repeaters,
@@ -36,7 +36,8 @@ function tw_acf_display_options_field($values, $post_id, $field) {
 	 *
 	 * We use them to map and process the data stored in the database.
 	 */
-	if (!empty($field['type']) and in_array($field['type'], ['group', 'repeater', 'flexible_content'])) {
+
+	if (in_array($field['type'], ['group', 'repeater', 'flexible_content', 'clone'])) {
 
 		$entity = acf_decode_post_id($post_id);
 
@@ -46,6 +47,13 @@ function tw_acf_display_options_field($values, $post_id, $field) {
 
 			if (is_array($data) and !empty($data)) {
 
+				/**
+				 * We need this code to process cloned fields correctly
+				 */
+				if (!empty($field['_name']) and isset($data[$field['_name']])) {
+					$data = $data[$field['_name']];
+				}
+
 				$data = tw_acf_decode_data($data, $field);
 
 				if (!empty($data)) {
@@ -54,6 +62,19 @@ function tw_acf_display_options_field($values, $post_id, $field) {
 
 			}
 
+		}
+
+	} elseif (!empty($field['_clone'])) {
+
+		/**
+		 * Process cloned fields, stored in the array
+		 */
+		$cloned_field = acf_get_field($field['_clone']);
+
+		$cloned_values = tw_acf_load_field($values, $post_id, $cloned_field);
+
+		if (isset($cloned_values[$field['key']])) {
+			return $cloned_values[$field['key']];
 		}
 
 	}
@@ -66,11 +87,11 @@ function tw_acf_display_options_field($values, $post_id, $field) {
 /*
  * Save an ACF field value to a serialized array stored in one meta field
  */
-add_filter('acf/pre_update_value', 'tw_acf_update_options_field', 10, 4);
+add_filter('acf/pre_update_value', 'tw_acf_save_field', 10, 4);
 
-function tw_acf_update_options_field($check, $values, $post_id, $field) {
+function tw_acf_save_field($check, $values, $post_id, $field) {
 
-	if (!empty($field['type']) and in_array($field['type'], ['group', 'repeater', 'flexible_content'])) {
+	if (!empty($field['type']) and in_array($field['type'], ['group', 'repeater', 'flexible_content', 'clone'])) {
 
 		$entity = acf_decode_post_id($post_id);
 
