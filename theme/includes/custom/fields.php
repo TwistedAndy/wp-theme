@@ -50,7 +50,7 @@ function tw_acf_load_field($values, $post_id, $field) {
 				/**
 				 * We need this code to process cloned fields correctly
 				 */
-				if (!empty($field['_name']) and isset($data[$field['_name']])) {
+				if (!empty($field['_clone']) and !empty($field['_name']) and isset($data[$field['_name']])) {
 					$data = $data[$field['_name']];
 				}
 
@@ -184,6 +184,10 @@ function tw_acf_decode_data($values, $field) {
 						$value = '';
 					}
 
+					if (in_array($sub_field['type'], ['google_map']) and is_string($value)) {
+						$value = json_decode($value, true);
+					}
+
 					$data[$i][$sub_field['key']] = $value;
 
 				}
@@ -200,6 +204,10 @@ function tw_acf_decode_data($values, $field) {
 					$value = tw_acf_decode_data($values[$name], $sub_field);
 				} else {
 					$value = '';
+				}
+
+				if (in_array($sub_field['type'], ['google_map']) and is_string($value)) {
+					$value = json_decode($value, true);
 				}
 
 				$data[$sub_field['key']] = $value;
