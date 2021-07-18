@@ -1,13 +1,13 @@
 var gulp = require('gulp'),
 	sass = require('gulp-sass'),
-	babel = require('gulp-babel'),
 	csso = require('gulp-csso'),
+	babel = require('gulp-babel'),
 	notify = require('gulp-notify'),
 	concat = require('gulp-concat'),
 	csssvg = require('gulp-css-svg'),
 	plumber = require('gulp-plumber'),
 	imagemin = require('gulp-imagemin'),
-	gloablize = require('gulp-sass-glob'),
+	globalize = require('gulp-sass-glob'),
 	sourcemaps = require('gulp-sourcemaps');
 
 var folders = {
@@ -46,7 +46,7 @@ var options = {
 	sass: {
 		outputStyle: 'expanded',
 		indentType: 'tab',
-		indentWidth: 1
+		indentWidth: 1,
 	},
 	sourcemaps: {
 		styles: {
@@ -104,10 +104,10 @@ gulp.task('styles', function() {
 	return gulp.src(sources.style)
 		.pipe(plumber(options.plumber))
 		.pipe(sourcemaps.init())
-		.pipe(gloablize())
+		.pipe(globalize())
 		.pipe(sass(options.sass))
 		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
-		.pipe(csssvg(options.csssvg))
+		//.pipe(csssvg(options.csssvg))
 		//.pipe(csso(options.csso))
 		.pipe(gulp.dest(folders.build));
 

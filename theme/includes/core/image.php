@@ -120,7 +120,7 @@ class Image {
 
 			}
 
-			if (empty($attributes['lazy'])) {
+			if (empty($attributes['loading'])) {
 				$attributes['loading'] = 'lazy';
 			}
 

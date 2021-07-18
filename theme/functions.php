@@ -12,7 +12,7 @@ $app = App::getApp();
 
 $app->includeFolder(TW_INC . 'ajax');
 $app->includeFolder(TW_INC . 'core');
-$app->includeFolder(TW_INC . 'custom');
+$app->includeFolder(TW_INC . 'theme');
 $app->includeFolder(TW_INC . 'widgets');
 
 
