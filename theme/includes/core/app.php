@@ -31,14 +31,14 @@ class App {
 
 
 	/**
-	 * Get the instance of selected module
+	 * Get an instance of module
 	 *
 	 * @param string $module Class name without namespace
 	 * @param array  $args   Array with arguments for constructor
 	 *
 	 * @return object
 	 */
-	public static function get($module = 'App', $args = []) {
+	public static function getModule($module = 'App', $args = []) {
 
 		$key = strtolower($module);
 
@@ -46,11 +46,7 @@ class App {
 
 			$module = '\\Twee\\' . $module;
 
-			$module = apply_filters('twee_module_class', $module);
-
 			if (class_exists($module)) {
-
-				$args = apply_filters('twee_module_args', $args);
 
 				self::$instances[$key] = new $module($args);
 
@@ -64,14 +60,14 @@ class App {
 
 
 	/**
-	 * Get the App object
+	 * Get an app object
 	 *
 	 * @return App
 	 */
 	public static function getApp() {
 
 		if (empty(self::$instances['app'])) {
-			self::$instances['app'] = self::get('App');
+			self::$instances['app'] = self::getModule('App');
 		}
 
 		return self::$instances['app'];
@@ -80,14 +76,14 @@ class App {
 
 
 	/**
-	 * Get the Assets object
+	 * Get an assets object
 	 *
 	 * @return Assets
 	 */
 	public static function getAssets() {
 
 		if (empty(self::$instances['assets'])) {
-			self::$instances['assets'] = self::get('Assets');
+			self::$instances['assets'] = self::getModule('Assets');
 		}
 
 		return self::$instances['assets'];
@@ -96,14 +92,14 @@ class App {
 
 
 	/**
-	 * Get the Content object
+	 * Get a content object
 	 *
 	 * @return Content
 	 */
 	public static function getContent() {
 
 		if (empty(self::$instances['content'])) {
-			self::$instances['content'] = self::get('Content');
+			self::$instances['content'] = self::getModule('Content');
 		}
 
 		return self::$instances['content'];
@@ -112,14 +108,14 @@ class App {
 
 
 	/**
-	 * Get the image object
+	 * Get an image object
 	 *
 	 * @return Image
 	 */
 	public static function getImage() {
 
 		if (empty(self::$instances['image'])) {
-			self::$instances['image'] = self::get('Image');
+			self::$instances['image'] = self::getModule('Image');
 		}
 
 		return self::$instances['image'];
@@ -128,14 +124,14 @@ class App {
 
 
 	/**
-	 * Get the terms object
+	 * Get a terms object
 	 *
 	 * @return Terms
 	 */
 	public static function getTerms() {
 
 		if (empty(self::$instances['terms'])) {
-			self::$instances['terms'] = self::get('Terms');
+			self::$instances['terms'] = self::getModule('Terms');
 		}
 
 		return self::$instances['terms'];
@@ -144,7 +140,7 @@ class App {
 
 
 	/**
-	 * Get the logger object
+	 * Get a logger object
 	 *
 	 * @param string $type
 	 *
@@ -162,7 +158,7 @@ class App {
 
 
 	/**
-	 * Action Handlers
+	 * Theme initialization actions
 	 */
 	public function actionInit() {
 
@@ -229,8 +225,8 @@ class App {
 	/**
 	 * Include all or selected PHP files from the folder
 	 *
-	 * @param string $folder Full path to the folder
-	 * @param array  $files  Array with file names, single file name or true to load all files
+	 * @param string   $folder Full path to the folder
+	 * @param string[] $files  Array with file names, single file name or true to load all files
 	 *
 	 * @return void
 	 */
@@ -277,7 +273,13 @@ class App {
 	}
 
 
-	public function addSupport($feature, $args = []) {
+	/**
+	 * Declare supported features
+	 *
+	 * @param string|string[] $feature
+	 * @param array           $args
+	 */
+	public function registerFeatures($feature, $args = []) {
 
 		if (is_string($feature) and !isset($this->settings['support'][$feature])) {
 
@@ -304,6 +306,11 @@ class App {
 	}
 
 
+	/**
+	 * Register navigation menus
+	 *
+	 * @param array $menus
+	 */
 	public function registerMenu($menus) {
 		if (is_array($menus)) {
 			foreach ($menus as $location => $description) {
@@ -315,6 +322,12 @@ class App {
 	}
 
 
+	/**
+	 * Register a post type
+	 *
+	 * @param string $type
+	 * @param array  $args
+	 */
 	public function registerType($type, $args) {
 		if (is_string($type) and is_array($args)) {
 			$this->settings['types'][$type] = $args;
@@ -322,6 +335,13 @@ class App {
 	}
 
 
+	/**
+	 * Register a taxonomy
+	 *
+	 * @param string          $name
+	 * @param string|string[] $types
+	 * @param array           $args
+	 */
 	public function registerTaxonomy($name, $types, $args) {
 		if (is_string($name) and is_array($args)) {
 			$args['types'] = $types;
@@ -330,6 +350,11 @@ class App {
 	}
 
 
+	/**
+	 * Register a sidebar position
+	 *
+	 * @param array $sidebar
+	 */
 	public function registerSidebar($sidebar) {
 		if (is_array($sidebar)) {
 			$this->settings['sidebars'][] = $sidebar;
@@ -337,6 +362,11 @@ class App {
 	}
 
 
+	/**
+	 * Register a widget class
+	 *
+	 * @param string $widget
+	 */
 	public function registerWidget($widget) {
 		if (is_string($widget)) {
 			$this->settings['widgets'][] = $widget;
@@ -347,13 +377,13 @@ class App {
 	/**
 	 * Render a template with specified data
 	 *
-	 * @param string                  $name   Template part name
-	 * @param array|\WP_Post|\WP_Term $item   Array with data
-	 * @param string                  $folder Folder with template part
+	 * @param string                  $template Template part name
+	 * @param array|\WP_Post|\WP_Term $item     Array with data
+	 * @param string                  $folder   Folder with template part
 	 *
 	 * @return string
 	 */
-	public function template($name, $item = [], $folder = 'parts') {
+	public function renderTemplate($template, $item = [], $folder = 'parts') {
 
 		ob_start();
 
@@ -363,7 +393,7 @@ class App {
 			$folder = '';
 		}
 
-		$filename = TW_ROOT . $folder . $name . '.php';
+		$filename = TW_ROOT . $folder . $template . '.php';
 
 		if (is_array($item)) {
 			extract($item);
@@ -373,7 +403,7 @@ class App {
 			include $filename;
 		}
 
-		return trim(ob_get_clean());
+		return ob_get_clean();
 
 	}
 

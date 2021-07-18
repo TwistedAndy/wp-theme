@@ -55,7 +55,7 @@ App::getImage()->addSizes([
 ]);
 
 
-$app->addSupport([
+$app->registerFeatures([
 	'title-tag',
 	'post-thumbnails',
 	'html5' => [

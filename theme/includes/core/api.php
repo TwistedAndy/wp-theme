@@ -178,5 +178,5 @@ function tw_term_list($post_id = false, $taxonomy = false, $include_parents = fa
  * @return string
  */
 function tw_template_part($name, $item = [], $folder = 'parts') {
-	return App::getApp()->template($name, $item, $folder);
+	return App::getApp()->renderTemplate($name, $item, $folder);
 }
