@@ -252,7 +252,7 @@ function tw_acf_encode_data($values, $field) {
 
 				$processed = tw_acf_encode_data($value, $layouts[$value['acf_fc_layout']]);
 
-				if ($processed) {
+				if ($processed or is_array($processed)) {
 					$data[$index] = $processed;
 					$data[$index]['acf_fc_layout'] = $value['acf_fc_layout'];
 				}
@@ -283,16 +283,16 @@ function tw_acf_encode_data($values, $field) {
 
 			foreach ($values as $field_key => $value) {
 
+				if (!isset($fields[$field_key]) or empty($fields[$field_key]['name'])) {
+					continue;
+				}
+
 				$sub_field = $fields[$field_key];
 
-				if (!empty($sub_field['name'])) {
+				$processed = tw_acf_encode_data($value, $sub_field);
 
-					$processed = tw_acf_encode_data($value, $sub_field);
-
-					if ($processed) {
-						$data[$sub_field['name']] = $processed;
-					}
-
+				if ($processed) {
+					$data[$sub_field['name']] = $processed;
 				}
 
 			}
