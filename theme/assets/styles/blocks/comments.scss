@@ -35,8 +35,8 @@
 		display: flex;
 		align-items: flex-start;
 		padding: 20px;
-		border: 1px solid rgba($color_main, 0.1);
-		background-color: $color_white;
+		border: 1px solid var(--color-border);
+		background-color: var(--color-body);
 	}
 
 	.photo {
@@ -120,8 +120,8 @@
 		display: block;
 		padding: 4px 10px;
 		margin-left: 10px;
-		background: $color_main;
-		color: $color_white;
+		background: var(--color-primary);
+		color: var(--color-body);
 		font-size: 12px;
 		font-weight: 600;
 		line-height: 16px;
@@ -130,7 +130,7 @@
 		cursor: pointer;
 
 		&:hover {
-			background-color: $color_accent;
+			background-color: var(--color-secondary);
 		}
 
 	}
@@ -180,7 +180,7 @@
 	.error {
 		display: block;
 		margin: 10px 16px -8px;
-		color: #ff0000;
+		color: var(--color-bright);
 	}
 
 	@include tablet_small {

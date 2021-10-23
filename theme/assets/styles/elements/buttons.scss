@@ -17,18 +17,19 @@ button {
 	align-content: center;
 	justify-content: center;
 	box-sizing: border-box;
-	padding: 10px 20px;
+	height: 48px;
+	padding: 0 25px;
 	margin: 0;
-	border: 1px solid $color_accent;
-	border-radius: $radius_regular;
-	background: $color_accent 50% 50% no-repeat;
+	border: 1px solid transparent;
+	border-radius: var(--radius-regular);
+	background: var(--color-primary) 50% 50% no-repeat;
 	background-size: 19px 19px;
-	color: $color_white;
+	color: var(--color-body);
+	font-family: var(--font-main);
 	font-size: 16px;
-	font-weight: 400;
+	font-weight: 500;
 	line-height: 20px;
 	text-align: center;
-	text-transform: uppercase;
 	transition: 0.2s;
 	cursor: pointer;
 	z-index: 2;
@@ -37,23 +38,80 @@ button {
 	appearance: none;
 
 	&:hover {
-		border-color: #1f50b4;
-		background-color: $color_white;
-		color: #1f50b4;
+		background-color: var(--color-secondary);
+	}
+
+}
+
+%button_outline {
+	border-color: var(--color-primary);
+	background-color: transparent;
+	color: var(--color-primary);
+
+	&:hover {
+		border-color: var(--color-secondary);
+		background-color: transparent;
+		color: var(--color-secondary);
+	}
+
+}
+
+%button_disabled {
+	border-color: var(--color-border);
+	background-color: var(--color-background);
+	color: var(--color-muted);
+	cursor: default;
+}
+
+%button_icon_before {
+
+	&:before {
+		content: '';
+		display: inline-block;
+		flex-grow: 0;
+		flex-shrink: 0;
+		width: 16px;
+		height: 16px;
+		margin-right: 6px;
+		background-color: currentColor;
+		-webkit-mask: none 50% 50% no-repeat;
+	}
+
+}
+
+%button_icon_after {
+
+	&:after {
+		content: '';
+		display: inline-block;
+		width: 16px;
+		height: 16px;
+		margin-left: 6px;
+		background-color: currentColor;
+		-webkit-mask: none 50% 50% no-repeat;
 	}
 
 }
 
 .button {
+
 	@extend %button;
+
+	&.outline {
+		@extend %button_outline;
+	}
+
+	&:disabled {
+		@extend %button_disabled;
+	}
 
 	&.is_hidden {
 		display: none;
 	}
 
 	&.is_loading, &.is_loading:hover {
-		border-color: lighten($color_main, 20%);
-		background-color: transparent;
+		border-color: var(--color-border);
+		background-color: var(--color-muted);
 		background-image: url(../images/ico_loading.svg);
 		color: transparent;
 	}
@@ -62,13 +120,25 @@ button {
 
 .buttons {
 	display: block;
-	margin: 0 -5px -10px;
+	margin: 0 -10px 10px;
 	font-size: 0;
 	line-height: 0;
 
+	&:last-child {
+		margin-bottom: -10px;
+	}
+
+	&_wide {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+	}
+
 	.button {
-		min-width: auto;
-		margin: 0 5px 10px;
+		flex-basis: 0;
+		flex-grow: 1;
+		min-width: 0;
+		margin: 0 10px 10px;
 	}
 
 }

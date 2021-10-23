@@ -2,17 +2,13 @@
 
 jQuery(function($) {
 
-	$('a[href*="#"]').click(function() {
+	$(document.body).on('click', 'a[href*="#"]', function(e) {
 
-		var href = this.href;
+		if (this.href && this.href.indexOf('#') !== false && this.href.indexOf('#modal_') === false) {
 
-		var link = document.location.protocol + '//' + document.location.hostname + document.location.pathname;
-
-		if (href && href.indexOf('#') !== false) {
-
-			var parts = href.split('#');
-
-			var selector = '';
+			var link = document.location.protocol + '//' + document.location.hostname + document.location.pathname,
+				parts = this.href.split('#'),
+				selector = '';
 
 			if (parts.length > 1 && link === parts[0]) {
 				selector = parts[1];
@@ -21,8 +17,8 @@ jQuery(function($) {
 			}
 
 			if (selector) {
+				e.preventDefault();
 				smoothScrollTo($('#' + selector));
-				return false;
 			}
 
 		}
@@ -38,7 +34,8 @@ jQuery(function($) {
 
 function smoothScrollTo(element, speed) {
 
-	var $ = jQuery;
+	var $ = jQuery,
+		wrapper = $('html, body');
 
 	speed = parseInt(speed) || 1000;
 
@@ -46,9 +43,15 @@ function smoothScrollTo(element, speed) {
 
 	if (element.length > 0) {
 
-		var offset = element.offset().top - scrollOffset();
+		var offset = element.offset().top - scrollOffset() - 20;
 
-		$('html, body').stop().animate({
+		if (element.attr('id')) {
+			var scroll = wrapper.scrollTop();
+			window.location.hash = element.attr('id');
+			wrapper.scrollTop(scroll);
+		}
+
+		wrapper.stop().animate({
 			'scrollTop': offset
 		}, speed);
 
@@ -59,7 +62,8 @@ function smoothScrollTo(element, speed) {
 
 function scrollOffset() {
 
-	var header = jQuery('.header_box .header'), offset = header.height();
+	var header = jQuery('.header_box .header'),
+		offset = header.height();
 
 	if (document.body.classList.contains('admin-bar')) {
 

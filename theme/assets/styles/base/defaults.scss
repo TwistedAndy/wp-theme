@@ -23,11 +23,16 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 	display: block;
 }
 
+*, *:before, *:after {
+	box-sizing: border-box;
+}
+
 body {
 	min-width: 320px;
-	color: $color_main;
-	font-family: $font_main;
-	font-size: 16px;
+	background-color: var(--color-body);
+	color: var(--color-text);
+	font-family: var(--font-main);
+	font-size: var(--size-base);
 	font-weight: 400;
 	line-height: 1.25;
 	-webkit-font-smoothing: antialiased;
@@ -36,13 +41,15 @@ body {
 }
 
 sup {
-	font-size: 0.5em;
+	font-size: 0.75em;
 	vertical-align: super;
+	text-decoration: none;
 }
 
 sub {
-	font-size: 0.5em;
+	font-size: 0.75em;
 	vertical-align: sub;
+	text-decoration: none;
 }
 
 b, strong {
@@ -66,80 +73,62 @@ table {
 	border-collapse: collapse;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6, %h1, %h2, %h3, %h4, %h5, %h6 {
 	display: block;
 	position: relative;
 	margin: 0 0 20px;
-	font-family: $font_heading;
+	color: var(--color-heading);
+	font-family: var(--font-heading);
 	font-weight: 700;
 	line-height: 1.25;
 
 	&:first-child {
-		margin-top: -0.2em;
+		margin-top: -0.1em;
 	}
 
 	&:last-child {
-		margin-bottom: -0.2em;
+		margin-bottom: -0.1em;
 	}
 
-}
-
-h1 {
-	font-size: 36px;
-}
-
-h2 {
-	font-size: 28px;
-}
-
-h3 {
-	font-size: 24px;
-}
-
-h4 {
-	font-size: 20px;
-}
-
-h5 {
-	font-size: 18px;
-}
-
-h6 {
-	font-size: 16px;
-}
-
-@include desktop_small {
-
-	h1, h2, h3, h4, h5, h6 {
+	@include desktop_small {
 		margin-bottom: 15px;
 	}
 
-	h1 {
-		font-size: 32px;
-	}
+}
 
-	h2 {
-		font-size: 24px;
-	}
+h1, %h1 {
+	font-size: var(--size-h1);
+	line-height: 1.2;
+}
 
-	h3 {
-		font-size: 20px;
-	}
+h2, %h2 {
+	font-size: var(--size-h2);
+}
 
-	h4 {
-		font-size: 18px;
-	}
+h3, %h3 {
+	font-size: var(--size-h3);
+}
 
+h4, %h4 {
+	font-size: var(--size-h4);
+}
+
+h5, %h5 {
+	font-size: var(--size-h5);
+}
+
+h6, %h6 {
+	font-size: var(--size-h6);
 }
 
 p {
-	margin: 0 0 20px;
+	margin: 0 0 var(--gap-content);
 }
 
 a {
-	color: inherit;
+	color: currentColor;
 	text-decoration: none;
-	transition: 0.2s;
+	transition: color 0.2s;
 
 	img {
 		transition: opacity 0.2s;
@@ -149,7 +138,7 @@ a {
 		text-decoration: none;
 
 		img {
-			opacity: 0.8;
+			opacity: 0.9;
 		}
 
 	}

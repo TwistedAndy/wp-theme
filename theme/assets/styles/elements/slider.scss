@@ -1,0 +1,100 @@
+.arrow_prev, .arrow_next {
+	display: block;
+	position: absolute;
+	top: 50%;
+	left: -70px;
+	width: 40px;
+	height: 40px;
+	margin-top: -55px;
+	border: 1px solid var(--color-border);
+	border-radius: 50%;
+	background-color: transparent;
+	color: var(--color-muted);
+	transition: 0.2s;
+	cursor: pointer;
+	z-index: 3;
+
+	&:before {
+		content: '';
+		display: block;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 16px;
+		height: 10px;
+		margin: -5px 0 0 -9px;
+		background-color: currentColor;
+		transform: rotate(90deg);
+		-webkit-mask: url(../images/ico_select.svg) 50% 50% no-repeat;
+	}
+
+	&:hover {
+		border-color: var(--color-primary);
+		color: var(--color-primary);
+	}
+
+}
+
+.arrow_next {
+	right: -70px;
+	left: auto;
+
+	&:before {
+		margin-left: -7px;
+		transform: rotate(-90deg);
+	}
+
+}
+
+@include media($desktop_large) {
+
+	.arrow_prev, .arrow_next {
+		top: auto;
+		bottom: 0;
+		left: 0;
+		margin-top: 0;
+	}
+
+	.arrow_next {
+		right: 0;
+		left: auto;
+	}
+
+}
+
+.dots {
+	display: flex;
+	position: relative;
+	flex-wrap: wrap;
+	align-items: center;
+	align-content: stretch;
+	justify-content: center;
+	min-width: 0;
+	height: 40px;
+	margin: 30px 0 0;
+	z-index: 2;
+
+	button {
+		display: block;
+		flex-grow: 0;
+		flex-shrink: 0;
+		width: 10px;
+		height: 10px;
+		margin: 0 5px;
+		border: 1px solid transparent;
+		border-radius: 50%;
+		background-color: var(--color-border);
+		transition: 0.2s;
+		cursor: pointer;
+
+		&.active, &:hover {
+			background-color: var(--color-primary);
+		}
+
+	}
+
+	@include desktop_small {
+		margin-top: 25px;
+	}
+
+}

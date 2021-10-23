@@ -1,27 +1,85 @@
-$font_main: Arial, sans-serif;
-$font_heading: Arial, sans-serif;
+$desktop_large: 1280px + 40px * 2;
+$desktop_small: 1024px;
 
-$color_main: #333333;
-$color_white: #ffffff;
-$color_border: #eeeeee;
-$color_accent: #1f50b4;
-$color_background: #f5f5f5;
+$tablet_large: 768px;
+$tablet_small: 640px;
 
-$margin_content: 25px;
+$phone_large: 480px;
+$phone_small: 420px;
 
-$margin_desktop: 80px;
-$margin_tablet: 40px;
-$margin_phone: 30px;
+$color_body: #FFFFFF;
+$color_text: #4C5973;
+$color_muted: #8390AB;
+$color_heading: #070548;
+$color_bright: #EF463D;
+$color_primary: #5285F7;
+$color_secondary: #35B099;
+$color_background: #F7F9FD;
 
-$radius_regular: 4px;
+:root {
 
-$gap_aside: 40;
+	/* Fonts */
+	--font-main: Arial, sans-serif;
+	--font-heading: Arial, sans-serif;
 
-$desktop_large: 1170 + $gap_aside * 2;
-$desktop_small: 1024;
+	/* Colors */
+	--color-body: #{$color_body};
+	--color-text: #{$color_text};
+	--color-muted: #{$color_muted};
+	--color-heading: #{$color_heading};
+	--color-border: #{rgba($color_text, 0.2)};
+	--color-bright: #{$color_bright};
+	--color-primary: #{$color_primary};
+	--color-secondary: #{$color_secondary};
+	--color-background: #{$color_background};
 
-$tablet_large: 768;
-$tablet_small: 640;
+	/* Grid Paddings and Margins */
+	--gap-aside: 40px;
+	--gap-cards: 30px;
+	--gap-section: 80px;
+	--gap-content: 20px;
 
-$phone_large: 480;
-$phone_small: 420;
+	/* Content Widths */
+	--width-small: 800px;
+	--width-regular: #{$desktop_large};
+
+	--height-header: 100px;
+
+	--radius-small: 3px;
+	--radius-regular: 6px;
+
+	--shadow-regular: 5px 5px 40px rgba(0, 0, 0, 0.05);
+
+	/* Font Sizes */
+	--size-h1: 36px;
+	--size-h2: 28px;
+	--size-h3: 24px;
+	--size-h4: 20px;
+	--size-h5: 18px;
+	--size-h6: 16px;
+	--size-base: 16px;
+	--size-content: 18px;
+
+	@include desktop_small {
+
+		--gap-aside: 20px;
+		--gap-cards: 20px;
+		--gap-section: 50px;
+
+		--height-header: 80px;
+
+		--size-h1: 32px;
+		--size-h2: 24px;
+		--size-h3: 20px;
+		--size-h4: 18px;
+		--size-content: 16px;
+
+	}
+
+	@include tablet_small {
+
+		--gap-section: 35px;
+
+	}
+
+}

@@ -65,13 +65,7 @@ jQuery(function($) {
 
 				function init() {
 
-					var width = 0;
-
-					slides.each(function() {
-						width += $(this).outerWidth();
-					});
-
-					flkty.options.draggable = carousel.outerWidth() < width;
+					flkty.options.draggable = carousel.outerWidth() < slides.outerWidth() * slides.length;
 
 					if (flkty.options.draggable) {
 						navigation.removeAttr('style');

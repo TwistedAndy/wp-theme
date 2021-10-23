@@ -3,37 +3,47 @@
 .content {
 	display: block;
 	position: relative;
+	margin: 0 0 32px;
+	color: var(--color-text);
+	font-size: var(--size-content);
+	font-weight: 400;
+	line-height: 1.667;
 
 	@include clear();
 
 	h1, h2, h3, h4, h5, h6 {
-		margin: #{$margin_content + 10px} 0 #{$margin_content - 10px};
+		margin-top: calc(var(--gap-content) + 15px);
 
 		&:first-child {
-			margin-top: -0.25em;
+			margin-top: -0.1em;
 		}
 
 	}
 
 	p, & > table, & > ul, & > ol, .table_wrapper {
-		margin-bottom: $margin_content;
+		margin-bottom: var(--gap-content);
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
 	}
 
-	p {
+	a:not([class]) {
+		color: var(--color-primary);
+		text-decoration: underline;
 
-		& + ul, & + ol {
-			margin-top: -10px;
+		&:hover {
+			text-decoration: none;
 		}
 
 	}
 
 	ul, ol {
 		display: block;
-		position: relative;
 
 		ul, ol {
-			display: block;
-			padding-top: 15px;
+			padding-top: calc(var(--gap-content) - 5px);
 			margin-left: 0;
 		}
 
@@ -42,11 +52,11 @@
 	li {
 		display: block;
 		position: relative;
-		padding-left: 20px;
-		margin-bottom: 15px;
+		padding-left: 25px;
+		margin-bottom: calc(var(--gap-content) - 5px);
 
-		&:last-child {
-			margin-bottom: 0;
+		p:not(:last-child) {
+			margin-bottom: 10px;
 		}
 
 	}
@@ -64,7 +74,7 @@
 				width: 6px;
 				height: 6px;
 				border-radius: 50%;
-				background-color: $color_main;
+				background-color: var(--color-primary);
 			}
 
 		}
@@ -97,30 +107,48 @@
 	}
 
 	table {
-		width: auto;
-		max-width: 100%;
+		width: 100%;
 		border-spacing: 0;
 		border-collapse: collapse;
+		border: 1px solid var(--color-border);
+	}
+
+	thead {
+		background-color: var(--color-background);
+	}
+
+	tbody {
+
+		tr:nth-child(2n) {
+			background-color: var(--color-background);
+		}
+
 	}
 
 	td, th {
-		padding: 5px 10px;
-		border: 1px solid $color_border;
+		padding: 10px;
+		border-bottom: 1px solid var(--color-border);
+
+		&:first-child {
+			padding-left: 20px;
+		}
+
+		&:last-child {
+			padding-right: 20px;
+		}
+
 	}
 
-	.table_wrapper {
-		overflow: auto;
-	}
-
-	& > :last-child {
-		margin-bottom: 0;
+	th {
+		font-weight: 600;
+		text-align: left;
 	}
 
 	hr {
 		height: 1px;
-		margin: ($margin_content + 5px) 0;
-		border: none;
-		background-color: $color_border;
+		margin: calc(var(--gap-content) + 5px) 0;
+		border-width: 0;
+		background-color: var(--color-border);
 
 		&:first-child {
 			margin-top: 0;
@@ -132,65 +160,45 @@
 
 	}
 
-	a {
-		color: inherit;
-		text-decoration: underline;
-
-		&:hover {
-			text-decoration: none;
-		}
-
+	blockquote {
+		display: block;
+		padding: calc(var(--gap-content) - 5px) var(--gap-content);
+		margin-bottom: var(--gap-content);
+		background: var(--color-background);
 	}
 
-	.button {
-		text-decoration: none;
+	.table_wrapper {
+		overflow: auto;
 	}
-
-	@include desktop_small {
-
-		p, & > table, & > ul, & > ol, .table_wrapper {
-			margin-bottom: ($margin_content - 5px);
-		}
-
-		hr {
-			margin: $margin_content 0;
-		}
-
-		.table_wrapper {
-			display: block;
-			overflow-x: auto;
-			overflow-y: hidden;
-		}
-
-	}
-
-}
-
-
-/* WordPress default alignment classes */
-
-.content {
 
 	.alignleft {
 		float: left;
-		margin: 0 $margin_content $margin_content 0;
+		margin: 0 var(--gap-content) var(--gap-content) 0;
 	}
 
 	.alignright {
 		float: right;
-		margin: 0 0 $margin_content $margin_content;
+		margin: 0 0 var(--gap-content) var(--gap-content);
 	}
 
 	.alignnone {
 		width: 100%;
 		height: auto;
-		margin: 0 0 $margin_content;
+		margin: 0 0 var(--gap-content);
 	}
 
 	.aligncenter {
 		display: block;
 		max-width: 100%;
-		margin: 0 auto $margin_content;
+		margin: 0 auto var(--gap-content);
+	}
+
+	& > :last-child, &:last-child {
+		margin-bottom: 0;
+	}
+
+	@include desktop_small {
+		margin-bottom: 24px;
 	}
 
 	@include tablet_large {
@@ -198,7 +206,6 @@
 		.alignright, .alignleft {
 			display: block;
 			float: none;
-			margin: 0 auto #{$margin_content - 5px};
 			text-align: center;
 		}
 
@@ -207,27 +214,7 @@
 }
 
 
-/* Blockquote */
-
-.content {
-
-	blockquote {
-		display: block;
-		overflow: hidden;
-		padding: ($margin_content - 5px) $margin_content;
-		margin-bottom: $margin_content;
-		background: $color_background;
-
-		:last-child {
-			margin-bottom: 0;
-		}
-
-	}
-
-}
-
-
-/* Image with caption */
+/* Galleries and images with captions */
 
 .content {
 
@@ -242,8 +229,8 @@
 		overflow: hidden;
 		box-sizing: border-box;
 		padding: 10px;
-		margin-bottom: $margin_content;
-		background: $color_background;
+		margin-bottom: var(--gap-content);
+		background: var(--color-background);
 
 		.wp-caption-text {
 			padding: 10px 10px 0;
@@ -256,13 +243,6 @@
 		}
 
 	}
-
-}
-
-
-/* Gallery */
-
-.content {
 
 	.gallery {
 		display: flex;
@@ -341,7 +321,7 @@
 	.gallery-caption {
 		display: block;
 		padding: 10px;
-		background: $color_background;
+		background: var(--color-background);
 	}
 
 	@include tablet_large() {
@@ -393,11 +373,11 @@
 
 /* Embeds */
 
-.wp-block-embed, .wp-embed-video {
+.wp-block-embed, .wp-embed-video, .wp-video {
 	display: block;
 	position: relative;
 	width: 100%;
-	margin: #{$margin_content + 5px} auto;
+	margin: calc(var(--gap-content) + 5px) auto;
 
 	&:first-child {
 		margin-top: 0;
@@ -440,13 +420,13 @@
 
 }
 
-.wp-embed-video {
+.wp-embed-video, .wp-video-shortcode {
 
 	&:before {
 		content: '';
 		display: block;
 		position: relative;
-		width: 100%;
+		width: 0;
 		padding-bottom: 56.25%;
 	}
 

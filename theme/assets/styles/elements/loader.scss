@@ -1,0 +1,25 @@
+%loader {
+	min-height: 80px;
+	background: 50% 50% no-repeat;
+	background-size: 57px 57px;
+	transition: background-image 0.3s;
+
+	.item {
+		transition: opacity 0.3s, background 0.3s;
+	}
+
+	&.is_loading {
+		background-image: url(../images/ico_loading.svg);
+
+		.item {
+			opacity: 0;
+		}
+
+	}
+
+	@include tablet_small {
+		min-height: 50px;
+		background-size: 38px 38px;
+	}
+
+}

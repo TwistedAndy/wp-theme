@@ -8,22 +8,6 @@
 
 }
 
-@mixin justify() {
-	text-align: justify;
-	line-height: 0;
-	font-size: 1px;
-
-	&:after {
-		display: inline-block;
-		content: '';
-		width: 100%;
-		height: 0;
-		visibility: hidden;
-		overflow: hidden;
-	}
-
-}
-
 @mixin placeholder() {
 
 	&:-ms-input-placeholder {
@@ -41,43 +25,43 @@
 }
 
 @mixin media($width) {
-	@media (max-width: $width + px) {
+	@media (max-width: $width) {
 		@content;
 	}
 }
 
 @mixin desktop_large() {
-	@media (max-width: $desktop_large + px) {
+	@media (max-width: $desktop_large) {
 		@content;
 	}
 }
 
 @mixin desktop_small() {
-	@media (max-width: $desktop_small + px) {
+	@media (max-width: $desktop_small) {
 		@content;
 	}
 }
 
 @mixin tablet_large() {
-	@media (max-width: $tablet_large + px) {
+	@media (max-width: $tablet_large) {
 		@content;
 	}
 }
 
 @mixin tablet_small() {
-	@media (max-width: $tablet_small + px) {
+	@media (max-width: $tablet_small) {
 		@content;
 	}
 }
 
 @mixin phone_large() {
-	@media (max-width: $phone_large + px) {
+	@media (max-width: $phone_large) {
 		@content;
 	}
 }
 
 @mixin phone_small() {
-	@media (max-width: $phone_small + px) {
+	@media (max-width: $phone_small) {
 		@content;
 	}
 }
