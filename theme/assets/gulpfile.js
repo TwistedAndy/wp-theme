@@ -44,7 +44,7 @@ var options = {
 		maxWeightResource: 4096
 	},
 	sass: {
-		outputStyle: 'expanded',
+		outputStyle: 'compressed',
 		indentType: 'tab',
 		indentWidth: 1,
 	},

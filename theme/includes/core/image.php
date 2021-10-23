@@ -589,11 +589,14 @@ class Image {
 
 			$meta = get_post_meta($image_id, '_wp_attachment_metadata', true);
 
-			if (!empty($meta['width']) and !empty($meta['height'])) {
+			if (is_array($meta) and !empty($meta['width']) and !empty($meta['height'])) {
 
 				if ($size === 'full') {
 					$result['width'] = $meta['width'];
 					$result['height'] = $meta['height'];
+				} elseif (!empty($meta['sizes']) and is_string($size) and !empty($meta['sizes'][$size])) {
+					$result['width'] = $meta['sizes'][$size]['width'];
+					$result['height'] = $meta['sizes'][$size]['height'];
 				} else {
 					$size = $this->calculateSize($meta['width'], $meta['height'], $result['width'], $result['height'], $result['crop'], $result['aspect']);
 					$result['width'] = $size['width'];
