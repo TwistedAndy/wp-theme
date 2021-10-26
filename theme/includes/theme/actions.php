@@ -170,3 +170,60 @@ add_filter('gutenberg_use_widgets_block_editor', '__return_false');
  * Disables the block editor from managing widgets
  */
 add_filter('use_widgets_block_editor', '__return_false');
+
+
+/**
+ * Add all public terms to the links field
+ */
+add_action('wp_link_query', function($results, $query) {
+
+	if (is_array($query) and !empty($query['s'])) {
+
+		if (!is_array($results)) {
+			$results = [];
+		}
+
+		$taxonomies = get_taxonomies(['public' => true], 'objects');
+
+		if (empty($taxonomies)) {
+			return $results;
+		}
+
+		$map = [];
+
+		foreach ($taxonomies as $taxonomy) {
+			$map[$taxonomy->name] = $taxonomy->label;
+		}
+
+		if (empty($map)) {
+			return $results;
+		}
+
+		$db = tw_database_object();
+
+		$rows = $db->get_results("SELECT t.*, tt.taxonomy FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id WHERE t.name LIKE '%" . $db->esc_like($query['s']) . "%' AND tt.taxonomy IN ('" . implode("','", array_keys($map)) . "')", OBJECT);
+
+		if (empty($rows)) {
+			return $results;
+		}
+
+		foreach ($rows as $row) {
+
+			if (!empty($row->taxonomy) and !empty($map[$row->taxonomy])) {
+
+				array_unshift($results, [
+					'ID' => $row->term_id,
+					'title' => $row->name,
+					'permalink' => get_term_link($row, $row->taxonomy),
+					'info' => $map[$row->taxonomy]
+				]);
+
+			}
+
+		}
+
+	}
+
+	return $results;
+
+}, 10, 2);
