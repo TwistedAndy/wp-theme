@@ -2,7 +2,7 @@
 /**
  * Image Processing Library
  *
- * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @author  Andrii Toniievych <andy@absoluteweb.com>
  * @package Twee
  * @version 3.0
  */
@@ -19,13 +19,17 @@ class Image {
 		'registered' => []
 	];
 
+	const COMPRESS_TASK = 'twee_image_compress';
+
 	protected $upload_dir = '';
 
 	protected $upload_url = '';
 
 	public function __construct() {
 
-		add_action('twee_thumb_created', [$this, 'compressImage'], 10, 3);
+		add_action('twee_thumb_created', [$this, 'scheduleCompression'], 10, 3);
+
+		add_action(self::COMPRESS_TASK, [$this, 'compressImage'], 10, 3);
 
 		add_filter('image_size_names_choose', [$this, 'filterSizes']);
 
@@ -591,7 +595,7 @@ class Image {
 
 			if (is_array($meta) and !empty($meta['width']) and !empty($meta['height'])) {
 
-				if ($size === 'full') {
+				if ($size === 'full' or (!empty($meta['file']) and stripos($meta['file'], '.svg') === strlen($meta['file']) - 4)) {
 					$result['width'] = $meta['width'];
 					$result['height'] = $meta['height'];
 				} elseif (!empty($meta['sizes']) and is_string($size) and !empty($meta['sizes'][$size])) {
@@ -682,6 +686,36 @@ class Image {
 		}
 
 		return $sizes;
+
+	}
+
+
+	/**
+	 * Schedule image compression
+	 *
+	 * @param string $file     Full path to the image
+	 * @param string $url      Image URL
+	 * @param int    $image_id Image ID
+	 */
+	public function scheduleCompression($file, $url, $image_id) {
+
+		if (function_exists('as_schedule_single_action')) {
+
+			$args = [
+				'path' => $file,
+				'url' => $url,
+				'id' => $image_id
+			];
+
+			$time = time();
+
+			as_unschedule_action(self::COMPRESS_TASK, $args);
+
+			if (as_next_scheduled_action(self::COMPRESS_TASK, $args) === false) {
+				as_schedule_single_action($time, self::COMPRESS_TASK, $args);
+			}
+
+		}
 
 	}
 
