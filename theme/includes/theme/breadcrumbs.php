@@ -22,48 +22,35 @@ function tw_breadcrumbs($separator = '', $before = '<nav class="breadcrumbs_box"
 
 	if (!is_home() and !is_front_page()) {
 
-		$breadcrumbs = tw_breadcrumbs_list();
+		$items = tw_breadcrumbs_list();
 
-		$current_page = '<span class="last">' . tw_wp_title() . '</span>';
-
-		if (empty($breadcrumbs)) {
+		if (empty($items)) {
 			return $result;
 		}
 
-		$result = $before . tw_breadcrumbs_build($breadcrumbs, $separator) . $current_page . $after;
+		$result = [];
 
-	}
+		foreach ($items as $item) {
 
-	return $result;
+			if (empty($item['title'])) {
+				continue;
+			}
 
-}
+			if (empty($item['class'])) {
+				$class = '';
+			} else {
+				$class = ' class="' . $item['class'] . '"';
+			}
 
+			if (!empty($item['link'])) {
+				$result[] = '<a href="' . $item['link'] . '"' . $class . '>' . $item['title'] . '</a>';
+			}
 
-/**
- * Build a single breadcrumb
- *
- * @param array  $breadcrumbs Array with the breadcrumbs
- * @param string $separator   Separator
- *
- * @return string
- */
-function tw_breadcrumbs_build($breadcrumbs, $separator) {
-
-	$result = '';
-
-	if (!empty($breadcrumbs)) {
-
-		$breadcrumb = array_shift($breadcrumbs);
-
-		$class = '';
-
-		if (!empty($breadcrumb['class'])) {
-			$class = ' class="' . $breadcrumb['class'] . '"';
 		}
 
-		$result = '<a href="' . $breadcrumb['link'] . '"' . $class . '>' . $breadcrumb['title'] . '</a>' . $separator;
+		$current_page = '<span class="last">' . tw_wp_title() . '</span>';
 
-		$result .= tw_breadcrumbs_build($breadcrumbs, $separator);
+		$result = $before . implode($result, $separator) . $current_page . $after;
 
 	}
 

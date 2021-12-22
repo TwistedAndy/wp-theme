@@ -28,6 +28,85 @@ function tw_database_object() {
 
 
 /**
+ * Get array with selected metadata keys
+ *
+ * @param array|string $keys
+ *
+ * @return array
+ */
+function tw_database_metadata($type = 'post', $keys = ['_thumbnail_id']) {
+
+	$cache_key = $type . '_meta';
+
+	$where = '';
+
+	if ($keys) {
+
+		if (!is_array($keys)) {
+			$keys = explode(',', $keys);
+			$keys = array_map('trim', $keys);
+		}
+
+		sort($keys);
+
+		$cache_key .= '_' . implode('_', $keys);
+
+		$where = " WHERE meta.meta_key IN ('" . implode("', '", $keys) . "')";
+
+	}
+
+	$meta = tw_cache_get($cache_key);
+
+	if (empty($meta)) {
+
+		$meta = [];
+
+		$db = tw_database_object();
+
+		$table = $db->postmeta;
+		$key = 'post_id';
+
+		if ($type == 'term') {
+			$table = $db->termmeta;
+			$key = 'term_id';
+		} else if ($type == 'user') {
+			$table = $db->usermeta;
+			$key = 'user_id';
+		} else if ($type == 'comment') {
+			$table = $db->commentmeta;
+			$key = 'comment_id';
+		}
+
+		$result = $db->get_results("SELECT meta.{$key}, meta.meta_key, meta.meta_value FROM {$table} AS meta {$where}", ARRAY_A);
+
+		if ($result) {
+
+			foreach ($result as $row) {
+
+				if (empty($row[$key]) or empty($row['meta_key'])) {
+					continue;
+				}
+
+				if (empty($meta[$row[$key]])) {
+					$meta[$row[$key]] = [];
+				}
+
+				$meta[$row[$key]][$row['meta_key']] = maybe_unserialize($row['meta_value']);
+
+			}
+
+		}
+
+		tw_cache_set($cache_key, $meta);
+
+	}
+
+	return $meta;
+
+}
+
+
+/**
  * Get all terms as array of Term IDs ($field) grouped by taxonomy
  *
  * @return array
@@ -50,13 +129,13 @@ function tw_database_term_taxonomies($field = 'term_id') {
 
 			foreach ($result as $term) {
 
-				if (!empty($term[$field]) and !empty($term['taxonomy']) and !empty($term['term_id'])) {
+				if (!empty($term[$field]) and !empty($term['taxonomy'])) {
 
 					if (empty($terms[$term['taxonomy']])) {
 						$terms[$term['taxonomy']] = [];
 					}
 
-					$terms[$term['taxonomy']][] = $term['term_id'];
+					$terms[$term['taxonomy']][] = $term[$field];
 
 				}
 
@@ -163,70 +242,5 @@ function tw_database_term_order($field = 'term_id') {
 	}
 
 	return $order;
-
-}
-
-
-/**
- * Get all WooCommerce attributes as Term ID => Label ordered array
- *
- * @param array|string $keys
- *
- * @return array
- */
-function tw_database_term_meta($keys = ['swap', 'options', 'image']) {
-
-	$cache_key = 'term_meta';
-
-	$where = '';
-
-	if ($keys) {
-
-		if (!is_array($keys)) {
-			$keys = explode(',', $keys);
-			$keys = array_map('trim', $keys);
-		}
-
-		sort($keys);
-
-		$cache_key .= '_' . implode('_', $keys);
-
-		$where = " WHERE tm.meta_key IN ('" . implode("', '", $keys) . "')";
-
-	}
-
-	$meta = tw_cache_get($cache_key);
-
-	if (empty($meta)) {
-
-		$meta = [];
-
-		$db = tw_database_object();
-
-		$result = $db->get_results("SELECT tm.term_id, tm.meta_key, tm.meta_value FROM {$db->termmeta} tm {$where}", ARRAY_A);
-
-		if ($result) {
-
-			foreach ($result as $row) {
-
-				if (empty($row['term_id']) or empty($row['meta_key'])) {
-					continue;
-				}
-
-				if (empty($meta[$row['term_id']])) {
-					$meta[$row['term_id']] = [];
-				}
-
-				$meta[$row['term_id']][$row['meta_key']] = maybe_unserialize($row['meta_value']);
-
-			}
-
-		}
-
-		tw_cache_set($cache_key, $meta);
-
-	}
-
-	return $meta;
 
 }

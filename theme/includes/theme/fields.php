@@ -43,12 +43,23 @@ function tw_acf_load_value($values, $post_id, $field) {
 
 		if (!empty($entity['id']) and !empty($entity['type']) and in_array($entity['type'], ['post', 'term', 'comment', 'user'])) {
 
-			$data = get_metadata($entity['type'], $entity['id'], $field['name'], true);
+			$name = $field['name'];
+
+			/**
+			 * ACF saves seamless clone values using the prefix as a key
+			 *
+			 * In some cases the field contains an original name instead of a prefix
+			 */
+			if (!empty($field['_clone']) and $clone = acf_get_field($field['_clone'])) {
+				$name = $clone['name'];
+			}
+
+			$data = get_metadata($entity['type'], $entity['id'], $name, true);
 
 			if (is_array($data) and !empty($data)) {
 
 				/**
-				 * We need this code to process cloned fields correctly
+				 * Process duplicated clone fields correctly
 				 */
 				if (!empty($field['_clone']) and !empty($field['_name']) and isset($data[$field['_name']])) {
 					$data = $data[$field['_name']];

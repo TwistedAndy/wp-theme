@@ -129,7 +129,7 @@ if (!function_exists('get_field') and !is_admin()) {
 
 		} elseif ($post_id == 'option' or $post_id == 'options') {
 
-			$value = get_option($field);
+			$value = get_option('options_' . $field);
 
 		} elseif (strpos($post_id, '_') !== false) {
 

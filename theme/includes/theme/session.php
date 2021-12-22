@@ -7,25 +7,34 @@
  * @version 3.0
  */
 
-if (class_exists('WooCommerce')) {
+// add_action('init', 'tw_session_init');
 
-	add_action('woocommerce_init', function() {
+/**
+ * Init a session
+ */
+function tw_session_init() {
 
-		$session = WooCommerce::instance()->session;
+	if (class_exists('WooCommerce')) {
 
-		if ($session instanceof WC_Session_Handler and !$session->get_session_cookie()) {
-			if (is_user_logged_in()) {
-				$session->init_session_cookie();
-			} else {
-				$session->set_customer_session_cookie(true);
+		add_action('woocommerce_init', function() {
+
+			$session = WooCommerce::instance()->session;
+
+			if ($session instanceof WC_Session_Handler and !$session->get_session_cookie()) {
+				if (is_user_logged_in()) {
+					$session->init_session_cookie();
+				} else {
+					$session->set_customer_session_cookie(true);
+				}
 			}
-		}
 
-	});
+		});
 
-} elseif (!session_id()) {
+	} elseif (!session_id()) {
 
-	// session_start();
+		session_start();
+
+	}
 
 }
 
@@ -117,8 +126,8 @@ function tw_session_get_file($name = false) {
 /**
  * Update the stored file
  *
- * @param string $name   Name of the session group
- * @param bool|array  $file Array with file information
+ * @param string     $name Name of the session group
+ * @param bool|array $file Array with file information
  */
 function tw_session_set_file($name, $file) {
 

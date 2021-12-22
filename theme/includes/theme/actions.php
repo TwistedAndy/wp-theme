@@ -154,7 +154,7 @@ add_action('wp_print_styles', function() {
 
 	if (!is_admin()) {
 		wp_dequeue_style('wp-block-library');
-		wp_dequeue_style('wc-block-style');
+		wp_dequeue_style('wc-blocks-style');
 	}
 
 }, 100);

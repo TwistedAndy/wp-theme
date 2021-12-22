@@ -122,6 +122,9 @@ function tw_filter_svg_preview($response, $attachment, $meta) {
 }
 
 
+/**
+ * Generate correct metadata for SVG files
+ */
 add_filter('wp_generate_attachment_metadata', 'tw_filter_svg_metadata', 10, 2);
 
 function tw_filter_svg_metadata($metadata, $attachment_id) {
