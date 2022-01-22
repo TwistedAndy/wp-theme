@@ -10,8 +10,6 @@
 	position: relative;
 	overflow: hidden;
 	height: 100%;
-	transition: height 0.2s;
-	z-index: 1;
 }
 
 .flickity-slider {
@@ -22,7 +20,6 @@
 
 .flickity-enabled.is-draggable {
 	-webkit-tap-highlight-color: transparent;
-	tap-highlight-color: transparent;
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;

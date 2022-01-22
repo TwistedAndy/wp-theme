@@ -13,13 +13,13 @@ use WP_Post;
 
 class Image {
 
+	const COMPRESS_TASK = 'twee_image_compress';
+
 	protected $sizes = [
 		'hidden' => [],
 		'custom' => [],
 		'registered' => []
 	];
-
-	const COMPRESS_TASK = 'twee_image_compress';
 
 	protected $upload_dir = '';
 
@@ -87,24 +87,29 @@ class Image {
 			}
 
 			if ($image instanceof WP_Post) {
+
 				if (empty($attributes['alt'])) {
 					$attributes['alt'] = $image->post_title;
 				}
+
 				if ($image->post_type === 'attachment') {
 					$image = $image->ID;
 				} else {
 					$image = get_post_meta($image->ID, '_thumbnail_id', true);
 				}
+
 			} elseif (is_array($image) and !empty($image['id'])) {
+
 				$image = $image['id'];
+
 			}
 
-			if (!isset($attributes['alt'])) {
-				if (is_numeric($image)) {
-					$attributes['alt'] = get_post_meta($image, '_wp_attachment_image_alt', true);
-				} else {
-					$attributes['alt'] = '';
-				}
+			if (is_numeric($image) and $alt = get_post_meta($image, '_wp_attachment_image_alt', true)) {
+				$attributes['alt'] = $alt;
+			}
+
+			if (empty($attributes['alt'])) {
+				$attributes['alt'] = '';
 			}
 
 			if ($link_image_size and !$link_href) {
@@ -124,8 +129,10 @@ class Image {
 
 			}
 
-			if (empty($attributes['loading'])) {
+			if (!isset($attributes['loading'])) {
 				$attributes['loading'] = 'lazy';
+			} elseif (empty($attributes['loading'])) {
+				unset($attributes['loading']);
 			}
 
 			if (!empty($attributes['before'])) {
@@ -139,16 +146,113 @@ class Image {
 			$data = $this->getSize($size, $image);
 
 			if ($data['width'] > 0 and $data['height'] > 0) {
-				$attributes['width'] = $data['width'];
-				$attributes['height'] = $data['height'];
+				$attributes['width'] = round($data['width']);
+				$attributes['height'] = round($data['height']);
+			}
+
+			if (!empty($attributes['srcset']) and is_array($attributes['srcset'])) {
+
+				$srcset = [];
+
+				$attributes['srcset'][] = $size;
+
+				$attributes['srcset'] = array_unique($attributes['srcset']);
+
+				foreach ($attributes['srcset'] as $src_size) {
+
+					$data = $this->getSize($src_size, $image);
+
+					if ($data['width'] > 0) {
+						$srcset[] = $this->getLink($image, $src_size) . ' ' . round($data['width']) . 'w';
+					}
+
+				}
+
+				$attributes['srcset'] = implode(', ', $srcset);
+
+				if (!empty($attributes['sizes']) and is_array($attributes['sizes'])) {
+
+					$breakpoints = [
+						'ps' => 420,
+						'pl' => 480,
+						'ts' => 640,
+						'tl' => 768,
+						'ds' => 1024,
+						'dl' => 1360,
+						'dt' => 3840
+					];
+
+					$breakpoints = apply_filters('twee_media_breakpoints', $breakpoints, $image);
+
+					$queries = [];
+
+					foreach ($attributes['sizes'] as $breakpoint => $value) {
+
+						$screen = 0;
+						$width = '';
+
+						if (strpos($value, 'px') > 0) {
+							$width = $value;
+						} elseif (is_numeric($value)) {
+							if ($value > 100) {
+								$width = $value . 'px';
+							} else {
+								$width = $value . 'vw';
+							}
+						} elseif (is_string($value)) {
+							$width = $value;
+						}
+
+						if (empty($width)) {
+							continue;
+						}
+
+						if (is_numeric($breakpoint)) {
+							$screen = $breakpoint;
+						} elseif (!empty($breakpoints[$breakpoint]) and is_numeric($breakpoints[$breakpoint])) {
+							$screen = $breakpoints[$breakpoint];
+						}
+
+						if ($screen < 320) {
+							continue;
+						}
+
+						$queries[$screen] = $width;
+
+					}
+
+					if ($queries) {
+
+						$sizes = [];
+
+						ksort($queries);
+
+						foreach ($queries as $screen => $width) {
+							$sizes[] = '(max-width: ' . $screen . 'px) ' . $width;
+						}
+
+						$attributes['sizes'] = implode(', ', $sizes);
+
+					}
+
+				}
+
+			}
+
+			if (empty($attributes['srcset'])) {
+				unset($attributes['srcset']);
+			}
+
+			if (empty($attributes['sizes'])) {
+				unset($attributes['sizes']);
 			}
 
 			$data = [];
-			$list = ['loading', 'alt', 'class', 'id', 'width', 'height', 'style'];
+			$list = ['loading', 'alt', 'class', 'id', 'width', 'height', 'style', 'srcset', 'sizes'];
 
 			foreach ($attributes as $key => $attribute) {
 				if (in_array($key, $list) or strpos($attribute, 'data') === 0) {
-					$data[] = $key . '="' . esc_attr(strip_tags($attribute)) . '"';
+					$data[] = $key . '="' . esc_attr($attribute) . '"';
 				}
 			}
 
@@ -326,10 +430,10 @@ class Image {
 				if ($width > 0 or $height > 0) {
 
 					if ($image_id > 0) {
-						$image_id = $image_id . '_';
+						$image_id_string = $image_id . '_';
 						$url_hash = '';
 					} else {
-						$image_id = '';
+						$image_id_string = '';
 						$url_hash = '_' . hash('crc32', $image_url, false);
 					}
 
@@ -339,7 +443,7 @@ class Image {
 						$crop_hash = '';
 					}
 
-					$filename = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id . $matches[1] . $url_hash . $crop_hash . '.' . $matches[2];
+					$filename = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id_string . $matches[1] . $url_hash . $crop_hash . '.' . $matches[2];
 
 					if (!is_file($this->upload_dir . $filename)) {
 
@@ -729,128 +833,137 @@ class Image {
 	 */
 	public function compressImage($file, $url, $image_id = 0) {
 
-		if (is_readable($file)) {
+		if (!is_readable($file)) {
+			return;
+		}
 
-			if (class_exists('WP_Smush')) {
+		/**
+		 * Trigger the WebP conversion using the WebP Converter for Media plugin
+		 */
+		do_action('webpc_convert_paths', [$file]);
 
-				/* Integration with the Smush plugin */
 
-				$smush = \WP_Smush::get_instance()->core()->mod->smush;
+		/**
+		 * Check all popular image compressing plugins
+		 */
+		if (class_exists('WP_Smush')) {
 
-				if ($smush instanceof \Smush\Core\Modules\Smush) {
-					$smush->do_smushit($file);
-				}
+			/* Integration with the Smush plugin */
 
-			} elseif (function_exists('ewww_image_optimizer')) {
+			$smush = \WP_Smush::get_instance()->core()->mod->smush;
 
-				/* Integration with the EWWW Image Optimizer and EWWW Image Optimizer Cloud plugins */
+			if ($smush instanceof \Smush\Core\Modules\Smush) {
+				$smush->do_smushit($file);
+			}
 
-				ewww_image_optimizer($file, 4, false, false);
+		} elseif (function_exists('ewww_image_optimizer')) {
 
-			} elseif (class_exists('Tiny_Compress')) {
+			/* Integration with the EWWW Image Optimizer and EWWW Image Optimizer Cloud plugins */
 
-				/* Integration with the TinyPNG plugin */
+			ewww_image_optimizer($file, 4, false, false);
 
-				if (defined('TINY_API_KEY')) {
-					$api_key = TINY_API_KEY;
-				} else {
-					$api_key = get_option('tinypng_api_key');
-				}
+		} elseif (class_exists('Tiny_Compress')) {
 
-				$compressor = \Tiny_Compress::create($api_key);
+			/* Integration with the TinyPNG plugin */
 
-				if ($compressor instanceof \Tiny_Compress and $compressor->get_status()->ok) {
+			if (defined('TINY_API_KEY')) {
+				$api_key = TINY_API_KEY;
+			} else {
+				$api_key = get_option('tinypng_api_key');
+			}
 
-					try {
-						$compressor->compress_file($file, false);
-					} catch (\Tiny_Exception $e) {
+			$compressor = \Tiny_Compress::create($api_key);
 
-					}
+			if ($compressor instanceof \Tiny_Compress and $compressor->get_status()->ok) {
 
-				}
-
-			} elseif (class_exists('WRIO_Plugin') and class_exists('WIO_OptimizationTools')) {
-
-				/* Integration with the Webcraftic Robin image optimizer */
-
-				$image_processor = \WIO_OptimizationTools::getImageProcessor();
-
-				$optimization_level = \WRIO_Plugin::app()->getPopulateOption('image_optimization_level', 'normal');
-
-				if ($optimization_level == 'custom') {
-					$optimization_level = intval(\WRIO_Plugin::app()->getPopulateOption('image_optimization_level_custom', 100));
-				}
-
-				$image_data = $image_processor->process([
-					'image_url' => $url,
-					'image_path' => $file,
-					'quality' => $image_processor->quality($optimization_level),
-					'save_exif' => \WRIO_Plugin::app()->getPopulateOption('save_exif_data', false),
-					'is_thumb' => false,
-				]);
-
-				if (!is_wp_error($image_data) and empty($image_data['not_need_replace']) and !empty($image_data['optimized_img_url']) and strpos($image_data['optimized_img_url'], 'http') === 0) {
-
-					$temp_file = $file . '.tmp';
-
-					$fp = fopen($temp_file, 'w+');
-
-					if ($fp === false) {
-						return;
-					}
-
-					$ch = curl_init($image_data['optimized_img_url']);
-					curl_setopt($ch, CURLOPT_FILE, $fp);
-					curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-					curl_exec($ch);
-
-					if (curl_errno($ch)) {
-						return;
-					}
-
-					$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-					curl_close($ch);
-
-					fclose($fp);
-
-					if ($status == 200) {
-
-						$type = mime_content_type($temp_file);
-
-						$types = [
-							'image/png' => 'png',
-							'image/bmp' => 'bmp',
-							'image/jpeg' => 'jpg',
-							'image/pjpeg' => 'jpg',
-							'image/gif' => 'gif',
-							'image/svg' => 'svg',
-							'image/svg+xml' => 'svg',
-						];
-
-						if (!empty($types[$type])) {
-							copy($temp_file, $file);
-						}
-
-						unlink($temp_file);
-
-					}
+				try {
+					$compressor->compress_file($file, false);
+				} catch (\Tiny_Exception $e) {
 
 				}
-
-			} elseif (class_exists('\Imagify\Optimization\File')) {
-
-				$file = new \Imagify\Optimization\File($file);
-
-				$file->optimize([
-					'backup' => false,
-					'optimization_level' => 1,
-					'keep_exif' => false,
-					'convert' => '',
-					'context' => 'wp',
-				]);
 
 			}
+
+		} elseif (class_exists('WRIO_Plugin') and class_exists('WIO_OptimizationTools')) {
+
+			/* Integration with the Webcraftic Robin image optimizer */
+
+			$image_processor = \WIO_OptimizationTools::getImageProcessor();
+
+			$optimization_level = \WRIO_Plugin::app()->getPopulateOption('image_optimization_level', 'normal');
+
+			if ($optimization_level == 'custom') {
+				$optimization_level = intval(\WRIO_Plugin::app()->getPopulateOption('image_optimization_level_custom', 100));
+			}
+
+			$image_data = $image_processor->process([
+				'image_url' => $url,
+				'image_path' => $file,
+				'quality' => $image_processor->quality($optimization_level),
+				'save_exif' => \WRIO_Plugin::app()->getPopulateOption('save_exif_data', false),
+				'is_thumb' => false,
+			]);
+
+			if (!is_wp_error($image_data) and empty($image_data['not_need_replace']) and !empty($image_data['optimized_img_url']) and strpos($image_data['optimized_img_url'], 'http') === 0) {
+
+				$temp_file = $file . '.tmp';
+
+				$fp = fopen($temp_file, 'w+');
+
+				if ($fp === false) {
+					return;
+				}
+
+				$ch = curl_init($image_data['optimized_img_url']);
+				curl_setopt($ch, CURLOPT_FILE, $fp);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+				curl_exec($ch);
+
+				if (curl_errno($ch)) {
+					return;
+				}
+
+				$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+				curl_close($ch);
+
+				fclose($fp);
+
+				if ($status == 200) {
+
+					$type = mime_content_type($temp_file);
+
+					$types = [
+						'image/png' => 'png',
+						'image/bmp' => 'bmp',
+						'image/jpeg' => 'jpg',
+						'image/pjpeg' => 'jpg',
+						'image/gif' => 'gif',
+						'image/svg' => 'svg',
+						'image/svg+xml' => 'svg',
+					];
+
+					if (!empty($types[$type])) {
+						copy($temp_file, $file);
+					}
+
+					unlink($temp_file);
+
+				}
+
+			}
+
+		} elseif (class_exists('\Imagify\Optimization\File')) {
+
+			$file = new \Imagify\Optimization\File($file);
+
+			$file->optimize([
+				'backup' => false,
+				'optimization_level' => 1,
+				'keep_exif' => false,
+				'convert' => '',
+				'context' => 'wp',
+			]);
 
 		}
 

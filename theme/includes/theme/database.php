@@ -109,11 +109,18 @@ function tw_database_metadata($type = 'post', $keys = ['_thumbnail_id']) {
 /**
  * Get all terms as array of Term IDs ($field) grouped by taxonomy
  *
+ * @param string $taxonomy
+ * @param string $field
+ *
  * @return array
  */
-function tw_database_term_taxonomies($field = 'term_id') {
+function tw_database_term_taxonomies($taxonomy = '', $field = 'term_id') {
 
 	$cache_key = 'term_taxonomies_' . $field;
+
+	if ($taxonomy) {
+		$cache_key .= '_' . $taxonomy;
+	}
 
 	$terms = tw_cache_get($cache_key);
 
@@ -123,19 +130,41 @@ function tw_database_term_taxonomies($field = 'term_id') {
 
 		$db = tw_database_object();
 
-		$result = $db->get_results("SELECT t.term_id, t.name, t.slug, tt.taxonomy FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id", ARRAY_A);
+		$query = "SELECT t.term_id, t.name, t.slug, tt.taxonomy FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id";
+
+		if ($taxonomy) {
+			$query .= ' WHERE tt.taxonomy = ' . $taxonomy;
+		}
+
+		$result = $db->get_results($query, ARRAY_A);
 
 		if ($result) {
 
 			foreach ($result as $term) {
 
-				if (!empty($term[$field]) and !empty($term['taxonomy'])) {
+				if ($taxonomy) {
+
+					if ($field == 'all') {
+						$terms[$term['term_id']] = $term;
+					} elseif (isset($term[$field])) {
+						$terms[$term['term_id']] = $term[$field];
+					}
+
+				} else {
+
+					if (empty($term['taxonomy'])) {
+						continue;
+					}
 
 					if (empty($terms[$term['taxonomy']])) {
 						$terms[$term['taxonomy']] = [];
 					}
 
-					$terms[$term['taxonomy']][] = $term[$field];
+					if ($field == 'all') {
+						$terms[$term['taxonomy']][$term['term_id']] = $term;
+					} elseif (isset($term[$field])) {
+						$terms[$term['taxonomy']][$term['term_id']] = $term[$field];
+					}
 
 				}
 
@@ -143,9 +172,9 @@ function tw_database_term_taxonomies($field = 'term_id') {
 
 		}
 
-		tw_cache_set($cache_key, $terms);
-
 	}
+
+	tw_cache_set($cache_key, $terms);
 
 	return $terms;
 
