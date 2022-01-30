@@ -107,6 +107,48 @@ function tw_database_metadata($type = 'post', $keys = ['_thumbnail_id']) {
 
 
 /**
+ * Get an array with post terms
+ *
+ * @param string $taxonomy
+ *
+ * @return array
+ */
+function tw_database_post_terms($taxonomy) {
+
+	$terms = [];
+
+	$db = tw_database_object();
+
+	$rows = $db->get_results("
+		SELECT tr.object_id, tt.term_id
+		FROM {$db->term_relationships} tr 
+		LEFT JOIN {$db->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
+		WHERE tt.taxonomy = '{$taxonomy}'", ARRAY_A);
+
+	if ($rows) {
+
+		foreach ($rows as $row) {
+
+			if (empty($row['object_id']) or empty($row['term_id'])) {
+				continue;
+			}
+
+			if (!isset($terms[$row['object_id']])) {
+				$terms[$row['object_id']] = [];
+			}
+
+			$terms[$row['object_id']][] = intval($row['term_id']);
+
+		}
+
+	}
+
+	return $terms;
+
+}
+
+
+/**
  * Get all terms as array of Term IDs ($field) grouped by taxonomy
  *
  * @param string $taxonomy

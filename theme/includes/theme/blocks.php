@@ -60,7 +60,17 @@ function tw_get_block($block) {
 
 	static $block_id;
 
-	if (is_array($block) and !empty($block['acf_fc_layout']) and empty($block['hidden']) and (empty($block['settings']) or empty($block['settings']['hidden']))) {
+	if (is_array($block) and !empty($block['acf_fc_layout'])) {
+
+		$options = [];
+
+		if (!empty($block['settings']) and !empty($block['settings']['options'])) {
+			$options = $block['settings']['options'];
+		}
+
+		if (in_array('mobile', $options) and in_array('desktop', $options)) {
+			return false;
+		}
 
 		$filename = TW_ROOT . 'blocks/' . $block['acf_fc_layout'] . '.php';
 
@@ -103,18 +113,76 @@ function tw_block_attributes($class, $block) {
 		$settings = $block['settings'];
 	}
 
-	if (!empty($settings['has_background'])) {
-		$classes[] = 'has_background';
+	if (!empty($settings['options']) and is_array($settings['options'])) {
+
+		$options = $settings['options'];
+
+		if (in_array('border', $options)) {
+			$classes[] = 'box_border';
+		}
+
+		if (in_array('top', $options)) {
+
+			if (in_array('bottom', $options)) {
+				$classes[] = 'box_no_both';
+			} else {
+				$classes[] = 'box_no_top';
+			}
+
+		} elseif (in_array('bottom', $options)) {
+
+			$classes[] = 'box_no_bottom';
+
+		}
+
 	}
 
-	if (!empty($settings['has_border'])) {
-		$classes[] = 'has_border';
+	if (!empty($settings['background']) and $settings['background'] != 'default') {
+		$classes[] = 'box_' . $settings['background'];
 	}
 
 	$result = ' class="' . implode(' ', $classes) . '"';
 
 	if (!empty($settings['block_id'])) {
 		$result .= ' id="' . $settings['block_id'] . '"';
+	}
+
+	return $result;
+
+}
+
+
+/**
+ * Output the block contents
+ *
+ * @param array $block The block array
+ *
+ */
+function tw_block_contents($block, $wrapper = 'contents') {
+
+	$result = '';
+
+	if (is_array($block) and !empty($block['contents']) and is_array($block['contents'])) {
+		$result = tw_template_part('contents', ['block' => $block['contents'], 'wrapper' => $wrapper]);
+	}
+
+	return $result;
+
+}
+
+
+/**
+ * Output the buttons
+ *
+ * @param array $buttons
+ *
+ */
+function tw_block_buttons($buttons, $wrapper = 'buttons', $size = '') {
+
+	$result = '';
+
+	if (is_array($buttons) and !empty($buttons)) {
+		$result = tw_template_part('buttons', ['buttons' => $buttons, 'wrapper' => $wrapper, 'size' => $size]);
 	}
 
 	return $result;
