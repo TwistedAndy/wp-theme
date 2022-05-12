@@ -57,7 +57,7 @@ function tw_database_metadata($type = 'post', $keys = ['_thumbnail_id']) {
 
 	$meta = tw_cache_get($cache_key);
 
-	if (empty($meta)) {
+	if (!is_array($meta)) {
 
 		$meta = [];
 
@@ -115,35 +115,124 @@ function tw_database_metadata($type = 'post', $keys = ['_thumbnail_id']) {
  */
 function tw_database_post_terms($taxonomy) {
 
-	$terms = [];
+	$cache_key = 'post_terms_' . $taxonomy;
 
-	$db = tw_database_object();
+	$terms = tw_cache_get($cache_key);
 
-	$rows = $db->get_results("
-		SELECT tr.object_id, tt.term_id
-		FROM {$db->term_relationships} tr 
-		LEFT JOIN {$db->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
-		WHERE tt.taxonomy = '{$taxonomy}'", ARRAY_A);
+	if (!is_array($terms)) {
 
-	if ($rows) {
+		$terms = [];
 
-		foreach ($rows as $row) {
+		$db = tw_database_object();
 
-			if (empty($row['object_id']) or empty($row['term_id'])) {
-				continue;
+		$rows = $db->get_results("
+			SELECT tr.object_id, tt.term_id
+			FROM {$db->term_relationships} tr 
+			LEFT JOIN {$db->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
+			WHERE tt.taxonomy = '{$taxonomy}'", ARRAY_A);
+
+		if ($rows) {
+
+			foreach ($rows as $row) {
+
+				if (empty($row['object_id']) or empty($row['term_id'])) {
+					continue;
+				}
+
+				if (!isset($terms[$row['object_id']])) {
+					$terms[$row['object_id']] = [];
+				}
+
+				$terms[$row['object_id']][] = intval($row['term_id']);
+
 			}
-
-			if (!isset($terms[$row['object_id']])) {
-				$terms[$row['object_id']] = [];
-			}
-
-			$terms[$row['object_id']][] = intval($row['term_id']);
 
 		}
+
+		tw_cache_set($cache_key, $terms);
 
 	}
 
 	return $terms;
+
+}
+
+
+/**
+ * Get an array with post data
+ *
+ * @param string $type
+ * @param string $key
+ * @param string $value
+ *
+ * @return array
+ */
+function tw_database_post_data($type, $key = 'ID', $value = 'post_title') {
+
+	$cache_key = 'posts_' . $type . '_' . $key;
+
+	if ($value) {
+
+		if (is_string($value)) {
+			$cache_key .= '_' . $value;
+		} elseif (is_array($value)) {
+			$cache_key .= '_' . implode('_', $value);
+		}
+
+	}
+
+	$posts = tw_cache_get($cache_key);
+
+	if (!is_array($posts)) {
+
+		$posts = [];
+
+		$db = tw_database_object();
+
+		$rows = $db->get_results("
+		SELECT p.*
+		FROM {$db->posts} p 
+		WHERE p.post_type = '{$type}'", ARRAY_A);
+
+		if ($rows) {
+
+			foreach ($rows as $row) {
+
+				if (empty($row[$key])) {
+					continue;
+				}
+
+				if (is_array($value)) {
+
+					$data = [];
+
+					foreach ($value as $field) {
+						if (isset($row[$field])) {
+							$data[$field] = $row[$field];
+						}
+					}
+
+					$posts[$row[$key]] = $data;
+
+				} elseif ($value and isset($row[$value])) {
+
+					$posts[$row[$key]] = $row[$value];
+
+				} else {
+
+					$posts[$row[$key]] = $row;
+
+				}
+
+			}
+
+		}
+
+		tw_cache_set($cache_key, $posts);
+
+	}
+
+	return $posts;
 
 }
 
@@ -166,16 +255,16 @@ function tw_database_term_taxonomies($taxonomy = '', $field = 'term_id') {
 
 	$terms = tw_cache_get($cache_key);
 
-	if (empty($terms)) {
+	if (!is_array($terms)) {
 
 		$terms = [];
 
 		$db = tw_database_object();
 
-		$query = "SELECT t.term_id, t.name, t.slug, tt.taxonomy FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id";
+		$query = "SELECT t.term_id, t.name, t.slug, tt.taxonomy, tt.parent, tt.count FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id";
 
 		if ($taxonomy) {
-			$query .= ' WHERE tt.taxonomy = ' . $taxonomy;
+			$query .= " WHERE tt.taxonomy = '" . $taxonomy . "'";
 		}
 
 		$result = $db->get_results($query, ARRAY_A);
@@ -214,9 +303,9 @@ function tw_database_term_taxonomies($taxonomy = '', $field = 'term_id') {
 
 		}
 
-	}
+		tw_cache_set($cache_key, $terms);
 
-	tw_cache_set($cache_key, $terms);
+	}
 
 	return $terms;
 
@@ -231,24 +320,34 @@ function tw_database_term_taxonomies($taxonomy = '', $field = 'term_id') {
  *
  * @return array
  */
-function tw_database_term_labels($key = 'term_id', $field = 'name') {
+function tw_database_term_labels($key = 'term_id', $field = 'name', $taxonomy = '') {
 
 	$cache_key = 'term_labels_' . $key . '_' . $field;
 
+	if ($taxonomy) {
+		$cache_key .= '_' . $taxonomy;
+	}
+
 	$labels = tw_cache_get($cache_key);
 
-	if (empty($labels)) {
+	if (!is_array($labels)) {
 
 		$labels = [];
 
 		$db = tw_database_object();
 
-		$result = $db->get_results("SELECT t.* FROM {$db->terms} t", ARRAY_A);
+		$query = "SELECT t.* FROM {$db->terms} t";
+
+		if ($taxonomy and taxonomy_exists($taxonomy)) {
+			$query .= " LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id WHERE tt.taxonomy = '{$taxonomy}'";
+		}
+
+		$result = $db->get_results($query, ARRAY_A);
 
 		if ($result) {
 			foreach ($result as $term) {
 				if (!empty($term[$key])) {
-					if (isset($term[$field])) {
+					if ($field and isset($term[$field])) {
 						$labels[$term[$key]] = $term[$field];
 					} else {
 						$labels[$term[$key]] = $term;
@@ -280,7 +379,7 @@ function tw_database_term_order($field = 'term_id') {
 
 	$order = tw_cache_get($cache_key);
 
-	if (empty($order)) {
+	if (!is_array($order)) {
 
 		$order = [];
 
@@ -313,5 +412,90 @@ function tw_database_term_order($field = 'term_id') {
 	}
 
 	return $order;
+
+}
+
+
+/**
+ * Get an array with parent terms
+ *
+ * @param string $taxonomy
+ *
+ * @return array
+ */
+function tw_database_term_parents($taxonomy = '') {
+
+	$cache_key = 'terms_parents';
+
+	if ($taxonomy and taxonomy_exists($taxonomy)) {
+		$cache_key .= '_' . $taxonomy;
+	} else {
+		$taxonomy = false;
+	}
+
+	$terms = tw_cache_get($cache_key);
+
+	if (empty($terms)) {
+
+		$terms = [];
+
+		$db = tw_database_object();
+
+		$query = "SELECT tt.term_id, tt.parent FROM {$db->term_taxonomy} tt";
+
+		if ($taxonomy) {
+			$query .= " WHERE tt.taxonomy = '{$taxonomy}'";
+		}
+
+		$rows = $db->get_results($query, ARRAY_A);
+
+		if ($rows) {
+			foreach ($rows as $row) {
+				if (!empty($row['term_id']) and isset($row['parent'])) {
+					$terms[intval($row['term_id'])] = intval($row['parent']);
+				}
+			}
+		}
+
+		tw_cache_set($cache_key, $terms);
+
+	}
+
+	return $terms;
+
+}
+
+
+/**
+ * Get an array with a term and all parents
+ *
+ * @param int   $term_id
+ * @param array $thread
+ *
+ * @return array|mixed
+ */
+function tw_database_term_thread($term_id, $thread = []) {
+
+	if ($term_id > 0) {
+
+		if (empty($thread)) {
+			$thread[] = $term_id;
+		}
+
+		$parents = tw_database_term_parents();
+
+		if (!empty($parents[$term_id])) {
+
+			$parent_id = $parents[$term_id];
+
+			$thread[] = $parent_id;
+
+			$thread = tw_database_term_thread($parent_id, $thread);
+
+		}
+
+	}
+
+	return $thread;
 
 }

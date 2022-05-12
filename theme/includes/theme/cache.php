@@ -6,7 +6,7 @@
  * @param string $key
  * @param mixed  $value
  */
-function tw_cache_set($key, $value, $persistent = true, $expire = 600) {
+function tw_cache_set($key, $value) {
 
 	global $tw_acf_cache;
 
@@ -15,10 +15,6 @@ function tw_cache_set($key, $value, $persistent = true, $expire = 600) {
 	}
 
 	$tw_acf_cache[$key] = $value;
-
-	if ($persistent) {
-		wp_cache_set($key, $value, 'aws', $expire);
-	}
 
 }
 
@@ -34,11 +30,10 @@ function tw_cache_get($key) {
 
 	global $tw_acf_cache;
 
+	$value = null;
+
 	if (isset($tw_acf_cache[$key])) {
 		$value = $tw_acf_cache[$key];
-	} else {
-		$value = wp_cache_get($key, 'aws');
-		$tw_acf_cache[$key] = $value;
 	}
 
 	return $value;

@@ -304,11 +304,7 @@ function tw_loader_button($wrapper, $template = 'post', $query = false, $number 
 		$search = get_search_query();
 	}
 
-	if ($query->is_author()) {
-		$author = get_queried_object_id();
-	} else {
-		$author = 0;
-	}
+	$author = $query->get('author');
 
 	$post_in = $query->get('post__in');
 

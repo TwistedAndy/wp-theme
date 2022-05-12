@@ -11,6 +11,7 @@
 /**
  * Add an 'active' class for the selected item in menu and clean the menu
  */
+add_filter('nav_menu_item_id', '__return_empty_string');
 add_filter('nav_menu_css_class', 'tw_filter_menu_class', 20);
 
 function tw_filter_menu_class($classes) {
@@ -44,6 +45,42 @@ function tw_filter_menu_class($classes) {
 	}
 
 	return $classes;
+
+}
+
+
+/**
+ * Add accessibility attributes to menu wrappers
+ */
+add_filter('wp_nav_menu_args', 'tw_filter_menu_args', 10, 1);
+
+function tw_filter_menu_args($args) {
+
+	if (!empty($args['items_wrap']) and strpos($args['items_wrap'], 'role=') === false) {
+		$args['items_wrap'] = str_replace('<ul', '<ul role="menubar"', $args['items_wrap']);
+	}
+
+	return $args;
+
+}
+
+
+/**
+ * Add accessibility attributes to menu items
+ */
+add_filter('wp_nav_menu_items', 'tw_filter_menu_items', 10, 2);
+
+function tw_filter_menu_items($items, $args) {
+
+	$replace = [
+		'<a' => '<a role="menuitem"',
+		'<li' => '<li role="none"',
+		'<ul' => '<ul role="menu"',
+	];
+
+	$items = str_replace(array_keys($replace), array_values($replace), $items);
+
+	return preg_replace('# id="menu-item-\d+"#is', '', $items);
 
 }
 
@@ -153,8 +190,13 @@ if (is_admin()) {
 add_action('wp_print_styles', function() {
 
 	if (!is_admin()) {
+
 		wp_dequeue_style('wp-block-library');
 		wp_dequeue_style('wc-blocks-style');
+
+		remove_action('wp_body_open', 'wp_global_styles_render_svg_filters');
+		remove_action('in_admin_header', 'wp_global_styles_render_svg_filters');
+
 	}
 
 }, 100);

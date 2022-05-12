@@ -4,7 +4,6 @@ var gulp = require('gulp'),
 	babel = require('gulp-babel'),
 	notify = require('gulp-notify'),
 	concat = require('gulp-concat'),
-	csssvg = require('gulp-css-svg'),
 	plumber = require('gulp-plumber'),
 	imagemin = require('gulp-imagemin'),
 	globalize = require('gulp-sass-glob'),
@@ -14,7 +13,7 @@ var folders = {
 	build: './build',
 	styles: './styles',
 	scripts: './scripts',
-	images: './images',
+	images: './images'
 };
 
 var sources = {
@@ -34,10 +33,10 @@ var options = {
 		errorHandler: notify.onError({
 			message: "<%= error.message %>",
 			sound: true
-		})
+		}) || null
 	},
 	csso: {
-		cascade: false,
+		cascade: false
 	},
 	csssvg: {
 		baseDir: '../images',
@@ -46,7 +45,7 @@ var options = {
 	sass: {
 		outputStyle: 'compressed',
 		indentType: 'tab',
-		indentWidth: 1,
+		indentWidth: 1
 	},
 	sourcemaps: {
 		styles: {
@@ -56,7 +55,7 @@ var options = {
 		scripts: {
 			includeContent: false,
 			sourceRoot: '../scripts/'
-		},
+		}
 	},
 	browsersync: {
 		server: {
@@ -87,7 +86,7 @@ gulp.task('scripts', function() {
 			presets: [
 				[require("@babel/preset-env"), {
 					debug: false,
-					useBuiltIns: false,
+					useBuiltIns: false
 				}]
 			],
 			compact: true,
@@ -107,7 +106,6 @@ gulp.task('styles', function() {
 		.pipe(globalize())
 		.pipe(sass(options.sass))
 		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
-		//.pipe(csssvg(options.csssvg))
 		//.pipe(csso(options.csso))
 		.pipe(gulp.dest(folders.build));
 
