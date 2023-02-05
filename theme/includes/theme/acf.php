@@ -27,6 +27,14 @@ add_action('admin_head', function() { ?>
 
 
 /**
+ * Disable ACF updates
+ */
+if (function_exists('acf_updates')) {
+	remove_filter('pre_set_site_transient_update_plugins', [acf_updates(), 'modify_plugins_transient'], 10, 1);
+}
+
+
+/**
  * Add new options page for the theme settings
  */
 add_action('init', 'tw_filter_options_page');

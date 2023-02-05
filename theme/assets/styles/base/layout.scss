@@ -20,19 +20,19 @@ body {
 }
 
 .main_box {
-	display: block;
+	display: flex;
 	position: relative;
 	overflow: hidden;
+	flex-direction: column;
 	flex-grow: 1;
 	flex-shrink: 0;
+	align-items: stretch;
 	width: 100%;
 }
 
 .fixed {
 	position: relative;
-	box-sizing: border-box;
-	width: 100%;
-	max-width: var(--width-content);
+	max-width: var(--width-regular);
 	padding: 0 var(--gap-aside);
 	margin: 0 auto;
 
@@ -43,53 +43,94 @@ body {
 }
 
 .wrapper {
-	display: block;
 	position: relative;
 
 	& + .buttons {
 		text-align: center;
 
 		.button {
-			margin-top: 35px;
-		}
-
-	}
-
-	@include desktop_small {
-
-		& + .buttons {
-
-			.button {
-				margin-top: 25px;
-			}
-
+			margin-top: var(--gap-contents);
 		}
 
 	}
 
 }
 
-section, %block {
-	display: block;
+section {
 	position: relative;
-	margin-bottom: var(--gap-section);
+	padding: var(--gap-section-top) 0 var(--gap-section-bottom);
+	color: var(--color-text);
+	--gap-section-top: 0px;
 }
 
-.has_background {
-	padding: var(--gap-section) 0;
-	background-color: var(--color-background);
+.box {
 
-	&:last-child {
+	&_light {
+		background-color: $color_background;
+		--gap-section-top: var(--gap-section);
+	}
+
+	&_no_top {
+		--gap-section-top: 0px;
+	}
+
+	&_no_bottom {
+		--gap-section-bottom: 0px;
+	}
+
+	&_no_both {
+		--gap-section-top: 0px;
+		--gap-section-bottom: 0px;
+	}
+
+	&_border {
+		border-bottom: 1px solid var(--color-border);
+
+		& + section {
+			--gap-section-top: var(--gap-section);
+		}
+
+	}
+
+}
+
+%items {
+	display: flex;
+	position: relative;
+	flex-wrap: wrap;
+	align-items: stretch;
+	justify-content: flex-start;
+	margin: 0 calc(-0.5 * var(--gap-grid)) calc(-1 * var(--gap-grid));
+	z-index: 2;
+}
+
+%item {
+	display: inline-block;
+	position: relative;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: stretch;
+	padding: 0 calc(0.5 * var(--gap-grid));
+	margin: 0 0 var(--gap-grid);
+	font-size: var(--size-base);
+	line-height: 1.5;
+	white-space: normal;
+}
+
+%slider {
+	display: block;
+	overflow: hidden;
+	flex-grow: 1;
+	width: calc(100% + var(--gap-grid));
+	min-width: 0;
+	margin: 0 calc(-0.5 * var(--gap-grid));
+	font-size: 0;
+	line-height: 0;
+	vertical-align: top;
+	white-space: nowrap;
+
+	.item {
 		margin-bottom: 0;
 	}
 
-	& + .has_background {
-		margin-top: calc(-1 * var(--gap-section));
-	}
-
-}
-
-.has_border {
-	padding-bottom: var(--gap-section);
-	border-bottom: 1px solid var(--gap-section);
 }

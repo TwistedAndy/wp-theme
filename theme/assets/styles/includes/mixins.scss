@@ -24,7 +24,19 @@
 
 }
 
-@mixin media($width) {
+@mixin hover() {
+	@media (hover: hover) {
+		@content;
+	}
+}
+
+@mixin media_min($width) {
+	@media (min-width: $width) {
+		@content;
+	}
+}
+
+@mixin media_max($width) {
 	@media (max-width: $width) {
 		@content;
 	}

@@ -1,11 +1,10 @@
 .arrow_prev, .arrow_next {
 	display: block;
 	position: absolute;
-	top: 50%;
-	left: -70px;
+	bottom: 0;
+	left: 0;
 	width: 40px;
 	height: 40px;
-	margin-top: -55px;
 	border: 1px solid var(--color-border);
 	border-radius: 50%;
 	background-color: transparent;
@@ -36,28 +35,12 @@
 }
 
 .arrow_next {
-	right: -70px;
+	right: 0;
 	left: auto;
 
 	&:before {
 		margin-left: -7px;
 		transform: rotate(-90deg);
-	}
-
-}
-
-@include media($desktop_large) {
-
-	.arrow_prev, .arrow_next {
-		top: auto;
-		bottom: 0;
-		left: 0;
-		margin-top: 0;
-	}
-
-	.arrow_next {
-		right: 0;
-		left: auto;
 	}
 
 }

@@ -7,7 +7,7 @@ $tablet_small: 640px;
 $phone_large: 480px;
 $phone_small: 420px;
 
-$color_body: #FFFFFF;
+$color_white: #FFFFFF;
 $color_text: #4C5973;
 $color_muted: #8390AB;
 $color_heading: #070548;
@@ -23,7 +23,7 @@ $color_background: #F7F9FD;
 	--font-heading: Arial, sans-serif;
 
 	/* Colors */
-	--color-body: #{$color_body};
+	--color-base: #{$color_white};
 	--color-text: #{$color_text};
 	--color-muted: #{$color_muted};
 	--color-heading: #{$color_heading};
@@ -35,14 +35,19 @@ $color_background: #F7F9FD;
 
 	/* Grid Paddings and Margins */
 	--gap-aside: 40px;
-	--gap-cards: 30px;
-	--gap-section: 80px;
+	--gap-grid: 30px;
 	--gap-content: 20px;
+	--gap-contents: 35px;
+
+	--gap-section: 100px;
+	--gap-section-top: 0px;
+	--gap-section-bottom: var(--gap-section);
 
 	/* Content Widths */
 	--width-small: 800px;
 	--width-regular: #{$desktop_large};
 
+	--height-control: 48px;
 	--height-header: 100px;
 
 	--radius-small: 3px;
@@ -62,10 +67,12 @@ $color_background: #F7F9FD;
 
 	@include desktop_small {
 
+		--gap-grid: 20px;
 		--gap-aside: 20px;
-		--gap-cards: 20px;
 		--gap-section: 50px;
+		--gap-contents: 25px;
 
+		--height-control: 42px;
 		--height-header: 80px;
 
 		--size-h1: 32px;

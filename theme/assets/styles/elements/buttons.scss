@@ -17,14 +17,15 @@ button {
 	align-content: center;
 	justify-content: center;
 	box-sizing: border-box;
-	height: 48px;
+	width: auto;
+	height: var(--height-control);
 	padding: 0 25px;
 	margin: 0;
 	border: 1px solid transparent;
 	border-radius: var(--radius-regular);
 	background: var(--color-primary) 50% 50% no-repeat;
 	background-size: 19px 19px;
-	color: var(--color-body);
+	color: var(--color-base);
 	font-family: var(--font-main);
 	font-size: 16px;
 	font-weight: 500;
@@ -37,21 +38,25 @@ button {
 	-webkit-appearance: none;
 	appearance: none;
 
-	&:hover {
-		background-color: var(--color-secondary);
+	@include hover {
+		&:hover {
+			background-color: var(--color-secondary);
+		}
 	}
 
 }
 
 %button_outline {
-	border-color: var(--color-primary);
+	border-color: currentColor;
 	background-color: transparent;
-	color: var(--color-primary);
+	color: currentColor;
 
-	&:hover {
-		border-color: var(--color-secondary);
-		background-color: transparent;
-		color: var(--color-secondary);
+	@include hover {
+		&:hover {
+			border-color: var(--color-primary);
+			background-color: transparent;
+			color: var(--color-primary);
+		}
 	}
 
 }

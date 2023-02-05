@@ -29,7 +29,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 
 body {
 	min-width: 320px;
-	background-color: var(--color-body);
+	background-color: var(--color-base);
 	color: var(--color-text);
 	font-family: var(--font-main);
 	font-size: var(--size-base);
@@ -134,11 +134,15 @@ a {
 		transition: opacity 0.2s;
 	}
 
-	&:hover {
-		text-decoration: none;
+	@include hover {
 
-		img {
-			opacity: 0.9;
+		&:hover {
+			text-decoration: none;
+
+			img {
+				opacity: 0.9;
+			}
+
 		}
 
 	}

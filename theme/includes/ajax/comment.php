@@ -2,7 +2,7 @@
 /**
  * Post comment using AJAX
  *
- * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @author  Andrii Toniievych <andy@absoluteweb.com>
  * @package Twee
  * @version 3.0
  */
@@ -82,6 +82,7 @@ function wp_ajax_comment() {
 
 			} elseif ($comment instanceof WP_Comment) {
 
+				$result['text'] = __('Thank you! You review will be published shortly!', 'twee');
 				$result['link'] = get_permalink($post) . '#comment-' . $comment->comment_ID;
 
 			}

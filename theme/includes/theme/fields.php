@@ -41,7 +41,7 @@ function tw_acf_load_value($values, $post_id, $field) {
 
 		$entity = acf_decode_post_id($post_id);
 
-		if (!empty($entity['id']) and !empty($entity['type']) and in_array($entity['type'], ['post', 'term', 'comment', 'user'])) {
+		if (!empty($entity['id']) and !empty($entity['type']) and in_array($entity['type'], ['post', 'term', 'comment', 'user', 'option'])) {
 
 			$name = $field['name'];
 
@@ -54,7 +54,11 @@ function tw_acf_load_value($values, $post_id, $field) {
 				$name = $clone['name'];
 			}
 
-			$data = get_metadata($entity['type'], $entity['id'], $name, true);
+			if ($entity['type'] == 'option') {
+				$data = get_option($post_id . '_' . $name, false);
+			} else {
+				$data = get_metadata($entity['type'], $entity['id'], $name, true);
+			}
 
 			if (is_array($data) and !empty($data)) {
 
@@ -106,7 +110,7 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 
 		$entity = acf_decode_post_id($post_id);
 
-		if (!empty($entity['id']) and !empty($entity['type']) and in_array($entity['type'], ['post', 'term', 'comment', 'user'])) {
+		if (!empty($entity['id']) and !empty($entity['type']) and in_array($entity['type'], ['post', 'term', 'comment', 'user', 'option'])) {
 
 			$value = tw_acf_encode_data($values, $field);
 
@@ -118,8 +122,13 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 			 * substantial on the front end. ACF plugin should be able to
 			 * get the correct field key to process the result correctly
 			 */
-			update_metadata($entity['type'], $entity['id'], $field['name'], $value);
-			update_metadata($entity['type'], $entity['id'], '_' . $field['name'], $field['key']);
+			if ($entity['type'] == 'option') {
+				update_option($post_id . '_' . $field['name'], $value, true);
+				update_option('_' . $post_id . '_' . $field['name'], $field['key'], true);
+			} else {
+				update_metadata($entity['type'], $entity['id'], $field['name'], $value);
+				update_metadata($entity['type'], $entity['id'], '_' . $field['name'], $field['key']);
+			}
 
 			$check = true;
 
@@ -242,7 +251,13 @@ function tw_acf_decode_data($values, $field) {
 function tw_acf_encode_data($values, $field) {
 
 	if (!is_array($values) or !is_array($field)) {
+
+		if (is_string($values)) {
+			$values = stripslashes($values);
+		}
+
 		return $values;
+
 	}
 
 	$data = [];

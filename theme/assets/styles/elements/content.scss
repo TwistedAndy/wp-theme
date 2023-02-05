@@ -3,7 +3,7 @@
 .content {
 	display: block;
 	position: relative;
-	margin: 0 0 32px;
+	margin: 0 0 var(--gap-contents);
 	color: var(--color-text);
 	font-size: var(--size-content);
 	font-weight: 400;
@@ -21,10 +21,10 @@
 	}
 
 	p, & > table, & > ul, & > ol, .table_wrapper {
-		margin-bottom: var(--gap-content);
+		margin: -0.1em 0 var(--gap-content);
 
 		&:last-child {
-			margin-bottom: 0;
+			margin-bottom: -0.1em;
 		}
 
 	}
@@ -104,6 +104,10 @@
 	img {
 		max-width: 100%;
 		height: auto;
+	}
+
+	iframe {
+		max-width: 100%;
 	}
 
 	table {
@@ -206,6 +210,7 @@
 		.alignright, .alignleft {
 			display: block;
 			float: none;
+			margin: 0 0 var(--gap-content);
 			text-align: center;
 		}
 

@@ -50,7 +50,11 @@ function tw_breadcrumbs($separator = '', $before = '<nav class="breadcrumbs_box"
 
 		$current_page = '<span class="last">' . tw_wp_title() . '</span>';
 
-		$result = $before . implode($result, $separator) . $current_page . $after;
+		if ($result) {
+			$current_page = $separator . $current_page;
+		}
+
+		$result = $before . implode($separator, $result) . $current_page . $after;
 
 	}
 

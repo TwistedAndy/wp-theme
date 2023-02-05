@@ -18,13 +18,15 @@ jQuery(function($) {
 			this.element.classList.add('flickity-resize');
 		};
 
-		$('.slider_box').each(function() {
+		var sections = $('.posts_box');
 
-			var wrapper = $(this),
-				carousel = $('.slider', wrapper),
-				buttons = $('.dots > span', wrapper),
-				navigation = $('.arrow_prev, .arrow_next, .dots', wrapper),
-				slides = carousel.children('.item');
+		sections.on('init', function() {
+
+			var section = $(this),
+				carousel = $('.slider', section),
+				slides = carousel.children('.item'),
+				buttons = $('.dots > button', section),
+				navigation = $('.arrow_prev, .arrow_next, .controls', section);
 
 			var args = {
 				wrapAround: true,
@@ -32,7 +34,7 @@ jQuery(function($) {
 				pageDots: false,
 				adaptiveHeight: false,
 				cellSelector: '.item',
-				imagesLoaded: true,
+				imagesLoaded: false,
 				cellAlign: 'left',
 				watchCSS: false
 			};
@@ -43,11 +45,11 @@ jQuery(function($) {
 
 				var flkty = new Flickity(carousel.get(0), args);
 
-				$('.arrow_next', wrapper).click(function() {
+				$('.arrow_next', section).click(function() {
 					flkty.next();
 				});
 
-				$('.arrow_prev', wrapper).click(function() {
+				$('.arrow_prev', section).click(function() {
 					flkty.previous();
 				});
 
@@ -59,29 +61,39 @@ jQuery(function($) {
 					buttons.removeClass('active').eq(flkty.selectedIndex).addClass('active');
 				});
 
-				$(window).on('load resize', init);
+				carousel.data('slider', flkty);
 
-				init();
+				$(window).on('load resize', updateSlider);
 
-				function init() {
+				updateSlider();
 
-					flkty.options.draggable = carousel.outerWidth() < slides.outerWidth() * slides.length;
+			}
 
-					if (flkty.options.draggable) {
-						navigation.removeAttr('style');
-					} else {
-						navigation.hide();
-					}
+			function updateSlider() {
 
-					flkty.updateDraggable();
+				var width = 0;
 
-					flkty.resize();
+				slides.each(function() {
+					width += this.offsetWidth;
+				});
 
+				flkty.options.draggable = carousel.outerWidth() < width;
+
+				if (flkty.options.draggable) {
+					navigation.removeAttr('style');
+				} else {
+					navigation.hide();
 				}
+
+				flkty.updateDraggable();
+
+				flkty.resize();
 
 			}
 
 		});
+
+		sections.trigger('init');
 
 	}
 

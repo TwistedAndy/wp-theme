@@ -6,13 +6,13 @@ jQuery(function($) {
 
 		$('section').each(function() {
 
-			let section = $(this);
+			var section = $(this);
 
 			section.on('init', function() {
 
-				let gallery = $('a[href$=".png"], a[href$=".jpg"], a[href$=".jpeg"], a[href$=".gif"]', this);
+				var gallery = $('a[href*=".png"], a[href*=".jpg"], a[href*=".jpeg"], a[href*=".gif"]', this);
 
-				let videos = $('a[href*="youtube.com"], a[href*="vimeo.com"]', this);
+				var videos = $('a[href*="youtube.com"], a[href*="youtu.be"], a[href*="vimeo.com"]', this);
 
 				gallery.off('click').on('click', function(e) {
 

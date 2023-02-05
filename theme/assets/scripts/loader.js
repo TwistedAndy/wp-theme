@@ -5,7 +5,7 @@ jQuery(function($) {
 		var button = $(this),
 			data = button.data('loader'),
 			section = button.parents(data.wrapper),
-			term = $('[name="term"]', section),
+			terms = $('[data-term]', section),
 			search = $('[name="s"]', section),
 			wrapper = section.find('.items');
 
@@ -13,34 +13,39 @@ jQuery(function($) {
 		data.noncer = template.nonce;
 
 		wrapper.on('reset', function() {
-
-			wrapper.children().remove();
-
 			data.offset = 0;
-
+			wrapper.removeAttr('style').css('height', wrapper.height());
 			button.trigger('click');
+		});
+
+		terms.on('click', function(e) {
+
+			$(this).addClass('active').siblings().removeClass('active');
+
+			refreshItems();
+
+			e.preventDefault();
+
+			return false;
 
 		});
 
-		term.on('change', function() {
-			wrapper.trigger('reset');
-		});
+		search.on('input', refreshItems);
 
-		search.on('input', debounce(function() {
-			wrapper.trigger('reset');
-		}, 500));
+		button.on('click', function() {
 
-		button.on('click', function () {
+			var slider = wrapper.data('slider');
 
-			if (term.length > 0) {
-
-				var term_id = term.val();
+			if (terms.filter('.active').length > 0) {
 
 				data.terms = [];
 
-				if (term_id) {
-					data.terms = [term_id];
-				}
+				terms.filter('.active').each(function() {
+					var term = $(this).data('term');
+					if (term > 0) {
+						data.terms.push(term);
+					}
+				});
 
 			}
 
@@ -55,11 +60,28 @@ jQuery(function($) {
 				data: data,
 				success: function(response) {
 
+					var heightOld = wrapper.height(),
+						heightNew = 0;
+
+					wrapper.removeAttr('style');
+
+					if (slider) {
+						slider.destroy();
+					}
+
+					if (data.offset === 0) {
+						wrapper.children().remove();
+					}
+
 					if (response['result']) {
 
 						var posts = $(response['result']);
 
+						wrapper.removeClass('');
 						wrapper.append(posts);
+						wrapper.removeAttr('style');
+						heightNew = wrapper.height();
+						wrapper.css('height', heightOld);
 
 						data.offset = data.offset + data.number;
 
@@ -71,34 +93,34 @@ jQuery(function($) {
 
 						section.trigger('init');
 
+						wrapper.animate({height: heightNew}, 400, function() {
+							wrapper.removeAttr('style');
+						});
+
 					} else {
 
 						button.addClass('is_hidden');
+						wrapper.removeAttr('style');
 
 					}
 
 				},
 				beforeSend: function() {
 					button.addClass('is_loading');
+					wrapper.addClass('is_loading');
 				},
 				complete: function() {
 					button.removeClass('is_loading');
+					wrapper.removeClass('is_loading');
 				}
 
 			});
 		});
 
+		var refreshItems = debouncer(function() {
+			wrapper.trigger('reset');
+		}, 1000);
+
 	});
-
-	function debounce(fn, bufferInterval) {
-
-		var timeout;
-
-		return function() {
-			clearTimeout(timeout);
-			timeout = setTimeout(fn.apply.bind(fn, this, arguments), bufferInterval);
-		};
-
-	}
 
 });

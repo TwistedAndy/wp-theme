@@ -556,7 +556,7 @@ class Image {
 			if ($image_ratio < $thumb_ratio) {
 				$thumb_width = $thumb_width * $image_ratio / $thumb_ratio;
 			} else {
-				$thumb_height = $thumb_height * $image_ratio / $thumb_ratio;
+				$thumb_height = $thumb_height * $thumb_ratio / $image_ratio;
 			}
 
 			if ($image_width < $thumb_width) {

@@ -5,7 +5,18 @@ jQuery(function($) {
 		var wrapper = $(this), submenus = $('.submenu', wrapper);
 
 		$('.menu_btn', wrapper).click(function() {
-			wrapper.toggleClass('is_menu');
+			if (wrapper.hasClass('is_menu')) {
+				wrapper.removeClass('is_menu');
+				unlockScroll();
+			} else {
+				wrapper.addClass('is_menu');
+				lockScroll();
+			}
+		});
+
+		$(window).on('beforeunload pagehide', function(event) {
+			wrapper.removeClass('is_menu');
+			unlockScroll();
 		});
 
 		submenus.click(function(e) {
