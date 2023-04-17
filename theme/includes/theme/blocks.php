@@ -4,9 +4,8 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 3.0
+ * @version 4.0
  */
-
 
 /**
  * Output the blocks from the ACF Flexible content field.
@@ -163,7 +162,7 @@ function tw_block_contents($block, $wrapper = 'contents') {
 	$result = '';
 
 	if (is_array($block) and !empty($block['contents']) and is_array($block['contents'])) {
-		$result = tw_template_part('contents', ['block' => $block['contents'], 'wrapper' => $wrapper]);
+		$result = tw_app_template('contents', ['block' => $block['contents'], 'wrapper' => $wrapper]);
 	}
 
 	return $result;
@@ -182,7 +181,7 @@ function tw_block_buttons($buttons, $wrapper = 'buttons', $size = '') {
 	$result = '';
 
 	if (is_array($buttons) and !empty($buttons)) {
-		$result = tw_template_part('buttons', ['buttons' => $buttons, 'wrapper' => $wrapper, 'size' => $size]);
+		$result = tw_app_template('buttons', ['buttons' => $buttons, 'wrapper' => $wrapper, 'size' => $size]);
 	}
 
 	return $result;

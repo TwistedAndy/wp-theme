@@ -6,24 +6,43 @@ the_post();
 
 tw_asset_enqueue('fancybox');
 
-?>
+$object = get_queried_object();
 
-<section class="content_box">
+$blocks = get_field('blocks', $object);
 
-	<div class="fixed">
+if (empty($blocks) and $object instanceof WP_Post) {
 
-		<div class="content">
+	$thumbnail_id = get_post_meta($object->ID, '_thumbnail_id', true);
 
-			<?php the_title('<h1>', '</h1>'); ?>
+	$blocks = [
+		[
+			'acf_fc_layout' => 'heading',
+			'contents' => [
+				'title' => $object->post_title,
+				'tag' => 'h1',
+				'text' => $object->post_excerpt
+			],
+			'background' => $thumbnail_id,
+			'settings' => [
+				'background' => 'dark'
+			]
+		],
+		[
+			'acf_fc_layout' => 'content',
+			'contents' => [],
+			'text' => apply_filters('the_content', $object->post_content),
+			'settings' => [
+				'background' => 'white'
+			]
+		]
+	];
 
-			<?php the_content(); ?>
+}
 
-		</div>
+echo tw_get_blocks($blocks);
 
-	</div>
+if (comments_open() or get_comments_number()) {
+	comments_template();
+}
 
-</section>
-
-<?php if (comments_open() or get_comments_number()) comments_template(); ?>
-
-<?php get_footer(); ?>
+get_footer();

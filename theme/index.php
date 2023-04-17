@@ -15,7 +15,7 @@ if (empty($blocks)) {
 
 	} else {
 
-		$title = tw_wp_title();
+		$title = tw_content_heading();
 		$text = '';
 
 	}

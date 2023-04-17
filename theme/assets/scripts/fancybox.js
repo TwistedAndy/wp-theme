@@ -2,38 +2,36 @@
 
 jQuery(function($) {
 
-	if (typeof $.fn.fancybox !== 'undefined') {
+	if (typeof $.fn.fancybox !== 'function') {
+		return;
+	}
 
-		$('section').each(function() {
+	$('section').each(function() {
 
-			var section = $(this);
+		var section = $(this),
+			gallery = 'a[href$=".png"], a[href$=".jpg"], a[href$=".jpeg"], a[href$=".gif"]',
+			videos = 'a[href*="youtube.com"], a[href*="youtu.be"], a[href*="vimeo.com"], a[href$="mp4"]';
 
-			section.on('init', function() {
+		section.on('click', gallery, function(e) {
 
-				var gallery = $('a[href*=".png"], a[href*=".jpg"], a[href*=".jpeg"], a[href*=".gif"]', this);
+			var images = $(gallery, section);
 
-				var videos = $('a[href*="youtube.com"], a[href*="youtu.be"], a[href*="vimeo.com"]', this);
+			$.fancybox.open(images, {
+				infobar: true
+			}, images.index(this));
 
-				gallery.off('click').on('click', function(e) {
+			e.preventDefault();
 
-					$.fancybox.open(gallery, {
-						infobar: true
-					}, gallery.index(this));
-
-					e.preventDefault();
-
-					return false;
-
-				});
-
-				videos.fancybox();
-
-			});
-
-			section.trigger('init');
+			return false;
 
 		});
 
-	}
+		section.on('click', videos, function(e) {
+			$.fancybox.open($(this));
+			e.preventDefault();
+			return false;
+		});
+
+	});
 
 });

@@ -1,20 +1,22 @@
 <?php
 /**
- * A set of additional filters and hooks to modify the default WordPress behaviour
+ * Additional filters and actions
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 3.0
+ * @version 4.0
  */
+
+/**
+ * Remove menu IDs
+ */
+add_filter('nav_menu_item_id', '__return_empty_string');
 
 
 /**
  * Add an 'active' class for the selected item in menu and clean the menu
  */
-add_filter('nav_menu_item_id', '__return_empty_string');
-add_filter('nav_menu_css_class', 'tw_filter_menu_class', 20);
-
-function tw_filter_menu_class($classes) {
+add_filter('nav_menu_css_class', function($classes) {
 
 	$active_classes = [
 		'current_page_parent',
@@ -46,15 +48,13 @@ function tw_filter_menu_class($classes) {
 
 	return $classes;
 
-}
+}, 20);
 
 
 /**
  * Add accessibility attributes to menu wrappers
  */
-add_filter('wp_nav_menu_args', 'tw_filter_menu_args', 10, 1);
-
-function tw_filter_menu_args($args) {
+add_filter('wp_nav_menu_args', function($args) {
 
 	if (!empty($args['items_wrap']) and strpos($args['items_wrap'], 'role=') === false) {
 		$args['items_wrap'] = str_replace('<ul', '<ul role="menubar"', $args['items_wrap']);
@@ -62,15 +62,13 @@ function tw_filter_menu_args($args) {
 
 	return $args;
 
-}
+}, 10, 1);
 
 
 /**
  * Add accessibility attributes to menu items
  */
-add_filter('wp_nav_menu_items', 'tw_filter_menu_items', 10, 2);
-
-function tw_filter_menu_items($items, $args) {
+add_filter('wp_nav_menu_items', function($items, $args) {
 
 	$replace = [
 		'<a' => '<a role="menuitem"',
@@ -82,51 +80,45 @@ function tw_filter_menu_items($items, $args) {
 
 	return preg_replace('# id="menu-item-\d+"#is', '', $items);
 
-}
+}, 10, 2);
 
 
 /**
  * Clean the header from some meta tags and scripts
  */
-if (!is_admin()) {
+add_action('wp_head', function() {
 
-	add_action('after_setup_theme', 'tw_filter_headers', 20);
-
-	function tw_filter_headers() {
-
-		remove_action('wp_head', '_admin_bar_bump_cb');
-		remove_action('wp_head', 'wp_generator');
-		remove_action('wp_head', 'rsd_link');
-		remove_action('wp_head', 'feed_links', 2);
-		remove_action('wp_head', 'feed_links_extra', 3);
-		remove_action('wp_head', 'wc_products_rss_feed', 10);
-		remove_action('wp_head', 'wlwmanifest_link');
-		remove_action('wp_head', 'wp_shortlink_wp_head', 10);
-		remove_action('wp_head', 'wp_oembed_add_host_js');
-		remove_action('wp_head', 'wp_oembed_add_discovery_links');
-		remove_action('wp_head', 'print_emoji_detection_script', 7);
-		remove_action('wp_head', 'rest_output_link_wp_head', 10);
-		remove_action('wp_print_styles', 'print_emoji_styles');
-
-		add_filter('the_generator', '__return_false');
-
+	if (is_admin()) {
+		return;
 	}
 
-}
+	remove_action('wp_head', '_admin_bar_bump_cb');
+	remove_action('wp_head', 'wp_generator');
+	remove_action('wp_head', 'rsd_link');
+	remove_action('wp_head', 'feed_links', 2);
+	remove_action('wp_head', 'feed_links_extra', 3);
+	remove_action('wp_head', 'wc_products_rss_feed', 10);
+	remove_action('wp_head', 'wlwmanifest_link');
+	remove_action('wp_head', 'wp_shortlink_wp_head', 10);
+	remove_action('wp_head', 'wp_oembed_add_host_js');
+	remove_action('wp_head', 'wp_oembed_add_discovery_links');
+	remove_action('wp_head', 'print_emoji_detection_script', 7);
+	remove_action('wp_head', 'rest_output_link_wp_head', 10);
+	remove_action('wp_print_styles', 'print_emoji_styles');
 
+	add_filter('the_generator', '__return_false');
 
+}, 5);
 
 
 /**
  * Enqueue comment reply script for threaded comments
  */
-add_action('wp_enqueue_scripts', 'tw_filter_comment_styles');
-
-function tw_filter_comment_styles() {
+add_action('wp_enqueue_scripts', function() {
 	if (is_singular() and comments_open() and get_option('thread_comments')) {
 		wp_enqueue_script('comment-reply');
 	}
-}
+});
 
 
 /**
@@ -143,45 +135,12 @@ add_action('wp_default_scripts', function($scripts) {
 	$scripts->remove('jquery');
 
 	if (is_admin()) {
-		$scripts->add('jquery', false, array('jquery-core', 'jquery-migrate'), '3.5.1');
+		$scripts->add('jquery', false, ['jquery-core', 'jquery-migrate'], '3.5.1');
 	} else {
-		$scripts->add('jquery', false, array('jquery-core'), '3.5.1');
+		$scripts->add('jquery', false, ['jquery-core'], '3.5.1');
 	}
 
 }, 20);
-
-
-/**
- * Convert cyrillic symbols in urls to latin
- *
- * @param string $text
- *
- * @return string
- */
-if (is_admin()) {
-
-	add_action('sanitize_title', 'tw_filter_title', 1);
-
-	function tw_filter_title($text) {
-
-		$iso = [
-			'Є' => 'YE', 'І' => 'I',  'Ѓ' => 'G', 'і' => 'i',  '№' => '#', 'є' => 'ye', 'ѓ' => 'g',
-			'А' => 'A', 'Б' => 'B', 'В' => 'V', 'Г' => 'G', 'Д' => 'D', 'Е' => 'E', 'Ё' => 'YO', 'Ж' => 'ZH',
-			'З' => 'Z', 'И' => 'I', 'Й' => 'J', 'К' => 'K', 'Л' => 'L', 'М' => 'M', 'Н' => 'N', 'О' => 'O',
-			'П' => 'P', 'Р' => 'R', 'С' => 'S', 'Т' => 'T', 'У' => 'U', 'Ф' => 'F', 'Х' => 'X', 'Ц' => 'C',
-			'Ч' => 'CH', 'Ш' => 'SH', 'Щ' => 'SHH', 'Ъ' => "'", 'Ы' => 'Y', 'Ь' => '', 'Э' => 'E', 'Ю' => 'YU',
-			'Я' => 'YA', 'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'yo',
-			'ж' => 'zh', 'з' => 'z', 'и' => 'i', 'й' => 'j', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n',
-			'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'x',
-			'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shh', 'ъ' => '', 'ы' => 'y', 'ь' => '', 'э' => 'e',
-			'ю' => 'yu', 'я' => 'ya', '—' => '-', '«' => '', '»' => '', '…' => ''
-		];
-
-		return strtr($text, $iso);
-
-	}
-
-}
 
 
 /**
@@ -241,7 +200,7 @@ add_action('wp_link_query', function($results, $query) {
 			return $results;
 		}
 
-		$db = tw_database_object();
+		$db = tw_app_database();
 
 		$rows = $db->get_results("SELECT t.*, tt.taxonomy FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id WHERE t.name LIKE '%" . $db->esc_like($query['s']) . "%' AND tt.taxonomy IN ('" . implode("','", array_keys($map)) . "')", OBJECT);
 

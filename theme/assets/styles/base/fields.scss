@@ -3,11 +3,11 @@ input, select, textarea {
 	position: relative;
 	box-sizing: border-box;
 	width: 100%;
-	padding: 12px 15px;
+	padding: calc(0.5 * var(--height-control) - 12px) 18px;
 	margin: 0;
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-regular);
-	background: var(--color-background);
+	border: 1px solid var(--color-field);
+	border-radius: var(--radius-small);
+	background: var(--color-base);
 	color: var(--color-text);
 	font-family: var(--font-main);
 	font-size: 16px;
@@ -38,7 +38,7 @@ select::-ms-expand {
 
 select {
 	padding-right: 30px;
-	background: var(--color-background) url(../images/ico_select.svg) right 12px top 50% no-repeat;
+	background: var(--color-base) url(../images/ico_select.svg) right 12px top 50% no-repeat;
 
 	&::-ms-expand {
 		display: none;
@@ -49,14 +49,14 @@ select {
 input[type="checkbox"], input[type="radio"] {
 	display: inline-block;
 	position: relative;
-	top: -1px;
+	top: 0;
 	flex-grow: 0;
 	flex-shrink: 0;
 	width: 20px;
 	height: 20px;
 	padding: 0;
 	margin: 0 5px 0 0;
-	border: 1px solid var(--color-muted);
+	border: 1px solid var(--color-field);
 	border-radius: var(--radius-small);
 	background: var(--color-base) 55% 50% no-repeat;
 	vertical-align: middle;

@@ -1,31 +1,11 @@
 <?php
-
 /**
- * Get the database object
+ * Database Processing Function
  *
- * @return wpdb
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @package Twee
+ * @version 4.0
  */
-function tw_database_object() {
-
-	global $wpdb;
-
-	if ($wpdb instanceof \wpdb) {
-
-		return $wpdb;
-
-	} else {
-
-		$db_user = defined('DB_USER') ? DB_USER : '';
-		$db_password = defined('DB_PASSWORD') ? DB_PASSWORD : '';
-		$db_name = defined('DB_NAME') ? DB_NAME : '';
-		$db_host = defined('DB_HOST') ? DB_HOST : '';
-
-		return new \wpdb($db_user, $db_password, $db_name, $db_host);
-
-	}
-
-}
-
 
 /**
  * Get array with selected metadata keys
@@ -55,13 +35,13 @@ function tw_database_metadata($type = 'post', $keys = ['_thumbnail_id']) {
 
 	}
 
-	$meta = tw_cache_get($cache_key);
+	$meta = tw_app_get($cache_key);
 
 	if (!is_array($meta)) {
 
 		$meta = [];
 
-		$db = tw_database_object();
+		$db = tw_app_database();
 
 		$table = $db->postmeta;
 		$key = 'post_id';
@@ -97,7 +77,7 @@ function tw_database_metadata($type = 'post', $keys = ['_thumbnail_id']) {
 
 		}
 
-		tw_cache_set($cache_key, $meta);
+		tw_app_set($cache_key, $meta);
 
 	}
 
@@ -117,13 +97,13 @@ function tw_database_post_terms($taxonomy) {
 
 	$cache_key = 'post_terms_' . $taxonomy;
 
-	$terms = tw_cache_get($cache_key);
+	$terms = tw_app_get($cache_key);
 
 	if (!is_array($terms)) {
 
 		$terms = [];
 
-		$db = tw_database_object();
+		$db = tw_app_database();
 
 		$rows = $db->get_results("
 			SELECT tr.object_id, tt.term_id
@@ -149,7 +129,7 @@ function tw_database_post_terms($taxonomy) {
 
 		}
 
-		tw_cache_set($cache_key, $terms);
+		tw_app_set($cache_key, $terms);
 
 	}
 
@@ -181,13 +161,13 @@ function tw_database_post_data($type, $key = 'ID', $value = 'post_title') {
 
 	}
 
-	$posts = tw_cache_get($cache_key);
+	$posts = tw_app_get($cache_key);
 
 	if (!is_array($posts)) {
 
 		$posts = [];
 
-		$db = tw_database_object();
+		$db = tw_app_database();
 
 		$rows = $db->get_results("
 		SELECT p.*
@@ -228,7 +208,7 @@ function tw_database_post_data($type, $key = 'ID', $value = 'post_title') {
 
 		}
 
-		tw_cache_set($cache_key, $posts);
+		tw_app_set($cache_key, $posts);
 
 	}
 
@@ -253,13 +233,13 @@ function tw_database_term_taxonomies($taxonomy = '', $field = 'term_id') {
 		$cache_key .= '_' . $taxonomy;
 	}
 
-	$terms = tw_cache_get($cache_key);
+	$terms = tw_app_get($cache_key);
 
 	if (!is_array($terms)) {
 
 		$terms = [];
 
-		$db = tw_database_object();
+		$db = tw_app_database();
 
 		$query = "SELECT t.term_id, t.name, t.slug, tt.taxonomy, tt.parent, tt.count FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id";
 
@@ -303,7 +283,7 @@ function tw_database_term_taxonomies($taxonomy = '', $field = 'term_id') {
 
 		}
 
-		tw_cache_set($cache_key, $terms);
+		tw_app_set($cache_key, $terms);
 
 	}
 
@@ -328,13 +308,13 @@ function tw_database_term_labels($key = 'term_id', $field = 'name', $taxonomy = 
 		$cache_key .= '_' . $taxonomy;
 	}
 
-	$labels = tw_cache_get($cache_key);
+	$labels = tw_app_get($cache_key);
 
 	if (!is_array($labels)) {
 
 		$labels = [];
 
-		$db = tw_database_object();
+		$db = tw_app_database();
 
 		$query = "SELECT t.* FROM {$db->terms} t";
 
@@ -357,7 +337,7 @@ function tw_database_term_labels($key = 'term_id', $field = 'name', $taxonomy = 
 			}
 		}
 
-		tw_cache_set($cache_key, $labels);
+		tw_app_set($cache_key, $labels);
 
 	}
 
@@ -377,13 +357,13 @@ function tw_database_term_order($field = 'term_id') {
 
 	$cache_key = 'terms_order_' . $field;
 
-	$order = tw_cache_get($cache_key);
+	$order = tw_app_get($cache_key);
 
 	if (!is_array($order)) {
 
 		$order = [];
 
-		$db = tw_database_object();
+		$db = tw_app_database();
 
 		$result = $db->get_results("SELECT t.term_id, t.slug, t.name, tm.meta_value FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id LEFT JOIN {$db->termmeta} tm ON t.term_id = tm.term_id AND tm.meta_key = 'order' WHERE tt.taxonomy LIKE 'pa_%'", ARRAY_A);
 
@@ -407,7 +387,7 @@ function tw_database_term_order($field = 'term_id') {
 
 		asort($order);
 
-		tw_cache_set($cache_key, $order);
+		tw_app_set($cache_key, $order);
 
 	}
 
@@ -433,13 +413,13 @@ function tw_database_term_parents($taxonomy = '') {
 		$taxonomy = false;
 	}
 
-	$terms = tw_cache_get($cache_key);
+	$terms = tw_app_get($cache_key);
 
 	if (empty($terms)) {
 
 		$terms = [];
 
-		$db = tw_database_object();
+		$db = tw_app_database();
 
 		$query = "SELECT tt.term_id, tt.parent FROM {$db->term_taxonomy} tt";
 
@@ -457,7 +437,7 @@ function tw_database_term_parents($taxonomy = '') {
 			}
 		}
 
-		tw_cache_set($cache_key, $terms);
+		tw_app_set($cache_key, $terms);
 
 	}
 

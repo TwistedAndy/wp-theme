@@ -4,9 +4,8 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 3.0
+ * @version 4.0
  */
-
 
 /**
  * Callback function to build a single comment
@@ -27,7 +26,7 @@ function tw_comment($comment, $args, $depth) {
 		echo '<div id="div-comment-' . get_comment_ID() . '">';
 	}
 
-	echo tw_template_part('comment', ['comment' => $comment, 'args' => $args, 'depth' => $depth]);
+	echo tw_app_template('comment', ['comment' => $comment, 'args' => $args, 'depth' => $depth]);
 
 	if ('div' != $args['style']) {
 		echo '</div>';

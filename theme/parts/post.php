@@ -9,13 +9,13 @@ $link = get_permalink($item);
 ?>
 <div class="card">
 
-	<?php echo tw_thumb($item, 'thumbnail', '', '', ['link' => $link, 'link_class' => 'image']); ?>
+	<?php echo tw_image($item, 'thumbnail', '', '', ['link' => $link, 'link_class' => 'image']); ?>
 
-	<div class="date"><?php echo tw_date($item, 'F j, Y'); ?></div>
+	<div class="date"><?php echo tw_content_date($item, 'F j, Y'); ?></div>
 
-	<a href="<?php echo $link; ?>" class="title"><?php echo tw_title($item); ?></a>
+	<a href="<?php echo $link; ?>" class="title"><?php echo tw_content_title($item); ?></a>
 
-	<?php if ($text = tw_text($item, 160)) { ?>
+	<?php if ($text = tw_content_text($item, 160)) { ?>
 		<div class="text"><?php echo $text; ?></div>
 	<?php } ?>
 

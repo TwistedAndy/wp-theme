@@ -1,16 +1,16 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: Тема оформления для WordPress\n"
-"POT-Creation-Date: 2021-07-18 21:20+0200\n"
+"POT-Creation-Date: 2023-02-06 11:08+0100\n"
 "PO-Revision-Date: 2016-06-12 10:55+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.3\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"X-Generator: Poedit 3.2.2\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-WPHeader: style.css\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -32,8 +32,8 @@ msgstr ""
 #: comments.php:35
 #, php-format
 msgid ""
-"You've logged in as <a class=\"login\" href=\"%1$s\">%2$s</a> <a class="
-"\"logout\" href=\"%3$s\">[log out]</a>"
+"You've logged in as <a class=\"login\" href=\"%1$s\">%2$s</a> <a "
+"class=\"logout\" href=\"%3$s\">[log out]</a>"
 msgstr ""
 
 #: comments.php:39
@@ -56,12 +56,11 @@ msgstr ""
 msgid "Leave a Reply"
 msgstr ""
 
-#: header.php:28
-msgctxt "submit button"
-msgid "Search"
+#: includes/ajax/comment.php:85
+msgid "Thank you! You review will be published shortly!"
 msgstr ""
 
-#: includes/ajax/comment.php:93
+#: includes/ajax/comment.php:94
 msgid "<strong>Error</strong>: Post is not valid"
 msgstr ""
 
@@ -84,102 +83,103 @@ msgstr ""
 msgid "Something went wrong"
 msgstr ""
 
-#: includes/ajax/loader.php:345
+#: includes/ajax/loader.php:360
 msgid "Show More"
 msgstr ""
 
-#: includes/core/content.php:53
+#: includes/core/content.php:156
 msgid "Page not found"
 msgstr ""
 
-#: includes/core/content.php:57
+#: includes/core/content.php:160
 #, php-format
 msgid "Search results for %s"
 msgstr ""
 
-#: includes/core/content.php:61
+#: includes/core/content.php:164
 #, php-format
 msgid "Posts of <i>%s</i>"
 msgstr ""
 
-#: includes/core/content.php:65 includes/core/content.php:69
+#: includes/core/content.php:168 includes/core/content.php:172
 #, php-format
 msgid "Posts for <i>%s</i>"
 msgstr ""
 
-#: includes/core/content.php:73
+#: includes/core/content.php:176
 #, php-format
 msgid "Posts for <i>%s</i> year"
 msgstr ""
 
-#: includes/core/content.php:78
+#: includes/core/content.php:181
 #, php-format
 msgid " - Page %d"
 msgstr ""
 
-#: includes/theme/acf.php:39 includes/theme/acf.php:40
+#: includes/theme/acf.php:375 includes/theme/acf.php:376
 msgid "Theme Settings"
 msgstr ""
 
-#: includes/theme/acf.php:46
+#: includes/theme/acf.php:382
 msgid "Refresh"
 msgstr ""
 
-#: includes/theme/breadcrumbs.php:87
+#: includes/theme/breadcrumbs.php:78
 msgid "Home"
 msgstr ""
 
-#: includes/theme/images.php:93
+#: includes/theme/images.php:86
 msgid "Full Size"
 msgstr ""
 
-#: includes/theme/images.php:94
+#: includes/theme/images.php:87
 msgid "Thumbnail"
 msgstr ""
 
-#: includes/theme/images.php:95
+#: includes/theme/images.php:88
 msgid "Medium"
 msgstr ""
 
-#: includes/theme/images.php:96
+#: includes/theme/images.php:89
 msgid "Large"
 msgstr ""
 
-#: includes/theme/pagination.php:22
+#: includes/theme/pagination.php:21
 msgid "Pages"
 msgstr ""
 
-#: includes/theme/pagination.php:141
+#: includes/theme/pagination.php:140
 msgid "First Page"
 msgstr ""
 
-#: includes/theme/pagination.php:149
+#: includes/theme/pagination.php:148
 msgid "Previous Page"
 msgstr ""
 
-#: includes/theme/pagination.php:159
+#: includes/theme/pagination.php:158
 #, php-format
 msgid "Page %d"
 msgstr ""
 
-#: includes/theme/pagination.php:177
+#: includes/theme/pagination.php:176
 msgid "Next Page"
 msgstr ""
 
-#: includes/theme/pagination.php:187
+#: includes/theme/pagination.php:186
 msgid "Last Page"
-msgstr ""
-
-#: parts/category.php:17
-msgid "No posts found."
 msgstr ""
 
 #: parts/comment.php:17
 msgid "This comment is not approved yet."
 msgstr ""
 
+#: parts/header.php:26
+msgctxt "submit button"
+msgid "Search"
+msgstr ""
+
 #. Theme Name of the plugin/theme
-msgid "Twee"
+msgid "Follower"
 msgstr ""
 
 #. Theme URI of the plugin/theme
@@ -195,5 +195,5 @@ msgid "Andrii Toniievych"
 msgstr ""
 
 #. Author URI of the plugin/theme
-msgid "https://www.upwork.com/freelancers/~0130c9c9ebf6d77043"
+msgid "https://www.linkedin.com/in/toniievych/"
 msgstr ""

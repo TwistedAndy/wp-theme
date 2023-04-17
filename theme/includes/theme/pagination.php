@@ -4,9 +4,8 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 3.0
+ * @version 4.0
  */
-
 
 /**
  * Build the pagination for a given WP_Query object

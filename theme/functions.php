@@ -1,61 +1,62 @@
 <?php
 
-use Twee\App;
-
 define('TW_ROOT', __DIR__ . '/');
 define('TW_INC', TW_ROOT . 'includes/');
 define('TW_URL', get_stylesheet_directory_uri() . '/');
 
 include TW_INC . 'core/app.php';
 
-$app = App::getApp();
-
-$app->includeFolder(TW_INC . 'ajax');
-$app->includeFolder(TW_INC . 'core');
-$app->includeFolder(TW_INC . 'theme');
-$app->includeFolder(TW_INC . 'widgets');
+tw_app_include(TW_INC . 'core');
+tw_app_include(TW_INC . 'ajax');
+tw_app_include(TW_INC . 'theme');
+tw_app_include(TW_INC . 'widgets');
 
 
-App::getAssets()->add('template', [
-	'deps' => ['jquery'],
-	'style' => [
-		'https://fonts.googleapis.com/css?family=Public+Sans:300,400,500,600,700&display=swap',
-		'style.css',
-	],
-	'script' => [
-		'scripts.js',
-	],
-	'localize' => function() {
-		return [
-			'ajaxurl' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce('ajax-nonce')
-		];
-	},
-	'footer' => true,
-	'display' => true,
-	'version' => '1.0.0',
-	'directory' => 'build'
-]);
-
-
-App::getImage()->addSizes([
-	'post' => [
-		'label' => 'Category',
-		'width' => 240,
-		'height' => 180,
-		'thumb' => true,
-		'crop' => ['center', 'center']
-	],
-	'slide' => [
-		'width' => 500,
-		'height' => 360,
-		'hidden' => true,
-		'aspect' => false
+tw_asset_register([
+	'template' => [
+		'deps' => ['jquery'],
+		'style' => [
+			'style.css',
+		],
+		'script' => [
+			'scripts.js',
+		],
+		'localize' => function() {
+			return [
+				'ajaxurl' => admin_url('admin-ajax.php'),
+				'nonce' => wp_create_nonce('ajax-nonce')
+			];
+		},
+		'footer' => true,
+		'display' => true,
+		'version' => '1.0.0',
+		'directory' => 'build'
 	]
 ]);
 
 
-$app->registerFeatures([
+tw_image_sizes([
+	'thumbnail' => [
+		'label' => 'Thumbnail',
+		'width' => 300,
+		'height' => 240,
+		'thumb' => true,
+		'aspect' => false,
+		'crop' => ['center', 'center']
+	],
+	'medium' => [
+		'width' => 600,
+		'height' => 480
+	],
+	'large' => [
+		'width' => 0,
+		'height' => 0,
+		'crop' => false
+	]
+]);
+
+
+tw_app_features([
 	'title-tag',
 	'post-thumbnails',
 	'html5' => [
@@ -70,12 +71,12 @@ $app->registerFeatures([
 ]);
 
 
-$app->registerMenu([
+tw_app_menus([
 	'main' => 'Main Menu'
 ]);
 
 
-$app->registerType('block_set', [
+tw_app_type('block_set', [
 	'labels' => [
 		'name' => 'Block Sets',
 		'singular_name' => 'Block Set',
@@ -105,7 +106,8 @@ $app->registerType('block_set', [
 	'query_var' => false,
 ]);
 
-$app->registerType('review', [
+
+tw_app_type('review', [
 	'labels' => [
 		'name' => 'Reviews',
 		'singular_name' => 'Review',
@@ -137,7 +139,7 @@ $app->registerType('review', [
 ]);
 
 
-$app->registerTaxonomy('review_category', ['review'], [
+tw_app_taxonomy('review_category', ['review'], [
 	'label' => 'Categories',
 	'labels' => [
 		'name' => 'Categories',
@@ -165,7 +167,7 @@ $app->registerTaxonomy('review_category', ['review'], [
 ]);
 
 
-$app->registerSidebar([
+tw_app_sidebar([
 	'name' => 'Footer',
 	'id' => 'footer',
 	'description' => '',
@@ -176,4 +178,4 @@ $app->registerSidebar([
 ]);
 
 
-$app->registerWidget('Posts');
+tw_app_widget('Posts');

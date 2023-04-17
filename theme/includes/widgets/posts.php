@@ -1,16 +1,13 @@
 <?php
-
 /**
  * Widget with the latest posts
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 3.0
+ * @version 4.0
  */
 
-namespace Twee\Widgets;
-
-use Twee\Widget;
+namespace Twee;
 
 class Posts extends Widget {
 

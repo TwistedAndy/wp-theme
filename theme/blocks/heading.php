@@ -17,7 +17,7 @@ if (!empty($block['options']) and is_array($block['options'])) {
 
 	<div class="background">
 		<?php if (!empty($block['background'])) { ?>
-			<?php echo tw_thumb($block['background'], 'heading', '', ''); ?>
+			<?php echo tw_image($block['background'], 'full', '', ''); ?>
 		<?php } ?>
 	</div>
 

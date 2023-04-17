@@ -19,21 +19,13 @@ foreach ($buttons as $button) {
 		continue;
 	}
 
-	$type = '';
-	$target = '';
 	$classes = ['button'];
-	$link = $button['link'];
 
 	if (!empty($size)) {
 		$classes[] = $size;
 	}
 
-	if (!empty($link['target'])) {
-		$target = ' target="' . $link['target'] . '"';
-	}
-
 	if (!empty($button['type']) and $button['type'] !== 'default') {
-		$type = $button['type'];
 		$classes[] = $button['type'];
 	}
 
@@ -41,7 +33,7 @@ foreach ($buttons as $button) {
 		$classes[] = 'button_' . $button['icon'];
 	}
 
-	echo '<a href="' . esc_attr($link['url']) . '" class="' . implode(' ', $classes) . '"' . $target . '>' . $link['title'] . '</a>';
+	echo tw_content_link($button['link'], implode(' ', $classes));
 
 }
 

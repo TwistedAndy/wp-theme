@@ -1,46 +1,41 @@
-var gulp = require('gulp'),
+let gulp = require('gulp'),
 	sass = require('gulp-sass'),
-	csso = require('gulp-csso'),
-	babel = require('gulp-babel'),
 	notify = require('gulp-notify'),
 	concat = require('gulp-concat'),
 	plumber = require('gulp-plumber'),
 	imagemin = require('gulp-imagemin'),
 	globalize = require('gulp-sass-glob'),
-	sourcemaps = require('gulp-sourcemaps');
+	sourcemaps = require('gulp-sourcemaps'),
+	uglify = require('gulp-uglify-es').default;
 
-var folders = {
+if (typeof sass.compiler === 'undefined') {
+	sass = sass(require('node-sass'));
+}
+
+let folders = {
 	build: './build',
 	styles: './styles',
 	scripts: './scripts',
 	images: './images'
 };
 
-var sources = {
+let sources = {
 	style: 'styles/style.scss',
 	styles: [
 		'styles/*.scss',
 		'styles/base/*.scss',
 		'styles/blocks/*.scss',
 		'styles/elements/*.scss',
-		'styles/includes/*.scss'
-	],
+		'styles/includes/*.scss'],
 	scripts: 'scripts/*.js'
 };
 
-var options = {
+let options = {
 	plumber: {
 		errorHandler: notify.onError({
 			message: "<%= error.message %>",
 			sound: true
 		}) || null
-	},
-	csso: {
-		cascade: false
-	},
-	csssvg: {
-		baseDir: '../images',
-		maxWeightResource: 4096
 	},
 	sass: {
 		outputStyle: 'compressed',
@@ -56,63 +51,43 @@ var options = {
 			includeContent: false,
 			sourceRoot: '../scripts/'
 		}
-	},
-	browsersync: {
-		server: {
-			baseDir: './'
-		},
-		notify: false
 	}
 };
 
-
-gulp.task('imagemin', function() {
-
-	return gulp.src(folders.images + '/**/*')
-		.pipe(plumber(options.plumber))
-		.pipe(imagemin())
-		.pipe(gulp.dest(folders.images));
-
-});
-
-
-gulp.task('scripts', function() {
-
-	return gulp.src(sources.scripts)
-		.pipe(plumber(options.plumber))
-		.pipe(sourcemaps.init())
-		.pipe(concat('scripts.js'))
-		.pipe(babel({
-			presets: [
-				[require("@babel/preset-env"), {
-					debug: false,
-					useBuiltIns: false
-				}]
-			],
-			compact: true,
-			comments: false
-		}))
-		.pipe(sourcemaps.write('./', options.sourcemaps.scripts))
-		.pipe(gulp.dest(folders.build));
-
-});
-
-
-gulp.task('styles', function() {
-
+function styles() {
 	return gulp.src(sources.style)
 		.pipe(plumber(options.plumber))
 		.pipe(sourcemaps.init())
 		.pipe(globalize())
 		.pipe(sass(options.sass))
 		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
-		//.pipe(csso(options.csso))
 		.pipe(gulp.dest(folders.build));
+}
 
-});
+function scripts() {
+	return gulp.src(sources.scripts)
+		.pipe(plumber(options.plumber))
+		.pipe(sourcemaps.init())
+		.pipe(concat('scripts.js'))
+		.pipe(uglify())
+		.pipe(sourcemaps.write('./', options.sourcemaps.scripts))
+		.pipe(gulp.dest(folders.build));
+}
 
+function images() {
+	return gulp.src(folders.images + '/**/*')
+		.pipe(plumber(options.plumber))
+		.pipe(imagemin())
+		.pipe(gulp.dest(folders.images));
+}
 
-gulp.task('default', function() {
-	gulp.watch(sources.styles, gulp.parallel('styles'));
-	gulp.watch(sources.scripts, gulp.parallel('scripts'));
-});
+exports.styles = styles;
+
+exports.scripts = scripts;
+
+exports.imagemin = images;
+
+exports.default = function() {
+	gulp.watch(sources.styles, gulp.parallel(styles));
+	gulp.watch(sources.scripts, gulp.parallel(scripts));
+}

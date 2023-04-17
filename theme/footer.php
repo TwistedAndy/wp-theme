@@ -1,6 +1,6 @@
 	</main>
 
-	<?php echo tw_template_part('footer'); ?>
+	<?php echo tw_app_template('footer'); ?>
 
 </div>
 

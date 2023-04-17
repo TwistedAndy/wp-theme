@@ -1,4 +1,4 @@
-# Twee
+# Twee 4.0
 
 **Twee** is the advanced WordPress starter theme focused on simplifying the theme development and support
 

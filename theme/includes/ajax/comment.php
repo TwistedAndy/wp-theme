@@ -2,9 +2,9 @@
 /**
  * Post comment using AJAX
  *
- * @author  Andrii Toniievych <andy@absoluteweb.com>
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 3.0
+ * @version 4.0
  */
 
 /*

@@ -1,11 +1,16 @@
 <?php
+/**
+ * Additional filters for image processing
+ *
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @package Twee
+ * @version 4.0
+ */
 
 /**
  * Add the max-width property to the default caption shortcode and fix its width
  */
-add_filter('img_caption_shortcode', 'tw_filter_caption', 20, 3);
-
-function tw_filter_caption($value = false, $attr = [], $content = '') {
+add_filter('img_caption_shortcode', function($value = false, $attr = [], $content = '') {
 
 	$atts = shortcode_atts([
 		'id' => '',
@@ -27,40 +32,31 @@ function tw_filter_caption($value = false, $attr = [], $content = '') {
 
 	$atts['class'] = 'class="' . trim('wp-caption ' . $atts['align'] . ' ' . $atts['class']) . '" ';
 
-	$style = 'style="max-width: ' . intval($atts['width']) . 'px;"';
+	$style = 'style="max-width: ' . $atts['width'] . 'px;"';
 
 	return '<div ' . $atts['id'] . $atts['class'] . $style . '>' . do_shortcode($content) . '<p class="wp-caption-text">' . $atts['caption'] . '</p></div>';
 
-}
+}, 20, 3);
 
 
 /**
- * Remove additional image sizes
+ * Remove some image sizes
  */
-add_filter('intermediate_image_sizes', 'tw_filter_image_sizes', 20);
-
-function tw_filter_image_sizes($sizes) {
+add_filter('intermediate_image_sizes', function($sizes) {
 	return array_diff($sizes, ['medium_large', '1536x1536', '2048x2048']);
-}
+}, 20);
 
 
 /**
  * Add SVG support
  */
-add_filter('upload_mimes', 'tw_filter_svg_upload', 20);
-
-function tw_filter_svg_upload($mimes) {
-
+add_filter('upload_mimes', function($mimes) {
 	$mimes['svg'] = 'image/svg+xml';
 	$mimes['svgz'] = 'image/svg+xml';
-
 	return $mimes;
-}
+}, 20);
 
-
-add_filter('wp_check_filetype_and_ext', 'tw_filter_svg_check', 10, 4);
-
-function tw_filter_svg_check($checked, $file, $filename, $mimes) {
+add_filter('wp_check_filetype_and_ext', function($checked, $file, $filename, $mimes) {
 
 	if (empty($checked['type'])) {
 
@@ -80,12 +76,9 @@ function tw_filter_svg_check($checked, $file, $filename, $mimes) {
 
 	return $checked;
 
-}
+}, 10, 4);
 
-
-add_filter('wp_prepare_attachment_for_js', 'tw_filter_svg_preview', 10, 3);
-
-function tw_filter_svg_preview($response, $attachment, $meta) {
+add_filter('wp_prepare_attachment_for_js', function($response, $attachment, $meta) {
 
 	if ($response['mime'] == 'image/svg+xml') {
 
@@ -119,15 +112,13 @@ function tw_filter_svg_preview($response, $attachment, $meta) {
 
 	return $response;
 
-}
+}, 10, 3);
 
 
 /**
  * Generate correct metadata for SVG files
  */
-add_filter('wp_generate_attachment_metadata', 'tw_filter_svg_metadata', 10, 2);
-
-function tw_filter_svg_metadata($metadata, $attachment_id) {
+add_filter('wp_generate_attachment_metadata', function($metadata, $attachment_id) {
 
 	global $_wp_additional_image_sizes;
 
@@ -212,4 +203,219 @@ function tw_filter_svg_metadata($metadata, $attachment_id) {
 	}
 
 	return $metadata;
-}
+}, 10, 2);
+
+
+/**
+ * Add the registered image sizes to the media editor
+ *
+ * @param $sizes array
+ *
+ * @return array
+ */
+add_filter('image_size_names_choose', function($sizes) {
+
+	$data = tw_image_sizes();
+
+	if (!empty($data['custom'])) {
+
+		foreach ($data['custom'] as $name => $size) {
+
+			if (isset($sizes[$name])) {
+				continue;
+			}
+
+			if (!empty($size['label'])) {
+				$label = $size['label'];
+			} else {
+				$label = ucfirst($name);
+			}
+
+			$sizes[$name] = $label;
+
+		}
+
+	}
+
+	return $sizes;
+
+});
+
+
+/**
+ * Compress the image using popular compressing plugins
+ *
+ * @param string $file     Full path to the image
+ * @param string $url      Image URL
+ * @param int    $image_id Image ID
+ */
+add_action('twee_image_compress', function($file, $url, $image_id = 0) {
+
+	if (!is_readable($file)) {
+		return;
+	}
+
+	/**
+	 * Trigger the WebP conversion using the WebP Converter for Media plugin
+	 */
+	do_action('webpc_convert_paths', [$file]);
+
+
+	/**
+	 * Check all popular image compressing plugins
+	 */
+	if (class_exists('WP_Smush')) {
+
+		/* Integration with the Smush plugin */
+
+		$smush = \WP_Smush::get_instance()->core()->mod->smush;
+
+		if ($smush instanceof \Smush\Core\Modules\Smush) {
+			$smush->do_smushit($file);
+		}
+
+	} elseif (function_exists('ewww_image_optimizer')) {
+
+		/* Integration with the EWWW Image Optimizer and EWWW Image Optimizer Cloud plugins */
+
+		ewww_image_optimizer($file, 4, false, false);
+
+	} elseif (class_exists('Tiny_Compress')) {
+
+		/* Integration with the TinyPNG plugin */
+
+		if (defined('TINY_API_KEY')) {
+			$api_key = TINY_API_KEY;
+		} else {
+			$api_key = get_option('tinypng_api_key');
+		}
+
+		$compressor = \Tiny_Compress::create($api_key);
+
+		if ($compressor instanceof \Tiny_Compress and $compressor->get_status()->ok) {
+
+			try {
+				$compressor->compress_file($file, false);
+			} catch (\Tiny_Exception $e) {
+
+			}
+
+		}
+
+	} elseif (class_exists('WRIO_Plugin') and class_exists('WIO_OptimizationTools')) {
+
+		/* Integration with the Webcraftic Robin image optimizer */
+
+		$image_processor = \WIO_OptimizationTools::getImageProcessor();
+
+		$optimization_level = \WRIO_Plugin::app()->getPopulateOption('image_optimization_level', 'normal');
+
+		if ($optimization_level == 'custom') {
+			$optimization_level = intval(\WRIO_Plugin::app()->getPopulateOption('image_optimization_level_custom', 100));
+		}
+
+		$image_data = $image_processor->process([
+			'image_url' => $url,
+			'image_path' => $file,
+			'quality' => $image_processor->quality($optimization_level),
+			'save_exif' => \WRIO_Plugin::app()->getPopulateOption('save_exif_data', false),
+			'is_thumb' => false,
+		]);
+
+		if (!is_wp_error($image_data) and empty($image_data['not_need_replace']) and !empty($image_data['optimized_img_url']) and strpos($image_data['optimized_img_url'], 'http') === 0) {
+
+			$temp_file = $file . '.tmp';
+
+			$fp = fopen($temp_file, 'w+');
+
+			if ($fp === false) {
+				return;
+			}
+
+			$ch = curl_init($image_data['optimized_img_url']);
+			curl_setopt($ch, CURLOPT_FILE, $fp);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+			curl_exec($ch);
+
+			if (curl_errno($ch)) {
+				return;
+			}
+
+			$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+			curl_close($ch);
+
+			fclose($fp);
+
+			if ($status == 200) {
+
+				$type = mime_content_type($temp_file);
+
+				$types = [
+					'image/png' => 'png',
+					'image/bmp' => 'bmp',
+					'image/jpeg' => 'jpg',
+					'image/pjpeg' => 'jpg',
+					'image/gif' => 'gif',
+					'image/svg' => 'svg',
+					'image/svg+xml' => 'svg',
+				];
+
+				if (!empty($types[$type])) {
+					copy($temp_file, $file);
+				}
+
+				unlink($temp_file);
+
+			}
+
+		}
+
+	} elseif (class_exists('\Imagify\Optimization\File')) {
+
+		$file = new \Imagify\Optimization\File($file);
+
+		$file->optimize([
+			'backup' => false,
+			'optimization_level' => 1,
+			'keep_exif' => false,
+			'convert' => '',
+			'context' => 'wp',
+		]);
+
+	}
+
+}, 10, 3);
+
+
+/**
+ * Schedule image compression
+ *
+ * @param string $file     Full path to the image
+ * @param string $url      Image URL
+ * @param int    $image_id Image ID
+ */
+add_action('twee_thumb_created', function($file, $url, $image_id) {
+
+	if (!function_exists('as_schedule_single_action')) {
+		return;
+	}
+
+	$args = [
+		'path' => $file,
+		'url' => $url,
+		'id' => $image_id
+	];
+
+	$task = 'twee_image_compress';
+
+	$time = time();
+
+	as_unschedule_action($task, $args);
+
+	if (as_next_scheduled_action($task, $args) === false) {
+		as_schedule_single_action($time, $task, $args);
+	}
+
+}, 10, 3);
+

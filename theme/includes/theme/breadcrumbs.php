@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 3.0
+ * @version 4.0
  */
 
 /**
@@ -48,7 +48,7 @@ function tw_breadcrumbs($separator = '', $before = '<nav class="breadcrumbs_box"
 
 		}
 
-		$current_page = '<span class="last">' . tw_wp_title() . '</span>';
+		$current_page = '<span class="last">' . tw_content_heading() . '</span>';
 
 		if ($result) {
 			$current_page = $separator . $current_page;

@@ -13,4 +13,4 @@
 
 	<main class="main_box">
 
-		<?php echo tw_template_part('header'); ?>
+		<?php echo tw_app_template('header'); ?>

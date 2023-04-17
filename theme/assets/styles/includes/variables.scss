@@ -8,13 +8,15 @@ $phone_large: 480px;
 $phone_small: 420px;
 
 $color_white: #FFFFFF;
-$color_text: #4C5973;
-$color_muted: #8390AB;
-$color_heading: #070548;
+$color_text: #1B1D1F;
+$color_muted: #74787D;
+$color_field: #A8ABB0;
+$color_border: #E9EBED;
+$color_heading: #1B1D1F;
 $color_bright: #EF463D;
-$color_primary: #5285F7;
-$color_secondary: #35B099;
-$color_background: #F7F9FD;
+$color_primary: #0079C1;
+$color_secondary: #95C11F;
+$color_background: #F7F8F9;
 
 :root {
 
@@ -25,9 +27,10 @@ $color_background: #F7F9FD;
 	/* Colors */
 	--color-base: #{$color_white};
 	--color-text: #{$color_text};
+	--color-field: #{$color_field};
 	--color-muted: #{$color_muted};
 	--color-heading: #{$color_heading};
-	--color-border: #{rgba($color_text, 0.2)};
+	--color-border: #{$color_border};
 	--color-bright: #{$color_bright};
 	--color-primary: #{$color_primary};
 	--color-secondary: #{$color_secondary};
@@ -36,22 +39,30 @@ $color_background: #F7F9FD;
 	/* Grid Paddings and Margins */
 	--gap-aside: 40px;
 	--gap-grid: 30px;
+	--gap-heading: 15px;
 	--gap-content: 20px;
 	--gap-contents: 35px;
+	--gap-vertical: var(--gap-grid);
 
 	--gap-section: 100px;
 	--gap-section-top: 0px;
 	--gap-section-bottom: var(--gap-section);
 
 	/* Content Widths */
+	--width-item: 25%;
 	--width-small: 800px;
 	--width-regular: #{$desktop_large};
+	--width-scrollbar: 0px;
 
 	--height-control: 48px;
-	--height-header: 100px;
+	--height-header: 80px;
+	--height-bar: 0px;
 
-	--radius-small: 3px;
-	--radius-regular: 6px;
+	--header-offset: 0px;
+
+	--radius-small: 5px;
+	--radius-regular: 10px;
+	--radius-large: 30px;
 
 	--shadow-regular: 5px 5px 40px rgba(0, 0, 0, 0.05);
 
@@ -73,7 +84,9 @@ $color_background: #F7F9FD;
 		--gap-contents: 25px;
 
 		--height-control: 42px;
-		--height-header: 80px;
+		--height-header: 60px;
+
+		--width-item: 33.333%;
 
 		--size-h1: 32px;
 		--size-h2: 24px;
@@ -86,6 +99,14 @@ $color_background: #F7F9FD;
 	@include tablet_small {
 
 		--gap-section: 35px;
+		--width-item: 50%;
+
+	}
+
+	@include phone_small {
+
+		--gap-section: 35px;
+		--width-item: 100%;
 
 	}
 

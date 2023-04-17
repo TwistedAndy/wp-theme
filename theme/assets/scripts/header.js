@@ -2,9 +2,11 @@ jQuery(function($) {
 
 	$('.header_box').each(function() {
 
-		var wrapper = $(this), submenus = $('.submenu', wrapper);
+		var wrapper = $(this),
+			submenus = $('.submenu', wrapper),
+			isFixed = false;
 
-		$('.menu_btn', wrapper).click(function() {
+		wrapper.on('click', '.menu_btn', function() {
 			if (wrapper.hasClass('is_menu')) {
 				wrapper.removeClass('is_menu');
 				unlockScroll();
@@ -14,7 +16,7 @@ jQuery(function($) {
 			}
 		});
 
-		$(window).on('beforeunload pagehide', function(event) {
+		$(window).on('beforeunload pagehide', function() {
 			wrapper.removeClass('is_menu');
 			unlockScroll();
 		});
@@ -45,11 +47,6 @@ jQuery(function($) {
 
 			}
 
-			if (e.target === this) {
-				e.stopPropagation();
-				return false;
-			}
-
 		});
 
 		window.addEventListener('scroll', handleScroll);
@@ -58,12 +55,36 @@ jQuery(function($) {
 
 		function handleScroll() {
 
-			var offset = wrapper.offset().top + 40;
+			var offset = wrapper.offset().top,
+				offsetFull = offset;
 
-			if (window.pageYOffset > offset) {
-				wrapper.addClass('is_compact');
+			if (document.body.classList.contains('admin-bar')) {
+				if (window.innerWidth <= 782 && window.innerWidth >= 600) {
+					offsetFull -= 46;
+				} else if (window.innerWidth > 782) {
+					offsetFull -= 32;
+				}
+			}
+
+			if (window.scrollY > offsetFull) {
+
+				if (!isFixed) {
+					wrapper.addClass('is_fixed');
+					document.documentElement.style.setProperty('--header-offset', '0px');
+				}
+
+				isFixed = true;
+
 			} else {
-				wrapper.removeClass('is_compact');
+
+				if (isFixed) {
+					wrapper.removeClass('is_fixed');
+				}
+
+				document.documentElement.style.setProperty('--header-offset', offset + 'px');
+
+				isFixed = false;
+
 			}
 
 		}

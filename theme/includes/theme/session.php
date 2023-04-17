@@ -4,10 +4,12 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 3.0
+ * @version 4.0
  */
 
-// add_action('init', 'tw_session_init');
+/*
+add_action('init', 'tw_session_init');
+*/
 
 /**
  * Init a session

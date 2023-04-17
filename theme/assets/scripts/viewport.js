@@ -1,17 +1,15 @@
 function lockScroll() {
 	document.body.classList.add('is_locked');
-	document.body.style.paddingRight = getScrollbarWidth() + 'px';
 }
 
 function unlockScroll() {
 	document.body.classList.remove('is_locked');
-	document.body.style.paddingRight = '0px';
 }
 
 function getScrollbarWidth() {
 
-	var outer = document.createElement('div');
-	var inner = document.createElement('div');
+	var outer = document.createElement('div'),
+		inner = document.createElement('div');
 
 	outer.style.visibility = 'hidden';
 	outer.style.overflow = 'scroll';
@@ -20,7 +18,7 @@ function getScrollbarWidth() {
 
 	document.body.appendChild(outer);
 
-	var scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
+	var scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
 
 	outer.parentNode.removeChild(outer);
 
@@ -30,6 +28,7 @@ function getScrollbarWidth() {
 
 function fixViewportHeight() {
 	document.documentElement.style.setProperty('--vh', (window.innerHeight / 100) + 'px');
+	document.documentElement.style.setProperty('--width-scrollbar', getScrollbarWidth() + 'px');
 }
 
 window.addEventListener('DOMContentLoaded', fixViewportHeight);

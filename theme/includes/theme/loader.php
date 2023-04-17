@@ -1,18 +1,16 @@
 <?php
 /**
- * Load more posts using AJAX
+ * Load more posts
  *
- * @author  Andrii Toniievych <andy@absoluteweb.com>
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 3.0
+ * @version 4.0
  */
 
-/*
-add_action('wp_ajax_nopriv_loader', 'tw_ajax_loader');
-add_action('wp_ajax_loader', 'tw_ajax_loader');
-*/
+add_action('wp_ajax_nopriv_loader', 'tw_loader_handle');
+add_action('wp_ajax_loader', 'tw_loader_handle');
 
-function tw_ajax_loader() {
+function tw_loader_handle() {
 
 	$result = [
 		'result' => '',
@@ -36,10 +34,10 @@ function tw_ajax_loader() {
 		}
 	}
 
-	$template = 'post';
-
 	if (!empty($_REQUEST['template'])) {
 		$template = esc_attr($_REQUEST['template']);
+	} else {
+		$template = 'post';
 	}
 
 	$args = [
@@ -74,7 +72,7 @@ function tw_ajax_loader() {
 				$tax_query['relation'] = $value;
 			}
 
-			if (is_numeric($key) and is_array($value) and !empty($value['terms'])) {
+			if (is_numeric($key) and is_array($value) and !empty($value['taxonomy']) and !empty($value['terms'])) {
 				$tax_query[] = $value;
 			}
 
@@ -88,7 +86,7 @@ function tw_ajax_loader() {
 
 		foreach ($_REQUEST['terms'] as $term_id) {
 
-			$term = get_term($term_id);
+			$term = get_term(intval($term_id));
 
 			if ($term instanceof WP_Term) {
 				$terms[$term->taxonomy][] = $term->term_id;
@@ -96,16 +94,16 @@ function tw_ajax_loader() {
 
 		}
 
+		/**
+		 * Terms specified in the terms field have a higher priority than tax query
+		 */
 		if ($terms) {
 
-			foreach ($terms as $taxonomy => $ids) {
+			foreach ($terms as $taxonomy => $term_ids) {
 
-				/**
-				 * Remove existing queries if the terms field specified
-				 */
 				if ($tax_query) {
 					foreach ($tax_query as $index => $data) {
-						if (!empty($data['taxonomy']) and $data['taxonomy'] == $taxonomy and array_intersect($data['terms'], $ids)) {
+						if (!empty($data['taxonomy']) and $data['taxonomy'] == $taxonomy) {
 							unset($tax_query[$index]);
 						}
 					}
@@ -114,7 +112,7 @@ function tw_ajax_loader() {
 				$tax_query[] = [
 					'taxonomy' => $taxonomy,
 					'field' => 'term_id',
-					'terms' => $ids,
+					'terms' => $term_ids,
 					'operator' => 'IN'
 				];
 
@@ -134,80 +132,66 @@ function tw_ajax_loader() {
 
 	}
 
+	$meta_query = [];
+
 	if (!empty($_REQUEST['query_meta']) and is_array($_REQUEST['query_meta'])) {
-		$args['meta_query'] = $_REQUEST['query_meta'];
+		$meta_query = $_REQUEST['query_meta'];
 	}
 
 	if (!empty($_REQUEST['query_order'])) {
 
+		$order_parts = [];
+
 		if (is_array($_REQUEST['query_order'])) {
+
+			$order = [];
 
 			foreach ($_REQUEST['query_order'] as $key => $value) {
 				$key = trim(esc_attr($key));
 				$value = trim(esc_attr($value));
-				$args['orderby'][$key] = $value;
+				$order[$key] = $value;
+				$order_parts[] = $key;
 			}
 
 		} else {
 
-			$args['orderby'] = trim(esc_sql($_REQUEST['query_order']));
+			$order = trim(esc_sql($_REQUEST['query_order']));
+			$order_parts = explode(' ', $order);
 
 		}
 
-	}
-
-	if (!empty($_REQUEST['query_direction']) and in_array($_REQUEST['query_direction'], ['ASC', 'DESC'])) {
-		$args['order'] = $_REQUEST['query_direction'];
-	}
-
-	if (!empty($_REQUEST['order']) and in_array($_REQUEST['order'], ['date', 'best', 'shuffle', 'random', 'title', 'comment_count', 'author'])) {
-
-		$order = esc_attr($_REQUEST['order']);
-
 		$args['orderby'] = $order;
 
-		$args['order'] = 'DESC';
+		if (!empty($_REQUEST['query_direction']) and in_array($_REQUEST['query_direction'], ['ASC', 'DESC'])) {
+			$args['order'] = $_REQUEST['query_direction'];
+		}
 
-		if ($order == 'title') {
+		if (in_array('title', $order_parts) and empty($args['order'])) {
 
 			$args['order'] = 'ASC';
 
-		} elseif ($order == 'best') {
+		} elseif (in_array('best', $order_parts) and empty($meta_query['sales'])) {
 
-			$args['meta_query']['sales'] = [
+			$meta_query['sales'] = [
 				'key' => 'total_sales',
 				'compare' => 'EXISTS',
 				'type' => 'NUMERIC'
 			];
 
-		} elseif ($order == 'shuffle') {
+		} elseif (in_array('shuffle', $order_parts) and empty($meta_query['shuffle'])) {
 
-			$args['meta_query']['shuffle'] = [
+			$meta_query['shuffle'] = [
 				'key' => '_shuffle_order',
 				'compare' => 'EXISTS',
 				'type' => 'NUMERIC'
 			];
 
-		} elseif ($order == 'random') {
-
-			$args['meta_query']['random'] = [
-				'key' => '_random_order',
-				'compare' => 'EXISTS',
-				'type' => 'NUMERIC'
-			];
-
 		}
 
-		if (is_array($args['orderby'])) {
+	}
 
-			$args['orderby'][$order] = $args['order'];
-
-		} else {
-
-			$args['orderby'] = $order;
-
-		}
-
+	if ($meta_query) {
+		$args['meta_query'] = $meta_query;
 	}
 
 	foreach (['post__in', 'post__not_in'] as $param) {
@@ -258,6 +242,17 @@ function tw_ajax_loader() {
 }
 
 
+/**
+ * Show the load more button
+ *
+ * @param string         $wrapper
+ * @param string         $template
+ * @param WP_Query|false $query
+ * @param int            $number
+ * @param bool           $is_hidden
+ *
+ * @return void
+ */
 function tw_loader_button($wrapper, $template = 'post', $query = false, $number = false, $is_hidden = false) {
 
 	global $wp_query;
@@ -270,11 +265,11 @@ function tw_loader_button($wrapper, $template = 'post', $query = false, $number 
 
 	$paged = intval($query->query_vars['paged']);
 
-	if ($paged == 0) {
+	if ($paged < 1) {
 		$paged = 1;
 	}
 
-	if ($number == false) {
+	if (empty($number)) {
 		$number = $posts_per_page;
 	}
 
@@ -286,37 +281,44 @@ function tw_loader_button($wrapper, $template = 'post', $query = false, $number 
 		$hidden = false;
 	}
 
-	$terms = [];
-	$search = '';
 	$type = $query->query_vars['post_type'];
 	$object = $query->get_queried_object();
+	$tax_query = $query->get('tax_query');
+
+	if (!is_array($tax_query) or empty($tax_query)) {
+		$tax_query = [];
+	}
 
 	if ($object instanceof WP_Term) {
 
-		$terms[] = $object->term_id;
-
-		$tax_query = $query->get('tax_query');
-
-		if ($tax_query) {
-
-			foreach ($tax_query as $tax) {
-
-				if (is_array($tax) and is_array($tax['terms']) and (empty($tax['operator']) or $tax['operator'] == 'IN')) {
-
-					$terms = array_merge($terms, $tax['terms']);
-
-				}
-
-			}
-
+		if (empty($type) and $taxonomy = get_taxonomy($object->taxonomy)) {
+			$type = $taxonomy->object_type;
 		}
 
-		$terms = array_values(array_unique($terms));
+		$add_query = true;
+
+		foreach ($tax_query as $tax) {
+			if (is_array($tax) and !empty($tax['taxonomy']) and $tax['taxonomy'] == $object->taxonomy) {
+				$add_query = false;
+				break;
+			}
+		}
+
+		if ($add_query) {
+			$tax_query['relation'] = 'AND';
+			$tax_query[] = [
+				'taxonomy' => $object->taxonomy,
+				'terms' => [$object->term_id],
+				'operator' => 'IN'
+			];
+		}
 
 	}
 
 	if ($query->is_search()) {
 		$search = get_search_query();
+	} else {
+		$search = '';
 	}
 
 	if ($query->is_author()) {
@@ -341,14 +343,14 @@ function tw_loader_button($wrapper, $template = 'post', $query = false, $number 
 		'number' => $number,
 		'offset' => $offset,
 		'type' => $type,
-		'terms' => $terms,
+		'terms' => [],
 		'search' => $search,
 		'wrapper' => $wrapper,
 		'template' => $template,
 		'author' => $author,
 		'post__in' => $post_in,
 		'post__not_in' => $post_not,
-		'query_tax' => $query->get('tax_query'),
+		'query_tax' => $tax_query,
 		'query_meta' => $query->get('meta_query'),
 		'query_order' => $query->get('orderby'),
 		'query_direction' => $query->get('order')

@@ -149,7 +149,7 @@ if (!empty($block['contents']) and !empty($block['contents']['buttons'])) {
 
 			<div class="<?php echo implode(' ', $classes); ?>">
 				<?php foreach ($items as $item) { ?>
-					<?php echo tw_template_part($template, ['item' => $item]); ?>
+					<?php echo tw_app_template($template, ['item' => $item]); ?>
 				<?php } ?>
 			</div>
 
@@ -165,10 +165,10 @@ if (!empty($block['contents']) and !empty($block['contents']['buttons'])) {
 
 		</div>
 
-		<?php if (in_array('current', $options)) { ?>
-			<?php echo tw_pagination(); ?>
-		<?php } elseif (in_array('loader', $options) and !in_array('slider', $options)) { ?>
+		<?php if (in_array('loader', $options)) { ?>
 			<?php tw_loader_button('.' . $wrapper, $template, $query); ?>
+		<?php } elseif (in_array('current', $options)) { ?>
+			<?php echo tw_pagination(); ?>
 		<?php } elseif ($buttons) { ?>
 			<?php echo tw_block_buttons($buttons); ?>
 		<?php } ?>

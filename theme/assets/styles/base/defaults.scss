@@ -73,10 +73,11 @@ table {
 	border-collapse: collapse;
 }
 
-h1, h2, h3, h4, h5, h6, %h1, %h2, %h3, %h4, %h5, %h6 {
+h1, h2, h3, h4, h5, h6,
+%h1, %h2, %h3, %h4, %h5, %h6 {
 	display: block;
 	position: relative;
-	margin: 0 0 20px;
+	margin: 0 0 var(--gap-heading);
 	color: var(--color-heading);
 	font-family: var(--font-heading);
 	font-weight: 700;

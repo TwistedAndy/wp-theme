@@ -4,143 +4,123 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 3.0
+ * @version 4.0
  */
 
-namespace Twee;
+/**
+ * Log a message
+ *
+ * @param string $message
+ * @param string $scope
+ */
+function tw_logger_info($message, $scope = 'theme') {
+	tw_logger_write($message, 'info', $scope);
+}
 
-class Logger {
 
-	const INFO = 'info';
+/**
+ * Log an error
+ *
+ * @param string $message
+ * @param string $scope
+ */
+function tw_logger_error($message, $scope = 'theme') {
+	tw_logger_write($message, 'error', $scope);
+}
 
-	const ERROR = 'error';
 
-	protected $filename;
+/**
+ * Write a message to logs
+ *
+ * @param string   $message
+ * @param string   $type
+ * @param string   $scope
+ * @param bool|int $time
+ */
+function tw_logger_write($message, $type = 'info', $scope = 'theme', $time = true) {
+
+	if (is_array($message) or is_object($message)) {
+		$message = 'Object: ' . serialize($message);
+	} else {
+		$message = date('H:i:s') . ' ' . $message;
+	}
+
+	$filename = tw_logger_filename($type, $scope, $time);
+
+	$handler = fopen($filename, 'a');
+
+	fwrite($handler, $message . PHP_EOL);
+
+	fclose($handler);
+
+}
 
 
-	public function __construct($handler = 'theme') {
+/**
+ * Read a message to logs
+ *
+ * @param string   $type
+ * @param string   $scope
+ * @param bool|int $time
+ *
+ * @return array|false|string[]
+ */
+function tw_logger_read($type = 'info', $scope = 'theme', $time = true) {
 
-		$directory = wp_get_upload_dir();
+	$logs = [];
 
-		if (!empty($directory['basedir'])) {
-			$folder = $directory['basedir'] . '/cache/logs/';
-		} else {
-			$folder = get_template_directory() . '/cache/logs/';
+	$filename = tw_logger_filename($type, $scope, $time);
+
+	if (file_exists($filename)) {
+		$logs = explode("\n", file_get_contents($filename));
+	}
+
+	return $logs;
+
+}
+
+
+/**
+ * Get a log file name with full path
+ *
+ * @param string   $type
+ * @param string   $scope
+ * @param bool|int $time
+ *
+ * @return string
+ */
+function tw_logger_filename($type = 'info', $scope = 'theme', $time = true) {
+
+	$directory = wp_get_upload_dir();
+
+	if (!empty($directory['basedir'])) {
+		$folder = $directory['basedir'] . '/cache/logs/';
+	} else {
+		$folder = get_template_directory() . '/cache/logs/';
+	}
+
+	if (!is_dir($folder)) {
+		wp_mkdir_p($folder);
+	}
+
+	$filename = $folder . 'twee_log_' . $scope;
+
+	if ($time) {
+
+		if (!is_numeric($time)) {
+			$time = time();
 		}
 
-		if (!is_dir($folder)) {
-			wp_mkdir_p($folder);
-		}
-
-		$this->filename = $folder . 'twee_log_' . $handler;
+		$filename .= '_' . date('Y_m_d', $time);
 
 	}
 
-
-	/**
-	 * Log the message
-	 *
-	 * @param string $message
-	 * @param string $type
-	 */
-	public function log($message, $type = self::INFO) {
-
-		if (is_array($message) or is_object($message)) {
-			$message = 'Object: ' . serialize($message);
-		} else {
-			$message = date('H:i:s') . ' ' . $message;
-		}
-
-		$filename = $this->filename($type);
-
-		$handler = fopen($filename, 'a');
-
-		fwrite($handler, $message . PHP_EOL);
-
-		fclose($handler);
-
+	if ($type) {
+		$type = '_' . $type;
+	} else {
+		$type = '';
 	}
 
-
-	/**
-	 * Log a message
-	 *
-	 * @param string $message
-	 */
-	public function info($message) {
-		$this->log($message, self::INFO);
-	}
-
-
-	/**
-	 * Log an error
-	 *
-	 * @param string $message
-	 */
-	public function error($message) {
-		$this->log($message, self::ERROR);
-	}
-
-
-	/**
-	 * Get the log file path
-	 *
-	 * @param string $type
-	 *
-	 * @return string
-	 */
-	protected function filename($type) {
-
-		if ($type) {
-			$type = '_' . $type;
-		} else {
-			$type = '';
-		}
-
-		return $this->filename . $type . '.log';
-
-	}
-
-
-	/**
-	 * Read the logs from file
-	 *
-	 * @param string $type
-	 *
-	 * @return string[]
-	 */
-	public function read($type = self::INFO) {
-
-		$logs = [];
-
-		$filename = $this->filename($type);
-
-		if (file_exists($filename)) {
-			$logs = explode("\n", file_get_contents($filename));
-		}
-
-		return $logs;
-
-	}
-
-
-	/**
-	 * Clean logs files
-	 */
-	public function clean() {
-
-		$types = [self::INFO, self::ERROR];
-
-		foreach ($types as $type) {
-
-			$filename = $this->filename($type);
-
-			if (file_exists($filename)) {
-				unlink($filename);
-			}
-
-		}
-
-	}
+	return $filename . $type . '.log';
 
 }

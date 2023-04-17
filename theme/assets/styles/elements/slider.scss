@@ -70,8 +70,14 @@
 		transition: 0.2s;
 		cursor: pointer;
 
-		&.active, &:hover {
+		&.active {
 			background-color: var(--color-primary);
+		}
+
+		@include hover {
+			&:hover {
+				background-color: var(--color-primary);
+			}
 		}
 
 	}
