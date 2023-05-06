@@ -135,9 +135,9 @@ add_action('wp_default_scripts', function($scripts) {
 	$scripts->remove('jquery');
 
 	if (is_admin()) {
-		$scripts->add('jquery', false, ['jquery-core', 'jquery-migrate'], '3.5.1');
+		$scripts->add('jquery', false, ['jquery-core', 'jquery-migrate'], '3.6.4');
 	} else {
-		$scripts->add('jquery', false, ['jquery-core'], '3.5.1');
+		$scripts->add('jquery', false, ['jquery-core'], '3.6.4');
 	}
 
 }, 20);
@@ -150,8 +150,9 @@ add_action('wp_print_styles', function() {
 
 	if (!is_admin()) {
 
-		wp_dequeue_style('wp-block-library');
 		wp_dequeue_style('wc-blocks-style');
+		wp_dequeue_style('wp-block-library');
+		wp_dequeue_style('classic-theme-styles');
 
 		remove_action('wp_body_open', 'wp_global_styles_render_svg_filters');
 		remove_action('in_admin_header', 'wp_global_styles_render_svg_filters');

@@ -101,6 +101,11 @@ if (in_array('current', $options)) {
 		$args['orderby'] = 'post__in';
 		$args['order'] = 'ASC';
 
+	} elseif ($order == 'menu_order') {
+
+		$args['orderby'] = 'menu_order title';
+		$args['order'] = 'ASC';
+
 	} else {
 
 		$args['orderby'] = $order;

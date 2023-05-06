@@ -155,8 +155,9 @@ function tw_loader_handle() {
 
 		} else {
 
-			$order = trim(esc_sql($_REQUEST['query_order']));
+			$order = esc_sql($_REQUEST['query_order']);
 			$order_parts = explode(' ', $order);
+			$order_parts = array_map('trim', $order_parts);
 
 		}
 
@@ -273,11 +274,15 @@ function tw_loader_button($wrapper, $template = 'post', $query = false, $number 
 		$number = $posts_per_page;
 	}
 
-	$offset = $paged * $posts_per_page;
+	if ($posts_per_page > 0) {
+		$offset = $paged * $posts_per_page;
+	} else {
+		$offset = 0;
+	}
 
 	$hidden = true;
 
-	if ($offset < $query->found_posts) {
+	if ($offset < $query->found_posts and $posts_per_page > 0) {
 		$hidden = false;
 	}
 

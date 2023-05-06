@@ -26,7 +26,8 @@ let sources = {
 		'styles/base/*.scss',
 		'styles/blocks/*.scss',
 		'styles/elements/*.scss',
-		'styles/includes/*.scss'],
+		'styles/includes/*.scss'
+	],
 	scripts: 'scripts/*.js'
 };
 
@@ -75,10 +76,12 @@ function scripts() {
 }
 
 function images() {
-	return gulp.src(folders.images + '/**/*')
+	return gulp.src(folders.images + '/**/*.{png,gif,jpg,jpeg,svg}')
 		.pipe(plumber(options.plumber))
 		.pipe(imagemin())
-		.pipe(gulp.dest(folders.images));
+		.pipe(gulp.dest(function(file) {
+			return file.base;
+		}));
 }
 
 exports.styles = styles;
