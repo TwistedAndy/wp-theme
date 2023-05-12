@@ -296,8 +296,8 @@ add_action('twee_image_compress', function($file, $url, $image_id = 0) {
 
 			try {
 				$compressor->compress_file($file, false);
-			} catch (\Tiny_Exception $e) {
-
+			} catch (\Tiny_Exception $exception) {
+				tw_logger_error('Failed to compress an image. Error: ' . $exception->getMessage());
 			}
 
 		}
@@ -322,6 +322,10 @@ add_action('twee_image_compress', function($file, $url, $image_id = 0) {
 			'is_thumb' => false,
 		]);
 
+		if ($image_data instanceof WP_Error) {
+			tw_logger_error('Failed to compress an image. Error: ' . $image_data->get_error_message());
+		}
+
 		if (!is_wp_error($image_data) and empty($image_data['not_need_replace']) and !empty($image_data['optimized_img_url']) and strpos($image_data['optimized_img_url'], 'http') === 0) {
 
 			$temp_file = $file . '.tmp';
@@ -338,6 +342,7 @@ add_action('twee_image_compress', function($file, $url, $image_id = 0) {
 			curl_exec($ch);
 
 			if (curl_errno($ch)) {
+				tw_logger_error('Failed to compress an image. Error: ' . curl_error($ch));
 				return;
 			}
 
@@ -375,13 +380,17 @@ add_action('twee_image_compress', function($file, $url, $image_id = 0) {
 
 		$file = new \Imagify\Optimization\File($file);
 
-		$file->optimize([
+		$result = $file->optimize([
 			'backup' => false,
 			'optimization_level' => 1,
 			'keep_exif' => false,
 			'convert' => '',
 			'context' => 'wp',
 		]);
+
+		if ($result instanceof WP_Error) {
+			tw_logger_error('Failed to compress an image. Error: ' . $result->get_error_message());
+		}
 
 	}
 
@@ -409,7 +418,7 @@ add_action('twee_thumb_created', function($file, $url, $image_id) {
 
 	$task = 'twee_image_compress';
 
-	$time = time();
+	$time = time() + 600;
 
 	as_unschedule_action($task, $args);
 

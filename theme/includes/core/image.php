@@ -214,7 +214,7 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 		$list = ['loading', 'alt', 'class', 'id', 'width', 'height', 'style', 'srcset', 'sizes'];
 
 		foreach ($attributes as $key => $attribute) {
-			if (in_array($key, $list) or strpos($attribute, 'data') === 0) {
+			if (in_array($key, $list) or strpos($key, 'data') === 0) {
 				$data[] = $key . '="' . esc_attr($attribute) . '"';
 			}
 		}
