@@ -2,47 +2,39 @@
 /**
  * Load and store the data in session
  *
- * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @author  Andrii Toniievych <andy@absoluteweb.com>
  * @package Twee
  * @version 4.0
  */
 
-/*
-add_action('init', 'tw_session_init');
-*/
-
 /**
  * Init a session
  */
-function tw_session_init() {
+if (class_exists('WooCommerce')) {
 
-	if (class_exists('WooCommerce')) {
+	add_action('woocommerce_init', function() {
 
-		add_action('woocommerce_init', function() {
+		$object = WooCommerce::instance();
 
-			$session = WooCommerce::instance()->session;
+		if (empty($object->session)) {
+			$object->initialize_session();
+		}
 
-			if ($session instanceof WC_Session_Handler and !$session->get_session_cookie()) {
-				if (is_user_logged_in()) {
-					$session->init_session_cookie();
-				} else {
-					$session->set_customer_session_cookie(true);
-				}
-			}
+		if ($object->session instanceof WC_Session and !$object->session->get_session_cookie()) {
+			$object->session->set_customer_session_cookie(true);
+		}
 
-		});
+	}, 10);
 
-	} elseif (!session_id()) {
+} elseif (!session_id()) {
 
-		session_start();
-
-	}
+	session_start();
 
 }
 
 
 /**
- * Get the variable stored in session
+ * Get data from session
  *
  * @param string $key
  *
@@ -50,14 +42,18 @@ function tw_session_init() {
  */
 function tw_session_get($key) {
 
-	$result = false;
+	$result = null;
 
-	if (class_exists('WooCommerce') and class_exists('WC_Session_Handler')) {
+	if (class_exists('WooCommerce')) {
 
-		$session = WooCommerce::instance()->session;
+		$object = WooCommerce::instance();
 
-		if ($session instanceof WC_Session_Handler) {
-			$result = $session->get($key);
+		if (empty($object->session)) {
+			$object->initialize_session();
+		}
+
+		if ($object->session instanceof WC_Session) {
+			$result = $object->session->get($key);
 		}
 
 	} elseif (isset($_SESSION[$key])) {
@@ -81,11 +77,14 @@ function tw_session_set($key, $data) {
 
 	if (class_exists('WooCommerce')) {
 
-		$session = WooCommerce::instance()->session;
+		$object = WooCommerce::instance();
 
-		if ($session instanceof WC_Session_Handler) {
-			$session->set($key, $data);
-			$session->save_data();
+		if (empty($object->session)) {
+			$object->initialize_session();
+		}
+
+		if ($object->session instanceof WC_Session) {
+			$object->session->set($key, $data);
 		}
 
 	} else {
