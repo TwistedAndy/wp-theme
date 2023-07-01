@@ -1,0 +1,62 @@
+.message_box {
+	display: flex;
+	flex-grow: 1;
+	align-items: center;
+	justify-content: center;
+
+	.contents {
+		@extend %contents;
+		margin-right: auto;
+		margin-left: auto;
+		text-align: center;
+	}
+
+	.image {
+		display: inline-block;
+		max-width: 180px;
+		margin: 0 auto var(--gap-contents);
+	}
+
+	img {
+		display: block;
+		width: auto;
+		max-width: 100%;
+		height: auto;
+	}
+
+	.password {
+		display: flex;
+		align-items: flex-start;
+		max-width: 480px;
+		padding-top: 5px;
+		margin: 0 auto;
+
+		input {
+			display: block;
+			flex-grow: 1;
+			width: auto;
+			min-width: 0;
+		}
+
+		.button {
+			flex-grow: 0;
+			flex-shrink: 0;
+			margin-left: 10px;
+		}
+
+	}
+
+	@include desktop_small {
+
+		.image {
+			max-width: 100%;
+			margin-bottom: 20px;
+		}
+
+		img {
+			max-height: 120px;
+		}
+
+	}
+
+}

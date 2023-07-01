@@ -1,136 +1,171 @@
 .comments_box {
 
-	.comments {
-		margin-bottom: 40px;
-		font-size: 16px;
-		line-height: 1.5;
+	.fixed {
+		max-width: var(--width-small);
+	}
 
-		&:last-child {
-			margin-bottom: 0;
+	.comments {
+		@extend %loader;
+
+		& + .buttons {
+			margin: 0;
+
+			.button {
+				width: 100%;
+				margin: var(--gap-vertical) 0 0;
+			}
+
+		}
+
+		.comment-respond {
+			margin: var(--gap-vertical) 0 0;
+		}
+
+	}
+
+	.comment, .pingback {
+		display: block;
+		position: relative;
+		padding-top: var(--gap-vertical);
+		margin-top: var(--gap-vertical);
+		border-top: 1px solid var(--color-border);
+		font-size: var(--size-content);
+
+		&:first-child {
+			padding-top: 0;
+			margin-top: 0;
+			border-top-style: none;
 		}
 
 	}
 
 	.comment {
-		display: block;
-		position: relative;
-		margin-bottom: 20px;
 
-		&:last-child {
-			margin-bottom: 0;
-		}
-
-		&.depth-3 .comment {
+		&.depth-3 .comment, &.depth-3 .comment-respond {
 			margin-left: 0;
 		}
 
-		.comment {
-			margin-top: 20px;
-			margin-left: 40px;
+		.comment, .comment-respond {
+			margin-left: var(--gap-aside);
 		}
 
 	}
 
 	.inner {
-		display: flex;
-		align-items: flex-start;
-		padding: 20px;
-		border: 1px solid var(--color-border);
-		background-color: var(--color-base);
-	}
 
-	.photo {
-		display: block;
-		flex-grow: 0;
-		flex-shrink: 0;
-		width: 60px;
-		margin-right: 20px;
+		.header {
+			display: flex;
+			align-items: center;
+			margin: 0 0 10px;
+		}
 
-		img {
+		.name {
 			display: block;
-			width: 100%;
-			height: auto;
+			margin: 0 6px 0 0;
+			color: var(--color-heading);
+			font-family: var(--font-heading);
+			font-size: var(--size-base);
+			font-weight: 700;
+		}
+
+		.date {
+			display: inline-block;
+			margin: 0 6px 0 0;
+			color: var(--color-muted);
+			font-size: var(--size-tiny);
+		}
+
+		.star-rating {
+			margin: 0 0 0 auto;
+		}
+
+		.title {
+			display: block;
+			margin: -1px 0 8px;
+			color: var(--color-heading);
+			font-size: var(--size-h4);
+			font-weight: 700;
+			line-height: 1.25;
+		}
+
+		.content {
+			margin: 0;
+			--gap-content: 15px;
+		}
+
+		.comment_on_moderation {
+			color: var(--color-muted);
+		}
+
+		.links {
+			margin: 14px -10px 0 0;
+
+			&:empty {
+				display: none;
+			}
+
+		}
+
+		.comment-reply-link, .comment-edit-link {
+			display: inline-block;
+			margin: 0 10px 0 0;
+			color: var(--color-link);
+			text-decoration: underline;
+
+			&:hover {
+				text-decoration: none;
+			}
+
 		}
 
 	}
 
-	.contents {
-		display: block;
-		position: relative;
-		flex-grow: 1;
-		min-width: 0;
-	}
-
-	.heading {
-		display: flex;
-		align-items: center;
-		margin-bottom: 8px;
-	}
-
-	.author {
-		display: block;
-		margin-right: auto;
-		font-weight: 700;
-	}
-
-	.date {
-		margin-left: 10px;
-		font-size: 14px;
-		line-height: 20px;
-	}
-
-	.content {
-		margin: 0;
-		font-size: inherit;
-	}
-
-	.comment_on_moderation {
-		color: #990000;
-		font-style: italic;
-	}
-
 	.buttons {
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-		margin: 15px 0 0;
+
+		.outline {
+			background-color: var(--color-base);
+		}
+
 	}
 
 	.comment-respond {
 		display: block;
-		position: relative;
+		padding: 30px;
+		margin-top: var(--gap-subsection);
+		border: 1px solid var(--color-border);
+		background-color: var(--color-background);
+
+		&:first-child {
+			margin-top: 0;
+		}
+
+		& + .comment {
+			margin-top: 0;
+			border-top-width: 0;
+		}
+
 	}
 
 	.comment-reply-title {
-		line-height: 24px;
+		display: flex;
+		align-items: baseline;
+		margin-bottom: 15px;
 
-		a {
-			color: #953c21;
+		a:hover {
+			color: var(--color-active);
 		}
 
 		small {
-			display: inline-block;
-			float: right;
-			line-height: 1;
+			display: block;
+			margin-left: auto;
+			color: var(--color-muted);
+			font-size: 15px;
+			font-weight: 600;
+			line-height: 20px;
 		}
 
-	}
-
-	.buttons a, .comment-reply-title small a {
-		display: block;
-		padding: 4px 10px;
-		margin-left: 10px;
-		background: var(--color-primary);
-		color: var(--color-base);
-		font-size: 12px;
-		font-weight: 600;
-		line-height: 16px;
-		text-decoration: none;
-		transition: 0.2s;
-		cursor: pointer;
-
-		&:hover {
-			background-color: var(--color-secondary);
+		a:hover {
+			color: var(--color-heading);
 		}
 
 	}
@@ -149,7 +184,25 @@
 	}
 
 	.login {
-		color: #953c21;
+		color: var(--color-primary);
+	}
+
+	.must-log-in {
+
+		a {
+			color: var(--color-primary);
+			text-decoration: underline;
+
+			&:hover {
+				text-decoration: none;
+			}
+
+		}
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
 	}
 
 	.fields {
@@ -172,15 +225,95 @@
 
 	.field {
 		display: block;
-		position: relative;
-		box-sizing: border-box;
 		margin: 0 0 20px;
+	}
+
+	.label {
+		@extend %label;
+	}
+
+	.checkbox {
+		@extend %checkbox;
+		margin: 5px 0;
 	}
 
 	.error {
 		display: block;
-		margin: 10px 16px -8px;
+		margin: 12px 0 -6px;
 		color: var(--color-bright);
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 20px;
+	}
+
+	.success {
+		display: block;
+		padding: 15px 20px;
+		margin: 20px 0 0;
+		border: 1px solid #cae1ca;
+		border-radius: var(--radius-small);
+		background-color: #f2fdf2;
+		color: #007700;
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 20px;
+		text-align: center;
+	}
+
+	.required {
+		color: var(--color-bright);
+	}
+
+	.rate {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+
+		.label {
+			display: block;
+			width: 100%;
+		}
+
+		label {
+			display: block;
+			width: 24px;
+			height: 21px;
+			padding: 0;
+			margin: 0 4px 0 0;
+			background-color: var(--color-heading);
+			font-size: 0;
+			line-height: 0;
+			cursor: pointer;
+			-webkit-mask: url(../images/ico_star.svg) 50% 50% / contain no-repeat;
+
+			&:before, &:after {
+				display: none;
+			}
+
+		}
+
+		input {
+			display: block;
+			position: absolute;
+			left: -1000px;
+		}
+
+		input:checked + label ~ label {
+			background-color: var(--color-border);
+		}
+
+	}
+
+	@include desktop_small {
+
+		.checkbox {
+			margin: 0;
+		}
+
+		.comment-respond {
+			padding: 20px;
+		}
+
 	}
 
 	@include tablet_small {

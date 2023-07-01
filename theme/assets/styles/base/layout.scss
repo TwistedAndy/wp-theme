@@ -30,8 +30,8 @@ body {
 
 .fixed {
 	position: relative;
+	width: 100%;
 	max-width: var(--width-regular);
-	padding: 0 var(--gap-aside);
 	margin: 0 auto;
 
 	.fixed {
@@ -40,8 +40,7 @@ body {
 
 }
 
-.wrapper {
-	position: relative;
+.items {
 
 	& + .buttons {
 		text-align: center;
@@ -56,16 +55,53 @@ body {
 
 section {
 	position: relative;
-	padding: var(--gap-section-top) 0 var(--gap-section-bottom);
+	padding: calc(var(--gap-section-top) + var(--gap-section-shift)) var(--gap-aside) var(--gap-section-bottom);
+	background-color: var(--color-section);
 	color: var(--color-text);
 	--gap-section-top: 0px;
+
+	&:first-of-type {
+		--gap-section-top: var(--gap-subsection);
+	}
+
+	&.box_light:first-of-type, &.box_dark:first-of-type {
+		--gap-section-top: var(--gap-section);
+	}
+
 }
 
 .box {
 
+	&_light, &_dark {
+
+		& + section {
+			--gap-section-top: var(--gap-section);
+		}
+
+		& + .box_no_top, & + .box_no_both {
+			--gap-section-top: 0px;
+		}
+
+	}
+
 	&_light {
-		background-color: $color_background;
 		--gap-section-top: var(--gap-section);
+		--color-section: #{$color_background};
+		--color-background: #{$color_white};
+	}
+
+	&_dark {
+		color: #{$color_white};
+		--gap-section-top: var(--gap-section);
+		--color-section: #{$color_text};
+		--color-background: #{$color_muted};
+		--color-muted: #{rgba($color_white, 0.8)};
+		--color-text: #{rgba($color_white, 0.9)};
+		--color-field: #{rgba($color_white, 0.5)};
+		--color-heading: #{$color_white};
+		--color-border: #{rgba($color_white, 0.2)};
+		--color-link: #{$color_white};
+		--color-base: #{$color_heading};
 	}
 
 	&_no_top {
@@ -82,7 +118,17 @@ section {
 	}
 
 	&_border {
-		border-bottom: 1px solid var(--color-border);
+
+		&:after {
+			content: '';
+			position: absolute;
+			bottom: 0;
+			left: 50%;
+			width: var(--width-regular);
+			height: 1px;
+			margin-left: calc(-0.5 * var(--width-regular));
+			background-color: var(--color-border);
+		}
 
 		& + section {
 			--gap-section-top: var(--gap-section);
@@ -96,42 +142,20 @@ section {
 	display: flex;
 	position: relative;
 	flex-wrap: wrap;
-	align-items: stretch;
-	justify-content: flex-start;
-	margin: 0 calc(-0.5 * var(--gap-grid)) calc(-1 * var(--gap-vertical));
+	width: calc(100% + var(--gap-grid));
+	margin: 0 calc(-1 * var(--gap-grid)) calc(-1 * var(--gap-vertical)) 0;
 	z-index: 2;
 }
 
 %item {
-	display: inline-block;
+	display: inline-flex;
 	position: relative;
 	flex-direction: column;
-	align-items: stretch;
-	justify-content: stretch;
-	width: var(--width-item);
-	padding: 0 calc(0.5 * var(--gap-grid));
-	margin: 0 0 var(--gap-vertical);
-	font-size: var(--size-base);
-	line-height: 1.5;
-	white-space: normal;
-}
-
-%slider {
-	display: block;
-	overflow: hidden;
-	flex-grow: 1;
-	width: calc(100% + var(--gap-grid));
-	min-width: 0;
-	margin: 0 calc(-0.5 * var(--gap-grid));
-	font-size: 0;
-	line-height: 0;
-	vertical-align: top;
-	white-space: nowrap;
-
-	.item {
-		margin-bottom: 0;
-	}
-
+	flex-grow: 0;
+	flex-shrink: 0;
+	width: calc(var(--width-item) - var(--gap-grid));
+	margin: 0 var(--gap-grid) var(--gap-vertical) 0;
+	overscroll-behavior: contain;
 }
 
 .admin-bar {

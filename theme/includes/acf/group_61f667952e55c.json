@@ -40,7 +40,7 @@
                             ],
                             "taxonomy": "",
                             "allow_null": 0,
-                            "multiple": 0,
+                            "multiple": 1,
                             "return_format": "id",
                             "ui": 1
                         }
@@ -172,6 +172,82 @@
                         },
                         {
                             "key": "field_61f66899a03fb",
+                            "label": "Settings",
+                            "name": "settings",
+                            "type": "clone",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "clone": [
+                                "field_61f6666e49996"
+                            ],
+                            "display": "seamless",
+                            "layout": "block",
+                            "prefix_label": 0,
+                            "prefix_name": 0
+                        }
+                    ],
+                    "min": "",
+                    "max": ""
+                },
+                "layout_649000f0cfccb": {
+                    "key": "layout_649000f0cfccb",
+                    "name": "message",
+                    "label": "Message",
+                    "display": "block",
+                    "sub_fields": [
+                        {
+                            "key": "field_649000f0cfccc",
+                            "label": "Contents",
+                            "name": "contents",
+                            "type": "clone",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "clone": [
+                                "field_61f66319ec939"
+                            ],
+                            "display": "seamless",
+                            "layout": "block",
+                            "prefix_label": 0,
+                            "prefix_name": 0
+                        },
+                        {
+                            "key": "field_649000f0cfccd",
+                            "label": "Image",
+                            "name": "image",
+                            "type": "image",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "25",
+                                "class": "",
+                                "id": ""
+                            },
+                            "return_format": "id",
+                            "preview_size": "medium",
+                            "library": "all",
+                            "min_width": "",
+                            "min_height": "",
+                            "min_size": "",
+                            "max_width": "",
+                            "max_height": "",
+                            "max_size": "",
+                            "mime_types": ""
+                        },
+                        {
+                            "key": "field_649000f0cfccf",
                             "label": "Settings",
                             "name": "settings",
                             "type": "clone",

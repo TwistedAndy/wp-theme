@@ -229,8 +229,14 @@ function tw_asset_enqueue($name) {
 				$asset['localize'] = call_user_func($asset['localize']);
 			}
 
+			$object = $name;
+
+			if (!empty($asset['object'])) {
+				$object = $asset['object'];
+			}
+
 			if (is_array($asset['localize'])) {
-				wp_localize_script($asset_name, $name, $asset['localize']);
+				wp_localize_script($asset_name, $object, $asset['localize']);
 			}
 
 		}
@@ -275,7 +281,8 @@ function tw_asset_normalize($asset) {
 		'version' => null,
 		'display' => false,
 		'directory' => '',
-		'localize' => []
+		'localize' => [],
+		'object' => ''
 	];
 
 	$asset = wp_parse_args($asset, $defaults);

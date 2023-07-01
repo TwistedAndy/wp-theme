@@ -58,7 +58,6 @@ class Posts extends Widget {
 
 		$array = [
 			'numberposts' => $instance['number'],
-			'cat' => $instance['categories'],
 			'category' => $instance['category']
 		];
 

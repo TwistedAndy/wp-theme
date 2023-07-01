@@ -264,8 +264,8 @@
                     },
                     "choices": {
                         "default": "Default",
-                        "blue": "Blue",
-                        "light": "Light"
+                        "light": "Light",
+                        "dark": "Dark"
                     },
                     "default_value": "default",
                     "allow_null": 0,
@@ -315,5 +315,5 @@
     "active": false,
     "description": "",
     "show_in_rest": 0,
-    "modified": 1643538186
+    "modified": 1643548186
 }

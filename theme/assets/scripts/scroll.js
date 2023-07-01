@@ -4,7 +4,7 @@ jQuery(function($) {
 
 	$(document.body).on('click', 'a[href*="#"]', function(e) {
 
-		if (this.href.indexOf('#modal_') === -1) {
+		if (this.href.indexOf('#modal_') === -1 && this.href.indexOf('#tab_') === -1) {
 
 			var link = document.location.protocol + '//' + document.location.hostname + document.location.pathname,
 				parts = this.href.split('#'),

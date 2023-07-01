@@ -1,5 +1,15 @@
-<?php if (!empty($block['set']) and get_the_ID() != $block['set']) {
+<?php if (!empty($block['set'])) {
 
-	echo tw_get_blocks('blocks', $block['set']);
+	$current_id = get_queried_object_id();
+
+	if (!is_array($block['set'])) {
+		$block['set'] = [$block['set']];
+	}
+
+	$block['set'] = array_map('absint', $block['set']);
+
+	foreach ($block['set'] as $set) {
+		echo tw_get_blocks('blocks', $set);
+	}
 
 }

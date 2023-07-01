@@ -67,7 +67,7 @@ function tw_get_block($block) {
 			$options = $block['settings']['options'];
 		}
 
-		if (in_array('mobile', $options) and in_array('desktop', $options)) {
+		if (in_array('hidden', $options)) {
 			return false;
 		}
 

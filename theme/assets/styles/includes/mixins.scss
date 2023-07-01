@@ -77,3 +77,15 @@
 		@content;
 	}
 }
+
+@mixin container_min($width) {
+	@container (min-width: #{$width}) {
+		@content;
+	}
+}
+
+@mixin container_max($width) {
+	@container (max-width: #{$width}) {
+		@content;
+	}
+}

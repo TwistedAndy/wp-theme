@@ -101,11 +101,6 @@ if (in_array('current', $options)) {
 		$args['orderby'] = 'post__in';
 		$args['order'] = 'ASC';
 
-	} elseif ($order == 'menu_order') {
-
-		$args['orderby'] = 'menu_order title';
-		$args['order'] = 'ASC';
-
 	} else {
 
 		$args['orderby'] = $order;
@@ -131,8 +126,8 @@ if (empty($items)) {
 $classes = ['items'];
 
 if (in_array('slider', $options)) {
-	$classes[] = 'slider';
-	tw_asset_enqueue('flickity');
+	$classes[] = 'carousel';
+	tw_asset_enqueue('fancyapps');
 }
 
 $buttons = [];
@@ -150,32 +145,16 @@ if (!empty($block['contents']) and !empty($block['contents']['buttons'])) {
 
 		<?php echo tw_block_contents($block); ?>
 
-		<div class="wrapper">
-
-			<div class="<?php echo implode(' ', $classes); ?>">
-				<?php foreach ($items as $item) { ?>
-					<?php echo tw_app_template($template, ['item' => $item]); ?>
-				<?php } ?>
-			</div>
-
-			<?php if (in_array('slider', $options)) { ?>
-				<div class="dots">
-					<?php foreach ($items as $index => $item) { ?>
-						<button type="button" aria-label="Slide #<?php echo($index + 1); ?>"></button>
-					<?php } ?>
-				</div>
-				<button class="arrow_prev" type="button" aria-label="Previous Slide"></button>
-				<button class="arrow_next" type="button" aria-label="Next Slide"></button>
+		<div class="<?php echo implode(' ', $classes); ?>">
+			<?php foreach ($items as $item) { ?>
+				<?php echo tw_template_part($template, ['item' => $item]); ?>
 			<?php } ?>
-
 		</div>
 
-		<?php if (in_array('loader', $options)) { ?>
-			<?php tw_loader_button('.' . $wrapper, $template, $query); ?>
-		<?php } elseif (in_array('current', $options)) { ?>
+		<?php if (in_array('current', $options)) { ?>
 			<?php echo tw_pagination(); ?>
-		<?php } elseif ($buttons) { ?>
-			<?php echo tw_block_buttons($buttons); ?>
+		<?php } elseif (in_array('loader', $options)) { ?>
+			<?php tw_loader_button('.' . $wrapper, 'woo/product', $query); ?>
 		<?php } ?>
 
 	</div>

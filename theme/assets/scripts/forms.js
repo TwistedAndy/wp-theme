@@ -2,19 +2,19 @@
 
 jQuery(function($) {
 
-	$('.form_box form, form.form_box, form.comment-form').each(function() {
+	$('.form_box form, form.form_box, form.comment-form').not('.skip_processing').each(function() {
 
 		var form = $(this), message,
 			button = $('[type="submit"]', form);
 
 		form.on('submit', function(e) {
 
-			var data = $(':input', form).serializeArray();
+			var data = form.serializeArray();
 
 			var action = 'feedback';
 
 			if (form.hasClass('comment-form')) {
-				action = 'comment';
+				action = 'comment_add';
 			}
 
 			if ($('[name="action"]', form).length === 0) {
@@ -29,19 +29,16 @@ jQuery(function($) {
 				value: template.nonce
 			});
 
-			$.ajax({
-				url: template.ajaxurl,
+			$.ajax(template.ajaxurl, {
 				data: data,
 				type: 'post',
 				dataType: 'json',
 				beforeSend: function() {
 					button.prop('disabled', true).addClass('is_loading');
 				},
-				complete: function() {
-					button.prop('disabled', false).removeClass('is_loading');
-				},
-				success: processResponse
-			});
+			}).always(function() {
+				button.prop('disabled', false).removeClass('is_loading');
+			}).done(processResponse);
 
 			e.preventDefault();
 
@@ -60,8 +57,7 @@ jQuery(function($) {
 
 			data.append(file.name, file.files[0]);
 
-			$.ajax({
-				url: template.ajaxurl,
+			$.ajax(template.ajaxurl, {
 				type: 'post',
 				data: data,
 				dataType: 'json',
@@ -69,9 +65,6 @@ jQuery(function($) {
 				contentType: false,
 				beforeSend: function() {
 					button.prop('disabled', true).addClass('is_loading');
-				},
-				complete: function() {
-					button.prop('disabled', false).removeClass('is_loading');
 				},
 				xhr: function() {
 					var xhr = new XMLHttpRequest();
@@ -84,8 +77,11 @@ jQuery(function($) {
 					}, false);
 					return xhr;
 				},
-				success: processResponse
-			});
+			}).always(function() {
+
+				button.prop('disabled', false).removeClass('is_loading');
+
+			}).done(processResponse);
 
 			return false;
 
@@ -110,19 +106,18 @@ jQuery(function($) {
 				value: template.nonce
 			});
 
-			$.ajax({
-				url: template.ajaxurl,
+			$.ajax(template.ajaxurl, {
 				data: data,
 				type: 'post',
 				dataType: 'json',
 				beforeSend: function() {
 					button.prop('disabled', true).addClass('is_loading');
 				},
-				complete: function() {
-					button.prop('disabled', false).removeClass('is_loading');
-				},
-				success: processResponse
-			});
+			}).always(function() {
+
+				button.prop('disabled', false).removeClass('is_loading');
+
+			}).done(processResponse);
 
 		});
 
@@ -130,11 +125,11 @@ jQuery(function($) {
 
 			$('.error, .success', form).remove();
 
-			if (data.link) {
+			if (data.link && data.link.length > 0) {
 				window.location.href = data.link;
 			}
 
-			if (data.errors) {
+			if (data.errors && data.errors.length > 0) {
 				for (let i in data.errors) {
 					if (data.errors.hasOwnProperty(i)) {
 						message = $('<div class="error">' + data['errors'][i] + '</div>');
@@ -158,7 +153,7 @@ jQuery(function($) {
 				}
 			}
 
-			if (data.text) {
+			if (data.text && data.text.length > 0) {
 				message = $('<div class="success">' + data.text + '</div>');
 				form.append(message);
 				message.hide().slideDown();

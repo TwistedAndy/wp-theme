@@ -10,27 +10,19 @@
 /**
  * Init a session
  */
-if (class_exists('WooCommerce')) {
+add_action('woocommerce_init', function() {
 
-	add_action('woocommerce_init', function() {
+	$object = WooCommerce::instance();
 
-		$object = WooCommerce::instance();
+	if (empty($object->session)) {
+		$object->initialize_session();
+	}
 
-		if (empty($object->session)) {
-			$object->initialize_session();
-		}
+	if ($object->session instanceof WC_Session and !$object->session->get_session_cookie()) {
+		$object->session->set_customer_session_cookie(true);
+	}
 
-		if ($object->session instanceof WC_Session and !$object->session->get_session_cookie()) {
-			$object->session->set_customer_session_cookie(true);
-		}
-
-	}, 10);
-
-} elseif (!session_id()) {
-
-	session_start();
-
-}
+});
 
 
 /**
@@ -56,9 +48,15 @@ function tw_session_get($key) {
 			$result = $object->session->get($key);
 		}
 
-	} elseif (isset($_SESSION[$key])) {
+	} else {
 
-		$result = $_SESSION[$key];
+		if (!session_id()) {
+			session_start();
+		}
+
+		if (isset($_SESSION) and isset($_SESSION[$key])) {
+			$result = $_SESSION[$key];
+		}
 
 	}
 
@@ -89,7 +87,13 @@ function tw_session_set($key, $data) {
 
 	} else {
 
-		$_SESSION[$key] = $data;
+		if (!session_id()) {
+			session_start();
+		}
+
+		if (isset($_SESSION)) {
+			$_SESSION[$key] = $data;
+		}
 
 	}
 

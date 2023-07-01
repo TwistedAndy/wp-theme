@@ -7,12 +7,55 @@
  * @version 4.0
  */
 
-/*
-add_action('wp_ajax_nopriv_comment', 'wp_ajax_comment');
-add_action('wp_ajax_comment', 'wp_ajax_comment');
-*/
+/**
+ * Load additional comments using AJAX
+ */
+add_action('wp_ajax_nopriv_comment_list', 'tw_ajax_comment_list');
+add_action('wp_ajax_comment_list', 'tw_ajax_comment_list');
 
-function wp_ajax_comment() {
+function tw_ajax_comment_list() {
+
+	if (isset($_POST['noncer']) and wp_verify_nonce($_POST['noncer'], 'ajax-nonce')) {
+
+		$fields = ['post', 'page'];
+
+		$params = [];
+
+		foreach ($fields as $field) {
+			if (isset($_REQUEST[$field])) {
+				$params[$field] = intval($_REQUEST[$field]);
+			} else {
+				$params[$field] = 0;
+			}
+		}
+
+		if ($params['page'] > 0 and $params['post'] > 0) {
+
+			query_posts([
+				'p' => $params['post'],
+				'post_type' => 'product'
+			]);
+
+			the_post();
+
+			set_query_var('cpage', $params['page']);
+
+			comments_template();
+
+		}
+
+	}
+
+}
+
+
+/**
+ * Post comment using AJAX
+ */
+add_action('wp_ajax_nopriv_comment_add', 'wp_ajax_comment_create');
+add_action('wp_ajax_comment_add', 'wp_ajax_comment_create');
+
+function wp_ajax_comment_create() {
 
 	$result = [
 		'text' => '',
@@ -30,21 +73,21 @@ function wp_ajax_comment() {
 
 		$user = wp_get_current_user();
 
-		$data = array(
+		$data = [
 			'url' => '',
 			'author' => '',
 			'email' => '',
 			'comment' => '',
 			'comment_parent' => 0,
 			'comment_post_ID' => $post->ID
-		);
+		];
 
-		$fields = array(
-			'comment' => array(
+		$fields = [
+			'comment' => [
 				'error' => 'Please enter comment',
 				'pattern' => '#.{10,}#ui'
-			)
-		);
+			]
+		];
 
 		if (empty($user->ID)) {
 

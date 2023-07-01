@@ -21,6 +21,7 @@ tw_asset_register([
 		'script' => [
 			'scripts.js',
 		],
+		'object' => 'template',
 		'localize' => function() {
 			return [
 				'ajaxurl' => admin_url('admin-ajax.php'),

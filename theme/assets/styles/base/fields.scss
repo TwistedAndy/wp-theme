@@ -95,3 +95,14 @@ input[type="radio"] {
 	}
 
 }
+
+%label {
+	display: block;
+	margin: 0 0 8px;
+	font-family: var(--font-main);
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 14px;
+	letter-spacing: 0.075em;
+	text-transform: uppercase;
+}

@@ -81,7 +81,7 @@ jQuery(function($) {
 					wrapper.removeClass('is_fixed');
 				}
 
-				document.documentElement.style.setProperty('--header-offset', offset + 'px');
+				document.documentElement.style.setProperty('--header-offset', (offset - window.scrollY) + 'px');
 
 				isFixed = false;
 

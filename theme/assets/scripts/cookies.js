@@ -37,3 +37,51 @@ function getCookie(name) {
 	return '';
 
 }
+
+function getCookieValue(name) {
+	return getCookie(name).split('|') || [];
+}
+
+function setCookieValue(name, value) {
+
+	if (!Array.isArray(value)) {
+		value = [value];
+	}
+
+	value = value.filter(function(item) {
+		return item;
+	});
+
+	return setCookie(name, value.join('|'), 365);
+
+}
+
+function addCookieValue(name, value) {
+
+	var array = getCookieValue(name);
+
+	array.push(value.toString());
+
+	setCookieValue(name, array);
+
+}
+
+function removeCookieValue(name, value) {
+
+	var array = getCookieValue(name);
+
+	array = array.filter(function(item) {
+		return item !== value;
+	});
+
+	setCookieValue(name, array);
+
+}
+
+function hasCookieValue(name, value) {
+
+	var array = getCookieValue(name);
+
+	return (array.indexOf(value) !== -1);
+
+}

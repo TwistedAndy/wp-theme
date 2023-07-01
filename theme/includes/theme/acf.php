@@ -386,12 +386,13 @@ add_action('admin_head', function() {
  */
 add_action('init', function() {
 
-	if (function_exists('acf_add_options_page')) {
+	if (function_exists('acf_add_options_sub_page')) {
 
-		acf_add_options_page([
+		acf_add_options_sub_page([
 			'page_title' => __('Theme Settings', 'twee'),
-			'menu_title' => __('Theme Settings', 'twee'),
+			'menu_title' => __('Theme', 'twee'),
 			'menu_slug' => 'theme-settings',
+			'parent_slug' => 'options-general.php',
 			'capability' => 'manage_options',
 			'redirect' => false,
 			'position' => 90,
@@ -551,7 +552,7 @@ add_action('woocommerce_product_after_variable_attributes', function($loop, $var
 		return;
 	}
 
-	tw_cache_set('tw_acf_index', $loop);
+	tw_app_set('tw_acf_index', $loop);
 
 	add_filter('acf/prepare_field', 'tw_acf_variation_field_name');
 
@@ -581,6 +582,6 @@ add_action('woocommerce_product_after_variable_attributes', function($loop, $var
  * @return array
  */
 function tw_acf_variation_field_name($field) {
-	$field['name'] = str_replace('acf[field_', 'acf[' . tw_cache_get('tw_acf_index') . '][field_', $field['name']);
+	$field['name'] = str_replace('acf[field_', 'acf[' . tw_app_get('tw_acf_index') . '][field_', $field['name']);
 	return $field;
 }

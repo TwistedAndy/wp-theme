@@ -26,12 +26,21 @@ function getScrollbarWidth() {
 
 }
 
-function fixViewportHeight() {
-	document.documentElement.style.setProperty('--vh', (window.innerHeight / 100) + 'px');
-	document.documentElement.style.setProperty('--width-scrollbar', getScrollbarWidth() + 'px');
+function setViewportVariables() {
+
+	var styles = document.documentElement.style,
+		footer = document.querySelector('.footer_box .footer');
+
+	styles.setProperty('--vh', (window.innerHeight / 100) + 'px');
+	styles.setProperty('--width-scrollbar', getScrollbarWidth() + 'px');
+
+	if (footer) {
+		styles.setProperty('--width-regular', footer.clientWidth + 'px');
+	}
+
 }
 
-window.addEventListener('DOMContentLoaded', fixViewportHeight);
-window.addEventListener('orientationchange', fixViewportHeight);
-window.addEventListener('resize', fixViewportHeight);
-window.addEventListener('load', fixViewportHeight);
+window.addEventListener('DOMContentLoaded', setViewportVariables);
+window.addEventListener('orientationchange', setViewportVariables);
+window.addEventListener('resize', setViewportVariables);
+window.addEventListener('load', setViewportVariables);

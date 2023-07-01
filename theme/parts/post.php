@@ -7,7 +7,7 @@ if (empty($item) or !($item instanceof WP_Post)) {
 $link = get_permalink($item);
 
 ?>
-<div class="card">
+<div class="item">
 
 	<?php echo tw_image($item, 'thumbnail', '', '', ['link' => $link, 'link_class' => 'image']); ?>
 
@@ -19,6 +19,6 @@ $link = get_permalink($item);
 		<div class="text"><?php echo $text; ?></div>
 	<?php } ?>
 
-	<a href="<?php echo $link; ?>" class="button outline">Continue Reading</a>
+	<a href="<?php echo $link; ?>" class="link">Read More</a>
 
 </div>
