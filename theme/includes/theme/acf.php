@@ -176,10 +176,13 @@ function tw_acf_decode_data($values, $field) {
 		 * The main difference between repeaters and field groups or layouts
 		 * is the keys. Repeaters are using numeric keys
 		 */
+		if (!empty($field['type']) and $field['type'] === 'group') {
+			$is_repeater = false;
+		} else {
+			$is_repeater = is_numeric(array_key_first($values));
+		}
 
-		$key = array_key_first($values);
-
-		if (is_numeric($key)) {
+		if ($is_repeater) {
 
 			foreach ($values as $i => $metadata) {
 
