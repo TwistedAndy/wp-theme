@@ -391,15 +391,15 @@ function tw_image_size($size, $image_id = 0) {
 	];
 
 	if (is_array($size)) {
-		$result['width'] = (isset($size[0])) ? intval($size[0]) : 0;
-		$result['height'] = (isset($size[1])) ? intval($size[1]) : 0;
-		$result['crop'] = (isset($size[2])) ? $size[2] : true;
-		$result['keep'] = (isset($size[3])) ? $size[3] : true;
+		$result['width'] = $size[0] ?? 0;
+		$result['height'] = $size[1] ?? 0;
+		$result['crop'] = $size[2] ?? true;
+		$result['keep'] = $size[3] ?? true;
 	} elseif (is_string($size) and isset($sizes[$size]) and $size != 'full') {
-		$result['width'] = (isset($sizes[$size]['width'])) ? intval($sizes[$size]['width']) : 0;
-		$result['height'] = (isset($sizes[$size]['height'])) ? intval($sizes[$size]['height']) : 0;
-		$result['crop'] = (isset($sizes[$size]['crop'])) ? $sizes[$size]['crop'] : true;
-		$result['aspect'] = (isset($sizes[$size]['aspect'])) ? $sizes[$size]['aspect'] : false;
+		$result['width'] = $sizes[$size]['width'] ?? 0;
+		$result['height'] = $sizes[$size]['height'] ?? 0;
+		$result['crop'] = $sizes[$size]['crop'] ?? true;
+		$result['aspect'] = $sizes[$size]['aspect'] ?? false;
 	}
 
 	if ($image_id > 0) {
@@ -456,9 +456,25 @@ function tw_image_resize($image_url, $size, $image_id = 0) {
 
 			$data = tw_image_size($size, $image_id);
 
-			$width = $data['width'];
-			$height = $data['height'];
-			$crop = $data['crop'];
+			$sizes = tw_image_sizes();
+			$sizes = array_merge($sizes['registered'], $sizes['hidden']);
+
+			if (is_array($size)) {
+				$width = $size[0] ?? 0;
+				$height = $size[1] ?? 0;
+				$crop = $size[2] ?? true;
+			} elseif (is_string($size) and !empty($sizes[$size]) and $size != 'full') {
+				$width = $sizes[$size]['width'] ?? 0;
+				$height = $sizes[$size]['height'] ?? 0;
+				$crop = $sizes[$size]['crop'] ?? true;
+			} else {
+				$width = $data['width'];
+				$height = $data['height'];
+				$crop = $data['crop'];
+			}
+
+			$width = (int) $width;
+			$height = (int) $height;
 
 			$thumb_url = $image_url;
 

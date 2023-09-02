@@ -7,7 +7,8 @@ jQuery(function($) {
 			section = button.parents(data.wrapper),
 			terms = $('[data-term]', section),
 			search = $('[name="s"]', section),
-			wrapper = section.find('.items');
+			wrapper = section.find('.items'),
+			animated = !wrapper.hasClass('carousel');
 
 		var refreshItems = debouncer(function() {
 			section.trigger('reset');
@@ -17,11 +18,17 @@ jQuery(function($) {
 		data.noncer = template.nonce;
 
 		section.on('reset', function() {
+
 			data = button.data('loader');
 			data.offset = 0;
 			button.data('loader', data);
-			wrapper.removeAttr('style').css('height', wrapper.height());
+
+			if (animated) {
+				wrapper.removeAttr('style').css('height', wrapper.height());
+			}
+
 			button.trigger('click');
+
 		});
 
 		terms.on('click', function(e) {
@@ -93,9 +100,12 @@ jQuery(function($) {
 					var posts = $(response['result']);
 
 					wrapper.append(posts);
-					wrapper.removeAttr('style');
-					heightNew = wrapper.height();
-					wrapper.css('height', heightOld);
+
+					if (animated) {
+						wrapper.removeAttr('style');
+						heightNew = wrapper.height();
+						wrapper.css('height', heightOld);
+					}
 
 					button.addClass('is_hidden');
 
@@ -113,9 +123,11 @@ jQuery(function($) {
 
 					section.trigger('init');
 
-					wrapper.animate({height: heightNew}, 400, function() {
-						wrapper.removeAttr('style');
-					});
+					if (animated) {
+						wrapper.animate({height: heightNew}, 400, function() {
+							wrapper.removeAttr('style');
+						});
+					}
 
 				} else {
 

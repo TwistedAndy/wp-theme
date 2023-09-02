@@ -146,19 +146,11 @@ add_action('wp_default_scripts', function($scripts) {
 /**
  * Disable the Gutenberg assets
  */
-add_action('wp_print_styles', function() {
-
+add_action('init', function() {
 	if (!is_admin()) {
-
-		wp_dequeue_style('wc-blocks-style');
-		wp_dequeue_style('wp-block-library');
-		wp_dequeue_style('classic-theme-styles');
-
-		remove_action('wp_body_open', 'wp_global_styles_render_svg_filters');
-		remove_action('in_admin_header', 'wp_global_styles_render_svg_filters');
-
+		remove_action('wp_enqueue_scripts', 'wp_common_block_scripts_and_styles');
+		remove_action('wp_enqueue_scripts', 'wp_enqueue_classic_theme_styles');
 	}
-
 }, 100);
 
 

@@ -15,75 +15,51 @@
 /*
  * Read an ACF field value from a serialized array stored in one meta field
  */
-add_filter('acf/pre_load_value', 'tw_acf_load_value', 10, 3);
+add_filter('acf/pre_load_value', 'tw_acf_load_value', 5, 3);
 
-function tw_acf_load_value($values, $post_id, $field) {
+function tw_acf_load_value($result, $post_id, $field) {
 
-	/**
-	 * We apply all these changes only to field groups, repeaters,
-	 * and flexible content fields because they always have sub fields.
-	 *
-	 * We use them to map and process the data stored in the database.
-	 */
+	$entity = acf_decode_post_id($post_id);
+
+	if (empty($entity['id']) or empty($entity['type']) or !in_array($entity['type'], ['post', 'term', 'comment', 'user', 'option'])) {
+		return $result;
+	}
+
+	if (!empty($field['_clone']) and $clone = acf_get_field($field['_clone'])) {
+		$name = $clone['name'];
+	} else {
+		$name = $field['name'];
+	}
+
+	if ($entity['type'] == 'option') {
+		$value = get_option($post_id . '_' . $name, false);
+	} else {
+		$value = get_metadata($entity['type'], $entity['id'], $name, true);
+	}
+
+	$result = $value;
 
 	if (in_array($field['type'], ['group', 'repeater', 'flexible_content', 'clone'])) {
 
-		$entity = acf_decode_post_id($post_id);
-
-		if (!empty($entity['id']) and !empty($entity['type']) and in_array($entity['type'], ['post', 'term', 'comment', 'user', 'option'])) {
-
-			$name = $field['name'];
-
-			/**
-			 * ACF saves seamless clone values using the prefix as a key
-			 *
-			 * In some cases the field contains an original name instead of a prefix
-			 */
-			if (!empty($field['_clone']) and $clone = acf_get_field($field['_clone'])) {
-				$name = $clone['name'];
-			}
-
-			if ($entity['type'] == 'option') {
-				$data = get_option($post_id . '_' . $name, false);
-			} else {
-				$data = get_metadata($entity['type'], $entity['id'], $name, true);
-			}
-
-			if (is_array($data) and !empty($data)) {
-
-				/**
-				 * Process duplicated clone fields correctly
-				 */
-				if (!empty($field['_clone']) and !empty($field['_name']) and isset($data[$field['_name']])) {
-					$data = $data[$field['_name']];
-				}
-
-				$data = tw_acf_decode_data($data, $field);
-
-				if (!empty($data)) {
-					$values = $data;
-				}
-
-			}
-
+		if (!empty($field['_clone']) and !empty($field['_name']) and is_array($value) and isset($value[$field['_name']])) {
+			$value = $value[$field['_name']];
 		}
+
+		$result = tw_acf_decode_data($value, $field);
 
 	} elseif (!empty($field['_clone'])) {
 
-		/**
-		 * Process cloned fields, stored in the array
-		 */
 		$cloned_field = acf_get_field($field['_clone']);
 
-		$cloned_values = tw_acf_load_value($values, $post_id, $cloned_field);
+		$cloned_values = tw_acf_load_value($result, $post_id, $cloned_field);
 
 		if (isset($cloned_values[$field['key']])) {
-			return $cloned_values[$field['key']];
+			$result = $cloned_values[$field['key']];
 		}
 
 	}
 
-	return $values;
+	return $result;
 
 }
 
@@ -95,37 +71,135 @@ add_filter('acf/pre_update_value', 'tw_acf_save_value', 10, 4);
 
 function tw_acf_save_value($check, $values, $post_id, $field) {
 
-	if (!empty($field['type']) and in_array($field['type'], ['group', 'repeater', 'flexible_content', 'clone'])) {
+	if ($check !== null or !is_array($field) or empty($field['type'])) {
+		return $check;
+	}
 
-		$entity = acf_decode_post_id($post_id);
+	$entity = acf_decode_post_id($post_id);
 
-		if (!empty($entity['id']) and !empty($entity['type']) and in_array($entity['type'], ['post', 'term', 'comment', 'user', 'option'])) {
+	if (empty($entity['id']) or empty($entity['type']) or !in_array($entity['type'], ['post', 'term', 'comment', 'user', 'option'])) {
+		return $check;
+	}
 
-			$value = tw_acf_encode_data($values, $field);
+	$value = tw_acf_encode_data($values, $field);
 
-			/**
-			 * It is worth mentioning, that we save the data in one field,
-			 * and the field name in other one for compatibility reasons.
-			 *
-			 * We don't need this optimization on the back end, but it is
-			 * substantial on the front end. ACF plugin should be able to
-			 * get the correct field key to process the result correctly
-			 */
-			if ($entity['type'] == 'option') {
-				update_option($post_id . '_' . $field['name'], $value, true);
-				update_option('_' . $post_id . '_' . $field['name'], $field['key'], true);
-			} else {
-				update_metadata($entity['type'], $entity['id'], $field['name'], $value);
-				update_metadata($entity['type'], $entity['id'], '_' . $field['name'], $field['key']);
+	$map_key = '_acf_map';
+
+	if ($entity['type'] == 'option') {
+
+		$map_key = $entity['id'] . $map_key;
+
+		$map = get_option($map_key, null);
+
+		if (!is_array($map)) {
+			$map = [];
+		}
+
+		if (empty($value) and !is_numeric($value)) {
+
+			if (isset($map[$field['name']])) {
+				unset($map[$field['name']]);
 			}
 
-			$check = true;
+			delete_option($entity['id'] . '_' . $field['name']);
 
+		} else {
+
+			$map[$field['name']] = str_replace('field_', '', $field['key']);
+
+			update_option($entity['id'] . '_' . $field['name'], $value, true);
+
+		}
+
+		if ($map) {
+			update_option($map_key, $map, true);
+		} else {
+			delete_option($map_key);
+		}
+
+	} else {
+
+		$map = get_metadata($entity['type'], $entity['id'], $map_key, true);
+
+		if (!is_array($map)) {
+			$map = [];
+		}
+
+		if (empty($value) and !is_numeric($value)) {
+
+			if (isset($map[$field['name']])) {
+				unset($map[$field['name']]);
+			}
+
+			delete_metadata($entity['type'], $entity['id'], $field['name']);
+
+		} else {
+
+			$map[$field['name']] = str_replace('field_', '', $field['key']);
+
+			update_metadata($entity['type'], $entity['id'], $field['name'], $value);
+
+		}
+
+		if ($map) {
+			update_metadata($entity['type'], $entity['id'], $map_key, $map);
+		} else {
+			delete_metadata($entity['type'], $entity['id'], $map_key);
 		}
 
 	}
 
-	return $check;
+	acf_flush_value_cache($post_id, $field['name']);
+
+	return true;
+
+}
+
+
+/**
+ * Process key loading
+ */
+add_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10, 3);
+
+function tw_acf_load_reference($result, $field, $post_id) {
+
+	if (is_object($post_id)) {
+		$post_id = acf_get_valid_post_id($post_id);
+	}
+
+	$cache_key = 'acf_map_cache_' . $post_id;
+
+	$value = tw_app_get($cache_key, null);
+
+	if ($value !== null) {
+		return $value;
+	}
+
+	$entity = acf_decode_post_id($post_id);
+
+	if (empty($entity) or empty($entity['id']) or empty($entity['type'])) {
+		return $result;
+	}
+
+	$map_key = '_acf_map';
+
+	if ($entity['type'] == 'option') {
+		$map = get_option($entity['id'] . $map_key, null);
+	} else {
+		$map = get_metadata($entity['type'], $entity['id'], $map_key, true);
+	}
+
+	if (is_array($map) and !empty($map[$field])) {
+		$result = $map[$field];
+	}
+
+	if ($result and strpos($result, 'field_') !== 0) {
+		$result = 'field_' . $result;
+	}
+
+	tw_app_set($cache_key, $result);
+
+	return $result;
 
 }
 
@@ -176,13 +250,9 @@ function tw_acf_decode_data($values, $field) {
 		 * The main difference between repeaters and field groups or layouts
 		 * is the keys. Repeaters are using numeric keys
 		 */
-		if (!empty($field['type']) and $field['type'] === 'group') {
-			$is_repeater = false;
-		} else {
-			$is_repeater = is_numeric(array_key_first($values));
-		}
+		$key = array_key_first($values);
 
-		if ($is_repeater) {
+		if (is_numeric($key)) {
 
 			foreach ($values as $i => $metadata) {
 
@@ -353,63 +423,6 @@ function tw_acf_encode_data($values, $field) {
 
 
 /**
- * Increase content width on a term edit screen
- * and scripts for product variations
- */
-add_action('admin_head', function() {
-
-	global $post_type;
-
-	if ($post_type == 'product' and function_exists('acf_get_field_groups')) { ?>
-		<script type="text/javascript">
-			jQuery(function($) {
-				$('#woocommerce-product-data').on('woocommerce_variations_loaded', function() {
-					acf.doAction('ready');
-				});
-			});
-		</script>
-		<?php wp_enqueue_script('jquery-core'); ?>
-		<?php wp_enqueue_script('jquery-ui-core'); ?>
-	<?php } ?>
-
-	<style>
-		#edittag {
-			max-width: 1920px;
-		}
-		.acf-repeater.-table.-empty .acf-table {
-			display: none;
-		}
-	</style>
-
-<?php });
-
-
-/**
- * Add new options page for the theme settings
- */
-add_action('init', function() {
-
-	if (function_exists('acf_add_options_sub_page')) {
-
-		acf_add_options_sub_page([
-			'page_title' => __('Theme Settings', 'twee'),
-			'menu_title' => __('Theme', 'twee'),
-			'menu_slug' => 'theme-settings',
-			'parent_slug' => 'options-general.php',
-			'capability' => 'manage_options',
-			'redirect' => false,
-			'position' => 90,
-			'icon_url' => 'dashicons-star-filled',
-			'update_button' => __('Refresh', 'twee'),
-			'autoload' => true
-		]);
-
-	}
-
-});
-
-
-/**
  * Save the ACF field groups to JSON files
  */
 add_filter('acf/settings/save_json', function() {
@@ -446,22 +459,6 @@ add_filter('acf/settings/load_json', function($paths) {
 
 
 /**
- * Add an API key for the Google Maps field
- */
-add_filter('acf/settings/google_api_key', function() {
-	return 'AIzaSyAJ5QTsj4apSnVK-6T7HMQfUW5-RljJTQ4';
-});
-
-
-/**
- * Disable ACF updates
- */
-if (function_exists('acf_updates')) {
-	remove_filter('pre_set_site_transient_update_plugins', [acf_updates(), 'modify_plugins_transient'], 10, 1);
-}
-
-
-/**
  * Polyfill for the array_key_first function
  */
 if (!function_exists('array_key_first')) {
@@ -472,58 +469,10 @@ if (!function_exists('array_key_first')) {
 
 
 /**
- * A fallback function for the ACF plugin
- */
-if (!function_exists('get_field') and !is_admin()) {
-
-	function get_field($field, $post_id = false) {
-
-		$value = false;
-
-		if (is_numeric($post_id)) {
-
-			if (empty($post_id)) {
-				$post_id = intval(get_the_ID());
-			}
-
-			$value = get_post_meta($post_id, $field, true);
-
-		} elseif ($post_id instanceof WP_Term) {
-
-			$value = get_term_meta($post_id->term_id, $field, true);
-
-		} elseif ($post_id instanceof WP_User) {
-
-			$value = get_user_meta($post_id->ID, $field, true);
-
-		} elseif ($post_id == 'option' or $post_id == 'options') {
-
-			$value = get_option('options_' . $field);
-
-		} elseif (strpos($post_id, '_') !== false) {
-
-			$parts = explode('_', $post_id);
-
-			if ($parts[0] == 'category' or taxonomy_exists($parts[0])) {
-				$value = get_term_meta($parts[1], $field, true);
-			} elseif ($parts[0] == 'user') {
-				$value = get_user_meta($parts[1], $field, true);
-			}
-
-		}
-
-		return $value;
-
-	}
-
-}
-
-
-/**
  * Add a new rule for product variations
  */
 add_filter('acf/location/rule_values/post_type', function($choices) {
-	$choices['product_variation'] = 'Product Variation';
+	$choices['product_variation'] = __('Product Variation', 'twee');
 	return $choices;
 });
 
@@ -533,11 +482,11 @@ add_filter('acf/location/rule_values/post_type', function($choices) {
  */
 add_action('woocommerce_save_product_variation', function($variation_id, $i = -1) {
 
-	if (!function_exists('update_field') or empty($_POST['acf']) or !is_array($_POST['acf']) or !isset($_POST['acf'][$i])) {
+	if (!function_exists('update_field') or empty($_POST['acf_variations']) or !is_array($_POST['acf_variations']) or !isset($_POST['acf_variations'][$i])) {
 		return;
 	}
 
-	$fields = $_POST['acf'][$i];
+	$fields = $_POST['acf_variations'][$i];
 
 	foreach ($fields as $key => $value) {
 		update_field($key, $value, $variation_id);
@@ -585,6 +534,142 @@ add_action('woocommerce_product_after_variable_attributes', function($loop, $var
  * @return array
  */
 function tw_acf_variation_field_name($field) {
-	$field['name'] = str_replace('acf[field_', 'acf[' . tw_app_get('tw_acf_index') . '][field_', $field['name']);
+	$field['name'] = str_replace('acf[field_', 'acf_variations[' . tw_app_get('tw_acf_index') . '][field_', $field['name']);
 	return $field;
+}
+
+
+/**
+ * Add new options page for the theme settings
+ */
+add_action('init', function() {
+
+	if (function_exists('acf_add_options_page')) {
+
+		acf_add_options_page([
+			'page_title' => __('Theme Settings', 'twee'),
+			'menu_title' => __('Theme Settings', 'twee'),
+			'menu_slug' => 'theme-settings',
+			'capability' => 'manage_options',
+			'redirect' => false,
+			'position' => 90,
+			'icon_url' => 'dashicons-star-filled',
+			'update_button' => __('Refresh', 'twee'),
+			'autoload' => true
+		]);
+
+	}
+
+});
+
+
+/**
+ * Add an API key for the Google Maps field
+ */
+add_filter('acf/settings/google_api_key', function() {
+	return 'AIzaSyAJ5QTsj4apSnVK-6T7HMQfUW5-RljJTQ4';
+});
+
+
+/**
+ * Increase content width on a term edit screen
+ * and scripts for product variations
+ */
+add_action('admin_head', function() {
+
+	global $post_type;
+
+	if ($post_type == 'product' and function_exists('acf_get_field_groups')) { ?>
+		<script type="text/javascript">
+			jQuery(function($) {
+				$('#woocommerce-product-data').on('woocommerce_variations_loaded', function() {
+					acf.doAction('ready');
+				});
+			});
+		</script>
+		<?php wp_enqueue_script('jquery-core'); ?>
+		<?php wp_enqueue_script('jquery-ui-core'); ?>
+	<?php } ?>
+
+	<style>
+		#edittag {
+			max-width: 1920px;
+		}
+
+		.acf-repeater.-table.-empty .acf-table {
+			display: none;
+		}
+
+		.acf-repeater .acf-row:hover > .acf-row-handle .acf-icon.show-on-shift,
+		.acf-repeater .acf-row.-hover > .acf-row-handle .acf-icon.show-on-shift {
+			top: auto;
+			z-index: 1;
+			bottom: -12px;
+			display: block !important;
+		}
+
+		#your-profile .acf-field textarea, #createuser .acf-field textarea {
+			max-width: none;
+			width: 100%;
+		}
+	</style>
+
+<?php });
+
+
+/**
+ * Disable ACF updates
+ */
+if (function_exists('acf_updates')) {
+	remove_filter('pre_set_site_transient_update_plugins', [acf_updates(), 'modify_plugins_transient'], 10, 1);
+}
+
+
+/**
+ * A fallback function for the ACF plugin
+ */
+if (!function_exists('get_field')) {
+
+	function get_field($field, $post_id = false) {
+
+		$value = null;
+
+		if (empty($post_id)) {
+			$post_id = intval(get_the_ID());
+		}
+
+		if (is_numeric($post_id)) {
+
+			$value = get_post_meta($post_id, $field, true);
+
+		} elseif ($post_id instanceof WP_Term) {
+
+			$value = get_term_meta($post_id->term_id, $field, true);
+
+		} elseif ($post_id instanceof WP_User) {
+
+			$value = get_user_meta($post_id->ID, $field, true);
+
+		} elseif ($post_id == 'option' or $post_id == 'options') {
+
+			$value = get_option('options_' . $field);
+
+		} elseif (strpos($post_id, '_') !== false) {
+
+			$parts = explode('_', $post_id);
+
+			if (count($parts) > 1) {
+				if ($parts[0] == 'category' or taxonomy_exists($parts[0])) {
+					$value = get_term_meta($parts[1], $field, true);
+				} elseif ($parts[0] == 'user') {
+					$value = get_user_meta($parts[1], $field, true);
+				}
+			}
+
+		}
+
+		return $value;
+
+	}
+
 }

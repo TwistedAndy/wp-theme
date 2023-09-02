@@ -130,7 +130,7 @@ function tw_post_terms($taxonomy) {
 					$terms[$row['object_id']] = [];
 				}
 
-				$terms[$row['object_id']][] = intval($row['term_id']);
+				$terms[$row['object_id']][] = (int) $row['term_id'];
 
 			}
 
