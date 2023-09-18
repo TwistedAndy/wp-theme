@@ -19,6 +19,10 @@ add_filter('acf/pre_load_value', 'tw_acf_load_value', 5, 3);
 
 function tw_acf_load_value($result, $post_id, $field) {
 
+	if ($result !== null) {
+		return $result;
+	}
+
 	$entity = acf_decode_post_id($post_id);
 
 	if (empty($entity['id']) or empty($entity['type']) or !in_array($entity['type'], ['post', 'term', 'comment', 'user', 'option'])) {
@@ -168,8 +172,9 @@ function tw_acf_load_reference($result, $field, $post_id) {
 	}
 
 	$cache_key = 'acf_map_cache_' . $post_id;
+	$cache_group = 'twee_meta';
 
-	$value = tw_app_get($cache_key, null);
+	$value = tw_app_get($cache_key, $cache_group);
 
 	if ($value !== null) {
 		return $value;
@@ -197,7 +202,7 @@ function tw_acf_load_reference($result, $field, $post_id) {
 		$result = 'field_' . $result;
 	}
 
-	tw_app_set($cache_key, $result);
+	tw_app_set($cache_key, $result, $cache_group);
 
 	return $result;
 

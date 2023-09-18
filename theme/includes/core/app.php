@@ -85,43 +85,80 @@ add_action('init', function() {
 
 
 /**
- *  Add a value to the cache
+ *  Set a value to the runtime cache
  *
  * @param string $key
  * @param mixed  $value
  */
-function tw_app_set($key, $value) {
+function tw_app_set($key, $value, $group = 'default') {
 
-	global $tw_acf_cache;
+	global $twee_cache;
 
-	if (empty($tw_acf_cache)) {
-		$tw_acf_cache = [];
+	if (empty($twee_cache)) {
+		$twee_cache = [];
 	}
 
-	$tw_acf_cache[$key] = $value;
+	if ($value === null and isset($twee_cache[$group]) and isset($twee_cache[$group][$key])) {
+
+		unset($twee_cache[$group][$key]);
+
+	} else {
+
+		if (!isset($twee_cache[$group])) {
+			$twee_cache[$group] = [];
+		}
+
+		$twee_cache[$group][$key] = $value;
+
+	}
 
 }
 
 
 /**
- * Retrieve a value from the memory cache
+ * Get a value from the runtime cache
  *
  * @param string $key
+ * @param string $group
  * @param null   $default
  *
  * @return mixed
  */
-function tw_app_get($key, $default = null) {
+function tw_app_get($key, $group = 'default', $default = null) {
 
-	global $tw_acf_cache;
+	global $twee_cache;
 
-	$value = $default;
-
-	if (isset($tw_acf_cache[$key])) {
-		$value = $tw_acf_cache[$key];
+	if (!is_array($twee_cache)) {
+		$twee_cache = [];
 	}
 
-	return $value;
+	if (isset($twee_cache[$group]) and isset($twee_cache[$group][$key])) {
+		return $twee_cache[$group][$key];
+	} else {
+		return $default;
+	}
+
+}
+
+
+/**
+ * Clear a runtime cache group
+ *
+ * @param $group
+ *
+ * @return void
+ */
+function tw_app_clear($group) {
+
+	global $twee_cache;
+
+	if (!is_array($twee_cache)) {
+		$twee_cache = [];
+	}
+
+	if (isset($twee_cache[$group])) {
+		unset($twee_cache[$group]);
+	}
 
 }
 

@@ -25,7 +25,7 @@ function tw_term_data($key = 'term_id', $field = 'name', $taxonomy = '') {
 		$cache_group .= '_' . $taxonomy;
 	}
 
-	$labels = tw_app_get($cache_key . $cache_group);
+	$labels = tw_app_get($cache_key, $cache_group);
 
 	if (is_array($labels)) {
 		return $labels;
@@ -69,7 +69,7 @@ function tw_term_data($key = 'term_id', $field = 'name', $taxonomy = '') {
 			}
 		}
 
-		tw_app_set($cache_key . $cache_group, $labels);
+		tw_app_set($cache_key, $labels, $cache_group);
 
 		wp_cache_set($cache_key, $labels, $cache_group);
 
@@ -98,7 +98,7 @@ function tw_term_taxonomies($taxonomy = '', $field = 'term_id') {
 		$cache_group .= '_' . $taxonomy;
 	}
 
-	$terms = tw_app_get($cache_key . $cache_group);
+	$terms = tw_app_get($cache_key, $cache_group);
 
 	if (is_array($terms)) {
 		return $terms;
@@ -158,7 +158,7 @@ function tw_term_taxonomies($taxonomy = '', $field = 'term_id') {
 
 		}
 
-		tw_app_set($cache_key . $cache_group, $terms);
+		tw_app_set($cache_key, $terms, $cache_group);
 
 		wp_cache_set($cache_key, $terms, $cache_group);
 
@@ -238,8 +238,9 @@ function tw_term_link($term_id, $taxonomy) {
 	global $wp_rewrite;
 
 	$cache_key = 'link_' . $taxonomy . '_' . $term_id;
+	$cache_group = 'twee_terms';
 
-	$link = tw_app_get($cache_key, null);
+	$link = tw_app_get($cache_key, $cache_group);
 
 	if ($link !== null) {
 		return $link;
@@ -309,7 +310,7 @@ function tw_term_link($term_id, $taxonomy) {
 
 		}
 
-		tw_app_set($cache_key, $link);
+		tw_app_set($cache_key, $link, $cache_group);
 
 	}
 
@@ -337,7 +338,7 @@ function tw_term_parents($taxonomy = '') {
 		$taxonomy = false;
 	}
 
-	$terms = tw_app_get($cache_key . $cache_group);
+	$terms = tw_app_get($cache_key, $cache_group);
 
 	if (is_array($terms)) {
 		return $terms;
@@ -367,7 +368,7 @@ function tw_term_parents($taxonomy = '') {
 			}
 		}
 
-		tw_app_set($cache_key . $cache_group, $terms);
+		tw_app_set($cache_key, $terms, $cache_group);
 
 		wp_cache_set($cache_key, $terms, $cache_group);
 
@@ -393,8 +394,9 @@ function tw_term_ancestors($term_id, $thread = []) {
 	}
 
 	$cache_key = 'terms_thread_' . $term_id;
+	$cache_group = 'twee_terms';
 
-	$result = tw_app_get($cache_key);
+	$result = tw_app_get($cache_key, $cache_group);
 
 	if (is_array($result)) {
 		return $result;
@@ -416,7 +418,7 @@ function tw_term_ancestors($term_id, $thread = []) {
 
 	}
 
-	tw_app_set($cache_key, $thread);
+	tw_app_set($cache_key, $thread, $cache_group);
 
 	return $thread;
 
@@ -441,7 +443,7 @@ function tw_term_children($term_id = 0, $taxonomy = '', $parents = []) {
 		$cache_key = 'terms_children';
 		$cache_group = 'twee_terms';
 
-		$children = tw_app_get($cache_key . $cache_group);
+		$children = tw_app_get($cache_key, $cache_group);
 
 		if (is_array($children)) {
 			return $children;
@@ -459,7 +461,7 @@ function tw_term_children($term_id = 0, $taxonomy = '', $parents = []) {
 				$children[$child_id] = tw_term_children($child_id, $taxonomy, $parents);
 			}
 
-			tw_app_set($cache_key . $cache_group, $children);
+			tw_app_set($cache_key, $children, $cache_group);
 
 			wp_cache_set($cache_key, $children, $cache_group);
 
@@ -508,7 +510,7 @@ function tw_term_order($field = 'term_id') {
 	$cache_key = 'terms_order_' . $field;
 	$cache_group = 'twee_terms';
 
-	$order = tw_app_get($cache_key . $cache_group);
+	$order = tw_app_get($cache_key, $cache_group);
 
 	if (is_array($order)) {
 		return $order;
@@ -544,7 +546,7 @@ function tw_term_order($field = 'term_id') {
 
 		asort($order);
 
-		tw_app_set($cache_key . $cache_group, $order);
+		tw_app_set($cache_key, $order, $cache_group);
 
 		wp_cache_set($cache_key, $order, $cache_group);
 
@@ -567,7 +569,7 @@ function tw_term_tree($taxonomy, $flatten = false) {
 	$cache_key = 'term_hierarchy_' . $taxonomy;
 	$cache_group = 'twee_terms_' . $taxonomy;
 
-	$elements = tw_app_get($cache_key . $cache_group);
+	$elements = tw_app_get($cache_key, $cache_group);
 
 	if (!is_array($elements)) {
 		$elements = wp_cache_get($cache_key, $cache_group);
@@ -633,7 +635,7 @@ function tw_term_tree($taxonomy, $flatten = false) {
 
 		}
 
-		tw_app_set($cache_key . $cache_group, $elements);
+		tw_app_set($cache_key, $elements, $cache_group);
 
 		wp_cache_set($cache_key, $elements, $cache_group);
 
@@ -643,7 +645,7 @@ function tw_term_tree($taxonomy, $flatten = false) {
 
 		$cache_key .= '_flatten';
 
-		$data = tw_app_get($cache_key . $cache_group);
+		$data = tw_app_get($cache_key, $cache_group);
 
 		if (!is_array($data)) {
 			$data = wp_cache_get($cache_key);
@@ -653,7 +655,7 @@ function tw_term_tree($taxonomy, $flatten = false) {
 
 			$elements = tw_term_flatten_tree($elements);
 
-			tw_app_set($cache_key . $cache_group, $elements);
+			tw_app_set($cache_key, $elements, $cache_group);
 
 			wp_cache_set($cache_key, $elements, $cache_group);
 
@@ -745,19 +747,31 @@ function tw_term_flatten_tree($tree) {
 
 
 /**
+ * Clear term cache
+ *
+ * @param string $taxonomy
+ *
+ * @return void
+ */
+function tw_term_clear_cache($taxonomy) {
+	tw_app_clear('twee_terms');
+	tw_app_clear('twee_terms_' . $taxonomy);
+	wp_cache_flush_group('twee_terms');
+	wp_cache_flush_group('twee_terms_' . $taxonomy);
+}
+
+
+/**
  * Clean term caches
  */
 add_action('edit_terms', function($ids, $taxonomy) {
-	wp_cache_flush_group('twee_terms');
-	wp_cache_flush_group('twee_terms_' . $taxonomy);
+	tw_term_clear_cache($taxonomy);
 }, 10, 2);
 
 add_action('clean_term_cache', function($ids, $taxonomy) {
-	wp_cache_flush_group('twee_terms');
-	wp_cache_flush_group('twee_terms_' . $taxonomy);
+	tw_term_clear_cache($taxonomy);
 }, 10, 2);
 
 add_action('clean_taxonomy_cache', function($taxonomy) {
-	wp_cache_flush_group('twee_terms');
-	wp_cache_flush_group('twee_terms_' . $taxonomy);
+	tw_term_clear_cache($taxonomy);
 }, 10, 1);

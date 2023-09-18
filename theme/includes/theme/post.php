@@ -29,7 +29,7 @@ function tw_post_data($type, $key = 'ID', $value = 'post_title') {
 		}
 	}
 
-	$posts = tw_app_get($cache_key . $cache_group);
+	$posts = tw_app_get($cache_key, $cache_group);
 
 	if (is_array($posts)) {
 		return $posts;
@@ -75,7 +75,7 @@ function tw_post_data($type, $key = 'ID', $value = 'post_title') {
 
 		}
 
-		tw_app_set($cache_key . $cache_group, $posts);
+		tw_app_set($cache_key, $posts, $cache_group);
 
 		wp_cache_set($cache_key, $posts, $cache_group);
 
@@ -98,7 +98,7 @@ function tw_post_terms($taxonomy) {
 	$cache_key = 'post_terms_' . $taxonomy;
 	$cache_group = 'twee_post_terms_' . $taxonomy;
 
-	$terms = tw_app_get($cache_key . $cache_group);
+	$terms = tw_app_get($cache_key, $cache_group);
 
 	if (is_array($terms)) {
 		return $terms;
@@ -136,7 +136,7 @@ function tw_post_terms($taxonomy) {
 
 		}
 
-		tw_app_set($cache_key . $cache_group, $terms);
+		tw_app_set($cache_key, $terms, $cache_group);
 
 		wp_cache_set($cache_key, $terms, $cache_group);
 
@@ -152,7 +152,9 @@ function tw_post_terms($taxonomy) {
  */
 add_action('save_post', function($post_id, $post) {
 	if ($post instanceof WP_Post) {
-		wp_cache_flush_group('twee_posts_' . $post->post_type);
+		$cache_group = 'twee_posts_' . $post->post_type;
+		tw_app_clear($cache_group);
+		wp_cache_flush_group($cache_group);
 	}
 }, 10, 2);
 
@@ -161,5 +163,7 @@ add_action('save_post', function($post_id, $post) {
  * Clear post terms cache
  */
 add_action('set_object_terms', function($object_id, $terms, $ids, $taxonomy) {
-	wp_cache_flush_group('twee_post_terms_' . $taxonomy);
+	$cache_group = 'twee_post_terms_' . $taxonomy;
+	tw_app_clear($cache_group);
+	wp_cache_flush_group($cache_group);
 }, 10, 4);
