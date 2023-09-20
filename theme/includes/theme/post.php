@@ -43,7 +43,7 @@ function tw_post_data($type, $key = 'ID', $value = 'post_title') {
 
 		$db = tw_app_database();
 
-		$rows = $db->get_results("SELECT p.* FROM {$db->posts} p WHERE p.post_type = '{$type}'", ARRAY_A);
+		$rows = $db->get_results($db->prepare("SELECT p.* FROM {$db->posts} p WHERE p.post_type = %s", $type), ARRAY_A);
 
 		if ($rows) {
 
@@ -75,11 +75,11 @@ function tw_post_data($type, $key = 'ID', $value = 'post_title') {
 
 		}
 
-		tw_app_set($cache_key, $posts, $cache_group);
-
 		wp_cache_set($cache_key, $posts, $cache_group);
 
 	}
+
+	tw_app_set($cache_key, $posts, $cache_group);
 
 	return $posts;
 
@@ -112,11 +112,11 @@ function tw_post_terms($taxonomy) {
 
 		$db = tw_app_database();
 
-		$rows = $db->get_results("
+		$rows = $db->get_results($db->prepare("
 			SELECT tr.object_id, tt.term_id
 			FROM {$db->term_relationships} tr 
 			LEFT JOIN {$db->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
-			WHERE tt.taxonomy = '{$taxonomy}'", ARRAY_A);
+			WHERE tt.taxonomy = %s", $taxonomy), ARRAY_A);
 
 		if ($rows) {
 
@@ -136,11 +136,11 @@ function tw_post_terms($taxonomy) {
 
 		}
 
-		tw_app_set($cache_key, $terms, $cache_group);
-
 		wp_cache_set($cache_key, $terms, $cache_group);
 
 	}
+
+	tw_app_set($cache_key, $terms, $cache_group);
 
 	return $terms;
 

@@ -18,7 +18,6 @@
  */
 function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode = false) {
 
-	$meta_key = esc_sql($meta_key);
 	$cache_key = $meta_type . '_meta_' . $meta_key;
 	$cache_group = 'twee_' . $meta_type . '_meta';
 
@@ -64,7 +63,7 @@ function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode =
 			$key = 'post_id';
 		}
 
-		$result = $db->get_results("SELECT meta.{$key}, meta.meta_value FROM {$table} AS meta WHERE meta.meta_key = '{$meta_key}'", ARRAY_A);
+		$result = $db->get_results($db->prepare("SELECT meta.{$key}, meta.meta_value FROM {$table} AS meta WHERE meta.meta_key = %s", $meta_key), ARRAY_A);
 
 		if ($result) {
 			if ($decode) {
@@ -78,11 +77,11 @@ function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode =
 			}
 		}
 
-		tw_app_set($cache_key, $meta, $cache_group);
-
 		wp_cache_set($cache_key, $meta, $cache_group);
 
 	}
+
+	tw_app_set($cache_key, $meta, $cache_group);
 
 	return $meta;
 
