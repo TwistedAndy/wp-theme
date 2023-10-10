@@ -383,6 +383,7 @@
                                 "date": "Date",
                                 "title": "Name",
                                 "rand": "Random",
+                                "related": "Related",
                                 "menu_order": "Menu Order",
                                 "custom": "Custom"
                             },
@@ -422,7 +423,7 @@
                         {
                             "key": "field_61f66a38e35da",
                             "label": "Categories",
-                            "name": "categories",
+                            "name": "category",
                             "type": "taxonomy",
                             "instructions": "",
                             "required": 0,

@@ -7,9 +7,9 @@
  * @version 4.0
  */
 
-namespace Twee;
+namespace Twee\Widgets;
 
-class Posts extends Widget {
+class Posts extends \Twee\Widget {
 
 	public $fields = [
 		'title' => [

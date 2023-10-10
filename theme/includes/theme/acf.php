@@ -593,6 +593,9 @@ add_action('admin_head', function() {
 				$('#woocommerce-product-data').on('woocommerce_variations_loaded', function() {
 					acf.doAction('ready');
 				});
+				$('.acf-fields').on('mousewheel', 'input[type="number"]', function(e) {
+					$(this).blur();
+				});
 			});
 		</script>
 		<?php wp_enqueue_script('jquery-core'); ?>

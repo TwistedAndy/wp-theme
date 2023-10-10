@@ -398,10 +398,16 @@ function tw_term_ancestors($term_id, $thread = []) {
 	$cache_key = 'terms_thread_' . $term_id;
 	$cache_group = 'twee_terms';
 
-	$result = tw_app_get($cache_key, $cache_group);
+	$initial = empty($thread);
 
-	if (is_array($result)) {
-		return $result;
+	if ($initial) {
+
+		$result = tw_app_get($cache_key, $cache_group);
+
+		if (is_array($result)) {
+			return $result;
+		}
+
 	}
 
 	$parents = tw_term_parents();
@@ -416,7 +422,9 @@ function tw_term_ancestors($term_id, $thread = []) {
 
 	}
 
-	tw_app_set($cache_key, $thread, $cache_group);
+	if ($initial) {
+		tw_app_set($cache_key, $thread, $cache_group);
+	}
 
 	return $thread;
 

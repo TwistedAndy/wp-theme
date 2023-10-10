@@ -20,8 +20,8 @@ function tw_pagination($args = [], $query = false) {
 	$defaults = [
 		'before' => '<div role="navigation" aria-label="' . esc_attr__('Pages', 'twee') . '" class="pagination_box">',
 		'after' => '</div>',
-		'prev' => '&laquo;',
-		'next' => '&raquo;',
+		'prev' => '',
+		'next' => '',
 		'first' => false,
 		'last' => false,
 		'pages_text' => '',

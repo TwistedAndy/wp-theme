@@ -148,6 +148,141 @@ function tw_post_terms($taxonomy) {
 
 
 /**
+ * Build the post query
+ *
+ * @param string $type
+ * @param array  $block
+ *
+ * @return array
+ */
+function tw_post_query($type, $block) {
+
+	if (!is_array($block)) {
+		$block = [];
+	}
+
+	$taxonomies = get_object_taxonomies($type);
+
+	$args = [
+		'post_type' => $type,
+		'post_status' => 'publish',
+		'posts_per_page' => 6,
+		'orderby' => 'date',
+		'order' => 'DESC',
+		'offset' => 0
+	];
+
+	if (!empty($block['exclude'])) {
+		$args['post__not_in'] = $block['exclude'];
+	}
+
+	if (!empty($block['number'])) {
+		$args['posts_per_page'] = intval($block['number']);
+	}
+
+	if (!empty($block['offset'])) {
+		$args['offset'] = intval($block['offset']);
+	}
+
+	$tax_query = [];
+	$meta_query = [];
+
+	if ($taxonomies) {
+		foreach ($taxonomies as $taxonomy) {
+			if (!empty($block[$taxonomy]) and is_array($block[$taxonomy])) {
+				$tax_query[] = [
+					'taxonomy' => $taxonomy,
+					'field' => 'term_id',
+					'terms' => $block[$taxonomy],
+				];
+			}
+		}
+	}
+
+	$order = 'date';
+
+	if (!empty($block['order'])) {
+		$order = $block['order'];
+	}
+
+	if ($order == 'custom' and !empty($block['items'])) {
+
+		$args['post__in'] = $block['items'];
+		$args['orderby'] = 'post__in';
+		$args['order'] = 'ASC';
+
+	} elseif ($order == 'related') {
+
+		$object = get_queried_object();
+
+		if ($object instanceof WP_Post) {
+
+			if (empty($args['post__not_in'])) {
+				$args['post__not_in'] = [$object->ID];
+			} else {
+				$args['post__not_in'][] = $object->ID;
+			}
+
+			$taxonomy = reset($taxonomies);
+
+			if ($taxonomy and empty($block[$taxonomy])) {
+
+				$terms = tw_post_terms($taxonomy);
+
+				if (!empty($terms[$object->ID])) {
+					$tax_query[] = [
+						'taxonomy' => $taxonomy,
+						'field' => 'term_id',
+						'terms' => $terms[$object->ID],
+					];
+				}
+
+			}
+
+		}
+
+	} else {
+
+		$args['orderby'] = $order;
+
+		if ($order == 'date') {
+			$args['order'] = 'DESC';
+		} else {
+			$args['order'] = 'ASC';
+		}
+
+		if ($order == 'views') {
+
+			$meta_query['views'] = [
+				'key' => 'views_total',
+				'compare' => 'EXISTS',
+				'type' => 'NUMERIC'
+			];
+
+			$args['orderby'] = [
+				'views' => 'DESC',
+				'date' => 'DESC'
+			];
+
+		}
+
+	}
+
+	if ($tax_query) {
+		$tax_query['relation'] = 'AND';
+		$args['tax_query'] = $tax_query;
+	}
+
+	if ($meta_query) {
+		$args['meta_query'] = $meta_query;
+	}
+
+	return $args;
+
+}
+
+
+/**
  * Clear the post data caches
  */
 add_action('save_post', function($post_id, $post) {

@@ -84,7 +84,7 @@ function wp_ajax_comment_create() {
 
 		$fields = [
 			'comment' => [
-				'error' => 'Please enter comment',
+				'error' => 'Please enter a comment',
 				'pattern' => '#.{10,}#ui'
 			]
 		];

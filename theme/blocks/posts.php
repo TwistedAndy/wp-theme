@@ -3,7 +3,6 @@
 $type = 'post';
 $template = 'post';
 $wrapper = 'posts_box';
-$taxonomies = ['category', 'post_tag'];
 
 if (!empty($block['type'])) {
 	$type = $block['type'];
@@ -29,18 +28,7 @@ if (in_array('current', $options)) {
 
 	$query = $wp_query;
 
-	$items = $query->posts;
-
 } else {
-
-	$args = [
-		'post_type' => $type,
-		'post_status' => 'publish',
-		'posts_per_page' => 6,
-		'orderby' => 'date',
-		'order' => 'DESC',
-		'offset' => 0
-	];
 
 	if (in_array('exclude', $options)) {
 
@@ -58,70 +46,17 @@ if (in_array('current', $options)) {
 
 	}
 
-	if (!empty($block['exclude'])) {
-		$args['post__not_in'] = $block['exclude'];
-	}
-
-	if (!empty($block['number'])) {
-		$args['posts_per_page'] = intval($block['number']);
-	}
-
-	if (!empty($block['offset'])) {
-		$args['offset'] = intval($block['offset']);
-	}
-
-	$tax_query = [];
-
-	if ($taxonomies) {
-		foreach ($taxonomies as $taxonomy) {
-			if (!empty($block[$taxonomy]) and is_array($block[$taxonomy])) {
-				$tax_query[] = [
-					'taxonomy' => $taxonomy,
-					'field' => 'term_id',
-					'terms' => $block[$taxonomy],
-				];
-			}
-		}
-	}
-
-	if ($tax_query) {
-		$tax_query['relation'] = 'AND';
-		$args['tax_query'] = $tax_query;
-	}
-
-	$order = 'date';
-
-	if (!empty($block['order'])) {
-		$order = $block['order'];
-	}
-
-	if ($order == 'custom' and !empty($block['items'])) {
-
-		$args['post__in'] = $block['items'];
-		$args['orderby'] = 'post__in';
-		$args['order'] = 'ASC';
-
-	} else {
-
-		$args['orderby'] = $order;
-
-		if ($order == 'date') {
-			$args['order'] = 'DESC';
-		} else {
-			$args['order'] = 'ASC';
-		}
-
-	}
+	$args = tw_post_query($type, $block);
 
 	$query = new WP_Query($args);
 
-	$items = $query->posts;
-
 }
 
-if (empty($items)) {
+if (empty($query->posts)) {
 	return;
 }
+
+$items = $query->posts;
 
 $classes = ['items'];
 

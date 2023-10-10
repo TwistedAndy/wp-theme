@@ -1,5 +1,12 @@
-<?php if (post_password_required()) return; ?>
+<?php
 
+if (post_password_required()) {
+	return;
+}
+
+$number = get_comments_number();
+
+?>
 <section class="comments_box">
 
 	<div class="fixed">
