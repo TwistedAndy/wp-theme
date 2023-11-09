@@ -18,7 +18,7 @@
  */
 function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode = false) {
 
-	$cache_key = $meta_type . '_meta_' . $meta_key;
+	$cache_key = 'meta_' . $meta_key;
 	$cache_group = 'twee_' . $meta_type . '_meta';
 
 	if ($decode) {
@@ -91,12 +91,13 @@ function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode =
 /**
  * Clean cached meta data
  *
- * @param $meta_type
- * @param $meta_key
+ * @param string $meta_type
+ * @param string $meta_key
+ * @param string $object_id
  *
  * @return void
  */
-function tw_metadata_clean($meta_type, $meta_key) {
+function tw_metadata_clean($meta_type, $meta_key, $object_id) {
 
 	$cache_group = 'twee_' . $meta_type . '_meta';
 
@@ -107,12 +108,21 @@ function tw_metadata_clean($meta_type, $meta_key) {
 	}
 
 	if (in_array($meta_key, $cached_keys)) {
-		$cache_key = $meta_type . '_meta_' . $meta_key;
+
+		$cache_key = 'meta_' . $meta_key;
+
 		tw_app_set($cache_key, null, $cache_group);
-		tw_app_clear('twee_meta');
+		tw_app_set($cache_key . '_decoded', null, $cache_group);
+
 		wp_cache_delete($cache_key, $cache_group);
 		wp_cache_delete($cache_key . '_decoded', $cache_group);
+
+		tw_app_clear('twee_meta');
+		tw_app_clear('twee_meta_' . $object_id);
+
 		wp_cache_flush_group('twee_meta');
+		wp_cache_flush_group('twee_meta_' . $object_id);
+
 	}
 
 }
@@ -124,15 +134,15 @@ function tw_metadata_clean($meta_type, $meta_key) {
 foreach (['post', 'term', 'post', 'comment'] as $meta_type) {
 
 	add_action('added_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key) use ($meta_type) {
-		tw_metadata_clean($meta_type, $meta_key);
+		tw_metadata_clean($meta_type, $meta_key, $object_id);
 	}, 10, 3);
 
 	add_action('updated_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key) use ($meta_type) {
-		tw_metadata_clean($meta_type, $meta_key);
+		tw_metadata_clean($meta_type, $meta_key, $object_id);
 	}, 10, 3);
 
 	add_action('deleted_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key) use ($meta_type) {
-		tw_metadata_clean($meta_type, $meta_key);
+		tw_metadata_clean($meta_type, $meta_key, $object_id);
 	}, 10, 3);
 
 }

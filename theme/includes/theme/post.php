@@ -18,14 +18,19 @@
  */
 function tw_post_data($type, $key = 'ID', $value = 'post_title') {
 
-	$cache_key = 'posts_' . $type . '_' . $key;
+	$cache_key = 'posts_' . $key;
 	$cache_group = 'twee_posts_' . $type;
+
+	$select = 'p.*';
 
 	if ($value) {
 		if (is_string($value)) {
 			$cache_key .= '_' . $value;
+			$select = 'p.' . $key . ', p.' . $value;
 		} elseif (is_array($value)) {
+			asort($value);
 			$cache_key .= '_' . implode('_', $value);
+			$select = 'p.' . $key . ', p.' . implode(', p.', $value);
 		}
 	}
 
@@ -43,7 +48,7 @@ function tw_post_data($type, $key = 'ID', $value = 'post_title') {
 
 		$db = tw_app_database();
 
-		$rows = $db->get_results($db->prepare("SELECT p.* FROM {$db->posts} p WHERE p.post_type = %s", $type), ARRAY_A);
+		$rows = $db->get_results($db->prepare("SELECT {$select} FROM {$db->posts} p WHERE p.post_type = %s", $type), ARRAY_A);
 
 		if ($rows) {
 
@@ -95,7 +100,7 @@ function tw_post_data($type, $key = 'ID', $value = 'post_title') {
  */
 function tw_post_terms($taxonomy) {
 
-	$cache_key = 'post_terms_' . $taxonomy;
+	$cache_key = 'post_terms';
 	$cache_group = 'twee_post_terms_' . $taxonomy;
 
 	$terms = tw_app_get($cache_key, $cache_group);
@@ -148,150 +153,23 @@ function tw_post_terms($taxonomy) {
 
 
 /**
- * Build the post query
+ * Clear the post caches
  *
- * @param string $type
- * @param array  $block
+ * @param int     $post_id
+ * @param WP_Post $post
  *
- * @return array
+ * @return void
  */
-function tw_post_query($type, $block) {
-
-	if (!is_array($block)) {
-		$block = [];
-	}
-
-	$taxonomies = get_object_taxonomies($type);
-
-	$args = [
-		'post_type' => $type,
-		'post_status' => 'publish',
-		'posts_per_page' => 6,
-		'orderby' => 'date',
-		'order' => 'DESC',
-		'offset' => 0
-	];
-
-	if (!empty($block['exclude'])) {
-		$args['post__not_in'] = $block['exclude'];
-	}
-
-	if (!empty($block['number'])) {
-		$args['posts_per_page'] = intval($block['number']);
-	}
-
-	if (!empty($block['offset'])) {
-		$args['offset'] = intval($block['offset']);
-	}
-
-	$tax_query = [];
-	$meta_query = [];
-
-	if ($taxonomies) {
-		foreach ($taxonomies as $taxonomy) {
-			if (!empty($block[$taxonomy]) and is_array($block[$taxonomy])) {
-				$tax_query[] = [
-					'taxonomy' => $taxonomy,
-					'field' => 'term_id',
-					'terms' => $block[$taxonomy],
-				];
-			}
-		}
-	}
-
-	$order = 'date';
-
-	if (!empty($block['order'])) {
-		$order = $block['order'];
-	}
-
-	if ($order == 'custom' and !empty($block['items'])) {
-
-		$args['post__in'] = $block['items'];
-		$args['orderby'] = 'post__in';
-		$args['order'] = 'ASC';
-
-	} elseif ($order == 'related') {
-
-		$object = get_queried_object();
-
-		if ($object instanceof WP_Post) {
-
-			if (empty($args['post__not_in'])) {
-				$args['post__not_in'] = [$object->ID];
-			} else {
-				$args['post__not_in'][] = $object->ID;
-			}
-
-			$taxonomy = reset($taxonomies);
-
-			if ($taxonomy and empty($block[$taxonomy])) {
-
-				$terms = tw_post_terms($taxonomy);
-
-				if (!empty($terms[$object->ID])) {
-					$tax_query[] = [
-						'taxonomy' => $taxonomy,
-						'field' => 'term_id',
-						'terms' => $terms[$object->ID],
-					];
-				}
-
-			}
-
-		}
-
-	} else {
-
-		$args['orderby'] = $order;
-
-		if ($order == 'date') {
-			$args['order'] = 'DESC';
-		} else {
-			$args['order'] = 'ASC';
-		}
-
-		if ($order == 'views') {
-
-			$meta_query['views'] = [
-				'key' => 'views_total',
-				'compare' => 'EXISTS',
-				'type' => 'NUMERIC'
-			];
-
-			$args['orderby'] = [
-				'views' => 'DESC',
-				'date' => 'DESC'
-			];
-
-		}
-
-	}
-
-	if ($tax_query) {
-		$tax_query['relation'] = 'AND';
-		$args['tax_query'] = $tax_query;
-	}
-
-	if ($meta_query) {
-		$args['meta_query'] = $meta_query;
-	}
-
-	return $args;
-
-}
-
-
-/**
- * Clear the post data caches
- */
-add_action('save_post', function($post_id, $post) {
+function tw_post_clear_cache($post_id, $post) {
 	if ($post instanceof WP_Post) {
 		$cache_group = 'twee_posts_' . $post->post_type;
 		tw_app_clear($cache_group);
 		wp_cache_flush_group($cache_group);
 	}
-}, 10, 2);
+}
+
+add_action('save_post', 'tw_post_clear_cache', 10, 2);
+add_action('delete_post', 'tw_post_clear_cache', 10, 2);
 
 
 /**

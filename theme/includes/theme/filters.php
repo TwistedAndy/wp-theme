@@ -149,6 +149,7 @@ add_action('wp_default_scripts', function($scripts) {
 add_action('init', function() {
 	if (!is_admin()) {
 		remove_action('wp_enqueue_scripts', 'wp_common_block_scripts_and_styles');
+		remove_action('wp_enqueue_scripts', 'wp_enqueue_admin_bar_bump_styles');
 		remove_action('wp_enqueue_scripts', 'wp_enqueue_classic_theme_styles');
 	}
 }, 100);

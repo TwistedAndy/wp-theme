@@ -7,6 +7,10 @@
  * @version 4.0
  */
 
+global $twee_cache;
+
+$twee_cache = [];
+
 /**
  * Declare theme support and load translations
  */
@@ -94,10 +98,6 @@ function tw_app_set($key, $value, $group = 'default') {
 
 	global $twee_cache;
 
-	if (empty($twee_cache)) {
-		$twee_cache = [];
-	}
-
 	if ($value === null and isset($twee_cache[$group]) and isset($twee_cache[$group][$key])) {
 
 		unset($twee_cache[$group][$key]);
@@ -128,10 +128,6 @@ function tw_app_get($key, $group = 'default', $default = null) {
 
 	global $twee_cache;
 
-	if (!is_array($twee_cache)) {
-		$twee_cache = [];
-	}
-
 	if (isset($twee_cache[$group]) and isset($twee_cache[$group][$key])) {
 		return $twee_cache[$group][$key];
 	} else {
@@ -151,10 +147,6 @@ function tw_app_get($key, $group = 'default', $default = null) {
 function tw_app_clear($group) {
 
 	global $twee_cache;
-
-	if (!is_array($twee_cache)) {
-		$twee_cache = [];
-	}
 
 	if (isset($twee_cache[$group])) {
 		unset($twee_cache[$group]);

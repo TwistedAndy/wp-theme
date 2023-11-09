@@ -21,7 +21,6 @@ function tw_term_data($key = 'term_id', $field = 'name', $taxonomy = '') {
 	$cache_group = 'twee_terms';
 
 	if ($taxonomy) {
-		$cache_key .= '_' . $taxonomy;
 		$cache_group .= '_' . $taxonomy;
 	}
 
@@ -94,7 +93,6 @@ function tw_term_taxonomies($taxonomy = '', $field = 'term_id') {
 	$cache_group = 'twee_terms';
 
 	if ($taxonomy) {
-		$cache_key .= '_' . $taxonomy;
 		$cache_group .= '_' . $taxonomy;
 	}
 
@@ -237,8 +235,8 @@ function tw_term_link($term_id, $taxonomy) {
 
 	global $wp_rewrite;
 
-	$cache_key = 'link_' . $taxonomy . '_' . $term_id;
-	$cache_group = 'twee_terms';
+	$cache_key = 'link_' . $term_id;
+	$cache_group = 'twee_terms_' . $taxonomy;
 
 	$link = tw_app_get($cache_key, $cache_group);
 
@@ -250,7 +248,7 @@ function tw_term_link($term_id, $taxonomy) {
 
 	if ($object instanceof WP_Taxonomy and $object->public and $object->rewrite) {
 
-		$slugs = tw_term_data('term_id', 'slug');
+		$slugs = tw_term_data('term_id', 'slug', $taxonomy);
 
 		if (empty($slugs[$term_id])) {
 
@@ -278,7 +276,7 @@ function tw_term_link($term_id, $taxonomy) {
 
 					$list = [];
 
-					$parents = tw_term_ancestors($term_id);
+					$parents = tw_term_ancestors($term_id, $taxonomy);
 
 					if ($parents) {
 
@@ -328,17 +326,10 @@ function tw_term_link($term_id, $taxonomy) {
  *
  * @return array
  */
-function tw_term_parents($taxonomy = '') {
+function tw_term_parents($taxonomy) {
 
 	$cache_key = 'terms_parents';
-	$cache_group = 'twee_terms';
-
-	if ($taxonomy and taxonomy_exists($taxonomy)) {
-		$cache_key .= '_' . $taxonomy;
-		$cache_group .= '_' . $taxonomy;
-	} else {
-		$taxonomy = false;
-	}
+	$cache_group = 'twee_terms_' . $taxonomy;
 
 	$terms = tw_app_get($cache_key, $cache_group);
 
@@ -354,11 +345,7 @@ function tw_term_parents($taxonomy = '') {
 
 		$db = tw_app_database();
 
-		$query = "SELECT tt.term_id, tt.parent FROM {$db->term_taxonomy} tt";
-
-		if ($taxonomy) {
-			$query .= $db->prepare(" WHERE tt.taxonomy = %s", $taxonomy);
-		}
+		$query = $db->prepare("SELECT tt.term_id, tt.parent FROM {$db->term_taxonomy} tt WHERE tt.taxonomy = %s", $taxonomy);
 
 		$rows = $db->get_results($query, ARRAY_A);
 
@@ -384,46 +371,56 @@ function tw_term_parents($taxonomy = '') {
 /**
  * Get an array with a term and all parents
  *
+ * @param int    $term_id
+ * @param string $taxonomy
+ *
+ * @return array
+ */
+function tw_term_ancestors($term_id, $taxonomy) {
+
+	$cache_key = 'terms_ancestors_' . $term_id;
+	$cache_group = 'twee_terms_' . $taxonomy;
+
+	$result = tw_app_get($cache_key, $cache_group);
+
+	if (is_array($result)) {
+		return $result;
+	}
+
+	$result = wp_cache_get($cache_key, $cache_group);
+
+	if (is_array($result)) {
+		tw_app_set($cache_key, $result, $cache_group);
+		return $result;
+	}
+
+	$parents = tw_term_parents($taxonomy);
+
+	$thread = tw_term_ancestors_walker($term_id, [], $parents);
+
+	tw_app_set($cache_key, $thread, $cache_group);
+	wp_cache_set($cache_key, $thread, $cache_group);
+
+	return $thread;
+
+}
+
+
+/**
+ * Get the parent term ID from an array
+ *
  * @param int   $term_id
  * @param array $thread
+ * @param array $parents
  *
- * @return array|mixed
+ * @return array
  */
-function tw_term_ancestors($term_id, $thread = []) {
-
-	if (empty($term_id)) {
-		return $thread;
-	}
-
-	$cache_key = 'terms_thread_' . $term_id;
-	$cache_group = 'twee_terms';
-
-	$initial = empty($thread);
-
-	if ($initial) {
-
-		$result = tw_app_get($cache_key, $cache_group);
-
-		if (is_array($result)) {
-			return $result;
-		}
-
-	}
-
-	$parents = tw_term_parents();
+function tw_term_ancestors_walker($term_id, $thread, $parents) {
 
 	if (!empty($parents[$term_id])) {
-
-		$parent_id = $parents[$term_id];
-
+		$parent_id = (int) $parents[$term_id];
 		$thread[] = $parent_id;
-
-		$thread = tw_term_ancestors($parent_id, $thread);
-
-	}
-
-	if ($initial) {
-		tw_app_set($cache_key, $thread, $cache_group);
+		$thread = tw_term_ancestors_walker($parent_id, $thread, $parents);
 	}
 
 	return $thread;
@@ -450,7 +447,7 @@ function tw_term_children($term_id = 0, $taxonomy = '', $parents = []) {
 		$cache_group = 'twee_terms';
 
 		if ($taxonomy) {
-			$cache_key .= $taxonomy;
+			$cache_group .= '_' . $taxonomy;
 		}
 
 		$children = tw_app_get($cache_key, $cache_group);
@@ -576,8 +573,8 @@ function tw_term_order($field = 'term_id') {
  */
 function tw_term_posts($taxonomy) {
 
-	$cache_key = 'term_posts_' . $taxonomy;
-	$cache_group = 'twee_terms';
+	$cache_key = 'term_posts';
+	$cache_group = 'twee_post_terms_' . $taxonomy;
 
 	$terms = tw_app_get($cache_key, $cache_group);
 
@@ -637,7 +634,7 @@ function tw_term_posts($taxonomy) {
  */
 function tw_term_tree($taxonomy, $flatten = false) {
 
-	$cache_key = 'term_hierarchy_' . $taxonomy;
+	$cache_key = 'term_hierarchy';
 	$cache_group = 'twee_terms_' . $taxonomy;
 
 	$elements = tw_app_get($cache_key, $cache_group);
@@ -835,7 +832,7 @@ function tw_term_clear_cache($taxonomy) {
 /**
  * Clean term caches
  */
-add_action('edit_terms', function($ids, $taxonomy) {
+add_action('edited_terms', function($ids, $taxonomy) {
 	tw_term_clear_cache($taxonomy);
 }, 10, 2);
 

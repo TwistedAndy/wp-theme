@@ -255,7 +255,7 @@ function tw_image_link($image, $size = 'full') {
 		if ($image->post_type === 'attachment') {
 			$image = $image->ID;
 		} else {
-			$image = intval(get_post_meta($image->ID, '_thumbnail_id', true));
+			$image = (int) get_post_meta($image->ID, '_thumbnail_id', true);
 		}
 	}
 
@@ -264,7 +264,7 @@ function tw_image_link($image, $size = 'full') {
 		if (is_string($size) and !empty($image['sizes'][$size])) {
 			$thumb_url = $image['sizes'][$size];
 		} else {
-			$image = intval($image['ID']);
+			$image = (int) $image['ID'];
 		}
 
 	}
