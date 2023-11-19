@@ -59,13 +59,11 @@ section {
 	background-color: var(--color-section);
 	color: var(--color-text);
 	--gap-section-top: 0px;
+	--gap-section-bottom: var(--gap-section);
 
-	&:first-of-type {
-		--gap-section-top: var(--gap-subsection);
-	}
-
-	&.box_light:first-of-type, &.box_dark:first-of-type {
-		--gap-section-top: var(--gap-section);
+	section {
+		padding-right: 0;
+		padding-left: 0;
 	}
 
 }

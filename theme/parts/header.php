@@ -1,4 +1,35 @@
-<header class="header_box">
+<?php
+
+$classes = ['header_box'];
+
+$blocks = tw_app_get('current_blocks', null);
+
+if (!is_array($blocks)) {
+
+	$object = get_queried_object();
+
+	if ($object instanceof WP_Post) {
+		$blocks = get_post_meta($object->ID, 'blocks', true);
+	} elseif ($object instanceof WP_Term) {
+		$blocks = get_term_meta($object->term_id, 'blocks', true);
+	} else {
+		$blocks = [];
+	}
+
+}
+
+if ($blocks and is_array($blocks)) {
+
+	$block = reset($blocks);
+
+	if ($block and !empty($block['options']) and in_array('transparent', $block['options'])) {
+		$classes[] = 'is_transparent';
+	}
+
+}
+
+?>
+<header class="<?php echo implode(' ', $classes); ?>">
 
 	<div class="fixed">
 

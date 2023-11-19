@@ -1,12 +1,12 @@
 <?php
 
-get_header();
-
 $object = get_queried_object();
 
 $blocks = get_field('blocks', $object);
 
 if (empty($blocks)) {
+
+	$blocks = [];
 
 	if ($object instanceof WP_Term) {
 
@@ -35,6 +35,10 @@ if (empty($blocks)) {
 	];
 
 }
+
+tw_app_set('current_blocks', $blocks);
+
+get_header();
 
 echo tw_get_blocks($blocks);
 

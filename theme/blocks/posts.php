@@ -12,10 +12,6 @@ if (!empty($block['template'])) {
 	$template = $block['template'];
 }
 
-if ($type == 'product') {
-	$taxonomies = ['product_cat'];
-}
-
 $options = [];
 
 if (!empty($block['options']) and is_array($block['options'])) {
@@ -89,7 +85,9 @@ if (!empty($block['contents']) and !empty($block['contents']['buttons'])) {
 		<?php if (in_array('current', $options)) { ?>
 			<?php echo tw_pagination(); ?>
 		<?php } elseif (in_array('loader', $options)) { ?>
-			<?php tw_loader_button('.' . $wrapper, 'woo/product', $query); ?>
+			<?php tw_loader_button('.' . $wrapper, $template, $query); ?>
+		<?php } elseif ($buttons) { ?>
+			<?php echo tw_block_buttons($buttons); ?>
 		<?php } ?>
 
 	</div>

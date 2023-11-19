@@ -12,6 +12,7 @@
  *
  * @param string $key
  * @param string $field
+ * @param string $taxonomy
  *
  * @return array
  */

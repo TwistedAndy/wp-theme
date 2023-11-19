@@ -70,9 +70,9 @@ class Posts extends \Twee\Widget {
 			<?php foreach ($items as $item) { ?>
 
 				<div class="item">
-					<div class="date"><?php echo tw_date($item, 'd.m.Y'); ?></div>
-					<a href="<?php echo get_permalink($item->ID); ?>" class="title"><?php echo tw_title($item); ?></a>
-					<div class="text"><?php echo tw_text($item, $instance['chars']); ?></div>
+					<div class="date"><?php echo tw_content_date($item, 'd.m.Y'); ?></div>
+					<a href="<?php echo get_permalink($item); ?>" class="title"><?php echo $item->post_title; ?></a>
+					<div class="text"><?php echo tw_content_text($item, $instance['chars']); ?></div>
 				</div>
 
 			<?php } ?>

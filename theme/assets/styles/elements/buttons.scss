@@ -32,6 +32,7 @@ button {
 	font-weight: 500;
 	line-height: 20px;
 	text-align: center;
+	vertical-align: middle;
 	transition: 0.2s;
 	cursor: pointer;
 	z-index: 2;
@@ -141,9 +142,6 @@ button {
 	}
 
 	.button {
-		flex-basis: 0;
-		flex-grow: 1;
-		min-width: 0;
 		margin: 0 10px 10px;
 	}
 

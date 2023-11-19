@@ -1,10 +1,6 @@
 <?php
 
-get_header();
-
 the_post();
-
-tw_asset_enqueue('fancybox');
 
 $object = get_queried_object();
 
@@ -58,6 +54,10 @@ if (post_password_required($object)) {
 	}
 
 }
+
+tw_app_set('current_blocks', $blocks);
+
+get_header();
 
 echo tw_get_blocks($blocks);
 

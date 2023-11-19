@@ -1,6 +1,8 @@
 .header_box {
 	display: block;
 	height: var(--height-header);
+	padding: 0 var(--gap-aside);
+	margin: 0 0 var(--gap-subsection);
 	background-color: var(--color-base);
 	color: var(--color-heading);
 	font-size: 16px;
@@ -8,6 +10,10 @@
 	line-height: 1.5;
 	transition: background-color 0.3s, box-shadow 0.3s, height 0.3s;
 	z-index: 10;
+
+	& + .box_light, & + .box_dark {
+		margin-top: calc(-1 * var(--gap-subsection));
+	}
 
 	&.is_fixed {
 

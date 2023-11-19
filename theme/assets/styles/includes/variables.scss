@@ -75,6 +75,8 @@ $color_background: #F7F8F9;
 	--shadow-small: 0 1px 2px rgba(0, 0, 0, 0.15);
 	--shadow-regular: 5px 5px 40px rgba(0, 0, 0, 0.05);
 
+	--mask-image: none;
+
 	/* Font Sizes */
 	--size-huge: 56px;
 	--size-big: 48px;
@@ -86,6 +88,8 @@ $color_background: #F7F8F9;
 	--size-h6: 16px;
 	--size-tiny: 14px;
 	--size-base: 16px;
+	--size-small: 15px;
+	--size-large: 18px;
 	--size-content: 16px;
 
 	@include desktop_small {
@@ -111,7 +115,10 @@ $color_background: #F7F8F9;
 		--size-h2: 28px;
 		--size-h3: 20px;
 		--size-h4: 18px;
+		--size-tiny: 13px;
 		--size-base: 15px;
+		--size-small: 14px;
+		--size-large: 18px;
 		--size-content: 15px;
 
 	}
@@ -132,9 +139,6 @@ $color_background: #F7F8F9;
 		--size-h1: 32px;
 		--size-h2: 24px;
 		--size-h4: 16px;
-		--size-tiny: 13px;
-		--size-base: 14px;
-		--size-content: 14px;
 
 	}
 

@@ -93,6 +93,7 @@ add_action('init', function() {
  *
  * @param string $key
  * @param mixed  $value
+ * @param string $group
  */
 function tw_app_set($key, $value, $group = 'default') {
 

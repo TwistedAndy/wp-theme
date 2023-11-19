@@ -1,7 +1,7 @@
 <?php
 
 if (!empty($block['image'])) {
-	$block['contents']['before'] = tw_thumb($block['image'], 'full', '<div class="image">', '</div>');
+	$block['contents']['before'] = tw_image($block['image'], 'full', '<div class="image">', '</div>');
 }
 
 if (!empty($block['password'])) {

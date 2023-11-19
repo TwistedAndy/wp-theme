@@ -7,6 +7,7 @@
 		<?php if (!empty($block['text'])) { ?>
 			<div class="content">
 				<?php echo $block['text']; ?>
+				<?php tw_asset_enqueue('fancybox'); ?>
 			</div>
 		<?php } ?>
 

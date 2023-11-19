@@ -337,14 +337,14 @@ function tw_image_link($image, $size = 'full') {
 /**
  * Get the thumbnail as a background image or a mask
  *
- * @param int|array|WP_Post $image A post object, ACF image or an attachment ID
- * @param string|array      $size  Size of the image
- * @param bool              $mask  Return as a mask
- * @param bool              $style Include a style attribute
+ * @param int|array|WP_Post $image    A post object, ACF image or an attachment ID
+ * @param string|array      $size     Size of the image
+ * @param string            $property Return as a mask
+ * @param bool              $style    Include a style attribute
  *
  * @return string
  */
-function tw_image_attribute($image, $size = 'full', $mask = false, $style = true) {
+function tw_image_attribute($image, $size = 'full', $property = '--mask-image', $style = true) {
 
 	$link = tw_image_link($image, $size);
 
@@ -352,10 +352,10 @@ function tw_image_attribute($image, $size = 'full', $mask = false, $style = true
 
 	if ($link) {
 
-		if ($mask) {
-			$attribute = '-webkit-mask-image: url(\'' . esc_attr($link) . '\');';
+		if ($property) {
+			$attribute = $property . ': url(' . esc_attr($link) . ');';
 		} else {
-			$attribute = 'background-image: url(\'' . esc_attr($link) . '\');';
+			$attribute = 'background-image: url(' . esc_attr($link) . ');';
 		}
 
 		if ($style) {

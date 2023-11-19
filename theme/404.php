@@ -1,19 +1,33 @@
-<?php get_header(); ?>
+<?php
 
-<section class="content_box">
+$blocks = [];
 
-	<div class="fixed">
+$blocks[] = [
+	'acf_fc_layout' => 'message',
+	'image' => 'pic_locked.svg',
+	'contents' => [
+		'title' => 'Page not found',
+		'tag' => 'h2',
+		'text' => 'Sorry, but the page you were trying to view does not exist.',
+		'buttons' => [
+			[
+				'type' => 'default',
+				'icon' => '',
+				'link' => [
+					'url' => get_site_url(),
+					'icon' => 'none',
+					'title' => __('Back to homepage', 'twee')
+				]
+			]
+		]
+	],
+	'settings' => [
+		'background' => 'default'
+	]
+];
 
-		<div class="content">
+get_header();
 
-			<?php echo tw_content_heading('<h1>', '</h1>'); ?>
+echo tw_get_blocks($blocks);
 
-			<p><?php echo __('The page you are looking for doesn\'t exist.', 'twee'); ?></p>
-
-		</div>
-
-	</div>
-
-</section>
-
-<?php get_footer(); ?>
+get_footer();

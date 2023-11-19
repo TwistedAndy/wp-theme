@@ -9,6 +9,10 @@
 	font-weight: 400;
 	line-height: 1.5;
 
+	&:last-child {
+		margin-bottom: 0;
+	}
+
 	@include clear();
 
 	h1, h2, h3, h4, h5, h6 {
@@ -20,11 +24,11 @@
 
 	}
 
-	p, & > table, & > ul, & > ol, .table_wrapper {
-		margin: -0.1em 0 var(--gap-content);
+	p, & > table, ul, ol, .table_wrapper {
+		margin: 0 0 var(--gap-content);
 
 		&:last-child {
-			margin-bottom: -0.1em;
+			margin-bottom: 0;
 		}
 
 	}
@@ -57,6 +61,10 @@
 
 		p:not(:last-child) {
 			margin-bottom: 10px;
+		}
+
+		&:last-child {
+			margin-bottom: 0;
 		}
 
 	}
@@ -204,14 +212,6 @@
 		margin: 0 auto var(--gap-content);
 	}
 
-	:last-child, &:last-child {
-		margin-bottom: 0;
-	}
-
-	@include desktop_small {
-		margin-bottom: 24px;
-	}
-
 	@include tablet_large {
 
 		.alignright, .alignleft {
@@ -256,9 +256,14 @@
 
 	.gallery {
 		@extend %items;
+		margin-bottom: calc(var(--gap-content) + 5px);
 		--width-item: 33.33%;
 		--gap-grid: 10px;
 		--gap-vertical: 10px;
+
+		&:last-child {
+			margin-bottom: calc(-1 * var(--gap-vertical));
+		}
 
 		&-columns-1 {
 			--width-item: 100%;
@@ -306,16 +311,21 @@
 	}
 
 	.gallery-icon {
-		display: block;
-		padding: 0;
-		margin: 0;
+		display: flex;
+		flex-direction: column;
+		flex-grow: 1;
 
 		a, img {
 			display: block;
+			flex-grow: 1;
 			width: 100%;
 			height: auto;
-			padding: 0;
-			margin: 0;
+			border-radius: var(--radius-small);
+		}
+
+		img {
+			height: 100%;
+			object-fit: cover;
 		}
 
 	}

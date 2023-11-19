@@ -129,11 +129,11 @@ jQuery(function($) {
 				window.location.href = data.link;
 			}
 
-			if (data.errors && data.errors.length > 0) {
+			if (data.errors) {
 				for (let i in data.errors) {
 					if (data.errors.hasOwnProperty(i)) {
 						message = $('<div class="error">' + data['errors'][i] + '</div>');
-						$('[name=' + i + ']', form).parents('.field').append(message);
+						$('[name=' + i + ']', form).closest('.field').append(message);
 						message.hide().slideDown();
 					}
 				}
@@ -142,7 +142,7 @@ jQuery(function($) {
 			if (data.files) {
 				for (let i in data.files) {
 					if (data.files.hasOwnProperty(i)) {
-						var field = $('[name=' + i + ']', form).parents('.field');
+						var field = $('[name=' + i + ']', form).closest('.field');
 						field.siblings('.notify').slideUp(400, function(){
 							$(this).remove();
 						});

@@ -28,15 +28,10 @@ function getScrollbarWidth() {
 
 function setViewportVariables() {
 
-	var styles = document.documentElement.style,
-		footer = document.querySelector('.footer_box .footer');
+	var styles = document.documentElement.style;
 
 	styles.setProperty('--vh', (window.innerHeight / 100) + 'px');
 	styles.setProperty('--width-scrollbar', getScrollbarWidth() + 'px');
-
-	if (footer) {
-		styles.setProperty('--width-regular', footer.clientWidth + 'px');
-	}
 
 }
 
