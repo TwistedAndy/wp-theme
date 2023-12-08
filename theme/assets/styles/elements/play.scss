@@ -1,0 +1,26 @@
+%play {
+	display: block;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 10%;
+	border-radius: 50%;
+	background: var(--color-primary);
+	transition: 0.2s;
+	transform: translate(-50%, -50%);
+	z-index: 2;
+	-webkit-mask: url(../images/ico_play.svg) 50% 50% / contain no-repeat;
+
+	@include hover {
+		&:hover {
+			background-color: var(--color-secondary);
+		}
+	}
+
+	&:after {
+		content: '';
+		display: block;
+		padding-bottom: 100%;
+	}
+
+}

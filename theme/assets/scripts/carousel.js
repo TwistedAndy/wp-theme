@@ -9,7 +9,8 @@ jQuery(function($) {
 		}
 
 		var section = $(this),
-			wrappers = section.find('.carousel');
+			wrappers = section.find('.carousel'),
+			plugins = {};
 
 		wrappers.each(function() {
 
@@ -58,6 +59,24 @@ jQuery(function($) {
 						prevTpl: ''
 					}
 				};
+
+				if (wrapper.hasClass('gallery')) {
+
+					args.classes.slide = 'gallery-item';
+
+					args.Dots = false;
+
+					if (typeof Thumbs !== 'undefined') {
+
+						plugins = {Thumbs};
+
+						args.Thumbs = {
+							type: 'classic'
+						}
+
+					}
+
+				}
 
 				carousel = new Carousel(this, args);
 

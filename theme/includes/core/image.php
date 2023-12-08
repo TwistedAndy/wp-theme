@@ -22,6 +22,10 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 
 	$thumb = tw_image_link($image, $size);
 
+	if (!is_array($attributes)) {
+		$attributes = [];
+	}
+
 	if ($thumb) {
 
 		$link_href = false;
@@ -67,15 +71,21 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 
 		}
 
-		if (is_numeric($image) and $alt = get_post_meta($image, '_wp_attachment_image_alt', true)) {
-			$attributes['alt'] = $alt;
+		if (is_numeric($image)) {
+
+			$alt = (string) get_post_meta($image, '_wp_attachment_image_alt', true);
+
+			if ($alt) {
+				$attributes['alt'] = $alt;
+			}
+
 		}
 
 		if (empty($attributes['alt'])) {
 			$attributes['alt'] = '';
 		}
 
-		if ($link_image_size and !$link_href) {
+		if ($link_image_size and empty($link_href)) {
 			$link_href = tw_image_link($image, $link_image_size);
 		}
 

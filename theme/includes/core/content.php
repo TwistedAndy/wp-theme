@@ -352,3 +352,34 @@ function tw_content_date($post, $format) {
 	return $result;
 
 }
+
+
+/**
+ * Get the reading time
+ *
+ * @param WP_Post $post
+ * @param string  $label
+ *
+ * @return string
+ */
+function tw_content_time($post, $label = ' min read') {
+
+	$result = '';
+
+	if ($post instanceof WP_Post) {
+
+		$word_count = str_word_count(strip_tags($post->post_content));
+
+		$time = ceil($word_count / 200);
+
+		if ($time < 3) {
+			$time = 3;
+		}
+
+		$result = $time . $label;
+
+	}
+
+	return $result;
+
+}

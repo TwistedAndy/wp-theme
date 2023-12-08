@@ -420,9 +420,7 @@ add_action('twee_thumb_created', function($file, $url, $image_id) {
 
 	$time = time() + 600;
 
-	as_unschedule_action($task, $args);
-
-	if (as_next_scheduled_action($task, $args) === false) {
+	if (as_has_scheduled_action($task, $args) === false) {
 		as_schedule_single_action($time, $task, $args);
 	}
 

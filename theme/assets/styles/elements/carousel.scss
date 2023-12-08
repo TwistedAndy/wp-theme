@@ -21,6 +21,22 @@
 
 	}
 
+	&.has-thumbs {
+
+		.carousel-button {
+			bottom: 50%;
+			margin-bottom: calc(-0.5 * var(--height-control));
+			right: calc(-0.5 * var(--height-control));
+
+			&.is-prev {
+				right: auto;
+				left: calc(-0.5 * var(--height-control));
+			}
+
+		}
+
+	}
+
 	&.is-ltr {
 		direction: ltr;
 	}

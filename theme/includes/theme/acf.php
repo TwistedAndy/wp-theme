@@ -29,7 +29,13 @@ function tw_acf_load_value($result, $post_id, $field) {
 		return $result;
 	}
 
-	if (!empty($field['_clone']) and $clone = acf_get_field($field['_clone'])) {
+	if (!empty($field['_clone'])) {
+		$clone = acf_get_field($field['_clone']);
+	} else {
+		$clone = false;
+	}
+
+	if ($clone) {
 		$name = $clone['name'];
 	} else {
 		$name = $field['name'];
@@ -41,25 +47,31 @@ function tw_acf_load_value($result, $post_id, $field) {
 		$value = get_metadata($entity['type'], $entity['id'], $name, true);
 	}
 
-	$result = $value;
-
 	if (in_array($field['type'], ['group', 'repeater', 'flexible_content', 'clone'])) {
 
 		if (!empty($field['_clone']) and !empty($field['_name']) and is_array($value) and isset($value[$field['_name']])) {
 			$value = $value[$field['_name']];
 		}
 
-		$result = tw_acf_decode_data($value, $field);
+		$value = tw_acf_decode_data($value, $field);
 
-	} elseif (!empty($field['_clone'])) {
+		if (is_array($value)) {
+			$result = $value;
+		}
 
-		$cloned_field = acf_get_field($field['_clone']);
+	} elseif ($clone) {
 
-		$cloned_values = tw_acf_load_value($result, $post_id, $cloned_field);
+		$cloned_values = tw_acf_load_value($result, $post_id, $clone);
 
 		if (isset($cloned_values[$field['key']])) {
 			$result = $cloned_values[$field['key']];
+		} else {
+			$result = $value;
 		}
+
+	} else {
+
+		$result = $value;
 
 	}
 

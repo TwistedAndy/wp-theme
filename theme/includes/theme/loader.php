@@ -262,9 +262,9 @@ function tw_loader_button($wrapper, $template = 'post', $query = false, $number 
 		$query = $wp_query;
 	}
 
-	$posts_per_page = intval($query->query_vars['posts_per_page']);
+	$posts_per_page = (int) $query->query_vars['posts_per_page'] ?? 0;
 
-	$paged = intval($query->query_vars['paged']);
+	$paged = (int) $query->query_vars['paged'] ?? 0;
 
 	if ($paged < 1) {
 		$paged = 1;
@@ -278,6 +278,10 @@ function tw_loader_button($wrapper, $template = 'post', $query = false, $number 
 		$offset = $paged * $posts_per_page;
 	} else {
 		$offset = 0;
+	}
+
+	if (!empty($query->query_vars['offset'])) {
+		$offset += $query->query_vars['offset'];
 	}
 
 	$hidden = true;
