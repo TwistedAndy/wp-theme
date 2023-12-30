@@ -19,7 +19,7 @@
 function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode = false) {
 
 	$cache_key = 'meta_' . $meta_key;
-	$cache_group = 'twee_' . $meta_type . '_meta';
+	$cache_group = 'twee_meta_' . $meta_type;
 
 	if ($decode) {
 		$cache_key .= '_decoded';
@@ -99,7 +99,7 @@ function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode =
  */
 function tw_metadata_clean($meta_type, $meta_key, $object_id) {
 
-	$cache_group = 'twee_' . $meta_type . '_meta';
+	$cache_group = 'twee_meta_' . $meta_type;
 
 	$cached_keys = wp_cache_get('meta_keys', $cache_group);
 
@@ -113,15 +113,11 @@ function tw_metadata_clean($meta_type, $meta_key, $object_id) {
 
 		tw_app_set($cache_key, null, $cache_group);
 		tw_app_set($cache_key . '_decoded', null, $cache_group);
+		tw_app_clear($cache_group . '_' . $object_id);
 
 		wp_cache_delete($cache_key, $cache_group);
 		wp_cache_delete($cache_key . '_decoded', $cache_group);
-
-		tw_app_clear('twee_meta');
-		tw_app_clear('twee_meta_' . $object_id);
-
-		wp_cache_flush_group('twee_meta');
-		wp_cache_flush_group('twee_meta_' . $object_id);
+		wp_cache_flush_group($cache_group . '_' . $object_id);
 
 	}
 

@@ -179,23 +179,46 @@ add_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10, 3);
 
 function tw_acf_load_reference($result, $field, $post_id) {
 
-	if (is_object($post_id)) {
-		$post_id = acf_get_valid_post_id($post_id);
+	if (is_numeric($post_id)) {
+		$entity = [
+			'type' => 'post',
+			'id' => (int) $post_id
+		];
+	} elseif ($post_id instanceof WP_Post) {
+		$entity = [
+			'type' => 'post',
+			'id' => $post_id->ID
+		];
+	} elseif ($post_id instanceof WP_Term) {
+		$entity = [
+			'type' => 'term',
+			'id' => $post_id->term_id
+		];
+	} elseif ($post_id instanceof WP_User) {
+		$entity = [
+			'type' => 'user',
+			'id' => $post_id->ID
+		];
+	} elseif ($post_id instanceof WP_Comment) {
+		$entity = [
+			'type' => 'comment',
+			'id' => (int) $post_id->comment_ID
+		];
+	} else {
+		$entity = acf_decode_post_id($post_id);
 	}
 
-	$cache_key = 'acf_map_cache_' . $post_id;
-	$cache_group = 'twee_meta';
+	if (!is_array($entity) or empty($entity['id']) or empty($entity['type'])) {
+		return $result;
+	}
+
+	$cache_key = 'acf_map_cache_' . $entity['id'];
+	$cache_group = 'twee_meta_' . $entity['type'];
 
 	$value = tw_app_get($cache_key, $cache_group);
 
 	if ($value !== null) {
 		return $value;
-	}
-
-	$entity = acf_decode_post_id($post_id);
-
-	if (empty($entity) or empty($entity['id']) or empty($entity['type'])) {
-		return $result;
 	}
 
 	$map_key = '_acf_map';
