@@ -23,9 +23,9 @@ function tw_acf_load_value($result, $post_id, $field) {
 		return $result;
 	}
 
-	$entity = acf_decode_post_id($post_id);
+	$entity = tw_acf_decode_post_id($post_id);
 
-	if (empty($entity['id']) or empty($entity['type']) or !in_array($entity['type'], ['post', 'term', 'comment', 'user', 'option'])) {
+	if (empty($entity['id']) or empty($entity['type'])) {
 		return $result;
 	}
 
@@ -91,9 +91,9 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 		return $check;
 	}
 
-	$entity = acf_decode_post_id($post_id);
+	$entity = tw_acf_decode_post_id($post_id);
 
-	if (empty($entity['id']) or empty($entity['type']) or !in_array($entity['type'], ['post', 'term', 'comment', 'user', 'option'])) {
+	if (empty($entity['id']) or empty($entity['type'])) {
 		return $check;
 	}
 
@@ -179,36 +179,9 @@ add_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10, 3);
 
 function tw_acf_load_reference($result, $field, $post_id) {
 
-	if (is_numeric($post_id)) {
-		$entity = [
-			'type' => 'post',
-			'id' => (int) $post_id
-		];
-	} elseif ($post_id instanceof WP_Post) {
-		$entity = [
-			'type' => 'post',
-			'id' => $post_id->ID
-		];
-	} elseif ($post_id instanceof WP_Term) {
-		$entity = [
-			'type' => 'term',
-			'id' => $post_id->term_id
-		];
-	} elseif ($post_id instanceof WP_User) {
-		$entity = [
-			'type' => 'user',
-			'id' => $post_id->ID
-		];
-	} elseif ($post_id instanceof WP_Comment) {
-		$entity = [
-			'type' => 'comment',
-			'id' => (int) $post_id->comment_ID
-		];
-	} else {
-		$entity = acf_decode_post_id($post_id);
-	}
+	$entity = tw_acf_decode_post_id($post_id);
 
-	if (!is_array($entity) or empty($entity['id']) or empty($entity['type'])) {
+	if (empty($entity['id']) or empty($entity['type'])) {
 		return $result;
 	}
 
@@ -466,6 +439,106 @@ function tw_acf_encode_data($values, $field) {
 
 
 /**
+ * Decode the ACF post id
+ *
+ * @param object|string|int $post_id
+ *
+ * @return array
+ */
+function tw_acf_decode_post_id($post_id) {
+
+	$entity = [
+		'type' => '',
+		'id' => 0
+	];
+
+	if (is_numeric($post_id)) {
+
+		$entity = [
+			'type' => 'post',
+			'id' => (int) $post_id
+		];
+
+	} elseif (is_string($post_id)) {
+
+		if (in_array($post_id, ['option', 'options'])) {
+			$entity = [
+				'type' => 'option',
+				'id' => 'option'
+			];
+		} else {
+
+			$position = strpos($post_id, '_');
+
+			if ($position > 0) {
+
+				$type = substr($post_id, 0, $position);
+				$id = substr($post_id, $position + 1);
+
+				if (in_array($type, ['post', 'attachment', 'menu_item'])) {
+					$entity = [
+						'type' => 'post',
+						'id' => (int) $id
+					];
+				} elseif (in_array($type, ['term', 'menu']) or (taxonomy_exists($type) and is_numeric($id))) {
+					$entity = [
+						'type' => 'term',
+						'id' => (int) $id
+					];
+				} elseif ($type === 'user') {
+					$entity = [
+						'type' => 'user',
+						'id' => (int) $id
+					];
+				} elseif ($type === 'widget') {
+					$entity = [
+						'type' => 'option',
+						'id' => 'widget'
+					];
+				} elseif (in_array($type, ['blog', 'site'])) {
+					$entity = [
+						'type' => 'blog',
+						'id' => (int) $id
+					];
+				} else {
+					$entity = [
+						'type' => 'option',
+						'id' => $post_id
+					];
+				}
+
+			}
+
+		}
+
+	} elseif ($post_id instanceof WP_Post) {
+		$entity = [
+			'type' => 'post',
+			'id' => $post_id->ID
+		];
+	} elseif ($post_id instanceof WP_Term) {
+		$entity = [
+			'type' => 'term',
+			'id' => $post_id->term_id
+		];
+	} elseif ($post_id instanceof WP_User) {
+		$entity = [
+			'type' => 'user',
+			'id' => $post_id->ID
+		];
+	} elseif ($post_id instanceof WP_Comment) {
+		$entity = [
+			'type' => 'comment',
+			'id' => (int) $post_id->comment_ID
+		];
+	}
+
+	return $entity;
+
+}
+
+
+/**
  * Save the ACF field groups to JSON files
  */
 add_filter('acf/settings/save_json', function() {
@@ -502,121 +575,33 @@ add_filter('acf/settings/load_json', function($paths) {
 
 
 /**
- * Polyfill for the array_key_first function
- */
-if (!function_exists('array_key_first')) {
-	function array_key_first(array $array) {
-		return key(array_slice($array, 0, 1, true));
-	}
-}
-
-
-/**
- * Add a new rule for product variations
- */
-add_filter('acf/location/rule_values/post_type', function($choices) {
-	$choices['product_variation'] = __('Product Variation', 'twee');
-	return $choices;
-});
-
-
-/**
- * Save custom fields for a variation
- */
-add_action('woocommerce_save_product_variation', function($variation_id, $i = -1) {
-
-	if (!function_exists('update_field') or empty($_POST['acf_variations']) or !is_array($_POST['acf_variations']) or !isset($_POST['acf_variations'][$i])) {
-		return;
-	}
-
-	$fields = $_POST['acf_variations'][$i];
-
-	foreach ($fields as $key => $value) {
-		update_field($key, $value, $variation_id);
-	}
-
-}, 10, 2);
-
-
-/**
- * Render fields on the variation section
- */
-add_action('woocommerce_product_after_variable_attributes', function($loop, $variation_data, $variation) {
-
-	if (!function_exists('acf_get_field_groups')) {
-		return;
-	}
-
-	tw_app_set('tw_acf_index', $loop);
-
-	add_filter('acf/prepare_field', 'tw_acf_variation_field_name');
-
-	$acf_field_groups = acf_get_field_groups();
-
-	foreach ($acf_field_groups as $acf_field_group) {
-		foreach ($acf_field_group['location'] as $group_locations) {
-			foreach ($group_locations as $rule) {
-				if ($rule['param'] == 'post_type' and $rule['operator'] == '==' and $rule['value'] == 'product_variation') {
-					acf_render_fields($variation->ID, acf_get_fields($acf_field_group));
-					break 2;
-				}
-			}
-		}
-	}
-
-	remove_filter('acf/prepare_field', 'tw_acf_variation_field_name');
-
-}, 10, 3);
-
-
-/**
- * Adjust the field name
- *
- * @param array $field
- *
- * @return array
- */
-function tw_acf_variation_field_name($field) {
-	$field['name'] = str_replace('acf[field_', 'acf_variations[' . tw_app_get('tw_acf_index') . '][field_', $field['name']);
-	return $field;
-}
-
-
-/**
  * Add new options page for the theme settings
  */
-add_action('init', function() {
-
-	if (function_exists('acf_add_options_page')) {
-
-		acf_add_options_page([
-			'page_title' => __('Theme Settings', 'twee'),
-			'menu_title' => __('Theme Settings', 'twee'),
-			'menu_slug' => 'theme-settings',
-			'capability' => 'manage_options',
-			'redirect' => false,
-			'position' => 90,
-			'icon_url' => 'dashicons-star-filled',
-			'update_button' => __('Refresh', 'twee'),
-			'autoload' => true
-		]);
-
-	}
-
+add_action('acf/init', function() {
+	acf_add_options_page([
+		'page_title' => __('Theme Settings', 'twee'),
+		'menu_title' => __('Theme Settings', 'twee'),
+		'menu_slug' => 'theme-settings',
+		'capability' => 'manage_options',
+		'redirect' => false,
+		'position' => 90,
+		'icon_url' => 'dashicons-star-filled',
+		'update_button' => __('Refresh', 'twee'),
+		'autoload' => true
+	]);
 });
 
 
 /**
- * Add an API key for the Google Maps field
+ * Specify the API key for the Google Maps field
  */
 add_filter('acf/settings/google_api_key', function() {
-	return 'AIzaSyAJ5QTsj4apSnVK-6T7HMQfUW5-RljJTQ4';
+	return get_option('options_google_api_key', 'AIzaSyAJ5QTsj4apSnVK-6T7HMQfUW5-RljJTQ4');
 });
 
 
 /**
- * Increase content width on a term edit screen
- * and scripts for product variations
+ * Include a few style adjustments
  */
 add_action('admin_head', function() {
 
@@ -664,54 +649,100 @@ add_action('admin_head', function() {
 
 
 /**
- * Disable ACF updates
+ * Add support for WooCommerce product variations
  */
-if (function_exists('acf_updates')) {
-	remove_filter('pre_set_site_transient_update_plugins', [acf_updates(), 'modify_plugins_transient'], 10, 1);
+if (class_exists('WooCommerce')) {
+
+	/**
+	 * Add a new rule for product variations
+	 */
+	add_filter('acf/location/rule_values/post_type', function($choices) {
+		$choices['product_variation'] = __('Product Variation', 'twee');
+		return $choices;
+	});
+
+
+	/**
+	 * Save custom fields for a variation
+	 */
+	add_action('woocommerce_save_product_variation', function($variation_id, $i = -1) {
+
+		if (!function_exists('update_field') or empty($_POST['acf_variations']) or !is_array($_POST['acf_variations']) or !isset($_POST['acf_variations'][$i])) {
+			return;
+		}
+
+		$fields = $_POST['acf_variations'][$i];
+
+		foreach ($fields as $key => $value) {
+			update_field($key, $value, $variation_id);
+		}
+
+	}, 10, 2);
+
+
+	/**
+	 * Render fields on the variation section
+	 */
+	add_action('woocommerce_product_after_variable_attributes', function($loop, $variation_data, $variation) {
+
+		if (!function_exists('acf_get_field_groups')) {
+			return;
+		}
+
+		tw_app_set('tw_acf_index', $loop);
+
+		add_filter('acf/prepare_field', 'tw_acf_variation_field_name');
+
+		$acf_field_groups = acf_get_field_groups();
+
+		foreach ($acf_field_groups as $acf_field_group) {
+			foreach ($acf_field_group['location'] as $group_locations) {
+				foreach ($group_locations as $rule) {
+					if ($rule['param'] == 'post_type' and $rule['operator'] == '==' and $rule['value'] == 'product_variation') {
+						acf_render_fields($variation->ID, acf_get_fields($acf_field_group));
+						break 2;
+					}
+				}
+			}
+		}
+
+		remove_filter('acf/prepare_field', 'tw_acf_variation_field_name');
+
+	}, 10, 3);
+
+
+	/**
+	 * Adjust the field name
+	 *
+	 * @param array $field
+	 *
+	 * @return array
+	 */
+	function tw_acf_variation_field_name($field) {
+		$field['name'] = str_replace('acf[field_', 'acf_variations[' . tw_app_get('tw_acf_index') . '][field_', $field['name']);
+		return $field;
+	}
+
 }
 
 
 /**
- * A fallback function for the ACF plugin
+ * A fallback for the get field function
  */
 if (!function_exists('get_field')) {
 
-	function get_field($field, $post_id = false) {
+	function get_field($field, $post_id = false, $format = true) {
 
-		$value = null;
+		$entity = tw_acf_decode_post_id($post_id);
 
-		if (empty($post_id)) {
-			$post_id = intval(get_the_ID());
+		if (empty($entity['id']) or empty($entity['type'])) {
+			return null;
 		}
 
-		if (is_numeric($post_id)) {
-
-			$value = get_post_meta($post_id, $field, true);
-
-		} elseif ($post_id instanceof WP_Term) {
-
-			$value = get_term_meta($post_id->term_id, $field, true);
-
-		} elseif ($post_id instanceof WP_User) {
-
-			$value = get_user_meta($post_id->ID, $field, true);
-
-		} elseif ($post_id == 'option' or $post_id == 'options') {
-
-			$value = get_option('options_' . $field);
-
-		} elseif (strpos($post_id, '_') !== false) {
-
-			$parts = explode('_', $post_id);
-
-			if (count($parts) > 1) {
-				if ($parts[0] == 'category' or taxonomy_exists($parts[0])) {
-					$value = get_term_meta($parts[1], $field, true);
-				} elseif ($parts[0] == 'user') {
-					$value = get_user_meta($parts[1], $field, true);
-				}
-			}
-
+		if ($entity['type'] === 'option') {
+			$value = get_option($entity['id'] . '_' . $field, null);
+		} else {
+			$value = get_metadata($entity['type'], $entity['id'], $field, true);
 		}
 
 		return $value;
