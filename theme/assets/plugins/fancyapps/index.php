@@ -3,5 +3,5 @@
 return array(
 	'style' => 'fancyapps.css',
 	'script' => 'fancyapps.umd.js',
-	'version' => '5.0.29'
+	'version' => '5.0.32'
 );
