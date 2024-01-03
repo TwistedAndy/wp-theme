@@ -361,10 +361,12 @@ function tw_loader_button($wrapper, $template = 'post', $query = false, $number 
 		'query_direction' => $query->get('order')
 	];
 
+	tw_asset_enqueue('loader');
+
 	?>
 
 	<div class="buttons<?php echo $is_hidden ? ' hidden' : ''; ?>">
-		<div class="button outline<?php echo($hidden ? ' is_hidden' : ''); ?>" data-loader="<?php echo htmlspecialchars(json_encode($args), ENT_QUOTES, 'UTF-8'); ?>"><?php _e('Show More', 'twee'); ?></div>
+		<div class="button<?php echo($hidden ? ' is_hidden' : ''); ?>" data-loader="<?php echo htmlspecialchars(json_encode($args), ENT_QUOTES, 'UTF-8'); ?>"><?php _e('Show More', 'twee'); ?></div>
 	</div>
 
 	<?php
