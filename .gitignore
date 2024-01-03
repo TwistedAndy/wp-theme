@@ -1,5 +1,7 @@
 node_modules
 package-lock.json
+theme/assets/plugins/fancyapps
+theme/assets/plugins/thumbs
 
 .idea
 .DS_Store
