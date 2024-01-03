@@ -41,7 +41,7 @@ function tw_comment_list($type = 'post') {
 
 			$data = ['comment' => $comment, 'args' => $args, 'depth' => $depth, 'type' => $type];
 
-			echo tw_template_part('comment', $data);
+			echo tw_app_template('comment', $data);
 
 			if ('div' != $args['style']) {
 				echo '</div>';

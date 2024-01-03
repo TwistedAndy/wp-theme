@@ -59,7 +59,7 @@ tw_app_set('current_blocks', $blocks);
 
 get_header();
 
-echo tw_get_blocks($blocks);
+echo tw_block_render($blocks);
 
 if (comments_open() or get_comments_number()) {
 	comments_template();

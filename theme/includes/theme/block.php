@@ -1,6 +1,6 @@
 <?php
 /**
- * Process and output the ACF Flexible content field blocks
+ * Process and render the ACF Flexible Content blocks
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
@@ -12,54 +12,29 @@
  * Block template files should be located in the "blocks" folder in the theme root directory.
  * Template file names should correspond to the ACF Flexible content layouts names.
  *
- * @param array|string $blocks  Field name or the ACF Flexible content field array
- * @param bool         $post_id ACF field ID
+ * @param array $blocks array with blocks or a single block
  *
- * @return bool
+ * @return string
  */
-function tw_get_blocks($blocks = 'blocks', $post_id = false) {
+function tw_block_render($blocks) {
+
+	if (!is_array($blocks) or empty($blocks)) {
+		return '';
+	}
+
+	if (isset($blocks['acf_fc_layout'])) {
+		$blocks = [$blocks];
+	}
+
+	$block_id = 0;
 
 	ob_start();
 
-	if (is_string($blocks)) {
-		$blocks = get_field($blocks, $post_id);
-	}
+	foreach ($blocks as $block) {
 
-	if ($blocks and is_array($blocks)) {
-
-		foreach ($blocks as $block) {
-
-			if (!empty($block['acf_fc_layout'])) {
-
-				tw_get_block($block);
-
-			}
-
+		if (!is_array($block) or empty($block['acf_fc_layout'])) {
+			continue;
 		}
-
-	}
-
-	$result = ob_get_contents();
-
-	ob_end_clean();
-
-	return $result;
-
-}
-
-
-/**
- * Include the ACF flexible content block
- *
- * @param array $block Block array or the layout name
- *
- * @return bool
- */
-function tw_get_block($block) {
-
-	static $block_id;
-
-	if (is_array($block) and !empty($block['acf_fc_layout'])) {
 
 		$options = [];
 
@@ -68,12 +43,12 @@ function tw_get_block($block) {
 		}
 
 		if (in_array('hidden', $options)) {
-			return false;
+			continue;
 		}
 
 		$filename = TW_ROOT . 'blocks/' . $block['acf_fc_layout'] . '.php';
 
-		if (is_file($filename)) {
+		if (is_readable($filename)) {
 
 			include $filename;
 
@@ -83,7 +58,7 @@ function tw_get_block($block) {
 
 	}
 
-	return false;
+	return ob_get_clean();
 
 }
 
@@ -152,17 +127,19 @@ function tw_block_attributes($class, $block) {
 
 
 /**
- * Output the block contents
+ * Render the block contents
  *
- * @param array $block The block array
+ * @param array  $block
+ * @param string $wrapper
  *
+ * @return string
  */
 function tw_block_contents($block, $wrapper = 'contents') {
 
-	$result = '';
-
 	if (is_array($block) and !empty($block['contents']) and is_array($block['contents'])) {
 		$result = tw_app_template('contents', ['block' => $block['contents'], 'wrapper' => $wrapper]);
+	} else {
+		$result = '';
 	}
 
 	return $result;
@@ -171,10 +148,13 @@ function tw_block_contents($block, $wrapper = 'contents') {
 
 
 /**
- * Output the buttons
+ * Render the buttons
  *
- * @param array $buttons
+ * @param array  $buttons
+ * @param string $wrapper
+ * @param string $size
  *
+ * @return string
  */
 function tw_block_buttons($buttons, $wrapper = 'buttons', $size = '') {
 

@@ -28,6 +28,6 @@ $blocks[] = [
 
 get_header();
 
-echo tw_get_blocks($blocks);
+echo tw_block_render($blocks);
 
 get_footer();

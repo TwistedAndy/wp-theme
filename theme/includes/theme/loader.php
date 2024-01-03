@@ -229,12 +229,12 @@ function tw_loader_handle() {
 
 		while ($query->have_posts()) {
 			$query->the_post();
-			$result['result'] .= tw_template_part($template, $query->post);
+			$result['result'] .= tw_app_template($template, ['item' => $query->post]);
 		}
 
 	} else {
 
-		$result['result'] = '<div class="message">Nothing had been found</div>';
+		$result['result'] = '<div class="message">' . __('Nothing had been found', 'twee') . '</div>';
 
 	}
 

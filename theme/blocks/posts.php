@@ -78,7 +78,7 @@ if (!empty($block['contents']) and !empty($block['contents']['buttons'])) {
 
 		<div class="<?php echo implode(' ', $classes); ?>">
 			<?php foreach ($items as $item) { ?>
-				<?php echo tw_template_part($template, ['item' => $item]); ?>
+				<?php echo tw_app_template($template, ['item' => $item]); ?>
 			<?php } ?>
 		</div>
 
