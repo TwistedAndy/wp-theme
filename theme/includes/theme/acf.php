@@ -461,52 +461,54 @@ function tw_acf_decode_post_id($post_id) {
 
 	} elseif (is_string($post_id)) {
 
-		if (in_array($post_id, ['option', 'options'])) {
-			$entity = [
-				'type' => 'option',
-				'id' => 'option'
-			];
-		} else {
+		$post_id = trim(strtolower($post_id));
 
-			$position = strpos($post_id, '_');
+		$entity = [
+			'type' => 'option',
+			'id' => $post_id
+		];
 
-			if ($position > 0) {
+		if ($post_id == 'options') {
+			$entity['id'] = 'option';
+		}
 
-				$type = substr($post_id, 0, $position);
-				$id = substr($post_id, $position + 1);
+		$position = strpos($post_id, '_');
 
-				if (in_array($type, ['post', 'attachment', 'menu_item'])) {
-					$entity = [
-						'type' => 'post',
-						'id' => (int) $id
-					];
-				} elseif (in_array($type, ['term', 'menu']) or (taxonomy_exists($type) and is_numeric($id))) {
-					$entity = [
-						'type' => 'term',
-						'id' => (int) $id
-					];
-				} elseif ($type === 'user') {
-					$entity = [
-						'type' => 'user',
-						'id' => (int) $id
-					];
-				} elseif ($type === 'widget') {
-					$entity = [
-						'type' => 'option',
-						'id' => 'widget'
-					];
-				} elseif (in_array($type, ['blog', 'site'])) {
-					$entity = [
-						'type' => 'blog',
-						'id' => (int) $id
-					];
-				} else {
-					$entity = [
-						'type' => 'option',
-						'id' => $post_id
-					];
-				}
+		if ($position > 0) {
 
+			$type = substr($post_id, 0, $position);
+			$id = (int) substr($post_id, $position + 1);
+
+			if (in_array($type, ['post', 'attachment', 'menu_item'])) {
+				$entity = [
+					'type' => 'post',
+					'id' => $id
+				];
+			} elseif (in_array($type, ['term', 'menu']) or taxonomy_exists($type)) {
+				$entity = [
+					'type' => 'term',
+					'id' => $id
+				];
+			} elseif ($type === 'user') {
+				$entity = [
+					'type' => 'user',
+					'id' => $id
+				];
+			} elseif ($type === 'widget') {
+				$entity = [
+					'type' => 'option',
+					'id' => $post_id
+				];
+			} elseif (in_array($type, ['blog', 'site'])) {
+				$entity = [
+					'type' => 'blog',
+					'id' => $id
+				];
+			} elseif ($type == 'block') {
+				$entity = [
+					'type' => 'block',
+					'id' => $post_id
+				];
 			}
 
 		}
@@ -596,7 +598,7 @@ add_action('acf/init', function() {
  * Specify the API key for the Google Maps field
  */
 add_filter('acf/settings/google_api_key', function() {
-	return get_option('options_google_api_key', 'AIzaSyAJ5QTsj4apSnVK-6T7HMQfUW5-RljJTQ4');
+	return get_option('options_google_api_key', base64_decode('QUl6YVN5QUo1UVRzajRhcFNuVkstNlQ3SE1RZlVXNS1SbGpKVFE0'));
 });
 
 
@@ -607,7 +609,7 @@ add_action('admin_head', function() {
 
 	global $post_type;
 
-	if ($post_type == 'product' and function_exists('acf_get_field_groups')) { ?>
+	if ($post_type == 'product') { ?>
 		<script type="text/javascript">
 			jQuery(function($) {
 				$('#woocommerce-product-data').on('woocommerce_variations_loaded', function() {
