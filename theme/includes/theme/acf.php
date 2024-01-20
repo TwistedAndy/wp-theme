@@ -47,6 +47,13 @@ function tw_acf_load_value($result, $post_id, $field) {
 		$value = get_metadata($entity['type'], $entity['id'], $name, true);
 	}
 
+	/**
+	 * Allow ACF to load flexible content fields in old format
+	 */
+	if (!empty($field['layouts']) and is_array($value) and is_string(reset($value))) {
+		return $result;
+	}
+
 	if (in_array($field['type'], ['group', 'repeater', 'flexible_content', 'clone'])) {
 
 		if (!empty($field['_clone']) and !empty($field['_name']) and is_array($value) and isset($value[$field['_name']])) {
@@ -121,7 +128,11 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 
 		} else {
 
-			$map[$field['name']] = str_replace('field_', '', $field['key']);
+			$field_key = $field['key'];
+
+			if (strpos($field_key, 'field_') === 0) {
+				$map[$field['name']] = substr($field_key, 6);
+			}
 
 			update_option($entity['id'] . '_' . $field['name'], $value, true);
 
@@ -151,7 +162,11 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 
 		} else {
 
-			$map[$field['name']] = str_replace('field_', '', $field['key']);
+			$field_key = $field['key'];
+
+			if (strpos($field_key, 'field_') === 0) {
+				$map[$field['name']] = substr($field_key, 6);
+			}
 
 			update_metadata($entity['type'], $entity['id'], $field['name'], $value);
 
@@ -538,6 +553,322 @@ function tw_acf_decode_post_id($post_id) {
 	return $entity;
 
 }
+
+
+/**
+ * Decompress ACF metadata in the normal format
+ *
+ * @param string $meta_type
+ * @param int    $object_id
+ *
+ * @return void
+ */
+function tw_acf_decompress_meta($meta_type = 'post', $object_id = 0) {
+
+	remove_filter('acf/pre_update_value', 'tw_acf_save_value', 10);
+	remove_filter('acf/pre_load_value', 'tw_acf_load_value', 5);
+	remove_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10);
+
+	$map = get_metadata($meta_type, $object_id, '_acf_map', true);
+
+	if (empty($map)) {
+		return;
+	}
+
+	if ($meta_type == 'post') {
+		$post_id = $object_id;
+	} else {
+		$post_id = $meta_type . '_' . $object_id;
+	}
+
+	$post_id = acf_get_valid_post_id($post_id);
+
+	foreach ($map as $meta_key => $field_key) {
+
+		$value = get_metadata($meta_type, $object_id, $meta_key, true);
+		$field = acf_get_field('field_' . $field_key);
+
+		if ($field) {
+			$field['value'] = $value;
+			acf_update_value($value, $post_id, $field);
+		} else {
+			update_field($meta_key, $value, $post_id);
+		}
+
+	}
+
+	delete_metadata($meta_type, $object_id, '_acf_map');
+
+}
+
+
+/**
+ * Compress existing ACF metadata in the compact format
+ *
+ * @param string $meta_type
+ * @param int    $object_id
+ *
+ * @return void
+ */
+function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
+
+	$metadata = get_metadata_raw($meta_type, $object_id, '', false);
+
+	if (empty($metadata) or !is_array($metadata)) {
+		return;
+	}
+
+	$acf_fields = [];
+	$acf_values = [];
+	$acf_remove = [];
+
+	$metadata = array_map(function($array) {
+		return reset($array);
+	}, $metadata);
+
+	foreach ($metadata as $meta_key => $meta_value) {
+
+		if (strpos($meta_key, '_') === 0 and strpos($meta_value, 'field_') === 0) {
+
+			$data_key = substr($meta_key, 1);
+
+			if (!isset($metadata[$data_key])) {
+				continue;
+			}
+
+			$acf_remove[] = $meta_key;
+			$acf_remove[] = $data_key;
+
+			$acf_fields[$data_key] = trim($meta_value);
+			$acf_values[$data_key] = maybe_unserialize(trim($metadata[$data_key]));
+
+		}
+
+	}
+
+	if (empty($acf_values)) {
+		return;
+	}
+
+	ksort($acf_values);
+
+	$acf_values = tw_acf_compress_values($acf_values, $acf_fields);
+
+	$acf_remove = array_diff($acf_remove, array_keys($acf_values));
+
+	if ($acf_remove) {
+		foreach ($acf_remove as $meta_key) {
+			delete_metadata($meta_type, $object_id, $meta_key);
+		}
+	}
+
+	if (!empty($metadata['_acf_map']) and is_array($metadata['_acf_map'])) {
+		$acf_map = $metadata['_acf_map'];
+	} else {
+		$acf_map = [];
+	}
+
+	foreach ($acf_values as $meta_key => $meta_value) {
+
+		if (!empty($acf_map[$meta_key])) {
+			continue;
+		}
+
+		if ($meta_value === '') {
+			unset($acf_map[$meta_key]);
+			delete_metadata($meta_key, $object_id, $meta_key);
+			continue;
+		}
+
+		if (isset($acf_fields[$meta_key]) and strpos($acf_fields[$meta_key], 'field_') === 0) {
+			$acf_map[$meta_key] = substr($acf_fields[$meta_key], 6);
+		}
+
+		$current_value = $metadata[$meta_key] ?? '';
+
+		if ($meta_value !== $current_value) {
+			update_metadata($meta_type, $object_id, $meta_key, $meta_value);
+		}
+
+	}
+
+	if ($acf_map) {
+		update_metadata($meta_type, $object_id, '_acf_map', $acf_map);
+	} else {
+		delete_metadata($meta_type, $object_id, '_acf_map');
+	}
+
+}
+
+
+/**
+ * Convert fields with ACF values into array
+ *
+ * @param array $values
+ * @param array $fields
+ *
+ * @return array|mixed
+ */
+function tw_acf_compress_values($values, $fields) {
+
+	if (!is_array($values) or empty($values)) {
+		return $values;
+	}
+
+	foreach ($values as $key => $value) {
+
+		if ($value === '' and isset($fields[$key]) and tw_acf_compress_find($values, $key . '_')) {
+
+			/**
+			 * Group fields use a base key as a prefix
+			 */
+			$field_key = $fields[$key];
+
+			/**
+			 * Process cloned field groups
+			 */
+			$position = strpos($field_key, '_field_');
+
+			if ($position > 0) {
+				$field_key = substr($field_key, $position + 1);
+			}
+
+			$field = acf_get_field($field_key);
+
+			if (is_array($field) and $field['type'] == 'group') {
+
+				$needle = $key . '_';
+				$length = strlen($needle);
+
+				$sub_values = [];
+				$sub_fields = [];
+
+				foreach ($values as $sub_key => $sub_value) {
+
+					if (strpos($sub_key, $needle) === 0) {
+
+						$trimmed_key = substr($sub_key, $length);
+						$sub_values[$trimmed_key] = $sub_value;
+
+						if (isset($fields[$sub_key])) {
+							$sub_fields[$trimmed_key] = $fields[$sub_key];
+						}
+
+						unset($values[$sub_key]);
+						unset($fields[$sub_key]);
+
+					}
+
+				}
+
+				$values[$key] = tw_acf_compress_values($sub_values, $sub_fields);
+
+			}
+
+		} elseif (tw_acf_compress_find($values, $key . '_0_')) {
+
+			/**
+			 * Process repeaters and flexible content fields
+			 *
+			 * Repeater fields use a number of iterations
+			 * Flexible content use an array with layouts
+			 */
+			if (is_array($value) and is_string(reset($value))) {
+				$count = count($value);
+			} elseif (is_numeric($value) and $value > 0) {
+				$count = (int) $value;
+			} else {
+				$count = 0;
+			}
+
+			if ($count > 0) {
+
+				$values[$key] = [];
+
+				for ($index = 0; $index < $count; $index++) {
+
+					$needle = $key . '_' . $index . '_';
+					$length = strlen($needle);
+
+					$sub_values = [];
+					$sub_fields = [];
+
+					foreach ($values as $sub_key => $sub_value) {
+
+						if (strpos($sub_key, $needle) === 0) {
+
+							$trimmed_key = substr($sub_key, $length);
+							$sub_values[$trimmed_key] = $sub_value;
+
+							if (isset($fields[$sub_key])) {
+								$sub_fields[$trimmed_key] = $fields[$sub_key];
+							}
+
+							unset($values[$sub_key]);
+							unset($fields[$sub_key]);
+
+						}
+
+					}
+
+					$values[$key][$index] = tw_acf_compress_values($sub_values, $sub_fields);
+
+					if (is_array($value) and isset($value[$index])) {
+						$values[$key][$index]['acf_fc_layout'] = $value[$index];
+					}
+
+				}
+
+			}
+
+		}
+
+	}
+
+	return $values;
+
+}
+
+
+/**
+ * Check if an array contains a key starting with a string
+ *
+ * @param array  $array
+ * @param string $needle
+ *
+ * @return bool
+ */
+function tw_acf_compress_find($array, $needle) {
+
+	foreach ($array as $key => $value) {
+		if (strpos($key, $needle) === 0) {
+			return true;
+		}
+	}
+
+	return false;
+
+}
+
+
+/**
+ * Compress and clean metadata before ACF processing
+ */
+add_action('edit_comment', function($post_id) {
+	tw_acf_compress_meta('comment', $post_id);
+}, 5, 1);
+
+add_action('profile_update', function($post_id) {
+	tw_acf_compress_meta('user', $post_id);
+}, 5, 1);
+
+add_action('edit_term', function($post_id) {
+	tw_acf_compress_meta('term', $post_id);
+}, 5, 1);
+
+add_action('save_post', function($post_id) {
+	tw_acf_compress_meta('post', $post_id);
+}, 5, 1);
 
 
 /**

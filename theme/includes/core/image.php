@@ -108,6 +108,10 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 			unset($attributes['loading']);
 		}
 
+		if (empty($attributes['decoding'])) {
+			$attributes['decoding'] = 'async';
+		}
+
 		if (!empty($attributes['before'])) {
 			$before = $before . $attributes['before'];
 		}
@@ -221,7 +225,7 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 		}
 
 		$data = [];
-		$list = ['loading', 'alt', 'class', 'id', 'width', 'height', 'style', 'srcset', 'sizes'];
+		$list = ['loading', 'alt', 'class', 'id', 'width', 'height', 'style', 'srcset', 'sizes', 'decoding'];
 
 		foreach ($attributes as $key => $attribute) {
 			if (in_array($key, $list) or strpos($key, 'data') === 0) {
