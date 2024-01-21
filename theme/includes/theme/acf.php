@@ -483,10 +483,6 @@ function tw_acf_decode_post_id($post_id) {
 			'id' => $post_id
 		];
 
-		if ($post_id == 'options') {
-			$entity['id'] = 'option';
-		}
-
 		$position = strpos($post_id, '_');
 
 		if ($position > 0) {
@@ -525,6 +521,10 @@ function tw_acf_decode_post_id($post_id) {
 					'id' => $post_id
 				];
 			}
+
+		} elseif ($post_id == 'option') {
+
+			$entity['id'] = 'options';
 
 		}
 
@@ -571,7 +571,7 @@ function tw_acf_decompress_meta($meta_type = 'post', $object_id = 0) {
 
 	$map = get_metadata($meta_type, $object_id, '_acf_map', true);
 
-	if (empty($map)) {
+	if (empty($map) or !function_exists('acf_get_field')) {
 		return;
 	}
 
@@ -636,11 +636,13 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 				continue;
 			}
 
+			$metadata[$data_key] = maybe_unserialize($metadata[$data_key]);
+
 			$acf_remove[] = $meta_key;
 			$acf_remove[] = $data_key;
 
-			$acf_fields[$data_key] = trim($meta_value);
-			$acf_values[$data_key] = maybe_unserialize(trim($metadata[$data_key]));
+			$acf_fields[$data_key] = $meta_value;
+			$acf_values[$data_key] = $metadata[$data_key];
 
 		}
 
@@ -707,7 +709,7 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
  * @param array $values
  * @param array $fields
  *
- * @return array|mixed
+ * @return array
  */
 function tw_acf_compress_values($values, $fields) {
 
@@ -733,7 +735,11 @@ function tw_acf_compress_values($values, $fields) {
 				$field_key = substr($field_key, $position + 1);
 			}
 
-			$field = acf_get_field($field_key);
+			if (function_exists('acf_get_field')) {
+				$field = acf_get_field($field_key);
+			} else {
+				$field = false;
+			}
 
 			if (is_array($field) and $field['type'] == 'group') {
 
