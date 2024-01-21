@@ -275,7 +275,15 @@ function tw_content_strip($text, $length = 200, $allowed_tags = false, $find = '
 			$pos = $length;
 		}
 
-		$text = mb_substr($text, 0, $pos) . $dots;
+		$text = mb_substr($text, 0, $pos);
+
+		preg_match('#(.+)</[^>]+$#is', $text, $matches);
+
+		if (!empty($matches[1])) {
+			$text = $matches[1];
+		}
+
+		$text = $text . $dots;
 
 	} else {
 
