@@ -1,16 +1,3 @@
-button {
-	box-sizing: border-box;
-	padding: 0;
-	border: none;
-	background: none;
-	color: currentColor;
-	transition: 0.2s;
-	cursor: pointer;
-	-moz-appearance: none;
-	-webkit-appearance: none;
-	appearance: none;
-}
-
 %button {
 	display: inline-flex;
 	position: relative;
@@ -79,9 +66,9 @@ button {
 		flex-shrink: 0;
 		width: 16px;
 		height: 16px;
-		margin-right: 6px;
+		margin-right: 8px;
 		background-color: currentColor;
-		-webkit-mask: none 50% 50% no-repeat;
+		-webkit-mask: var(--mask-image) 50% 50% / contain no-repeat;
 	}
 
 }
@@ -93,56 +80,9 @@ button {
 		display: inline-block;
 		width: 16px;
 		height: 16px;
-		margin-left: 6px;
+		margin-left: 8px;
 		background-color: currentColor;
-		-webkit-mask: none 50% 50% no-repeat;
-	}
-
-}
-
-.button {
-
-	@extend %button;
-
-	&.outline {
-		@extend %button_outline;
-	}
-
-	&:disabled {
-		@extend %button_disabled;
-	}
-
-	&.is_hidden {
-		display: none;
-	}
-
-	&.is_loading, &.is_loading:hover {
-		border-color: var(--color-border);
-		background-color: var(--color-muted);
-		background-image: url(../images/ico_loading.svg);
-		color: transparent;
-	}
-
-}
-
-.buttons {
-	display: block;
-	margin: 0 -10px 10px;
-	font-size: 0;
-	line-height: 0;
-
-	&:last-child {
-		margin-bottom: -10px;
-	}
-
-	&_wide {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-	}
-
-	.button {
-		margin: 0 10px 10px;
+		-webkit-mask: var(--mask-image) 50% 50% / contain no-repeat;
 	}
 
 }

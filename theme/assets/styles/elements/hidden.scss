@@ -6,7 +6,3 @@
 	clip: rect(1px, 1px, 1px, 1px);
 	word-wrap: normal;
 }
-
-.screen-reader-text, .sr-hidden {
-	@extend %hidden;
-}

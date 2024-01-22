@@ -120,11 +120,15 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 			$after = $attributes['after'] . $after;
 		}
 
-		$data = tw_image_size($size, $image);
+		if (empty($attributes['width']) or empty($attributes['height'])) {
 
-		if ($data['width'] > 0 and $data['height'] > 0) {
-			$attributes['width'] = round($data['width']);
-			$attributes['height'] = round($data['height']);
+			$data = tw_image_size($size, $image);
+
+			if ($data['width'] > 0 and $data['height'] > 0) {
+				$attributes['width'] = round($data['width']);
+				$attributes['height'] = round($data['height']);
+			}
+
 		}
 
 		if (!empty($attributes['srcset']) and is_array($attributes['srcset'])) {

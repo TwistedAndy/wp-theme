@@ -23,10 +23,15 @@ let sources = {
 	style: 'styles/style.scss',
 	styles: [
 		'styles/*.scss',
+		'styles/woo/*.scss',
 		'styles/base/*.scss',
 		'styles/blocks/*.scss',
 		'styles/elements/*.scss',
-		'styles/includes/*.scss'
+		'styles/includes/*.scss',
+	],
+	blocks: 'styles/blocks.scss',
+	plugins: [
+		'plugins/**/*.scss',
 	],
 	scripts: 'scripts/*.js'
 };
@@ -75,6 +80,23 @@ function scripts() {
 		.pipe(gulp.dest(folders.build));
 }
 
+function plugins() {
+	return gulp.src(sources.plugins, {base: './'})
+		.pipe(plumber(options.plumber))
+		.pipe(sourcemaps.init())
+		.pipe(sass(options.sass))
+		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
+		.pipe(gulp.dest('./'));
+}
+
+function blocks() {
+	return gulp.src(sources.blocks)
+		.pipe(plumber(options.plumber))
+		.pipe(globalize())
+		.pipe(sass(options.sass))
+		.pipe(gulp.dest(folders.build));
+}
+
 function images() {
 	return gulp.src(folders.images + '/**/*.{png,gif,jpg,jpeg,svg}')
 		.pipe(plumber(options.plumber))
@@ -90,7 +112,12 @@ exports.scripts = scripts;
 
 exports.imagemin = images;
 
+exports.blocks = blocks;
+
+exports.plugins = plugins;
+
 exports.default = function() {
 	gulp.watch(sources.styles, gulp.parallel(styles));
 	gulp.watch(sources.scripts, gulp.parallel(scripts));
+	gulp.watch(sources.plugins, gulp.parallel(plugins));
 }

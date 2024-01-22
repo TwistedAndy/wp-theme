@@ -4,9 +4,11 @@
 
 @import 'includes/variables';
 
+@import 'includes/properties';
+
 @import 'base/fonts';
 
-@import 'base/defaults';
+@import 'base/reset';
 
 @import 'base/fields';
 
@@ -14,9 +16,13 @@
 
 @import 'base/header';
 
+@import 'base/elements';
+
 @import 'elements/*';
 
 @import 'blocks/*';
+
+@import 'base/wp';
 
 @import 'base/footer';
 

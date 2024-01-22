@@ -8,6 +8,24 @@ body {
 
 }
 
+.admin-bar {
+	--height-bar: 32px;
+
+	@include media_max(782px) {
+		--height-bar: 46px;
+	}
+
+	@include media_max(600px) {
+		--height-bar: 0px;
+
+		#wpadminbar {
+			display: none;
+		}
+
+	}
+
+}
+
 #site {
 	display: flex;
 	position: relative;
@@ -36,19 +54,6 @@ body {
 
 	.fixed {
 		padding: 0;
-	}
-
-}
-
-.items {
-
-	& + .buttons {
-		text-align: center;
-
-		.button {
-			margin-top: var(--gap-contents);
-		}
-
 	}
 
 }
@@ -154,22 +159,4 @@ section {
 	width: calc(var(--width-item) - var(--gap-grid));
 	margin: 0 var(--gap-grid) var(--gap-vertical) 0;
 	overscroll-behavior: contain;
-}
-
-.admin-bar {
-	--height-bar: 32px;
-
-	@include media_max(782px) {
-		--height-bar: 46px;
-	}
-
-	@include media_max(600px) {
-		--height-bar: 0px;
-
-		#wpadminbar {
-			display: none;
-		}
-
-	}
-
 }

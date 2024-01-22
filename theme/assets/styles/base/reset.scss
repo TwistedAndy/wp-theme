@@ -73,8 +73,7 @@ table {
 	border-collapse: collapse;
 }
 
-h1, h2, h3, h4, h5, h6,
-%h1, %h2, %h3, %h4, %h5, %h6 {
+h1, h2, h3, h4, h5, h6 {
 	display: block;
 	position: relative;
 	margin: 0 0 var(--gap-heading);
@@ -89,28 +88,28 @@ h1, h2, h3, h4, h5, h6,
 
 }
 
-h1, %h1 {
+h1 {
 	font-size: var(--size-h1);
 	line-height: 1.2;
 }
 
-h2, %h2 {
+h2 {
 	font-size: var(--size-h2);
 }
 
-h3, %h3 {
+h3 {
 	font-size: var(--size-h3);
 }
 
-h4, %h4 {
+h4 {
 	font-size: var(--size-h4);
 }
 
-h5, %h5 {
+h5 {
 	font-size: var(--size-h5);
 }
 
-h6, %h6 {
+h6 {
 	font-size: var(--size-h6);
 }
 
@@ -140,4 +139,17 @@ a {
 
 	}
 
+}
+
+button {
+	padding: 0;
+	border: none;
+	background: none;
+	color: currentColor;
+	font-family: var(--font-main);
+	transition: 0.2s;
+	cursor: pointer;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
 }

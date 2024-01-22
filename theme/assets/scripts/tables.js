@@ -1,5 +1,5 @@
 jQuery(function($) {
 
-	$('.content > table').wrap('<div class="table_wrapper"></div>');
+	$('.content > table').wrap('<div class="table"></div>');
 
 });

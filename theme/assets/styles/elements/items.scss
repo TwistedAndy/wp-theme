@@ -1,0 +1,19 @@
+%items {
+	display: flex;
+	position: relative;
+	flex-wrap: wrap;
+	width: calc(100% + var(--gap-grid));
+	margin: 0 calc(-1 * var(--gap-grid)) calc(-1 * var(--gap-vertical)) 0;
+	z-index: 2;
+}
+
+%item {
+	display: inline-flex;
+	position: relative;
+	flex-direction: column;
+	flex-grow: 0;
+	flex-shrink: 0;
+	width: calc(var(--width-item) - var(--gap-grid));
+	margin: 0 var(--gap-grid) var(--gap-vertical) 0;
+	overscroll-behavior: contain;
+}

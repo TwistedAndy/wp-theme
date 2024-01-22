@@ -46,7 +46,9 @@ jQuery(function($) {
 							isNext: 'is-next',
 							isAfterNext: 'is-after-next'
 						},
-						dotTpl: '<button type="button" data-carousel-page="%i" aria-label="{{GOTO}}"></button>'
+						dotTpl: '<button type="button" data-carousel-page="%i" aria-label="{{GOTO}}"></button>',
+						dynamicFrom: 3,
+						minCount: 3
 					},
 					Navigation: {
 						classes: {
