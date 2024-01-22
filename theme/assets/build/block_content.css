@@ -1,0 +1,1 @@
+.content_box .contents{max-width:var(--width-contents);margin:0 auto var(--gap-contents);text-align:center}.content_box .contents:last-child{margin-bottom:0}.content_box .contents .content{display:inline-block;max-width:var(--width-content)}

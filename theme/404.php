@@ -6,9 +6,9 @@ $blocks[] = [
 	'acf_fc_layout' => 'message',
 	'image' => 'pic_locked.svg',
 	'contents' => [
-		'title' => 'Page not found',
+		'title' => __('Page not found', 'twee'),
 		'tag' => 'h2',
-		'text' => 'Sorry, but the page you were trying to view does not exist.',
+		'text' => __('Sorry, but the page you were trying to view does not exist.', 'twee'),
 		'buttons' => [
 			[
 				'type' => 'default',

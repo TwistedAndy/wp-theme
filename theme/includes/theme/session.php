@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <andy@absoluteweb.com>
  * @package Twee
- * @version 4.0
+ * @version 4.1
  */
 
 /**

@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.0
+ * @version 4.1
  */
 
 /**
@@ -12,19 +12,19 @@
  */
 add_action('init', function() {
 
-	$base = TW_ROOT . 'assets' . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR;
+	$base = TW_ROOT . 'assets/plugins/';
 
-	$directories = scandir($base);
+	$files = scandir($base);
 
 	$assets = tw_asset_list();
 
-	if (is_array($directories)) {
+	if (is_array($files)) {
 
-		$directories = array_diff($directories, ['..', '.']);
+		$files = array_diff($files, ['..', '.']);
 
-		foreach ($directories as $name) {
+		foreach ($files as $name) {
 
-			$filename = $base . $name . DIRECTORY_SEPARATOR . 'index.php';
+			$filename = $base . $name . '/index.php';
 
 			if (!is_file($filename)) {
 				continue;
@@ -49,6 +49,42 @@ add_action('init', function() {
 			$asset['directory'] = 'plugins/' . $name;
 
 			$assets[$name] = $asset;
+
+		}
+
+	}
+
+	$base = TW_ROOT . 'assets/build/';
+
+	$files = scandir($base);
+
+	if (!empty($assets['template']) and !empty($assets['template']['version'])) {
+		$version = $assets['template']['version'];
+		$need_version = false;
+	} else {
+		$need_version = true;
+		$version = '';
+	}
+
+	if (is_array($files)) {
+
+		foreach ($files as $file) {
+
+			if (strpos($file, '.css') === false or strpos($file, 'block_') !== 0) {
+				continue;
+			}
+
+			$name = substr($file, 6, -4) . '_box';
+
+			if ($need_version) {
+				$version = filemtime($base . $file);
+			}
+
+			$assets[$name] = [
+				'style' => $file,
+				'directory' => 'build',
+				'version' => $version
+			];
 
 		}
 

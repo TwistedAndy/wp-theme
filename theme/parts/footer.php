@@ -1,3 +1,5 @@
+<?php tw_asset_enqueue('footer_box'); ?>
+
 <footer class="footer_box">
 
 	<div class="fixed">

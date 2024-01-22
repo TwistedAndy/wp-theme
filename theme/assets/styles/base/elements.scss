@@ -58,6 +58,10 @@
 
 }
 
+.content {
+	@extend %content;
+}
+
 .carousel {
 	@extend %carousel;
 }

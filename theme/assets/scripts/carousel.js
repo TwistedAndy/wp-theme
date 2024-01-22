@@ -1,6 +1,6 @@
 jQuery(function($) {
 
-	var sections = $('.posts_box');
+	let sections = $('.posts_box');
 
 	sections.on('init', function() {
 

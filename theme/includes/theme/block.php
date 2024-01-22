@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.0
+ * @version 4.1
  */
 
 /**
@@ -79,6 +79,15 @@ function tw_block_attributes($class, $block) {
 		$classes = [$class];
 	} elseif (is_array($class)) {
 		$classes = $class;
+	}
+
+	if (!is_admin()) {
+		foreach ($classes as $class) {
+			if (strpos($class, '_box') > 0) {
+				tw_asset_enqueue($class);
+				break;
+			}
+		}
 	}
 
 	$settings = [];

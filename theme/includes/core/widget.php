@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.0
+ * @version 4.1
  */
 
 namespace Twee;

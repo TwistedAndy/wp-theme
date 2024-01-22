@@ -1,4 +1,11 @@
 <?php
+/**
+ * Add a slider and a video options to the default WP gallery
+ *
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @package Twee
+ * @version 4.1
+ */
 
 /**
  * Add a slider control to WP Gallery

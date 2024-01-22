@@ -1,5 +1,7 @@
 <?php
 
+tw_asset_enqueue('header_box');
+
 $classes = ['header_box'];
 
 $blocks = tw_app_get('current_blocks', null);

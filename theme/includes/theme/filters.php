@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.0
+ * @version 4.1
  */
 
 /**
@@ -128,18 +128,13 @@ add_filter('pings_open', '__return_false');
 
 
 /**
- * Enable the jQuery Migrate plugin
+ * Disable jQuery Migrate
  */
 add_action('wp_default_scripts', function($scripts) {
-
-	$scripts->remove('jquery');
-
-	if (is_admin()) {
-		$scripts->add('jquery', false, ['jquery-core', 'jquery-migrate'], '3.6.4');
-	} else {
-		$scripts->add('jquery', false, ['jquery-core'], '3.6.4');
+	if (!is_admin()) {
+		$scripts->remove('jquery');
+		$scripts->add('jquery', false, ['jquery-core'], '3.7.1');
 	}
-
 }, 20);
 
 

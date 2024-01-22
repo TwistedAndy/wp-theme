@@ -6,6 +6,8 @@ if (post_password_required()) {
 
 $number = get_comments_number();
 
+tw_asset_enqueue('comments_box');
+
 ?>
 <section class="comments_box">
 

@@ -1,15 +1,17 @@
 <?php
 /**
- * Optimize how ACF stores flexible content fields, repeaters and field groups
+ * New ACF data storage engine
  *
- * The main idea of this optimization is to dramatically
- * reduce the amount of data stored in meta tables by
- * switching to serialized arrays instead of storing every
- * item in a separate field
+ * The code below implements the following optimizations:
+ * - Groups, Repeaters, and Flexible Content fields are stored as serialized arrays
+ * - Field association is stored in one field per object
+ * - Existing data will be converted on save
+ * - Add ACF support for product variations
+ * - Adds a fallback get_field function
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.0
+ * @version 4.1
  */
 
 /*

@@ -1,11 +1,14 @@
-let gulp = require('gulp'),
+let fs = require('fs'),
+	gulp = require('gulp'),
 	sass = require('gulp-sass'),
 	notify = require('gulp-notify'),
 	concat = require('gulp-concat'),
+	rename = require('gulp-rename'),
 	plumber = require('gulp-plumber'),
 	imagemin = require('gulp-imagemin'),
 	globalize = require('gulp-sass-glob'),
 	sourcemaps = require('gulp-sourcemaps'),
+	inject = require('gulp-inject-string'),
 	uglify = require('gulp-uglify-es').default;
 
 if (typeof sass.compiler === 'undefined') {
@@ -25,14 +28,12 @@ let sources = {
 		'styles/*.scss',
 		'styles/woo/*.scss',
 		'styles/base/*.scss',
-		'styles/blocks/*.scss',
 		'styles/elements/*.scss',
 		'styles/includes/*.scss',
 	],
-	blocks: 'styles/blocks.scss',
-	plugins: [
-		'plugins/**/*.scss',
-	],
+	plugins: 'plugins/**/*.scss',
+	preview: 'styles/preview.scss',
+	blocks: 'styles/blocks/*.scss',
 	scripts: 'scripts/*.js'
 };
 
@@ -81,7 +82,10 @@ function scripts() {
 }
 
 function plugins() {
-	return gulp.src(sources.plugins, {base: './'})
+	return gulp.src(sources.plugins, {
+			base: './',
+			since: gulp.lastRun(plugins)}
+		)
 		.pipe(plumber(options.plumber))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
@@ -90,10 +94,46 @@ function plugins() {
 }
 
 function blocks() {
-	return gulp.src(sources.blocks)
+
+	let files = fs.readdirSync('./styles/elements/'),
+		folder = '../elements/',
+		strings = [
+			"@import '../includes/variables';",
+			"@import '../includes/mixins';"
+		],
+		exclude = [
+			'content.scss',
+			'carousel.scss',
+			'select2.scss',
+		]
+
+	files.forEach(function(file) {
+		if (exclude.indexOf(file) === -1) {
+			strings.push("@import '" + folder + file + "';");
+		}
+	});
+
+	return gulp.src(sources.blocks, {
+			base: './styles/blocks',
+			since: gulp.lastRun(blocks)
+		})
 		.pipe(plumber(options.plumber))
+		.pipe(inject.prepend(strings.join("\n") + "\n"))
 		.pipe(globalize())
 		.pipe(sass(options.sass))
+		.pipe(rename({
+			prefix: 'block_'
+		}))
+		.pipe(gulp.dest(folders.build));
+}
+
+function preview() {
+	return gulp.src(sources.preview)
+		.pipe(plumber(options.plumber))
+		.pipe(sourcemaps.init())
+		.pipe(globalize())
+		.pipe(sass(options.sass))
+		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
 		.pipe(gulp.dest(folders.build));
 }
 
@@ -106,18 +146,22 @@ function images() {
 		}));
 }
 
-exports.styles = styles;
-
 exports.scripts = scripts;
 
-exports.imagemin = images;
+exports.styles = styles;
 
 exports.blocks = blocks;
 
 exports.plugins = plugins;
 
+exports.preview = preview;
+
+exports.imagemin = images;
+
 exports.default = function() {
-	gulp.watch(sources.styles, gulp.parallel(styles));
+	gulp.watch(sources.styles, gulp.parallel(styles, blocks, preview, plugins));
 	gulp.watch(sources.scripts, gulp.parallel(scripts));
+	gulp.watch(sources.blocks, gulp.parallel(blocks));
 	gulp.watch(sources.plugins, gulp.parallel(plugins));
+	gulp.watch(sources.preview, gulp.parallel(preview));
 }

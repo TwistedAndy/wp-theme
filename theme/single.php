@@ -26,8 +26,6 @@ if (post_password_required($object)) {
 
 	if (empty($blocks) and $object instanceof WP_Post) {
 
-		$thumbnail_id = get_post_meta($object->ID, '_thumbnail_id', true);
-
 		$blocks = [
 			[
 				'acf_fc_layout' => 'heading',
@@ -36,9 +34,8 @@ if (post_password_required($object)) {
 					'tag' => 'h1',
 					'text' => $object->post_excerpt
 				],
-				'background' => $thumbnail_id,
 				'settings' => [
-					'background' => 'dark'
+					'background' => 'light'
 				]
 			],
 			[

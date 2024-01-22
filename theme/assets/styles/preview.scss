@@ -1,0 +1,41 @@
+@charset "utf-8";
+
+@import 'includes/mixins';
+@import 'includes/variables';
+
+$scope: '#tw';
+
+@import 'includes/properties';
+@import 'base/fonts';
+
+#{$scope} {
+	display: block;
+	position: relative;
+	overflow: hidden;
+	background: var(--color-base);
+	color: var(--color-text);
+	font-family: var(--font-main);
+	font-size: var(--size-base);
+	font-weight: 400;
+	line-height: 1.25;
+
+	@include media_min($desktop_small) {
+		--gap-section: 50px;
+		--gap-aside: 20px;
+	}
+
+	@import 'base/reset';
+	@import 'base/fields';
+	@import 'base/layout';
+
+	section {
+		--gap-section-top: var(--gap-section);
+	}
+
+	@import 'base/elements';
+	@import 'elements/*';
+	@import 'blocks/*';
+	@import 'base/wp';
+	@import 'base/animation';
+
+}
