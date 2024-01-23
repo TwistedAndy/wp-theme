@@ -1,6 +1,6 @@
-jQuery(function($) {
+jQuery(document.body).on('tw_init', '.comments_box', function(e, $) {
 
-	$('[data-comments]').each(function() {
+	$('[data-comments]', this).each(function() {
 
 		var button = $(this),
 			data = button.data('comments'),

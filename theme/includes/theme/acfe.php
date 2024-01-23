@@ -7,9 +7,6 @@
  * @version 4.1
  */
 
-/**
- * Adjust enabled modules and fields
- */
 add_action('acf/init', function() {
 
 	/**
@@ -98,18 +95,9 @@ add_action('acfe/flexible/render/before_template', function($field, $layout) {
 
 		$block = get_row(true);
 
-		$class = 'block_' . rand(0, 10000);
-
-		if (is_array($block)) { ?>
-			<div class="<?php echo $class; ?>" id="tw">
-				<?php echo tw_block_render($block); ?>
-			</div>
-			<script type="text/javascript">
-				jQuery(function($){
-					$('.<?php echo $class; ?> section').trigger('init');
-				});
-			</script>
-		<?php }
+		if (is_array($block)) {
+			echo '<div id="tw">' . tw_block_render($block) . '</div>';
+		}
 
 	}
 
@@ -122,4 +110,15 @@ add_action('acfe/flexible/render/before_template', function($field, $layout) {
 add_action('acf/render_field/type=flexible_content', function() {
 	wp_enqueue_style('tw_blocks', TW_URL . 'assets/build/preview.css');
 	wp_enqueue_script('tw_blocks', TW_URL . 'assets/build/scripts.js');
+	?>
+	<script type="text/javascript">
+		jQuery(function() {
+			if (typeof acf === 'object') {
+				acf.addAction('acfe/fields/flexible_content/preview', function(response, $el) {
+					$el.find('[class*="_box"]').trigger('tw_init', [jQuery]);
+				});
+			}
+		});
+	</script>
+	<?php
 });

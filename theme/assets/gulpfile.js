@@ -161,7 +161,7 @@ exports.imagemin = images;
 exports.default = function() {
 	gulp.watch(sources.styles, gulp.parallel(styles, blocks, preview, plugins));
 	gulp.watch(sources.scripts, gulp.parallel(scripts));
-	gulp.watch(sources.blocks, gulp.parallel(blocks));
+	gulp.watch(sources.blocks, gulp.parallel(blocks, preview));
 	gulp.watch(sources.plugins, gulp.parallel(plugins));
 	gulp.watch(sources.preview, gulp.parallel(preview));
 }

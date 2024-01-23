@@ -105,17 +105,11 @@ function tw_block_attributes($class, $block) {
 		}
 
 		if (in_array('top', $options)) {
+			$classes[] = 'box_no_top';
+		}
 
-			if (in_array('bottom', $options)) {
-				$classes[] = 'box_no_both';
-			} else {
-				$classes[] = 'box_no_top';
-			}
-
-		} elseif (in_array('bottom', $options)) {
-
+		if (in_array('bottom', $options)) {
 			$classes[] = 'box_no_bottom';
-
 		}
 
 	}

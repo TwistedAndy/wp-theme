@@ -1,6 +1,6 @@
-jQuery(function($) {
+jQuery(document.body).on('tw_init', '[class*="_box"]', function(e, $) {
 
-	$('[data-loader]').each(function() {
+	$('[data-loader]', this).each(function() {
 
 		var button = $(this),
 			data = button.data('loader'),

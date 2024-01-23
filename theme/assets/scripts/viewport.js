@@ -30,7 +30,6 @@ function setViewportVariables() {
 
 	var styles = document.documentElement.style;
 
-	styles.setProperty('--vh', (window.innerHeight / 100) + 'px');
 	styles.setProperty('--width-scrollbar', getScrollbarWidth() + 'px');
 
 }

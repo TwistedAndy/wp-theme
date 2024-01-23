@@ -2,14 +2,19 @@
 
 	&.items {
 		overflow: hidden;
-		flex-wrap: nowrap;
+		flex-wrap: nowrap !important;
+
+		&.is-horizontal {
+			display: block;
+			overflow: visible;
+			width: 100%;
+			margin: 0;
+		}
+
 	}
 
+
 	&.is-horizontal {
-		display: block;
-		overflow: visible;
-		width: 100%;
-		margin: 0;
 
 		.carousel-track {
 			width: calc(100% + var(--gap-grid));

@@ -8,7 +8,7 @@
 	overflow: hidden;
 	align-items: center;
 	justify-content: stretch;
-	height: calc(var(--vh, 1vh) * 100);
+	height: 100dvh;
 	background-color: rgba(0, 0, 0, 0.75);
 	transition: 0.5s;
 	visibility: hidden;

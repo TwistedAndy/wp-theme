@@ -130,7 +130,7 @@ function tw_content_link($link, $class = 'button') {
 
 	$result = '';
 
-	if (is_array($link) and isset($link['url']) and isset($link['title'])) {
+	if (is_array($link) and !empty($link['url']) and isset($link['title'])) {
 
 		if ($class) {
 			$class = ' class="' . $class . '"';

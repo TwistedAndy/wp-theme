@@ -151,8 +151,10 @@
 		align-items: baseline;
 		margin-bottom: 15px;
 
-		a:hover {
-			color: var(--color-active);
+		@include hover() {
+			a:hover {
+				color: var(--color-primary);
+			}
 		}
 
 		small {
@@ -162,10 +164,6 @@
 			font-size: 15px;
 			font-weight: 600;
 			line-height: 20px;
-		}
-
-		a:hover {
-			color: var(--color-heading);
 		}
 
 	}

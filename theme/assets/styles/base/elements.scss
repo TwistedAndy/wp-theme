@@ -37,15 +37,6 @@
 		margin-bottom: -10px;
 	}
 
-	.items + & {
-		text-align: center;
-
-		.button {
-			margin-top: var(--gap-contents);
-		}
-
-	}
-
 	&_wide {
 		display: flex;
 		flex-wrap: wrap;
@@ -54,6 +45,15 @@
 
 	.button {
 		margin: 0 10px 10px;
+	}
+
+}
+
+.items + .buttons {
+	text-align: center;
+
+	.button {
+		margin-top: var(--gap-contents);
 	}
 
 }

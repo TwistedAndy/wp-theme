@@ -1,95 +1,87 @@
-jQuery(function($) {
+jQuery(document.body).on('tw_init', '.posts_box', function(e, $) {
 
-	let sections = $('.posts_box');
+	if (typeof Carousel !== 'function') {
+		return;
+	}
 
-	sections.on('init', function() {
+	var section = $(this),
+		wrappers = section.find('.carousel');
 
-		if (typeof Carousel !== 'function') {
-			return;
-		}
+	wrappers.each(function() {
 
-		var section = $(this),
-			wrappers = section.find('.carousel'),
+		var wrapper = $(this),
+			carousel = wrapper.data('carousel'),
 			plugins = {};
 
-		wrappers.each(function() {
+		var args = {
+			infinite: true,
+			center: false,
+			transition: 'slide',
+			slidesPerPage: 1,
+			classes: {
+				container: 'carousel',
+				viewport: 'carousel-viewport',
+				track: 'carousel-track',
+				slide: 'item'
+			},
+			Dots: {
+				classes: {
+					list: 'carousel-dots',
+					isDynamic: 'is-dynamic',
+					hasDots: 'has-dots',
+					dot: 'dot',
+					isBeforePrev: 'is-before-prev',
+					isPrev: 'is-prev',
+					isCurrent: 'is-current',
+					isNext: 'is-next',
+					isAfterNext: 'is-after-next'
+				},
+				dotTpl: '<button type="button" data-carousel-page="%i" aria-label="{{GOTO}}"></button>',
+				dynamicFrom: 3,
+				minCount: 3
+			},
+			Navigation: {
+				classes: {
+					container: 'carousel-nav',
+					button: 'carousel-button',
+					isNext: 'is-next',
+					isPrev: 'is-prev'
+				},
+				nextTpl: '',
+				prevTpl: ''
+			}
+		};
 
-			var wrapper = $(this),
-				carousel = wrapper.data('carousel');
+		if (wrapper.hasClass('gallery')) {
 
-			if (typeof carousel === 'object') {
+			args.classes.slide = 'gallery-item';
 
-				carousel.reInit();
+			args.Dots = false;
 
-			} else {
+			if (typeof Thumbs !== 'undefined') {
 
-				var args = {
-					infinite: true,
-					center: false,
-					transition: 'slide',
-					slidesPerPage: 1,
-					classes: {
-						container: 'carousel',
-						viewport: 'carousel-viewport',
-						track: 'carousel-track',
-						slide: 'item'
-					},
-					Dots: {
-						classes: {
-							list: 'carousel-dots',
-							isDynamic: 'is-dynamic',
-							hasDots: 'has-dots',
-							dot: 'dot',
-							isBeforePrev: 'is-before-prev',
-							isPrev: 'is-prev',
-							isCurrent: 'is-current',
-							isNext: 'is-next',
-							isAfterNext: 'is-after-next'
-						},
-						dotTpl: '<button type="button" data-carousel-page="%i" aria-label="{{GOTO}}"></button>',
-						dynamicFrom: 3,
-						minCount: 3
-					},
-					Navigation: {
-						classes: {
-							container: 'carousel-nav',
-							button: 'carousel-button',
-							isNext: 'is-next',
-							isPrev: 'is-prev'
-						},
-						nextTpl: '',
-						prevTpl: ''
-					}
+				plugins = {Thumbs};
+
+				args.Thumbs = {
+					type: 'classic'
 				};
-
-				if (wrapper.hasClass('gallery')) {
-
-					args.classes.slide = 'gallery-item';
-
-					args.Dots = false;
-
-					if (typeof Thumbs !== 'undefined') {
-
-						plugins = {Thumbs};
-
-						args.Thumbs = {
-							type: 'classic'
-						}
-
-					}
-
-				}
-
-				carousel = new Carousel(this, args);
-
-				wrapper.data('carousel', carousel);
 
 			}
 
-		});
+		}
+
+		if (typeof carousel === 'object') {
+
+			carousel.reInit(args, plugins);
+
+		} else {
+
+			carousel = new Carousel(this, args, plugins);
+
+			wrapper.data('carousel', carousel);
+
+		}
 
 	});
-
-	sections.trigger('init');
 
 });

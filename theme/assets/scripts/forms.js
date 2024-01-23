@@ -1,27 +1,34 @@
-/* Form processing */
+jQuery(document.body).on('tw_init', '[class*="_box"]', function(e, $) {
 
-jQuery(function($) {
+	var forms = $(this);
 
-	$('.form_box form, form.form_box, form.comment-form').not('.skip_processing').each(function() {
+	if (!forms.is('form')) {
+		forms = $('.form_box form, form.form_box, form.comment-form', this);
+	}
 
-		var form = $(this), message,
+	forms.not('.skip_processing').each(function() {
+
+		var form = $(this),
+			message,
 			button = $('[type="submit"]', form);
 
 		form.on('submit', function(e) {
 
 			var data = form.serializeArray();
 
-			var action = 'feedback';
-
-			if (form.hasClass('comment-form')) {
-				action = 'comment_add';
-			}
-
 			if ($('[name="action"]', form).length === 0) {
+
+				var action = 'feedback';
+
+				if (form.hasClass('comment-form')) {
+					action = 'comment_add';
+				}
+
 				data.push({
 					name: 'action',
 					value: action
 				});
+
 			}
 
 			data.push({
@@ -48,10 +55,10 @@ jQuery(function($) {
 
 		});
 
-
 		form.on('change', 'input:file', function() {
 
-			var data = new FormData(), file = this;
+			var data = new FormData(),
+				file = this;
 
 			data.append('action', 'process_file');
 
@@ -143,7 +150,7 @@ jQuery(function($) {
 				for (let i in data.files) {
 					if (data.files.hasOwnProperty(i)) {
 						var field = $('[name=' + i + ']', form).closest('.field');
-						field.siblings('.notify').slideUp(400, function(){
+						field.siblings('.notify').slideUp(400, function() {
 							$(this).remove();
 						});
 						message = $('<div class="notify">' + data['files'][i] + '</div>');

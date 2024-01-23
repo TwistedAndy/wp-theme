@@ -1,5 +1,3 @@
-/* Smooth scroll */
-
 jQuery(function($) {
 
 	$(document.body).on('click', 'a[href*="#"]', function(e) {

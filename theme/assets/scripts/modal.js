@@ -1,6 +1,4 @@
-/* Modal windows */
-
-jQuery(function($) {
+jQuery(document.body).on('tw_init', function(e, $) {
 
 	var wrapper = $(document.body);
 
@@ -18,7 +16,6 @@ jQuery(function($) {
 		$($(this).attr('href')).trigger('show');
 		e.preventDefault();
 	});
-
 
 	wrapper.on('close', '.modal_box', function() {
 		$(this).removeClass('is_visible');

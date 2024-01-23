@@ -1,21 +1,13 @@
-jQuery(function($) {
+jQuery(document.body).on('tw_init', '[class*="_box"]', function(e, $) {
 
-	let sections = $('section');
+	if (typeof Fancybox !== 'function') {
+		return;
+	}
 
-	sections.on('init', function() {
-
-		if (typeof Fancybox !== 'function') {
-			return;
-		}
-
-		Fancybox.bind(this, 'a[href$=".png"], a[href$=".jpg"], a[href$=".jpeg"], a[href$=".gif"]', {
-			groupAll: true
-		});
-
-		Fancybox.bind(this, 'a[href*="youtube.com"], a[href*="youtu.be"], a[href*="vimeo.com"], a[href$="mp4"]', {});
-
+	Fancybox.bind(this, 'a[href$=".png"], a[href$=".jpg"], a[href$=".jpeg"], a[href$=".gif"]', {
+		groupAll: true
 	});
 
-	sections.trigger('init');
+	Fancybox.bind(this, 'a[href*="youtube.com"], a[href*="youtu.be"], a[href*="vimeo.com"], a[href$="mp4"]', {});
 
 });
