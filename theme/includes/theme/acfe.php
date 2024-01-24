@@ -153,7 +153,16 @@ add_action('acfe/flexible/render/before_template', function($field, $layout) {
 		$block = get_row(true);
 
 		if (is_array($block)) {
-			echo '<div id="tw">' . tw_block_render($block) . '</div>';
+
+			$content = tw_block_render($block);
+
+			/**
+			 * Fix an issue with the embedded forms
+			 */
+			$content = str_replace(['<form ', '</form>'], ['<div ', '</div>'], $content);
+
+			echo '<div id="tw">' . $content . '</div>';
+
 		}
 
 	}
