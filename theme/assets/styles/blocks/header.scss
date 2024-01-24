@@ -17,6 +17,10 @@
 
 	&.is_fixed {
 
+		& ~ section, & ~ div {
+			--height-fixed: var(--height-header);
+		}
+
 		.header {
 			position: fixed;
 			top: var(--height-bar);

@@ -1,3 +1,7 @@
+html {
+	scroll-behavior: smooth;
+}
+
 body {
 
 	&.is_locked {
@@ -31,7 +35,7 @@ body {
 	position: relative;
 	overflow: hidden;
 	flex-direction: column;
-	min-height: 100vh;
+	min-height: 100dvh;
 	padding-top: var(--height-bar);
 }
 
@@ -63,6 +67,7 @@ section {
 	padding: calc(var(--gap-section-top) + var(--gap-section-shift)) var(--gap-aside) var(--gap-section-bottom);
 	background-color: var(--color-section);
 	color: var(--color-text);
+	scroll-margin-top: calc(var(--height-fixed) + var(--gap-section) - var(--gap-section-top));
 	--gap-section-top: 0px;
 	--gap-section-bottom: var(--gap-section);
 

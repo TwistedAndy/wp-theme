@@ -1,35 +1,3 @@
-jQuery(function($) {
-
-	$(document.body).on('click', 'a[href*="#"]', function(e) {
-
-		if (this.href.indexOf('#modal_') === -1 && this.href.indexOf('#tab_') === -1) {
-
-			var link = document.location.protocol + '//' + document.location.hostname + document.location.pathname,
-				parts = this.href.split('#'),
-				selector = '';
-
-			if (parts.length > 1 && link === parts[0]) {
-				selector = parts[1];
-			} else if (parts.length === 1) {
-				selector = parts[0];
-			}
-
-			if (selector) {
-				e.preventDefault();
-				smoothScrollTo($('#' + selector));
-			}
-
-		}
-
-	});
-
-	if (window.location.hash) {
-		smoothScrollTo($(window.location.hash));
-	}
-
-});
-
-
 function smoothScrollTo(element, speed) {
 
 	var $ = jQuery,
