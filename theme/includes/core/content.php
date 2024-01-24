@@ -265,7 +265,13 @@ function tw_content_strip($text, $length = 200, $allowed_tags = false, $find = '
 
 	}
 
-	$text = strip_tags(strip_shortcodes($text), $allowed_tags_list);
+	$tags = ['style', 'script', 'h1', 'h2', 'h3'];
+
+	foreach ($tags as $tag) {
+		$text = preg_replace("#<{$tag}[^>]*?>.*?</{$tag}>#is", '', $text);
+	}
+
+	$text = trim(strip_tags(strip_shortcodes($text), $allowed_tags_list));
 
 	if ($find and mb_strlen($text) > $length) {
 
