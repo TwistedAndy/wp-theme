@@ -1,10 +1,9 @@
 @charset "utf-8";
 
-@import 'includes/mixins';
-@import 'includes/variables';
-
 $scope: '#tw';
 
+@import 'includes/variables';
+@import 'includes/mixins';
 @import 'includes/properties';
 @import 'base/fonts';
 
@@ -18,20 +17,20 @@ $scope: '#tw';
 	font-size: var(--size-base);
 	font-weight: 400;
 	line-height: 1.25;
+	z-index: 1;
+
+	section:first-child {
+		--gap-section-top: var(--gap-section);
+	}
 
 	@include media_min($desktop_small) {
-		--gap-section: 50px;
-		--gap-aside: 20px;
+		--gap-section: 40px;
+		--gap-aside: 30px;
 	}
 
 	@import 'base/reset';
 	@import 'base/fields';
 	@import 'base/layout';
-
-	section {
-		--gap-section-top: var(--gap-section);
-	}
-
 	@import 'base/elements';
 	@import 'elements/*';
 	@import 'blocks/*';

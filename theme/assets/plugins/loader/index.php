@@ -1,7 +1,7 @@
 <?php
 
-return array(
+return [
 	'deps' => ['jquery'],
 	'script' => ['loader.js'],
-	'version' => '4.0'
-);
+	'version' => '4.1',
+];

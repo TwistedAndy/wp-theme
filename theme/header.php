@@ -11,6 +11,6 @@
 
 <div id="site">
 
-	<main class="main_box">
+	<main>
 
 		<?php echo tw_app_template('header'); ?>

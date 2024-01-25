@@ -54,7 +54,7 @@ add_action('init', function() {
 
 	}
 
-	$base = TW_ROOT . 'assets/build/';
+	$base = TW_ROOT . 'assets/build/blocks/';
 
 	$files = scandir($base);
 
@@ -70,11 +70,11 @@ add_action('init', function() {
 
 		foreach ($files as $file) {
 
-			if (strpos($file, '.css') === false or strpos($file, 'block_') !== 0) {
+			if (strpos($file, '.css') === false or strpos($file, '.map') > 0) {
 				continue;
 			}
 
-			$name = substr($file, 6, -4) . '_box';
+			$name = str_replace('.css', '_box', $file);
 
 			if ($need_version) {
 				$version = filemtime($base . $file);
@@ -82,7 +82,7 @@ add_action('init', function() {
 
 			$assets[$name] = [
 				'style' => $file,
-				'directory' => 'build',
+				'directory' => 'build/blocks',
 				'version' => $version
 			];
 
@@ -279,11 +279,11 @@ function tw_asset_enqueue($name) {
 
 	}
 
-	if (wp_script_is($asset_name, 'registered')) {
+	if (wp_script_is($asset_name, 'registered') and !wp_script_is($asset_name, 'enqueued')) {
 		wp_enqueue_script($asset_name);
 	}
 
-	if (wp_style_is($asset_name, 'registered')) {
+	if (wp_style_is($asset_name, 'registered') and !wp_style_is($asset_name, 'enqueued')) {
 		wp_enqueue_style($asset_name);
 	}
 

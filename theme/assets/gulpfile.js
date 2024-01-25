@@ -3,7 +3,7 @@ let fs = require('fs'),
 	sass = require('gulp-sass'),
 	notify = require('gulp-notify'),
 	concat = require('gulp-concat'),
-	rename = require('gulp-rename'),
+	replace = require('gulp-replace'),
 	plumber = require('gulp-plumber'),
 	imagemin = require('gulp-imagemin'),
 	globalize = require('gulp-sass-glob'),
@@ -19,21 +19,16 @@ let folders = {
 	build: './build',
 	styles: './styles',
 	scripts: './scripts',
-	images: './images'
+	images: './images',
+	blocks: './build/blocks'
 };
 
 let sources = {
-	style: 'styles/style.scss',
-	styles: [
-		'styles/*.scss',
-		'styles/woo/*.scss',
-		'styles/base/*.scss',
-		'styles/elements/*.scss',
-		'styles/includes/*.scss',
-	],
-	plugins: 'plugins/**/*.scss',
-	preview: 'styles/preview.scss',
+	woo: 'styles/woo.scss',
+	theme: 'styles/theme.scss',
 	blocks: 'styles/blocks/*.scss',
+	preview: 'styles/preview.scss',
+	plugins: 'plugins/**/*.scss',
 	scripts: 'scripts/*.js'
 };
 
@@ -57,40 +52,33 @@ let options = {
 		scripts: {
 			includeContent: false,
 			sourceRoot: '../scripts/'
-		}
+		},
+		blocks: {
+			includeContent: false,
+			sourceRoot: '../../styles/blocks/'
+		},
 	}
 };
 
-function styles() {
-	return gulp.src(sources.style)
+/**
+ * Base Tasks
+ */
+function woo() {
+	return gulp.src(sources.woo)
 		.pipe(plumber(options.plumber))
 		.pipe(sourcemaps.init())
-		.pipe(globalize())
 		.pipe(sass(options.sass))
 		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
 		.pipe(gulp.dest(folders.build));
 }
 
-function scripts() {
-	return gulp.src(sources.scripts)
-		.pipe(plumber(options.plumber))
-		.pipe(sourcemaps.init())
-		.pipe(concat('scripts.js'))
-		.pipe(uglify())
-		.pipe(sourcemaps.write('./', options.sourcemaps.scripts))
-		.pipe(gulp.dest(folders.build));
-}
-
-function plugins() {
-	return gulp.src(sources.plugins, {
-			base: './',
-			since: gulp.lastRun(plugins)}
-		)
+function theme() {
+	return gulp.src(sources.theme)
 		.pipe(plumber(options.plumber))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
 		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
-		.pipe(gulp.dest('./'));
+		.pipe(gulp.dest(folders.build));
 }
 
 function blocks() {
@@ -119,12 +107,11 @@ function blocks() {
 		})
 		.pipe(plumber(options.plumber))
 		.pipe(inject.prepend(strings.join("\n") + "\n"))
-		.pipe(globalize())
+		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
-		.pipe(rename({
-			prefix: 'block_'
-		}))
-		.pipe(gulp.dest(folders.build));
+		.pipe(replace('../', '../../'))
+		.pipe(sourcemaps.write('./', options.sourcemaps.blocks))
+		.pipe(gulp.dest(folders.blocks));
 }
 
 function preview() {
@@ -137,6 +124,27 @@ function preview() {
 		.pipe(gulp.dest(folders.build));
 }
 
+function plugins() {
+	return gulp.src(sources.plugins, {
+			base: './',
+			since: gulp.lastRun(plugins)
+		})
+		.pipe(plumber(options.plumber))
+		.pipe(sourcemaps.init())
+		.pipe(sass(options.sass))
+		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
+		.pipe(gulp.dest('./'));
+}
+
+function scripts() {
+	return gulp.src(sources.scripts)
+		.pipe(plumber(options.plumber))
+		.pipe(sourcemaps.init()).pipe(concat('scripts.js'))
+		.pipe(uglify())
+		.pipe(sourcemaps.write('./', options.sourcemaps.scripts))
+		.pipe(gulp.dest(folders.build));
+}
+
 function images() {
 	return gulp.src(folders.images + '/**/*.{png,gif,jpg,jpeg,svg}')
 		.pipe(plumber(options.plumber))
@@ -146,22 +154,65 @@ function images() {
 		}));
 }
 
-exports.scripts = scripts;
+/**
+ * Default Exports
+ */
+exports.woo = woo;
 
-exports.styles = styles;
+exports.theme = theme;
 
 exports.blocks = blocks;
 
+exports.preview = preview;
+
 exports.plugins = plugins;
 
-exports.preview = preview;
+exports.scripts = scripts;
 
 exports.imagemin = images;
 
+exports.build = gulp.parallel(woo, theme, blocks, preview, plugins, scripts);
+
 exports.default = function() {
-	gulp.watch(sources.styles, gulp.parallel(styles, blocks, preview, plugins));
-	gulp.watch(sources.scripts, gulp.parallel(scripts));
-	gulp.watch(sources.blocks, gulp.parallel(blocks, preview));
+
+	gulp.watch(
+		[
+			'styles/theme.scss',
+			'styles/base/*.scss',
+			'styles/elements/*.scss',
+			'styles/includes/*.scss',
+		],
+		gulp.parallel(theme)
+	);
+
+	gulp.watch(
+		[
+			'styles/woo.scss',
+			'styles/woo/*.scss',
+			'styles/elements/*.scss',
+			'styles/includes/*.scss',
+		],
+		gulp.parallel(woo)
+	);
+
+	gulp.watch(
+		[
+			'styles/blocks/*.scss',
+			'styles/elements/*.scss',
+			'styles/includes/*.scss',
+		],
+		gulp.parallel(blocks)
+	);
+
+	gulp.watch(
+		[
+			'styles/**/*.scss',
+		],
+		gulp.parallel(preview)
+	);
+
 	gulp.watch(sources.plugins, gulp.parallel(plugins));
-	gulp.watch(sources.preview, gulp.parallel(preview));
+
+	gulp.watch(sources.scripts, gulp.parallel(scripts));
+
 }

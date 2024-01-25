@@ -33,10 +33,10 @@ jQuery(document.body).on('tw_init', '[class*="_box"]', function(e, $) {
 
 			data.push({
 				name: 'noncer',
-				value: template.nonce
+				value: tw_template.nonce
 			});
 
-			$.ajax(template.ajaxurl, {
+			$.ajax(tw_template.ajaxurl, {
 				data: data,
 				type: 'post',
 				dataType: 'json',
@@ -64,7 +64,7 @@ jQuery(document.body).on('tw_init', '[class*="_box"]', function(e, $) {
 
 			data.append(file.name, file.files[0]);
 
-			$.ajax(template.ajaxurl, {
+			$.ajax(tw_template.ajaxurl, {
 				type: 'post',
 				data: data,
 				dataType: 'json',
@@ -110,10 +110,10 @@ jQuery(document.body).on('tw_init', '[class*="_box"]', function(e, $) {
 
 			data.push({
 				name: 'noncer',
-				value: template.nonce
+				value: tw_template.nonce
 			});
 
-			$.ajax(template.ajaxurl, {
+			$.ajax(tw_template.ajaxurl, {
 				data: data,
 				type: 'post',
 				dataType: 'json',

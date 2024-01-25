@@ -32,10 +32,6 @@ textarea {
 	resize: vertical;
 }
 
-select::-ms-expand {
-	display: none;
-}
-
 select {
 	padding-right: 30px;
 	background: var(--color-base) url(../images/ico_select.svg) right 12px top 50% no-repeat;

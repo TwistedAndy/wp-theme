@@ -66,6 +66,51 @@ add_filter('wp_nav_menu_args', function($args) {
 
 
 /**
+ * Add a card content
+ */
+add_filter('nav_menu_item_args', function($args, $item, $depth) {
+
+	/**
+	 * Add a card class
+	 */
+	if (!($item instanceof WP_Post) or $args->theme_location != 'main') {
+		return $args;
+	}
+
+	$meta_icon = tw_metadata('post', 'icon', false);
+
+	if (!empty($meta_icon[$item->ID])) {
+		$icon_id = (int) $meta_icon[$item->ID];
+	} else {
+		$icon_id = 0;
+	}
+
+	$args->link_before = '';
+
+	if ($icon_id > 0 and $file = get_post_meta($icon_id, '_wp_attached_file', true)) {
+
+		$url = WP_CONTENT_DIR . '/uploads/' . $file;
+
+		if (property_exists($item, 'title')) {
+			$title = $item->title;
+		} else {
+			$title = $item->post_title;
+		}
+
+		$icon = tw_image_resize($url, 'menu', $icon_id);
+
+		if ($icon) {
+			$args->link_before = '<span class="icon"><img src="' . $icon . '"  loading="lazy" decoding="async" alt="' . esc_attr($title) . '" width="64" height="64"></span>';
+		}
+
+	}
+
+	return $args;
+
+}, 10, 4);
+
+
+/**
  * Add accessibility attributes to menu items
  */
 add_filter('wp_nav_menu_items', function($items, $args) {
@@ -84,7 +129,7 @@ add_filter('wp_nav_menu_items', function($items, $args) {
 
 
 /**
- * Clean the header from some meta tags and scripts
+ * Clean the header and preload block assets
  */
 add_action('wp_head', function() {
 
@@ -107,6 +152,52 @@ add_action('wp_head', function() {
 	remove_action('wp_print_styles', 'print_emoji_styles');
 
 	add_filter('the_generator', '__return_false');
+
+	/**
+	 * Preload the header styles
+	 */
+	tw_asset_enqueue('header_box');
+
+	/**
+	 * Preload assets for the first two blocks
+	 */
+	$blocks = tw_app_get('current_blocks', null);
+
+	if (!is_array($blocks)) {
+
+		$object = get_queried_object();
+
+		if ($object instanceof WP_Post) {
+			$blocks = get_post_meta($object->ID, 'blocks', true);
+		} elseif ($object instanceof WP_Term) {
+			$blocks = get_term_meta($object->term_id, 'blocks', true);
+		} else {
+			$blocks = [];
+		}
+
+	}
+
+	if (is_array($blocks)) {
+
+		tw_app_set('current_blocks', $blocks);
+
+		$index = 0;
+		$preload = 2;
+
+		foreach ($blocks as $block) {
+
+			if (!empty($block['acf_fc_layout'])) {
+				tw_asset_enqueue($block['acf_fc_layout'] . '_box');
+				$index++;
+			}
+
+			if ($index >= $preload) {
+				break;
+			}
+
+		}
+
+	}
 
 }, 5);
 

@@ -16,12 +16,12 @@ tw_asset_register([
 	'template' => [
 		'deps' => ['jquery'],
 		'style' => [
-			'style.css',
+			'theme.css',
 		],
 		'script' => [
 			'scripts.js',
 		],
-		'object' => 'template',
+		'object' => 'tw_template',
 		'localize' => function() {
 			return [
 				'ajaxurl' => admin_url('admin-ajax.php'),

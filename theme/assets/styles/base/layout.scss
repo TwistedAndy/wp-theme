@@ -37,17 +37,18 @@ body {
 	flex-direction: column;
 	min-height: 100dvh;
 	padding-top: var(--height-bar);
-}
 
-.main_box {
-	display: flex;
-	position: relative;
-	overflow: hidden;
-	flex-direction: column;
-	flex-grow: 1;
-	flex-shrink: 0;
-	align-items: stretch;
-	width: 100%;
+	& > main {
+		display: flex;
+		position: relative;
+		overflow: hidden;
+		flex-direction: column;
+		flex-grow: 1;
+		flex-shrink: 0;
+		align-items: stretch;
+		width: 100%;
+	}
+
 }
 
 .fixed {
@@ -121,17 +122,7 @@ section {
 	}
 
 	&_border {
-
-		&:after {
-			content: '';
-			position: absolute;
-			bottom: 0;
-			left: 50%;
-			width: var(--width-regular);
-			height: 1px;
-			margin-left: calc(-0.5 * var(--width-regular));
-			background-color: var(--color-border);
-		}
+		border-bottom: 1px solid var(--color-border);
 
 		& + section {
 			--gap-section-top: var(--gap-section);

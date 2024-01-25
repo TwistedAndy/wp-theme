@@ -72,7 +72,7 @@ jQuery(document.body).on('tw_init', '.posts_box', function(e, $) {
 
 		if (typeof carousel === 'object') {
 
-			carousel.reInit(args, plugins);
+			// carousel.reInit(args, plugins);
 
 		} else {
 

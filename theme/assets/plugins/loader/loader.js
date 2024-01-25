@@ -14,7 +14,7 @@ jQuery(document.body).on('tw_init', '[class*="_box"]', function(e, $) {
 		}, 1000);
 
 		data.action = 'loader';
-		data.noncer = template.nonce;
+		data.noncer = tw_template.nonce;
 
 		section.on('reset', function() {
 			data = button.data('loader');
@@ -59,7 +59,7 @@ jQuery(document.body).on('tw_init', '[class*="_box"]', function(e, $) {
 				data.search = '';
 			}
 
-			$.ajax(template.ajaxurl, {
+			$.ajax(tw_template.ajaxurl, {
 				type: 'post',
 				dataType: 'json',
 				data: data,

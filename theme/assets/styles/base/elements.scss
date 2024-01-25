@@ -1,3 +1,10 @@
+@import '../elements/buttons';
+@import '../elements/carousel';
+@import '../elements/content';
+@import '../elements/hidden';
+@import '../elements/items';
+@import '../elements/play';
+
 .content {
 	@extend %content;
 }

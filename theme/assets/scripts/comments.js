@@ -9,7 +9,7 @@ jQuery(document.body).on('tw_init', '.comments_box', function(e, $) {
 			increment = data.page === data.pages ? -1 : 1;
 
 		data.action = 'comment_list';
-		data.noncer = template.nonce;
+		data.noncer = tw_template.nonce;
 
 		wrapper.on('reset', function() {
 
@@ -25,7 +25,7 @@ jQuery(document.body).on('tw_init', '.comments_box', function(e, $) {
 
 			data.page += increment;
 
-			$.ajax(template.ajaxurl, {
+			$.ajax(tw_template.ajaxurl, {
 				type: 'post',
 				dataType: 'html',
 				data: data,
