@@ -454,6 +454,10 @@ add_action('wp_ajax_wysiwyg_code_editor', function() {
  */
 add_action('acf/init', function() {
 
+	if (!class_exists('acfe_field_extend')) {
+		return;
+	}
+
 	class twee_field_wysiwyg extends acfe_field_extend {
 
 		public function initialize() {

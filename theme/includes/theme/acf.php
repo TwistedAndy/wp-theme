@@ -6,8 +6,7 @@
  * - Groups, Repeaters, and Flexible Content fields are stored as serialized arrays
  * - Field association is stored in one field per object
  * - Existing data will be converted on save
- * - Add ACF support for product variations
- * - Adds a fallback get_field function
+ * - Revisions are supported
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
@@ -15,13 +14,13 @@
  */
 
 /*
- * Read an ACF field value from a serialized array stored in one meta field
+ * Load a compressed field value and return it in the ACF format
  */
-add_filter('acf/pre_load_value', 'tw_acf_load_value', 5, 3);
+add_filter('acf/pre_load_value', 'tw_acf_load_value', 20, 3);
 
 function tw_acf_load_value($result, $post_id, $field) {
 
-	if ($result !== null) {
+	if ($result !== null or (is_string($post_id) and strpos($post_id, 'field_') === 0)) {
 		return $result;
 	}
 
@@ -90,13 +89,13 @@ function tw_acf_load_value($result, $post_id, $field) {
 
 
 /*
- * Save an ACF field value to a serialized array stored in one meta field
+ * Convert a field value in the ACF format and save it
  */
-add_filter('acf/pre_update_value', 'tw_acf_save_value', 10, 4);
+add_filter('acf/pre_update_value', 'tw_acf_save_value', 20, 4);
 
 function tw_acf_save_value($check, $values, $post_id, $field) {
 
-	if ($check !== null or !is_array($field) or empty($field['type'])) {
+	if ($check !== null or !is_array($field) or empty($field['type']) or (is_string($post_id) and strpos($post_id, 'field_') === 0)) {
 		return $check;
 	}
 
@@ -190,7 +189,7 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 
 
 /**
- * Process key loading
+ * Load a field key from the map field
  */
 add_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10, 3);
 
@@ -235,113 +234,7 @@ function tw_acf_load_reference($result, $field, $post_id) {
 
 
 /*
- * Decode previously saved ACF flexible content fields, repeaters and field groups
- */
-function tw_acf_decode_data($values, $field) {
-
-	if (!is_array($values) or !is_array($field)) {
-		return $values;
-	}
-
-	$data = [];
-
-	if (!empty($field['layouts']) and is_array($field['layouts'])) {
-
-		/**
-		 * Flexible content fields store subfields in the layouts array.
-		 * We need to process it first before we can move forward and
-		 * process it as a regular field groups
-		 */
-
-		$index = 0;
-
-		$layouts = [];
-
-		foreach ($field['layouts'] as $layout) {
-			$layouts[$layout['name']] = $layout;
-		}
-
-		foreach ($values as $value) {
-
-			if (!empty($value['acf_fc_layout']) and !empty($layouts[$value['acf_fc_layout']])) {
-				$data[$index] = tw_acf_decode_data($value, $layouts[$value['acf_fc_layout']]);
-				$data[$index]['acf_fc_layout'] = $value['acf_fc_layout'];
-			}
-
-			$index++;
-
-		}
-
-		$values = $data;
-
-	} elseif (!empty($field['sub_fields']) and is_array($field['sub_fields'])) {
-
-		/**
-		 * Repeaters always use numeric keys, but groups usually don't
-		 */
-		if (!empty($field['type']) and $field['type'] === 'group') {
-			$is_repeater = false;
-		} else {
-			$is_repeater = is_numeric(array_key_first($values));
-		}
-
-		if ($is_repeater) {
-
-			foreach ($values as $i => $metadata) {
-
-				foreach ($field['sub_fields'] as $sub_field) {
-
-					$name = $sub_field['name'];
-
-					if (isset($metadata[$name])) {
-						$value = tw_acf_decode_data($metadata[$name], $sub_field);
-					} else {
-						$value = '';
-					}
-
-					if (in_array($sub_field['type'], ['google_map']) and is_string($value)) {
-						$value = json_decode($value, true);
-					}
-
-					$data[$i][$sub_field['key']] = $value;
-
-				}
-
-			}
-
-		} else {
-
-			foreach ($field['sub_fields'] as $sub_field) {
-
-				$name = $sub_field['name'];
-
-				if (isset($values[$name])) {
-					$value = tw_acf_decode_data($values[$name], $sub_field);
-				} else {
-					$value = '';
-				}
-
-				if (in_array($sub_field['type'], ['google_map']) and is_string($value)) {
-					$value = json_decode($value, true);
-				}
-
-				$data[$sub_field['key']] = $value;
-
-			}
-
-		}
-
-		$values = $data;
-
-	}
-
-	return $values;
-
-}
-
-
-/*
- * Encode ACF repeaters and field groups to an array
+ * Convert a field value in the compact format
  */
 function tw_acf_encode_data($values, $field) {
 
@@ -455,8 +348,114 @@ function tw_acf_encode_data($values, $field) {
 }
 
 
+/*
+ * Convert a field value in the ACF format
+ */
+function tw_acf_decode_data($values, $field) {
+
+	if (!is_array($values) or !is_array($field)) {
+		return $values;
+	}
+
+	$data = [];
+
+	if (!empty($field['layouts']) and is_array($field['layouts'])) {
+
+		/**
+		 * Flexible content fields store subfields in the layouts array.
+		 * We need to process it first before we can move forward and
+		 * process it as a regular field groups
+		 */
+
+		$index = 0;
+
+		$layouts = [];
+
+		foreach ($field['layouts'] as $layout) {
+			$layouts[$layout['name']] = $layout;
+		}
+
+		foreach ($values as $value) {
+
+			if (!empty($value['acf_fc_layout']) and !empty($layouts[$value['acf_fc_layout']])) {
+				$data[$index] = tw_acf_decode_data($value, $layouts[$value['acf_fc_layout']]);
+				$data[$index]['acf_fc_layout'] = $value['acf_fc_layout'];
+			}
+
+			$index++;
+
+		}
+
+		$values = $data;
+
+	} elseif (!empty($field['sub_fields']) and is_array($field['sub_fields'])) {
+
+		/**
+		 * Repeaters always use numeric keys, but groups usually don't
+		 */
+		if (!empty($field['type']) and $field['type'] === 'group') {
+			$is_repeater = false;
+		} else {
+			$is_repeater = is_numeric(array_key_first($values));
+		}
+
+		if ($is_repeater) {
+
+			foreach ($values as $i => $metadata) {
+
+				foreach ($field['sub_fields'] as $sub_field) {
+
+					$name = $sub_field['name'];
+
+					if (isset($metadata[$name])) {
+						$value = tw_acf_decode_data($metadata[$name], $sub_field);
+					} else {
+						$value = '';
+					}
+
+					if (in_array($sub_field['type'], ['google_map']) and is_string($value)) {
+						$value = json_decode($value, true);
+					}
+
+					$data[$i][$sub_field['key']] = $value;
+
+				}
+
+			}
+
+		} else {
+
+			foreach ($field['sub_fields'] as $sub_field) {
+
+				$name = $sub_field['name'];
+
+				if (isset($values[$name])) {
+					$value = tw_acf_decode_data($values[$name], $sub_field);
+				} else {
+					$value = '';
+				}
+
+				if (in_array($sub_field['type'], ['google_map']) and is_string($value)) {
+					$value = json_decode($value, true);
+				}
+
+				$data[$sub_field['key']] = $value;
+
+			}
+
+		}
+
+		$values = $data;
+
+	}
+
+	return $values;
+
+}
+
+
 /**
- * Decode the ACF post id
+ * Decode the ACF Post ID
  *
  * @param object|string|int $post_id
  *
@@ -558,54 +557,7 @@ function tw_acf_decode_post_id($post_id) {
 
 
 /**
- * Decompress ACF metadata in the normal format
- *
- * @param string $meta_type
- * @param int    $object_id
- *
- * @return void
- */
-function tw_acf_decompress_meta($meta_type = 'post', $object_id = 0) {
-
-	remove_filter('acf/pre_update_value', 'tw_acf_save_value', 10);
-	remove_filter('acf/pre_load_value', 'tw_acf_load_value', 5);
-	remove_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10);
-
-	$map = get_metadata($meta_type, $object_id, '_acf_map', true);
-
-	if (empty($map) or !function_exists('acf_get_field')) {
-		return;
-	}
-
-	if ($meta_type == 'post') {
-		$post_id = $object_id;
-	} else {
-		$post_id = $meta_type . '_' . $object_id;
-	}
-
-	$post_id = acf_get_valid_post_id($post_id);
-
-	foreach ($map as $meta_key => $field_key) {
-
-		$value = get_metadata($meta_type, $object_id, $meta_key, true);
-		$field = acf_get_field('field_' . $field_key);
-
-		if ($field) {
-			$field['value'] = $value;
-			acf_update_value($value, $post_id, $field);
-		} else {
-			update_field($meta_key, $value, $post_id);
-		}
-
-	}
-
-	delete_metadata($meta_type, $object_id, '_acf_map');
-
-}
-
-
-/**
- * Compress existing ACF metadata in the compact format
+ * Compress all ACF fields in the compact format
  *
  * @param string $meta_type
  * @param int    $object_id
@@ -613,6 +565,10 @@ function tw_acf_decompress_meta($meta_type = 'post', $object_id = 0) {
  * @return void
  */
 function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
+
+	if (!empty($_GET['action']) and $_GET['action'] == 'restore') {
+		return;
+	}
 
 	$metadata = get_metadata_raw($meta_type, $object_id, '', false);
 
@@ -630,23 +586,23 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 
 	foreach ($metadata as $meta_key => $meta_value) {
 
-		if (strpos($meta_key, '_') === 0 and strpos($meta_value, 'field_') === 0) {
-
-			$data_key = substr($meta_key, 1);
-
-			if (!isset($metadata[$data_key])) {
-				continue;
-			}
-
-			$metadata[$data_key] = maybe_unserialize($metadata[$data_key]);
-
-			$acf_remove[] = $meta_key;
-			$acf_remove[] = $data_key;
-
-			$acf_fields[$data_key] = $meta_value;
-			$acf_values[$data_key] = $metadata[$data_key];
-
+		if (strpos($meta_key, '_') !== 0 or strpos($meta_value, 'field_') !== 0) {
+			continue;
 		}
+
+		$data_key = substr($meta_key, 1);
+
+		if (!isset($metadata[$data_key])) {
+			continue;
+		}
+
+		$metadata[$data_key] = maybe_unserialize($metadata[$data_key]);
+
+		$acf_remove[] = $meta_key;
+		$acf_remove[] = $data_key;
+
+		$acf_fields[$data_key] = $meta_value;
+		$acf_values[$data_key] = $metadata[$data_key];
 
 	}
 
@@ -656,7 +612,7 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 
 	ksort($acf_values);
 
-	$acf_values = tw_acf_compress_values($acf_values, $acf_fields);
+	$acf_values = tw_acf_compress_walker($acf_values, $acf_fields);
 
 	$acf_remove = array_diff($acf_remove, array_keys($acf_values));
 
@@ -713,7 +669,7 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
  *
  * @return array
  */
-function tw_acf_compress_values($values, $fields) {
+function tw_acf_compress_walker($values, $fields) {
 
 	if (!is_array($values) or empty($values)) {
 		return $values;
@@ -721,7 +677,7 @@ function tw_acf_compress_values($values, $fields) {
 
 	foreach ($values as $key => $value) {
 
-		if ($value === '' and isset($fields[$key]) and tw_acf_compress_find($values, $key . '_')) {
+		if ($value === '' and isset($fields[$key]) and tw_acf_compress_match($values, $key . '_')) {
 
 			/**
 			 * Group fields use a base key as a prefix
@@ -769,11 +725,11 @@ function tw_acf_compress_values($values, $fields) {
 
 				}
 
-				$values[$key] = tw_acf_compress_values($sub_values, $sub_fields);
+				$values[$key] = tw_acf_compress_walker($sub_values, $sub_fields);
 
 			}
 
-		} elseif (tw_acf_compress_find($values, $key . '_0_')) {
+		} elseif (tw_acf_compress_match($values, $key . '_0_')) {
 
 			/**
 			 * Process repeaters and flexible content fields
@@ -819,7 +775,7 @@ function tw_acf_compress_values($values, $fields) {
 
 					}
 
-					$values[$key][$index] = tw_acf_compress_values($sub_values, $sub_fields);
+					$values[$key][$index] = tw_acf_compress_walker($sub_values, $sub_fields);
 
 					if (is_array($value) and isset($value[$index])) {
 						$values[$key][$index]['acf_fc_layout'] = $value[$index];
@@ -846,7 +802,7 @@ function tw_acf_compress_values($values, $fields) {
  *
  * @return bool
  */
-function tw_acf_compress_find($array, $needle) {
+function tw_acf_compress_match($array, $needle) {
 
 	foreach ($array as $key => $value) {
 		if (strpos($key, $needle) === 0) {
@@ -860,20 +816,420 @@ function tw_acf_compress_find($array, $needle) {
 
 
 /**
+ * Decompress ACF metadata to the default format
+ *
+ * @param string $meta_type
+ * @param int    $object_id
+ *
+ * @return void
+ */
+function tw_acf_decompress_meta($meta_type = 'post', $object_id = 0) {
+
+	remove_filter('acf/pre_update_value', 'tw_acf_save_value', 20);
+	remove_filter('acf/pre_load_value', 'tw_acf_load_value', 20);
+	remove_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10);
+
+	$fields = tw_acf_decompress_fields($meta_type, $object_id, false);
+
+	if (empty($fields)) {
+		return;
+	}
+
+	foreach ($fields as $key => $field) {
+		update_metadata($meta_type, $object_id, '_' . $key, $field['key']);
+		update_metadata($meta_type, $object_id, $key, $field['value']);
+	}
+
+	delete_metadata($meta_type, $object_id, '_acf_map');
+
+}
+
+
+/**
+ * Decompress ACF metadata in a fields array
+ *
+ * @param string $meta_type
+ * @param int    $object_id
+ * @param bool   $include_layouts
+ *
+ * @return array
+ */
+function tw_acf_decompress_fields($meta_type = 'post', $object_id = 0, $include_layouts = false) {
+
+	if (!function_exists('acf_get_field')) {
+		return [];
+	}
+
+	$cache_key = 'unconvert_data_' . $object_id;
+	$cache_group = 'twee_meta_' . $meta_type;
+
+	if ($include_layouts) {
+		$cache_key .= '_layouts';
+	}
+
+	$data = tw_app_get($cache_key, $cache_group);
+
+	if (is_array($data)) {
+		return $data;
+	}
+
+	$data = [];
+
+	$object_id = (int) $object_id;
+
+	$map = get_metadata($meta_type, $object_id, '_acf_map', true);
+
+	if (!is_array($map)) {
+		return $data;
+	}
+
+	$result = [];
+
+	foreach ($map as $key => $field) {
+
+		$field = acf_get_field('field_' . $field);
+
+		if (empty($field) or !is_array($field)) {
+			continue;
+		}
+
+		$data = get_metadata($meta_type, $object_id, $key, true);
+
+		if ($data) {
+			$result = tw_acf_decompress_walker($result, $data, $key, $field, $include_layouts);
+		}
+
+	}
+
+	ksort($result);
+
+	tw_app_set($cache_key, $result, $cache_group);
+
+	return $result;
+
+}
+
+
+/**
+ * Recursively transform the nested array with
+ * field data into a simple array with fields
+ *
+ * @param array  $result
+ * @param mixed  $data
+ * @param string $base_key
+ * @param array  $field
+ * @param bool   $include_layouts
+ *
+ * @return array
+ */
+function tw_acf_decompress_walker($result, $data, $base_key, $field, $include_layouts = false) {
+
+	if (!is_array($field) or empty($field['name'])) {
+		return $result;
+	}
+
+	$field_key = $base_key . '_' . $field['name'];
+	$field_value = $data;
+
+	if ($field['type'] == 'flexible_content' and !empty($field['layouts']) and is_array($data)) {
+
+		$field_value = [];
+		$field_key = $base_key;
+
+		foreach ($data as $index => $value) {
+
+			if (!is_array($value) or empty($value['acf_fc_layout'])) {
+				continue;
+			}
+
+			$layout = false;
+
+			foreach ($field['layouts'] as $item) {
+				if ($item['name'] == $value['acf_fc_layout'] and !empty($item['sub_fields'])) {
+					$layout = $item;
+					break;
+				}
+			}
+
+			if (empty($layout)) {
+				continue;
+			}
+
+			$field_value[] = $layout['name'];
+
+			$key = $base_key . '_' . $index;
+
+			foreach ($value as $field_name => $field_data) {
+
+				$sub_field = false;
+
+				foreach ($layout['sub_fields'] as $item) {
+					if ($item['name'] == $field_name) {
+						$sub_field = $item;
+						break;
+					}
+				}
+
+				if ($sub_field) {
+					$result = tw_acf_decompress_walker($result, $field_data, $key, $sub_field);
+				}
+
+			}
+
+			if ($include_layouts) {
+				$result[$key] = [
+					'key' => $layout['key'],
+					'name' => $layout['name'],
+					'type' => 'layout',
+					'label' => $layout['label'],
+					'value' => $layout['name']
+				];
+			}
+
+		}
+
+	} elseif ($field['type'] === 'group' and !empty($field['sub_fields']) and is_array($data)) {
+
+		foreach ($data as $index => $value) {
+
+			$sub_field = false;
+
+			foreach ($field['sub_fields'] as $item) {
+				if ($item['name'] == $index) {
+					$sub_field = $item;
+					break;
+				}
+			}
+
+			if (empty($sub_field)) {
+				continue;
+			}
+
+			$result = tw_acf_decompress_walker($result, $value, $field_key, $sub_field);
+
+		}
+
+		$field_value = '';
+
+	} elseif ($field['type'] === 'repeater' and !empty($field['sub_fields']) and is_array($data)) {
+
+		foreach ($data as $index => $value) {
+
+			if (!is_array($value)) {
+				continue;
+			}
+
+			foreach ($value as $field_name => $field_data) {
+
+				$sub_field = false;
+
+				foreach ($field['sub_fields'] as $item) {
+					if ($item['name'] == $field_name) {
+						$sub_field = $item;
+						break;
+					}
+				}
+
+				if ($sub_field) {
+					$result = tw_acf_decompress_walker($result, $field_data, $field_key . '_' . $index, $sub_field);
+				}
+
+			}
+
+		}
+
+		$field_value = count($data);
+
+	}
+
+	$result[$field_key] = [
+		'key' => $field['key'],
+		'name' => $field['name'],
+		'type' => $field['type'],
+		'label' => $field['label'],
+		'value' => $field_value
+	];
+
+	return $result;
+
+}
+
+
+/**
+ * Include compressed ACF data to the revision fields
+ */
+add_filter('_wp_post_revision_fields', 'tw_acf_revision_fields', 15, 2);
+
+function tw_acf_revision_fields($fields, $post) {
+
+	if (!is_array($post) or empty($post['ID']) or !function_exists('acf_get_field')) {
+		return $fields;
+	}
+
+	$cache_key = 'acf_revision_fields_' . $post['ID'];
+	$cache_group = 'twee_meta_post';
+
+	$fields = tw_app_get($cache_key, $cache_group, null);
+
+	if (is_array($fields)) {
+		return $fields;
+	}
+
+	$filters_key = 'acf_revision_filters';
+
+	$filters = tw_app_get($filters_key, $cache_group);
+
+	if (!is_array($filters)) {
+		$filters = [];
+	}
+
+	$data = tw_acf_decompress_fields('post', $post['ID'], true);
+
+	$revisions = wp_get_post_revisions($post['ID']);
+
+	foreach ($revisions as $revision) {
+
+		$revision_data = tw_acf_decompress_fields('post', $revision->ID, true);
+
+		foreach ($revision_data as $key => $field) {
+			if (!isset($data[$key])) {
+				$data[$key] = $field;
+			}
+		}
+
+	}
+
+	$block = '';
+
+	$prefix = 'twee_acf_';
+
+	foreach ($data as $key => $field) {
+
+		if (!empty($field['type']) and $field['type'] == 'layout') {
+			$block = $field['label'] . ' - ';
+			continue;
+		}
+
+		$fields[$prefix . $key] = $block . $field['label'];
+
+		/**
+		 * Do not add more than one filter for a field
+		 */
+		if (!in_array($key, $filters)) {
+
+			$filters[] = $key;
+
+			add_filter('_wp_post_revision_field_' . $prefix . $key, function($result, $key, $post) {
+
+				$key = substr($key, 9);
+
+				$data = tw_acf_decompress_fields('post', $post->ID, true);
+
+				if ($data and !empty($data[$key]) and isset($data[$key]['value'])) {
+
+					$result = $data[$key]['value'];
+
+					if (is_array($result)) {
+						$result = stripslashes(json_encode(array_filter($result), JSON_PRETTY_PRINT));
+					}
+
+				} else {
+
+					$result = '';
+
+				}
+
+				return $result;
+
+			}, 20, 3);
+
+		}
+
+	}
+
+	tw_app_set($cache_key, $fields, $cache_group);
+	tw_app_set($filters_key, $filters, $cache_group);
+
+	return $fields;
+
+}
+
+
+/**
+ * Restore the ACF data when a revision is restored
+ */
+add_action('wp_restore_post_revision', 'tw_acf_revision_restore', 10, 2);
+
+function tw_acf_revision_restore($post_id, $revision_id) {
+
+	$map = get_post_meta($revision_id, '_acf_map', true);
+
+	$revision = get_post($revision_id);
+
+	if (empty($map) or !is_array($map) or !($revision instanceof WP_Post)) {
+		return;
+	}
+
+	if ($revision->post_type != 'revision' or $revision->post_parent != $post_id) {
+		return;
+	}
+
+	foreach ($map as $key => $field) {
+		$value = get_post_meta($revision_id, $key, true);
+		update_metadata('post', $post_id, $key, $value);
+	}
+
+	update_metadata('post', $post_id, '_acf_map', $map);
+
+}
+
+
+/**
+ * Copy the compressed ACF data to a new revision
+ */
+add_action('_wp_put_post_revision', 'tw_acf_revision_create', 20, 2);
+
+function tw_acf_revision_create($revision_id) {
+
+	$revision = get_post($revision_id);
+
+	if (!($revision instanceof WP_Post) or empty($revision->post_parent) or $revision->post_type !== 'revision') {
+		return;
+	}
+
+	$post_id = $revision->post_parent;
+
+	$map = get_post_meta($post_id, '_acf_map', true);
+
+	if (empty($map) or !is_array($map)) {
+		return;
+	}
+
+	foreach ($map as $key => $field) {
+		$value = get_post_meta($post_id, $key, true);
+		update_metadata('post', $revision->ID, $key, $value);
+	}
+
+	update_metadata('post', $revision->ID, '_acf_map', $map);
+
+}
+
+
+/**
  * Compress and clean metadata before ACF processing
  */
-add_action('edit_comment', function($post_id) {
-	tw_acf_compress_meta('comment', $post_id);
+add_action('edit_comment', function($object_id) {
+	tw_acf_compress_meta('comment', $object_id);
 }, 5, 1);
 
-add_action('profile_update', function($post_id) {
-	tw_acf_compress_meta('user', $post_id);
+add_action('profile_update', function($object_id) {
+	tw_acf_compress_meta('user', $object_id);
 }, 5, 1);
 
-add_action('edit_term', function($post_id) {
-	tw_acf_compress_meta('term', $post_id);
+add_action('edit_term', function($object_id) {
+	tw_acf_compress_meta('term', $object_id);
 }, 5, 1);
 
-add_action('save_post', function($post_id) {
-	tw_acf_compress_meta('post', $post_id);
+add_action('save_post', function($object_id) {
+	tw_acf_compress_meta('post', $object_id);
 }, 5, 1);
