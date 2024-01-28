@@ -1,13 +1,21 @@
-jQuery(document.body).on('tw_init', '[class*="_box"]', function(e, $) {
+jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 
 	$('[data-loader]', this).each(function() {
 
-		var button = $(this),
-			data = button.data('loader'),
-			section = button.parents(data.wrapper),
+		var button = $(this);
+
+		if (button.data('initialized')) {
+			return;
+		} else {
+			button.data('initialized', true);
+		}
+
+		var data = button.data('loader'),
+			section = button.closest(data.wrapper),
 			terms = $('[data-term]', section),
 			search = $('[name="s"]', section),
 			wrapper = section.find('.items');
+
 
 		var refreshItems = debouncer(function() {
 			section.trigger('reset');

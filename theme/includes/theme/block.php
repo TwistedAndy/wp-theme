@@ -81,12 +81,10 @@ function tw_block_attributes($class, $block) {
 		$classes = $class;
 	}
 
-	if (!is_admin()) {
-		foreach ($classes as $class) {
-			if (strpos($class, '_box') > 0) {
-				tw_asset_enqueue($class);
-				break;
-			}
+	foreach ($classes as $class) {
+		if (strpos($class, '_box') > 0) {
+			tw_asset_enqueue($class);
+			break;
 		}
 	}
 

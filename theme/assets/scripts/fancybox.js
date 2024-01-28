@@ -1,4 +1,4 @@
-jQuery(document.body).on('tw_init', '[class*="_box"]', function(e, $) {
+jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 
 	if (typeof Fancybox !== 'function') {
 		return;

@@ -1,4 +1,4 @@
-jQuery(document.body).on('tw_init', '.comments_box', function(e, $) {
+jQuery(document).on('tw_init', '.comments_box', function(e, $) {
 
 	$('[data-comments]', this).each(function() {
 

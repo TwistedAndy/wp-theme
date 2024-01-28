@@ -1,7 +1,12 @@
 <?php
 /**
- * Integration with the ACF Extended plugin
- * and other ACF teaks and customizations
+ * Integration with ACF Extended and other customizations:
+ * - Process preview for ACF Flexible Content field
+ * - Add support for WooCommerce product variations
+ * - A fallback for the get_field() function
+ * - Create an option page for settings
+ * - Disable some ACF Extended modules
+ * - Enable the ACF Local JSON sync
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
@@ -45,28 +50,13 @@ add_filter('acf/settings/load_json', function($paths) {
 
 
 /**
- * Add new options page for the theme settings
- */
-add_action('acf/init', function() {
-	acf_add_options_page([
-		'page_title' => __('Theme Settings', 'twee'),
-		'menu_title' => __('Theme Settings', 'twee'),
-		'menu_slug' => 'theme-settings',
-		'capability' => 'manage_options',
-		'redirect' => false,
-		'position' => 90,
-		'icon_url' => 'dashicons-star-filled',
-		'update_button' => __('Refresh', 'twee'),
-		'autoload' => true
-	]);
-});
-
-
-/**
- * Disable some ACF Extended fields and modules
+ * A few early ACF tweaks
  */
 add_action('acf/init', function() {
 
+	/**
+	 * Disable some ACF Extended fields and modules
+	 */
 	acf_update_setting('acfe/modules/classic_editor', true);
 
 	acf_update_setting('acfe/dev', false);
@@ -123,11 +113,26 @@ add_action('acf/init', function() {
 
 	}
 
+	/**
+	 * Add a new options page for the theme settings
+	 */
+	acf_add_options_page([
+		'page_title' => __('Theme Settings', 'twee'),
+		'menu_title' => __('Theme Settings', 'twee'),
+		'menu_slug' => 'theme-settings',
+		'capability' => 'manage_options',
+		'redirect' => false,
+		'position' => 90,
+		'icon_url' => 'dashicons-star-filled',
+		'update_button' => __('Refresh', 'twee'),
+		'autoload' => true
+	]);
+
 }, 5);
 
 
 /**
- * Disable some layout settings
+ * Disable a few layout settings
  */
 add_action('acf/init', function() {
 	remove_all_actions('acfe/flexible/render_layout_settings', 15);
@@ -144,486 +149,165 @@ add_filter('acf/settings/google_api_key', function() {
 
 
 /**
- * Render a block preview
+ * Render a block preview with required scripts
  */
 add_action('acfe/flexible/render/before_template', function($field, $layout) {
 
-	if (is_array($layout) and !empty($layout['name'])) {
-
-		$block = get_row(true);
-
-		if (is_array($block)) {
-
-			$content = tw_block_render($block);
-
-			/**
-			 * Fix an issue with the embedded forms
-			 */
-			$content = str_replace(['<form ', '</form>'], ['<div ', '</div>'], $content);
-
-			echo '<div id="tw">' . $content . '</div>';
-
-		}
-
+	if (!is_array($layout) or empty($layout['name'])) {
+		return;
 	}
 
-}, 10, 2);
+	tw_asset_autoload(false);
 
+	$block = get_row(true);
 
-/**
- * Include additional scripts and styles
- */
-add_action('acf/input/admin_enqueue_scripts', function() {
-
-	global $post_type;
-
-	if ($post_type == 'product') {
-		wp_enqueue_script('jquery-core');
-		wp_enqueue_script('jquery-ui-core');
+	if (!is_array($block)) {
+		return;
 	}
 
-	?>
+	$preview_id = 'tw_' . rand(0, 100000);
 
-	<script>
-		document.addEventListener('DOMContentLoaded', function() {
+	/**
+	 * Reset the currently enqueued scripts
+	 * to include them again in an iframe
+	 */
+	$assets_printed = tw_asset_list('printed');
+	$assets_enqueued = tw_asset_list('enqueued');
+	$object_scripts = wp_scripts();
+	$object_styles = wp_styles();
+	$done_scripts = $object_scripts->done;
+	$done_styles = $object_styles->done;
 
-			/**
-			 * Process the TinyMCE settings
-			 */
-			if (typeof acf === 'undefined') {
-				return;
-			}
+	$object_scripts->done = [];
+	$object_styles->done = [];
 
-			new acf.Model({
+	tw_asset_list('printed', []);
+	tw_asset_list('enqueued', []);
 
-				actions: {
-					'new_field/type=wysiwyg': 'newEditor',
-					'wysiwyg_tinymce_init': 'editorInit',
-				},
-
-				filters: {
-					'wysiwyg_tinymce_settings': 'editorSettings',
-				},
-
-				newEditor: function(field) {
-
-					var height = 0;
-
-					if (field.has('wysiwygAutoresize') && field.has('wysiwygMinHeight')) {
-						height = field.get('wysiwygMinHeight');
-					} else if (field.has('wysiwygHeight')) {
-						height = field.get('wysiwygHeight');
-					}
-
-					if (height > 0) {
-						field.$input().css('height', height);
-					}
-
-				},
-
-				editorSettings: function(init, id, field) {
-
-					if (field.has('wysiwygAutoresize')) {
-
-						init.wp_autoresize_on = true;
-
-						if (field.has('wysiwygMinHeight')) {
-							init.autoresize_min_height = field.get('wysiwygMinHeight');
-						}
-
-						if (field.has('wysiwygMaxHeight')) {
-
-							if (!field.has('wysiwygMinHeight')) {
-								init.autoresize_min_height = field.get('wysiwygMaxHeight');
-							}
-
-							init.autoresize_max_height = field.get('wysiwygMaxHeight');
-
-						}
-
-					} else if (field.has('wysiwygHeight')) {
-
-						var height = field.get('wysiwygHeight');
-
-						init.min_height = height;
-						init.height = height;
-
-					}
-
-					if (field.has('wysiwygValidElements')) {
-						init.valid_elements = field.get('wysiwygValidElements');
-					}
-
-					return init;
-
-				},
-
-				editorInit: function(editor, editor_id, init, field) {
-					if (field.has('wysiwygHeight')) {
-						field.$el.find('iframe').css({
-							'min-height': field.get('wysiwygHeight'),
-							'height': field.get('wysiwygHeight')
-						});
-					}
-				}
-
-			});
-
-			/**
-			 * Initialize scripts in rendered sections
-			 */
-			acf.addAction('acfe/fields/flexible_content/preview', function(response, $el) {
-				$el.find('[class*="_box"]').trigger('tw_init', [jQuery]);
-			});
-
-		});
-	</script>
-
-	<style>
-		#edittag {
-			max-width: 1920px;
-		}
-
-		.acf-repeater.-table.-empty .acf-table {
-			display: none;
-		}
-
-		.acf-repeater .acf-row:hover > .acf-row-handle .acf-icon.show-on-shift,
-		.acf-repeater .acf-row.-hover > .acf-row-handle .acf-icon.show-on-shift {
-			top: auto;
-			z-index: 1;
-			bottom: -12px;
-			display: block !important;
-		}
-
-		#your-profile .acf-field textarea, #createuser .acf-field textarea {
-			max-width: none;
-			width: 100%;
-		}
-
-		.mce-toolbar .mce-ico.mce-i-table,
-		.mce-toolbar .mce-ico.mce-i-paste {
-			line-height: 20px;
-		}
-	</style>
-
-<?php });
-
-
-/**
- * Enqueue assets to preview blocks
- */
-add_action('acf/render_field/type=flexible_content', function() {
-	wp_enqueue_style('tw_blocks', TW_URL . 'assets/build/preview.css');
-	wp_enqueue_script('tw_blocks', TW_URL . 'assets/build/scripts.js');
-});
-
-
-/**
- * Register additional TinyMCE plugins
- */
-add_action('mce_external_plugins', function($plugins) {
-	$plugins['table'] = TW_URL . 'assets/plugins/tinymce/table.js';
-	$plugins['paste'] = TW_URL . 'assets/plugins/tinymce/paste.js';
-	$plugins['code'] = TW_URL . 'assets/plugins/tinymce/code.js';
-	return $plugins;
-});
-
-
-/**
- * Include additional buttons to the ACF WYSIWYG field
- */
-add_action('acf/fields/wysiwyg/toolbars', function($toolbars) {
-
-	$toolbars['Basic'] = [
-		1 => [
-			'formatselect',
-			'link',
-			'bold',
-			'italic',
-			'underline',
-			'blockquote',
-			'|',
-			'bullist',
-			'numlist',
-			'alignleft',
-			'aligncenter',
-			'alignright',
-			'alignjustify',
-			'|',
-			'code',
-			'table',
-			'wp_add_media'
-		]
-	];
-
-	return $toolbars;
-
-});
-
-
-/**
- * Add buttons to the default WordPress editor
- */
-add_action('mce_buttons', function($buttons) {
-	array_push($buttons, 'table', 'code', 'paste', 'pastetext', 'wp_add_media');
-	return $buttons;
-});
-
-
-/**
- * Process popup source code editor
- */
-add_action('wp_ajax_wysiwyg_code_editor', function() {
-
-	$settings = wp_get_code_editor_settings(['type' => 'text/html']);
-
-	$settings['codemirror']['indentUnit'] = 4;
-	$settings['codemirror']['indentWithTabs'] = true;
-	$settings['codemirror']['styleActiveLine'] = false;
-	$settings['codemirror']['extraKeys']['Tab'] = 'indentMore';
-	$settings['codemirror']['extraKeys']['Shift-Tab'] = 'indentLess';
-
-	$settings['jshint']['globals']['jQuery'] = true;
-
-	wp_add_inline_script('code-editor', sprintf('jQuery.extend( wp.codeEditor.defaultSettings, %s );', wp_json_encode($settings)));
+	ob_start();
 
 	?><!DOCTYPE html>
 	<html <?php echo get_language_attributes('html'); ?>>
 	<head>
 		<meta charset="<?php bloginfo('charset'); ?>">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<?php wp_print_styles('code-editor') ?>
-		<?php wp_print_scripts(['code-editor', 'htmlhint', 'csslint', 'jshint', 'htmlhint-kses']); ?>
-		<style>
-			html, body {
-				height: 100%;
-				margin: 0;
-				padding: 0;
-			}
+		<?php tw_asset_print(); ?>
+	</head>
+	<body <?php body_class(); ?> style="overflow: hidden;">
+		<main><?php echo tw_block_render($block); ?></main>
+	<?php tw_asset_print(); ?>
+	<script>
 
-			.CodeMirror {
-				height: 100%;
-				font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
-				font-size: 14px;
-				line-height: 1.4;
-			}
+		function resizeObserver(element, callback) {
 
-			.CodeMirror-selected {
-				background: #f0f0f0;
-			}
+			let last = element.getBoundingClientRect();
 
-			.CodeMirror-gutters {
-				background: #f9f9f9;
-			}
-		</style>
-		<script>
-			var codemirror,
-				editor = parent.tinymce.activeEditor,
-				source = parent.document.getElementById(editor.id);
-
-			document.addEventListener('DOMContentLoaded', function() {
-				const textarea = document.body.querySelector('textarea');
-				textarea.value = source.value;
-				codemirror = wp.codeEditor.initialize(textarea, wp.codeEditor.defaultSettings);
-			});
-
-			document.addEventListener('keydown', function(e) {
-				if (e.keyCode === 27) {
-					editor.windowManager.close();
+			const observer = new ResizeObserver(function() {
+				const data = element.getBoundingClientRect();
+				if (data.height !== last.height || data.width !== last.width) {
+					callback();
+					last = data;
 				}
 			});
 
-			function submit() {
-				parent.window.switchEditors.go(editor.id);
-				source.value = codemirror.codemirror.getValue();
-				parent.window.switchEditors.go(editor.id);
-			}
-		</script>
-	</head>
-	<body>
-	<textarea></textarea>
+			observer.observe(element);
+
+		}
+
+		function triggerResize() {
+			window.parent.postMessage({
+				type: 'resize',
+				frame: '<?php echo $preview_id; ?>',
+				height: document.body.scrollHeight
+			}, '*');
+		}
+
+		window.addEventListener('load', triggerResize);
+		window.addEventListener('resize', triggerResize);
+
+		document.querySelectorAll('main').forEach(function(section) {
+			resizeObserver(section, triggerResize);
+		});
+
+		triggerResize();
+
+	</script>
 	</body>
 	</html><?php
-	exit();
-});
+
+	$content = ob_get_clean();
+
+	tw_asset_autoload(true);
+
+	tw_asset_list('printed', $assets_printed);
+	tw_asset_list('enqueued', $assets_enqueued);
+
+	if (strpos($content, 'gform_wrapper') > 0 and class_exists('GFForms')) {
+		$content = GFForms::ensure_hook_js_output($content);
+	}
+
+	$object_scripts->done = $done_scripts;
+	$object_styles->done = $done_styles;
+
+	?>
+	<div style="display: none;"><?php echo htmlspecialchars($content); ?></div>
+	<iframe style="display: block; width: 100%; position: relative; z-index: 1;" id="<?php echo $preview_id; ?>" onload="tweePreviewBlock(this);"></iframe>
+<?php }, 10, 2);
 
 
 /**
- * Replace the default ACF WYSIWYG field with the updated one
+ * Include scripts to render blocks in separate
+ * iframes with the automatic height adjustment
  */
-add_action('acf/init', function() {
+add_action('acf/input/admin_enqueue_scripts', function() { ?>
+	<script>
 
-	if (!class_exists('acfe_field_extend')) {
-		return;
-	}
+		function tweePreviewBlock(frame) {
 
-	class twee_field_wysiwyg extends acfe_field_extend {
+			var contents = frame.contentWindow.document,
+				field = document.createElement('textarea');
 
-		public function initialize() {
+			field.innerHTML = frame.previousElementSibling.innerText;
 
-			$this->name = 'wysiwyg';
+			contents.open();
+			contents.write(field.value);
+			contents.close();
 
-			$this->defaults = [
-				'wysiwyg_auto_init' => 1,
-				'wysiwyg_height' => 150,
-				'wysiwyg_min_height' => 150,
-				'wysiwyg_max_height' => '',
-				'wysiwyg_valid_tags' => '',
-				'wysiwyg_autoresize' => 0
-			];
+			window.addEventListener('resize', function() {
+				frame.style.height = Math.ceil(frame.contentWindow.document.body.scrollHeight) + 'px';
+			});
 
 		}
 
-		/**
-		 * Include additional fields for the WYSIWYG editor
-		 *
-		 * @param array $field
-		 *
-		 * @return void
-		 */
-		public function render_field_settings($field) {
+		window.addEventListener('message', function(e) {
+			if (e.data && e.data.type === 'resize' && e.data.frame && e.data.height) {
+				document.getElementById(e.data.frame).style.height = Math.ceil(e.data.height) + 'px';
+			}
+		});
 
-			acf_render_field_setting($field, [
-				'label' => __('Auto Initialization', 'twee'),
-				'name' => 'wysiwyg_auto_init',
-				'type' => 'true_false',
-				'default_value' => false,
-				'ui' => true,
-				'conditional_logic' => [
-					[
-						[
-							'field' => 'delay',
-							'operator' => '==',
-							'value' => '1',
-						],
-					],
-				]
-			]);
+		document.addEventListener('DOMContentLoaded', function() {
 
-			acf_render_field_setting($field, [
-				'label' => __('Autoresize', 'twee'),
-				'name' => 'wysiwyg_autoresize',
-				'key' => 'wysiwyg_autoresize',
-				'type' => 'true_false',
-				'default_value' => true,
-				'ui' => true,
-			]);
-
-			acf_render_field_setting($field, [
-				'label' => __('Height', 'twee'),
-				'name' => 'wysiwyg_height',
-				'key' => 'wysiwyg_height',
-				'type' => 'number',
-				'default_value' => 200,
-				'min' => 80,
-				'conditional_logic' => [
-					[
-						[
-							'field' => 'wysiwyg_autoresize',
-							'operator' => '!=',
-							'value' => '1',
-						],
-					]
-				]
-			]);
-
-			acf_render_field_setting($field, [
-				'label' => __('Height', 'twee'),
-				'name' => 'wysiwyg_min_height',
-				'key' => 'wysiwyg_min_height',
-				'type' => 'number',
-				'default_value' => 200,
-				'min' => 80,
-				'prepend' => 'min',
-				'append' => 'px',
-				'conditional_logic' => [
-					[
-						[
-							'field' => 'wysiwyg_autoresize',
-							'operator' => '==',
-							'value' => '1',
-						],
-					]
-				]
-			]);
-
-			acf_render_field_setting($field, [
-				'label' => __('Height', 'twee'),
-				'name' => 'wysiwyg_max_height',
-				'key' => 'wysiwyg_max_height',
-				'instructions' => '',
-				'type' => 'number',
-				'default_value' => '',
-				'min' => 0,
-				'prepend' => 'max',
-				'append' => 'px',
-				'_append' => 'wysiwyg_min_height',
-				'conditional_logic' => [
-					[
-						[
-							'field' => 'wysiwyg_autoresize',
-							'operator' => '==',
-							'value' => '1',
-						],
-					]
-				]
-			]);
-
-			acf_render_field_setting($field, [
-				'label' => __('Valid Tags', 'twee'),
-				'name' => 'wysiwyg_valid_tags',
-				'key' => 'wysiwyg_valid_tags',
-				'type' => 'text',
-				'placeholder' => __('A comma-separated list of tags', 'twee'),
-				'wrapper' => [
-					'data-enable-switch' => true
-				]
-			]);
-
-		}
-
-		/**
-		 * Include field settings to a wrapper
-		 *
-		 * @param array $wrapper
-		 * @param array $field
-		 *
-		 * @return array
-		 */
-		public function field_wrapper_attributes($wrapper, $field) {
-
-			if (!empty($field['wysiwyg_autoresize'])) {
-
-				$wrapper['data-wysiwyg-autoresize'] = 1;
-
-				if (isset($field['wysiwyg_min_height']) and is_numeric($field['wysiwyg_min_height'])) {
-					$wrapper['data-wysiwyg-min-height'] = $field['wysiwyg_min_height'];
-				}
-
-				if (isset($field['wysiwyg_max_height']) and is_numeric($field['wysiwyg_max_height'])) {
-					$wrapper['data-wysiwyg-max-height'] = $field['wysiwyg_max_height'];
-				}
-
-			} elseif (isset($field['wysiwyg_height']) and is_numeric($field['wysiwyg_height'])) {
-
-				$wrapper['data-wysiwyg-height'] = $field['wysiwyg_height'];
-
+			if (typeof acf === 'undefined') {
+				return;
 			}
 
-			if (!empty($field['wysiwyg_valid_tags'])) {
-				$wrapper['data-wysiwyg-valid-tags'] = $field['wysiwyg_valid_tags'];
-			}
+			acf.addAction('acfe/fields/flexible_content/before_preview', function(response, element) {
+				var preview = jQuery('.acfe-flexible-placeholder', element);
+				if (preview.length > 0) {
+					preview.css('height', Math.ceil(preview.height()));
+				}
+			});
 
-			return $wrapper;
+			acf.addAction('acfe/fields/flexible_content/preview', function(response, element) {
+				setTimeout(function() {
+					jQuery('.acfe-flexible-placeholder', element).removeAttr('style');
+				}, 250);
+			});
 
-		}
+		});
 
-	}
-
-	acf_new_instance('twee_field_wysiwyg');
-
-});
+	</script>
+<?php });
 
 
 /**

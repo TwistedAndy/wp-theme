@@ -13,26 +13,29 @@ tw_app_include(TW_INC . 'widgets');
 
 
 tw_asset_register([
-	'template' => [
+	'styles' => [
+		'style' => 'theme.css',
+		'footer' => false,
+		'display' => true,
+		'version' => '1.0.0',
+		'directory' => 'build'
+	],
+	'scripts' => [
+		'footer' => true,
+		'display' => true,
 		'deps' => ['jquery'],
-		'style' => [
-			'theme.css',
-		],
-		'script' => [
-			'scripts.js',
-		],
+		'script' => 'scripts.js',
 		'object' => 'tw_template',
+		'directory' => 'build',
+		'version' => '1.0.0',
 		'localize' => function() {
 			return [
 				'ajaxurl' => admin_url('admin-ajax.php'),
 				'nonce' => wp_create_nonce('ajax-nonce')
 			];
-		},
-		'footer' => true,
-		'display' => true,
-		'version' => '1.0.0',
-		'directory' => 'build'
-	]
+		}
+	],
+	'header_box' => 'tw_asset_autoload'
 ]);
 
 

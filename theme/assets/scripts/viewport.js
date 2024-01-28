@@ -26,15 +26,6 @@ function getScrollbarWidth() {
 
 }
 
-function setViewportVariables() {
-
-	var styles = document.documentElement.style;
-
-	styles.setProperty('--width-scrollbar', getScrollbarWidth() + 'px');
-
-}
-
-window.addEventListener('DOMContentLoaded', setViewportVariables);
-window.addEventListener('orientationchange', setViewportVariables);
-window.addEventListener('resize', setViewportVariables);
-window.addEventListener('load', setViewportVariables);
+document.addEventListener('DOMContentLoaded', function() {
+	document.documentElement.style.setProperty('--width-scrollbar', getScrollbarWidth() + 'px');
+});

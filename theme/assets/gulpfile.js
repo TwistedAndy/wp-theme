@@ -27,7 +27,6 @@ let sources = {
 	woo: 'styles/woo.scss',
 	theme: 'styles/theme.scss',
 	blocks: 'styles/blocks/*.scss',
-	preview: 'styles/preview.scss',
 	plugins: 'plugins/**/*.scss',
 	scripts: 'scripts/*.js'
 };
@@ -114,16 +113,6 @@ function blocks() {
 		.pipe(gulp.dest(folders.blocks));
 }
 
-function preview() {
-	return gulp.src(sources.preview)
-		.pipe(plumber(options.plumber))
-		.pipe(sourcemaps.init())
-		.pipe(globalize())
-		.pipe(sass(options.sass))
-		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
-		.pipe(gulp.dest(folders.build));
-}
-
 function plugins() {
 	return gulp.src(sources.plugins, {
 			base: './',
@@ -163,15 +152,13 @@ exports.theme = theme;
 
 exports.blocks = blocks;
 
-exports.preview = preview;
-
 exports.plugins = plugins;
 
 exports.scripts = scripts;
 
 exports.imagemin = images;
 
-exports.build = gulp.parallel(woo, theme, blocks, preview, plugins, scripts);
+exports.build = gulp.parallel(woo, theme, blocks, plugins, scripts);
 
 exports.default = function() {
 
@@ -202,13 +189,6 @@ exports.default = function() {
 			'styles/includes/*.scss',
 		],
 		gulp.parallel(blocks)
-	);
-
-	gulp.watch(
-		[
-			'styles/**/*.scss',
-		],
-		gulp.parallel(preview)
 	);
 
 	gulp.watch(sources.plugins, gulp.parallel(plugins));

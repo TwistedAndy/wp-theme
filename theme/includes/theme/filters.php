@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.1
+ * @version 4.0
  */
 
 /**
@@ -66,51 +66,6 @@ add_filter('wp_nav_menu_args', function($args) {
 
 
 /**
- * Add a card content
- */
-add_filter('nav_menu_item_args', function($args, $item, $depth) {
-
-	/**
-	 * Add a card class
-	 */
-	if (!($item instanceof WP_Post) or $args->theme_location != 'main') {
-		return $args;
-	}
-
-	$meta_icon = tw_metadata('post', 'icon', false);
-
-	if (!empty($meta_icon[$item->ID])) {
-		$icon_id = (int) $meta_icon[$item->ID];
-	} else {
-		$icon_id = 0;
-	}
-
-	$args->link_before = '';
-
-	if ($icon_id > 0 and $file = get_post_meta($icon_id, '_wp_attached_file', true)) {
-
-		$url = WP_CONTENT_DIR . '/uploads/' . $file;
-
-		if (property_exists($item, 'title')) {
-			$title = $item->title;
-		} else {
-			$title = $item->post_title;
-		}
-
-		$icon = tw_image_resize($url, 'menu', $icon_id);
-
-		if ($icon) {
-			$args->link_before = '<span class="icon"><img src="' . $icon . '"  loading="lazy" decoding="async" alt="' . esc_attr($title) . '" width="64" height="64"></span>';
-		}
-
-	}
-
-	return $args;
-
-}, 10, 4);
-
-
-/**
  * Add accessibility attributes to menu items
  */
 add_filter('wp_nav_menu_items', function($items, $args) {
@@ -153,15 +108,9 @@ add_action('wp_head', function() {
 	add_filter('the_generator', '__return_false');
 
 	/**
-	 * Preload the header styles
-	 */
-	tw_asset_enqueue('header_box');
-	tw_asset_enqueue('navigation_box');
-
-	/**
 	 * Preload assets for the first two blocks
 	 */
-	$blocks = tw_app_get('current_blocks', null);
+	$blocks = tw_app_get('current_blocks');
 
 	if (!is_array($blocks)) {
 
@@ -177,12 +126,14 @@ add_action('wp_head', function() {
 
 	}
 
+	$priority_assets = ['styles', 'header_box'];
+
 	if (is_array($blocks)) {
 
 		tw_app_set('current_blocks', $blocks);
 
 		$index = 0;
-		$preload = 2;
+		$preload = 3;
 
 		foreach ($blocks as $block) {
 
@@ -190,6 +141,8 @@ add_action('wp_head', function() {
 				tw_asset_enqueue($block['acf_fc_layout'] . '_box');
 				$index++;
 			}
+
+			$priority_assets[] = $block['acf_fc_layout'] . '_box';
 
 			if ($index >= $preload) {
 				break;
@@ -199,7 +152,22 @@ add_action('wp_head', function() {
 
 	}
 
-}, 5);
+	/**
+	 * Reorder enqueued assets
+	 */
+	add_filter('twee_asset_enqueue', function($enqueued_assets) use ($priority_assets) {
+
+		$priority_assets = array_intersect($priority_assets, $enqueued_assets);
+
+		if ($priority_assets) {
+			$enqueued_assets = array_merge($priority_assets, array_diff($enqueued_assets, $priority_assets));
+		}
+
+		return $enqueued_assets;
+
+	});
+
+}, 3);
 
 
 /**
@@ -222,10 +190,8 @@ add_filter('pings_open', '__return_false');
  * Disable jQuery Migrate
  */
 add_action('wp_default_scripts', function($scripts) {
-	if (!is_admin()) {
-		$scripts->remove('jquery');
-		$scripts->add('jquery', false, ['jquery-core'], '3.7.1');
-	}
+	$scripts->remove('jquery');
+	$scripts->add('jquery', false, ['jquery-core'], '3.7.1');
 }, 20);
 
 

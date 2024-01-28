@@ -72,6 +72,10 @@ section {
 	--gap-section-top: 0px;
 	--gap-section-bottom: var(--gap-section);
 
+	&:first-child {
+		--gap-section-top: var(--gap-section);
+	}
+
 	section {
 		padding-right: 0;
 		padding-left: 0;

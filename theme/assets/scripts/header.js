@@ -1,4 +1,4 @@
-jQuery(document.body).on('tw_init', '.header_box', function(e, $) {
+jQuery(document).on('tw_init', '.header_box', function(e, $) {
 
 	var wrapper = $(this),
 		submenus = $('.submenu', wrapper),

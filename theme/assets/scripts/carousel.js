@@ -1,4 +1,4 @@
-jQuery(document.body).on('tw_init', '.posts_box', function(e, $) {
+jQuery(document).on('tw_init', '.posts_box', function(e, $) {
 
 	if (typeof Carousel !== 'function') {
 		return;
