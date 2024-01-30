@@ -156,64 +156,78 @@ function tw_content_link($link, $class = 'button') {
 /**
  * Get the title for the current page
  *
- * @param string $before          Code to prepend to the title
- * @param string $after           Code to append to the title
- * @param bool   $add_page_number Add a page number to the title
+ * @param WP_Query|null $query
+ * @param string        $before          Code to prepend to the title
+ * @param string        $after           Code to append to the title
+ * @param bool          $add_page_number Add a page number to the title
  *
  * @return string
  */
-function tw_content_heading($before = '', $after = '', $add_page_number = false) {
-
-	global $post;
+function tw_content_heading($query = null, $before = '', $after = '', $add_page_number = false) {
 
 	$title = '';
 
-	$object = get_queried_object();
+	if (empty($query)) {
+		global $wp_query;
+		$query = $wp_query;
+	}
 
-	if ($object instanceof WP_Term) {
+	if (!($query instanceof WP_Query)) {
+		return $title;
+	}
 
-		$title = single_term_title('', false);
+	$object = $query->get_queried_object();
 
-	} elseif ($object instanceof WP_Post) {
-
-		$title = single_post_title('', false);
-
-	} elseif (is_home()) {
+	if ($query->is_home()) {
 
 		$title = get_bloginfo('name', 'display');
 
-	} elseif (is_post_type_archive()) {
-
-		$title = post_type_archive_title('', false);
-
-	} elseif (is_404()) {
+	} elseif ($query->is_404()) {
 
 		$title = __('Page not found', 'twee');
 
-	} elseif (is_search()) {
+	} elseif ($query->is_search()) {
 
 		$title = sprintf(__('Search results for %s', 'twee'), get_search_query());
+
+	} elseif ($object instanceof WP_Term) {
+
+		$title = $object->name;
+
+	} elseif ($object instanceof WP_Post) {
+
+		$title = $object->post_title;
+
+	} elseif ($object instanceof WP_Post_Type) {
+
+		$title = $object->label;
 
 	} elseif ($object instanceof WP_User) {
 
 		$title = sprintf(__('Posts of <i>%s</i>', 'twee'), $object->display_name);
 
-	} elseif (is_day()) {
+	} elseif ($query->is_day() and $query->post instanceof WP_Post) {
 
-		$title = sprintf(__('Posts for <i>%s</i>', 'twee'), mb_strtolower(get_the_date('d F Y')));
+		$title = sprintf(__('Posts for <i>%s</i>', 'twee'), mysql2date('F j, Y', $query->post->post_date));
 
-	} elseif (is_month()) {
+	} elseif ($query->is_month() and $query->post instanceof WP_Post) {
 
-		$title = sprintf(__('Posts for <i>%s</i>', 'twee'), mb_strtolower(mysql2date('F Y', $post->post_date)));
+		$title = sprintf(__('Posts for <i>%s</i>', 'twee'), mysql2date('F Y', $query->post->post_date));
 
-	} elseif (is_year()) {
+	} elseif ($query->is_year() and $query->post instanceof WP_Post) {
 
-		$title = sprintf(__('Posts for <i>%s</i> year', 'twee'), get_the_date('Y'));
+		$title = sprintf(__('Posts for <i>%s</i> year', 'twee'), mysql2date('Y', $query->post->post_date));
 
 	}
 
-	if ($add_page_number and !empty($title) and $page = intval(get_query_var('paged'))) {
-		$title .= sprintf(__(' - Page %d', 'twee'), $page);
+	if ($add_page_number and !empty($title)) {
+
+		$page = (int) $query->get('paged', 1);
+
+		if ($page > 1) {
+			$title .= sprintf(__(' - Page %d', 'twee'), $page);
+		}
+
 	}
 
 	if (!empty($title)) {

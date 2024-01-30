@@ -149,117 +149,12 @@ add_filter('acf/settings/google_api_key', function() {
 
 
 /**
- * Render a block preview with required scripts
- */
-add_action('acfe/flexible/render/before_template', function($field, $layout) {
-
-	if (!is_array($layout) or empty($layout['name'])) {
-		return;
-	}
-
-	tw_asset_autoload(false);
-
-	$block = get_row(true);
-
-	if (!is_array($block)) {
-		return;
-	}
-
-	$preview_id = 'tw_' . rand(0, 100000);
-
-	/**
-	 * Reset the currently enqueued scripts
-	 * to include them again in an iframe
-	 */
-	$assets_printed = tw_asset_list('printed');
-	$assets_enqueued = tw_asset_list('enqueued');
-	$object_scripts = wp_scripts();
-	$object_styles = wp_styles();
-	$done_scripts = $object_scripts->done;
-	$done_styles = $object_styles->done;
-
-	$object_scripts->done = [];
-	$object_styles->done = [];
-
-	tw_asset_list('printed', []);
-	tw_asset_list('enqueued', []);
-
-	ob_start();
-
-	?><!DOCTYPE html>
-	<html <?php echo get_language_attributes('html'); ?>>
-	<head>
-		<meta charset="<?php bloginfo('charset'); ?>">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<?php tw_asset_print(); ?>
-	</head>
-	<body <?php body_class(); ?> style="overflow: hidden;">
-		<main><?php echo tw_block_render($block); ?></main>
-	<?php tw_asset_print(); ?>
-	<script>
-
-		function resizeObserver(element, callback) {
-
-			let last = element.getBoundingClientRect();
-
-			const observer = new ResizeObserver(function() {
-				const data = element.getBoundingClientRect();
-				if (data.height !== last.height || data.width !== last.width) {
-					callback();
-					last = data;
-				}
-			});
-
-			observer.observe(element);
-
-		}
-
-		function triggerResize() {
-			window.parent.postMessage({
-				type: 'resize',
-				frame: '<?php echo $preview_id; ?>',
-				height: document.body.scrollHeight
-			}, '*');
-		}
-
-		window.addEventListener('load', triggerResize);
-		window.addEventListener('resize', triggerResize);
-
-		document.querySelectorAll('main').forEach(function(section) {
-			resizeObserver(section, triggerResize);
-		});
-
-		triggerResize();
-
-	</script>
-	</body>
-	</html><?php
-
-	$content = ob_get_clean();
-
-	tw_asset_autoload(true);
-
-	tw_asset_list('printed', $assets_printed);
-	tw_asset_list('enqueued', $assets_enqueued);
-
-	if (strpos($content, 'gform_wrapper') > 0 and class_exists('GFForms')) {
-		$content = GFForms::ensure_hook_js_output($content);
-	}
-
-	$object_scripts->done = $done_scripts;
-	$object_styles->done = $done_styles;
-
-	?>
-	<div style="display: none;"><?php echo htmlspecialchars($content); ?></div>
-	<iframe style="display: block; width: 100%; position: relative; z-index: 1;" id="<?php echo $preview_id; ?>" onload="tweePreviewBlock(this);"></iframe>
-<?php }, 10, 2);
-
-
-/**
  * Include scripts to render blocks in separate
  * iframes with the automatic height adjustment
  */
-add_action('acf/input/admin_enqueue_scripts', function() { ?>
+add_action('acf/input/admin_enqueue_scripts', 'tw_acfe_render_scripts', 20);
+
+function tw_acfe_render_scripts() { ?>
 	<script>
 
 		function tweePreviewBlock(frame) {
@@ -307,7 +202,194 @@ add_action('acf/input/admin_enqueue_scripts', function() { ?>
 		});
 
 	</script>
-<?php });
+<?php }
+
+
+/**
+ * Render an ACF layout preview with required scripts
+ */
+add_action('acfe/flexible/render/before_template', 'tw_acfe_render_layout', 10, 2);
+
+function tw_acfe_render_layout($field, $layout) {
+
+	if (!is_array($layout) or empty($layout['name'])) {
+		return;
+	}
+
+	tw_asset_autoload(false);
+
+	$block = get_row(true);
+
+	if (!is_array($block)) {
+		return;
+	}
+
+	$preview_id = 'tw_' . rand(0, 100000);
+
+	tw_acfe_render_setup();
+
+	$content = tw_app_template('layout', ['preview_id' => $preview_id, 'block' => $block]);
+
+	tw_acfe_render_reset();
+
+	if (strpos($content, 'gform_wrapper') > 0 and class_exists('GFForms')) {
+		$content = GFForms::ensure_hook_js_output($content);
+	}
+
+	echo '<div style="display: none;">' . htmlspecialchars($content) . '</div>';
+	echo '<iframe style="display: block; width: 100%; position: relative; z-index: 1;" id="' . $preview_id . '" onload="tweePreviewBlock(this);"></iframe>';
+
+}
+
+
+/**
+ * Setup the global variables for rendering
+ *
+ * @return void
+ */
+function tw_acfe_render_setup() {
+
+	global $wp_query, $wp_the_query;
+
+	if (!tw_app_get('query_set', 'layouts')) {
+
+		$old_query = $wp_query;
+		$old_the_query = $wp_the_query;
+		$query_args = [];
+
+		if (!empty($_REQUEST['post_id'])) {
+			$entity = tw_acf_decode_post_id($_REQUEST['post_id']);
+		} elseif (!empty($_REQUEST['post']) and is_numeric($_REQUEST['post'])) {
+			$entity = [
+				'id' => (int) $_REQUEST['post'],
+				'type' => 'post'
+			];
+		} elseif (!empty($_REQUEST['tag_ID']) and is_numeric($_REQUEST['tag_ID'])) {
+			$entity = [
+				'id' => (int) $_REQUEST['tag_ID'],
+				'type' => 'term'
+			];
+		} else {
+			$entity = [];
+		}
+
+		if (!empty($entity['type']) and !empty($entity['id']) and is_numeric($entity['id'])) {
+
+			if ($entity['type'] == 'post' and $post = get_post($entity['id'])) {
+
+				if ($entity['id'] == get_option('woocommerce_shop_page_id', 0) and function_exists('WC')) {
+
+					if ($query = WC()->query and !has_action('pre_get_posts', [$query, 'pre_get_posts'])) {
+						add_filter('query_vars', [WC()->query, 'add_query_vars'], 0);
+						add_action('parse_request', [WC()->query, 'parse_request'], 0);
+						add_action('pre_get_posts', [WC()->query, 'pre_get_posts']);
+					}
+
+					$query_args = [
+						'post_type' => 'product'
+					];
+
+				} else {
+					$query_args = [
+						'p' => $post->ID,
+						'post_type' => $post->post_type
+					];
+				}
+
+			} elseif ($entity['type'] == 'term' and $term = get_term($entity['id'])) {
+
+				$query_args = [
+					'tax_query' => [
+						[
+							'taxonomy' => $term->taxonomy,
+							'terms' => [$term->slug],
+							'field' => 'slug'
+						]
+					]
+				];
+
+			} elseif ($entity['type'] == 'user') {
+
+				$query_args = [
+					'author' => $entity['id']
+				];
+
+			}
+		}
+
+		if ($query_args) {
+			$wp_query = new WP_Query();
+			$wp_the_query = $wp_query;
+			$wp_query->query($query_args);
+		}
+
+		tw_app_set('query_set', true, 'layouts');
+		tw_app_set('old_query', $old_query, 'layouts');
+		tw_app_set('old_the_query', $old_the_query, 'layouts');
+
+	}
+
+	/**
+	 * Reset the currently enqueued scripts
+	 * to include them again in an iframe
+	 */
+	$assets_printed = tw_asset_list('printed');
+	$assets_enqueued = tw_asset_list('enqueued');
+	$object_scripts = wp_scripts();
+	$object_styles = wp_styles();
+	$done_scripts = $object_scripts->done;
+	$done_styles = $object_styles->done;
+
+	$object_scripts->done = [];
+	$object_styles->done = [];
+
+	tw_asset_list('printed', []);
+	tw_asset_list('enqueued', []);
+	tw_app_set('assets_printed', $assets_printed, 'layouts');
+	tw_app_set('assets_enqueued', $assets_enqueued, 'layouts');
+	tw_app_set('done_scripts', $done_scripts, 'layouts');
+	tw_app_set('done_styles', $done_styles, 'layouts');
+
+}
+
+
+/**
+ * Reset the global variables
+ *
+ * @return void
+ */
+function tw_acfe_render_reset() {
+
+	global $wp_query, $wp_the_query;
+
+	tw_asset_autoload(true);
+
+	$object_scripts = wp_scripts();
+	$object_styles = wp_styles();
+
+	$assets_printed = tw_app_get('assets_printed', 'layouts');
+	$assets_enqueued = tw_app_get('assets_enqueued', 'layouts');
+	$done_scripts = tw_app_get('done_scripts', 'layouts');
+	$done_styles = tw_app_get('done_styles', 'layouts');
+
+	if (is_array($assets_printed)) {
+		tw_asset_list('printed', $assets_printed);
+	}
+
+	if (is_array($assets_enqueued)) {
+		tw_asset_list('enqueued', $assets_enqueued);
+	}
+
+	$object_scripts->done = $done_scripts;
+	$object_styles->done = $done_styles;
+
+	if (tw_app_get('query_set', 'layouts')) {
+		$wp_query = tw_app_get('old_query', 'layouts');
+		$wp_the_query = tw_app_get('old_the_query', 'layouts');
+		wp_reset_postdata();
+	}
+
+}
 
 
 /**

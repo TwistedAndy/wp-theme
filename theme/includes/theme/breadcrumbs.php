@@ -10,67 +10,85 @@
 /**
  * Build the breadcrumbs HTML code for the current page
  *
- * @param string $separator Code between the breadcrumbs
- * @param string $before    Code before the breadcrumbs
- * @param string $after     Code after the breadcrumbs
+ * @param string        $separator Code between the breadcrumbs
+ * @param string        $before    Code before the breadcrumbs
+ * @param string        $after     Code after the breadcrumbs
+ * @param WP_Query|null $query
  *
  * @return string
  */
-function tw_breadcrumbs($separator = '', $before = '<nav class="breadcrumbs_box"><div class="fixed">', $after = '</div></nav>') {
+function tw_breadcrumbs($separator = '', $before = '<nav class="breadcrumbs_box"><div class="fixed">', $after = '</div></nav>', $query = null) {
 
 	$result = '';
 
-	if (!is_home() and !is_front_page()) {
+	if (empty($query)) {
+		global $wp_query;
+		$query = $wp_query;
+	}
 
-		$items = tw_breadcrumbs_list();
+	if (!($query instanceof WP_Query)) {
+		return $result;
+	}
 
-		if (empty($items)) {
-			return $result;
+	if ($query->is_home() or $query->is_front_page()) {
+		return $result;
+	}
+
+	$items = tw_breadcrumbs_list($query);
+
+	if (empty($items)) {
+		return $result;
+	}
+
+	$result = [];
+
+	foreach ($items as $item) {
+
+		if (empty($item['title'])) {
+			continue;
 		}
 
-		$result = [];
-
-		foreach ($items as $item) {
-
-			if (empty($item['title'])) {
-				continue;
-			}
-
-			if (empty($item['class'])) {
-				$class = '';
-			} else {
-				$class = ' class="' . $item['class'] . '"';
-			}
-
-			if (!empty($item['link'])) {
-				$result[] = '<a href="' . $item['link'] . '"' . $class . '>' . $item['title'] . '</a>';
-			}
-
+		if (empty($item['class'])) {
+			$class = '';
+		} else {
+			$class = ' class="' . $item['class'] . '"';
 		}
 
-		$current_page = '<span class="last">' . tw_content_heading() . '</span>';
-
-		if ($result) {
-			$current_page = $separator . $current_page;
+		if (!empty($item['link'])) {
+			$result[] = '<a href="' . $item['link'] . '"' . $class . '>' . $item['title'] . '</a>';
 		}
-
-		$result = $before . implode($separator, $result) . $current_page . $after;
 
 	}
 
-	return $result;
+	$current_page = '<span class="last">' . tw_content_heading($query) . '</span>';
+
+	if ($result) {
+		$current_page = $separator . $current_page;
+	}
+
+	return $before . implode($separator, $result) . $current_page . $after;
 
 }
 
 
 /**
- * Get the breadcrumb list for the current page
+ * Get the breadcrumb list for the WP_Query object
+ *
+ * @param WP_Query|null $query
  *
  * @return array
  */
-function tw_breadcrumbs_list() {
+function tw_breadcrumbs_list($query = null) {
 
 	$breadcrumbs = [];
+
+	if (!($query instanceof WP_Query)) {
+		return $breadcrumbs;
+	}
+
+	if ($query->is_home() or $query->is_front_page()) {
+		return $breadcrumbs;
+	}
 
 	$breadcrumbs[] = [
 		'link' => get_site_url(),
@@ -78,7 +96,7 @@ function tw_breadcrumbs_list() {
 		'title' => __('Home', 'twee')
 	];
 
-	$object = get_queried_object();
+	$object = $query->get_queried_object();
 
 	if ($object instanceof WP_Post) {
 
@@ -219,9 +237,7 @@ function tw_breadcrumbs_list() {
 
 	}
 
-	$breadcrumbs = apply_filters('twee_breadcrumbs', $breadcrumbs);
-
-	return $breadcrumbs;
+	return apply_filters('twee_breadcrumbs', $breadcrumbs, $query);
 
 }
 
@@ -229,7 +245,7 @@ function tw_breadcrumbs_list() {
 /**
  * Inject the JSON-LD microdata
  */
-add_action('wp_head', 'tw_breadcrumbs_json');
+add_action('wp_head', 'tw_breadcrumbs_json', 20);
 
 function tw_breadcrumbs_json() {
 
