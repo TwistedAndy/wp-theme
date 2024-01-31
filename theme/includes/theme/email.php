@@ -1,6 +1,6 @@
 <?php
 /**
- * Validate and send email
+ * Validate and send emails
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
@@ -8,11 +8,11 @@
  */
 
 /*
-add_action('wp_ajax_nopriv_feedback', 'tw_ajax_feedback');
-add_action('wp_ajax_feedback', 'tw_ajax_feedback');
+add_action('wp_ajax_nopriv_email_handler', 'tw_ajax_email_handler');
+add_action('wp_ajax_email_handler', 'tw_ajax_email_handler');
 */
 
-function tw_ajax_feedback() {
+function tw_ajax_email_handler() {
 
 	$result = [
 		'text' => '',
@@ -150,11 +150,11 @@ function tw_ajax_feedback() {
 }
 
 /*
-add_action('wp_ajax_nopriv_process_file', 'tw_ajax_process_file');
-add_action('wp_ajax_process_file', 'tw_ajax_process_file');
+add_action('wp_ajax_nopriv_email_attachment', 'tw_ajax_email_attachment');
+add_action('wp_ajax_email_attachment', 'tw_ajax_email_attachment');
 */
 
-function tw_ajax_process_file() {
+function tw_ajax_email_attachment() {
 
 	$errors = [];
 
@@ -255,11 +255,12 @@ function tw_ajax_process_file() {
 
 }
 
+/*
+add_action('wp_ajax_nopriv_email_remove', 'tw_ajax_email_remove');
+add_action('wp_ajax_email_remove', 'tw_ajax_email_remove');
+*/
 
-add_action('wp_ajax_nopriv_remove_file', 'tw_ajax_remove_file');
-add_action('wp_ajax_remove_file', 'tw_ajax_remove_file');
-
-function tw_ajax_remove_file() {
+function tw_ajax_email_remove() {
 
 	$result = [
 		'text' => '',

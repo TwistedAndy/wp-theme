@@ -7,7 +7,6 @@ define('TW_URL', get_stylesheet_directory_uri() . '/');
 include TW_INC . 'core/app.php';
 
 tw_app_include(TW_INC . 'core');
-tw_app_include(TW_INC . 'ajax');
 tw_app_include(TW_INC . 'theme');
 tw_app_include(TW_INC . 'widgets');
 
