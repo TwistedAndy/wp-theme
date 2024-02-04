@@ -30,10 +30,6 @@ function tw_breadcrumbs($separator = '', $before = '<nav class="breadcrumbs_box"
 		return $result;
 	}
 
-	if ($query->is_home() or $query->is_front_page()) {
-		return $result;
-	}
-
 	$items = tw_breadcrumbs_list($query);
 
 	if (empty($items)) {
@@ -82,6 +78,11 @@ function tw_breadcrumbs_list($query = null) {
 
 	$breadcrumbs = [];
 
+	if (empty($query)) {
+		global $wp_query;
+		$query = $wp_query;
+	}
+
 	if (!($query instanceof WP_Query)) {
 		return $breadcrumbs;
 	}
@@ -90,7 +91,7 @@ function tw_breadcrumbs_list($query = null) {
 		return $breadcrumbs;
 	}
 
-	$breadcrumbs[] = [
+	$breadcrumbs['home'] = [
 		'link' => get_site_url(),
 		'class' => 'home',
 		'title' => __('Home', 'twee')
@@ -98,138 +99,126 @@ function tw_breadcrumbs_list($query = null) {
 
 	$object = $query->get_queried_object();
 
+	$post_id = 0;
+	$post_type = '';
+	$parent_terms = [];
+	$taxonomy = '';
+
 	if ($object instanceof WP_Post) {
 
-		$post_type = get_post_type_object($object->post_type);
+		$post_id = $object->ID;
+		$post_type = $object->post_type;
+		$count = 0;
 
-		if (is_singular('product')) {
+		$taxonomies = get_object_taxonomies($object->post_type, 'objects');
 
-			$shop_page = get_option('woocommerce_shop_page_id');
-			$front_page = get_option('page_on_front');
+		if ($taxonomies) {
 
-			if ($shop_page > 0 and $shop_page !== $front_page) {
-				$breadcrumbs[] = [
-					'link' => get_permalink($shop_page),
-					'title' => get_the_title($shop_page)
-				];
-			}
+			$taxonomy = array_key_first($taxonomies);
 
-			$taxonomy = 'product_cat';
-
-		} else {
-
-			if (!empty($post_type->has_archive)) {
-				$breadcrumbs[] = [
-					'link' => get_post_type_archive_link($post_type->name),
-					'title' => $post_type->label
-				];
-			}
-
-			$taxonomies = get_object_taxonomies($object);
-
-			if (in_array('category', $taxonomies)) {
-				$taxonomy = 'category';
-			} else {
-				$taxonomy = array_shift($taxonomies);
+			foreach ($taxonomies as $key => $taxonomy_object) {
+				if ($taxonomy_object->hierarchical) {
+					$taxonomy = $key;
+					break;
+				}
 			}
 
 		}
 
-		if ($taxonomy) {
+		if ($taxonomy and $map = tw_post_terms($taxonomy) and isset($map[$post_id])) {
 
-			$current_term = false;
+			$term = 0;
 
-			$terms = get_the_terms($object->ID, $taxonomy);
+			foreach ($map[$post_id] as $term_id) {
 
-			if (is_array($terms) and !empty($terms)) {
+				$thread = tw_term_ancestors($term_id, $taxonomy);
 
-				foreach ($terms as $term) {
-
-					$current_term = $term;
-
-					if (!empty($term->parent)) {
-						break;
-					}
-
+				if (count($thread) >= $count) {
+					$term = (int) $term_id;
+					$parent_terms = $thread;
+					$count = count($thread);
 				}
 
 			}
 
-			if ($current_term instanceof WP_Term) {
-
-				$terms = get_ancestors($current_term->term_id, $taxonomy);
-
-				if (is_array($terms) and !empty($terms)) {
-
-					$terms = array_reverse($terms);
-
-					foreach ($terms as $term) {
-						$term = get_term($term, $taxonomy);
-						$breadcrumbs[] = [
-							'link' => get_term_link($term->term_id, $taxonomy),
-							'title' => $term->name
-						];
-					}
-
-				}
-
-				$breadcrumbs[] = [
-					'link' => get_term_link($current_term->term_id, $taxonomy),
-					'title' => $current_term->name
-				];
-
-			}
-
-		} else {
-
-			$ancestors = get_post_ancestors($object);
-
-			if (is_array($ancestors) and !empty($ancestors)) {
-
-				$ancestors = array_reverse($ancestors);
-
-				foreach ($ancestors as $ancestor) {
-					$breadcrumbs[] = [
-						'link' => get_permalink($ancestor),
-						'title' => get_the_title($ancestor)
-					];
-				}
-
+			if ($term > 0) {
+				$parent_terms = array_reverse($parent_terms);
+				$parent_terms[] = $term;
 			}
 
 		}
 
 	} elseif ($object instanceof WP_Term) {
 
-		$term_id = $object->term_id;
 		$taxonomy = $object->taxonomy;
 
-		if (in_array($taxonomy, ['product_cat', 'product_tag']) or strpos($taxonomy, 'pa_') === 0) {
+		$taxonomy_object = get_taxonomy($taxonomy);
 
-			$shop_page = get_option('woocommerce_shop_page_id');
-			$front_page = get_option('page_on_front');
+		if ($taxonomy_object instanceof WP_Taxonomy and is_array($taxonomy_object->object_type)) {
+			$post_type = reset($taxonomy_object->object_type);
+		}
 
-			if ($shop_page > 0 and $shop_page !== $front_page) {
-				$breadcrumbs[] = [
-					'link' => get_permalink($shop_page),
-					'title' => get_the_title($shop_page)
+		if ($taxonomy_object->hierarchical and $ancestors = tw_term_ancestors($object->term_id, $taxonomy)) {
+			$parent_terms = array_reverse($ancestors);
+		}
+
+	}
+
+	if ($post_type) {
+
+		$link = get_option('options_link_' . $post_type, false);
+
+		if (is_array($link) and !empty($link['url'])) {
+			$breadcrumbs['archive'] = [
+				'link' => $link['url'],
+				'title' => $link['title'],
+				'type' => $post_type
+			];
+		}
+
+	}
+
+	if ($parent_terms and $taxonomy) {
+
+		$labels = tw_term_data('term_id', 'name');
+
+		foreach ($parent_terms as $term_id) {
+
+			$link = tw_term_link($term_id, $taxonomy);
+
+			if ($link and !empty($labels[$term_id])) {
+				$breadcrumbs['term_' . $term_id] = [
+					'link' => $link,
+					'title' => $labels[$term_id],
+					'taxonomy' => $taxonomy,
+					'term' => $term_id
 				];
 			}
 
 		}
 
-		if ($terms = get_ancestors($term_id, $taxonomy)) {
+	} elseif ($post_id > 0 and $post_type) {
 
-			$terms = array_reverse($terms);
+		$type_object = get_post_type_object($post_type);
 
-			foreach ($terms as $term) {
+		if ($type_object instanceof WP_Post_Type and $type_object->hierarchical) {
 
-				$term = get_term($term, $taxonomy);
+			$ancestors = get_post_ancestors($object);
 
-				$breadcrumbs[] = [
-					'link' => get_term_link($term->term_id, $taxonomy),
-					'title' => $term->name
-				];
+			if (is_array($ancestors) and $ancestors) {
+
+				$ancestors = array_reverse($ancestors);
+
+				foreach ($ancestors as $ancestor) {
+					if ($post = get_post($ancestor)) {
+						$breadcrumbs['post_' . $ancestor] = [
+							'link' => get_permalink($post),
+							'title' => $post->post_title,
+							'type' => $post_type,
+							'post' => $ancestor
+						];
+					}
+				}
 
 			}
 
@@ -259,16 +248,21 @@ function tw_breadcrumbs_json() {
 			'itemListElement' => []
 		];
 
-		foreach ($breadcrumbs as $key => $breadcrumb) {
+		$position = 1;
+
+		foreach ($breadcrumbs as $breadcrumb) {
 
 			$schema['itemListElement'][] = [
 				'@type' => 'ListItem',
-				'position' => ($key + 1),
+				'position' => $position,
 				'item' => [
 					'@id' => $breadcrumb['link'],
 					'name' => $breadcrumb['title']
 				]
 			];
+
+			$position++;
+
 		}
 
 		echo "<script type=\"application/ld+json\">\n" . json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n</script>\n";
