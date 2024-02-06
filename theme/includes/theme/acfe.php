@@ -251,7 +251,12 @@ function tw_acfe_render_setup() {
 
 	global $wp_query, $wp_the_query;
 
-	if (!tw_app_get('query_set', 'layouts')) {
+	if (tw_app_get('new_query', 'layouts')) {
+
+		$wp_query = tw_app_get('new_query', 'layouts');
+		$wp_the_query = $wp_query;
+
+	} else {
 
 		$old_query = $wp_query;
 		$old_the_query = $wp_the_query;
@@ -323,7 +328,7 @@ function tw_acfe_render_setup() {
 			$wp_query->query($query_args);
 		}
 
-		tw_app_set('query_set', true, 'layouts');
+		tw_app_set('new_query', $wp_query, 'layouts');
 		tw_app_set('old_query', $old_query, 'layouts');
 		tw_app_set('old_the_query', $old_the_query, 'layouts');
 
@@ -383,7 +388,7 @@ function tw_acfe_render_reset() {
 	$object_scripts->done = $done_scripts;
 	$object_styles->done = $done_styles;
 
-	if (tw_app_get('query_set', 'layouts')) {
+	if (tw_app_get('old_query', 'layouts')) {
 		$wp_query = tw_app_get('old_query', 'layouts');
 		$wp_the_query = tw_app_get('old_the_query', 'layouts');
 		wp_reset_postdata();

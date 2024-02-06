@@ -126,7 +126,7 @@ add_action('wp_head', function() {
 
 	}
 
-	$priority_assets = ['styles', 'header_box'];
+	$priority_assets = ['styles', 'header_box', 'modal_box'];
 
 	if (is_array($blocks)) {
 
