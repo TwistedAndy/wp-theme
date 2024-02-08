@@ -22,8 +22,8 @@
 
 	}
 
-	p, & > table, ul, ol, .table {
-		margin: 0 0 var(--gap-content);
+	p, & > table, ul:not([class]), ol:not([class]), .table {
+		margin-bottom: var(--gap-content);
 
 		&:last-child {
 			margin-bottom: 0;
@@ -35,47 +35,45 @@
 		color: var(--color-primary);
 		text-decoration: underline;
 
-		&:hover {
-			text-decoration: none;
+		@include hover() {
+			&:hover {
+				text-decoration: none;
+			}
 		}
 
 	}
 
-	ul, ol {
+	ul:not([class]), ol:not([class]) {
 		display: block;
+		--gap-content: 10px;
 
 		ul, ol {
 			padding-top: calc(var(--gap-content) - 5px);
-			margin-left: 0;
+		}
+
+		li {
+			display: block;
+			position: relative;
+			padding: 0 0 0 25px;
+			margin-bottom: 15px;
+			--gap-content: 10px;
+
+			&:last-child {
+				margin-bottom: 0;
+			}
+
 		}
 
 	}
 
-	li {
-		display: block;
-		position: relative;
-		padding-left: 25px;
-		margin-bottom: calc(var(--gap-content) - 5px);
-
-		p:not(:last-child) {
-			margin-bottom: 10px;
-		}
-
-		&:last-child {
-			margin-bottom: 0;
-		}
-
-	}
-
-	ul {
+	ul:not([class]) {
 
 		& > li {
 
 			&:before {
 				content: '';
-				display: block;
 				position: absolute;
-				top: 9px;
+				top: 10px;
 				left: 0;
 				width: 6px;
 				height: 6px;
@@ -87,7 +85,7 @@
 
 	}
 
-	ol {
+	ol:not([class]) {
 		counter-reset: list;
 
 		& > li {
@@ -95,22 +93,12 @@
 
 			&:before {
 				content: counter(list) '.';
-				display: block;
 				position: absolute;
 				top: 0;
 				left: 0;
 				font-weight: 700;
-				text-align: center;
 			}
 
-		}
-
-	}
-
-	p {
-
-		img {
-			margin: 5px 0;
 		}
 
 	}
@@ -118,6 +106,7 @@
 	img {
 		max-width: 100%;
 		height: auto;
+		margin-inline: 5px 0;
 	}
 
 	iframe {
@@ -221,6 +210,17 @@
 			margin-bottom: calc(-1 * var(--gap-vertical));
 		}
 
+		&.carousel {
+			display: block;
+			flex-wrap: nowrap;
+			margin-bottom: 0;
+
+			.gallery-item {
+				margin-bottom: 0;
+			}
+
+		}
+
 		&-columns-1 {
 			--width-item: 100%;
 		}
@@ -311,36 +311,15 @@
 
 	}
 
-	.carousel {
-		flex-wrap: nowrap;
-
-		&-dots {
-			display: flex;
-			margin: var(--gap-content) 0 0;
-
-			li {
-				padding: 0;
-				margin: 0 5px;
-
-				&:before {
-					display: none;
-				}
-
-			}
-
-		}
-
-	}
-
 	.f-thumbs {
-		margin-top: calc(-1 * var(--gap-content) - 5px);
-		--f-thumb-border-radius: 5px;
+		margin-top: 10px;
+		--f-thumb-border-radius: 0px;
 		--f-thumb-width: 16.666%;
 		--f-thumb-height: auto;
 
 		&.is-horizontal .f-thumbs__track {
-			padding: 0;
 			width: calc(100% + var(--f-thumb-gap));
+			padding: 0;
 			--f-thumb-gap: 10px;
 		}
 

@@ -1,4 +1,4 @@
-jQuery(document).on('tw_init', '.posts_box', function(e, $) {
+jQuery(document).on('tw_init', '.posts_box, .content_box', function(e, $) {
 
 	if (typeof Carousel !== 'function') {
 		return;
@@ -12,6 +12,10 @@ jQuery(document).on('tw_init', '.posts_box', function(e, $) {
 		var wrapper = $(this),
 			carousel = wrapper.data('carousel'),
 			plugins = {};
+
+		if (carousel) {
+			return;
+		}
 
 		var args = {
 			infinite: true,
@@ -56,11 +60,11 @@ jQuery(document).on('tw_init', '.posts_box', function(e, $) {
 
 			args.classes.slide = 'gallery-item';
 
-			args.Dots = false;
-
-			if (typeof Thumbs !== 'undefined') {
+			if (wrapper.hasClass('gallery-columns-1') && typeof Thumbs !== 'undefined') {
 
 				plugins = {Thumbs};
+
+				args.Dots = false;
 
 				args.Thumbs = {
 					type: 'classic'
@@ -72,7 +76,7 @@ jQuery(document).on('tw_init', '.posts_box', function(e, $) {
 
 		if (typeof carousel === 'object') {
 
-			// carousel.reInit(args, plugins);
+			carousel.reInit(args, plugins);
 
 		} else {
 
