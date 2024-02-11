@@ -1060,10 +1060,10 @@ function tw_acf_decompress_walker($result, $data, $base_key, $field, $include_la
  */
 add_filter('_wp_post_revision_fields', 'tw_acf_revision_fields', 15, 2);
 
-function tw_acf_revision_fields($fields, $post) {
+function tw_acf_revision_fields($result, $post) {
 
 	if (!is_array($post) or empty($post['ID']) or !function_exists('acf_get_field')) {
-		return $fields;
+		return $result;
 	}
 
 	$cache_key = 'acf_revision_fields_' . $post['ID'];
@@ -1072,8 +1072,20 @@ function tw_acf_revision_fields($fields, $post) {
 	$fields = tw_app_get($cache_key, $cache_group, null);
 
 	if (is_array($fields)) {
-		return $fields;
+
+		if ($fields) {
+			if (is_array($result)) {
+				$result = array_merge($result, $fields);
+			} else {
+				$result = $fields;
+			}
+		}
+
+		return $result;
+
 	}
+
+	$fields = [];
 
 	$filters_key = 'acf_revision_filters';
 
@@ -1150,7 +1162,15 @@ function tw_acf_revision_fields($fields, $post) {
 	tw_app_set($cache_key, $fields, $cache_group);
 	tw_app_set($filters_key, $filters, $cache_group);
 
-	return $fields;
+	if ($fields) {
+		if (is_array($result)) {
+			$result = array_merge($result, $fields);
+		} else {
+			$result = $fields;
+		}
+	}
+
+	return $result;
 
 }
 
