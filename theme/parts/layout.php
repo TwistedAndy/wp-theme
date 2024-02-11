@@ -5,6 +5,7 @@
 	<meta charset="<?php bloginfo('charset'); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<?php tw_asset_print(); ?>
+	<?php tw_asset_placeholder(); ?>
 </head>
 <body <?php body_class(); ?> style="overflow: hidden;">
 <main class="tw">

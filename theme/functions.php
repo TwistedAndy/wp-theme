@@ -33,8 +33,7 @@ tw_asset_register([
 				'nonce' => wp_create_nonce('ajax-nonce')
 			];
 		}
-	],
-	'header_box' => 'tw_asset_autoload'
+	]
 ]);
 
 

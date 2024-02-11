@@ -69,10 +69,9 @@ section {
 	background-color: var(--color-section);
 	color: var(--color-text);
 	scroll-margin-top: calc(var(--height-fixed) + var(--gap-section) - var(--gap-section-top));
-	--gap-section-top: 0px;
 	--gap-section-bottom: var(--gap-section);
 
-	&:first-child {
+	&:first-of-type {
 		--gap-section-top: var(--gap-section);
 	}
 

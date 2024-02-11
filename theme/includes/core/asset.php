@@ -16,7 +16,7 @@ add_action('init', function() {
 
 	$files = scandir($base);
 
-	$assets = tw_asset_list('registered');
+	$assets = tw_app_get('registered', 'assets', []);
 
 	if (is_array($files)) {
 
@@ -58,15 +58,13 @@ add_action('init', function() {
 
 	$files = scandir($base);
 
-	if (!empty($assets['styles']) and !empty($assets['styles']['version'])) {
-		$version = $assets['styles']['version'];
-		$need_version = false;
-	} else {
-		$need_version = true;
-		$version = '';
-	}
-
 	if (is_array($files)) {
+
+		if (!empty($assets['styles']) and !empty($assets['styles']['version'])) {
+			$version = $assets['styles']['version'];
+		} else {
+			$version = null;
+		}
 
 		foreach ($files as $file) {
 
@@ -76,12 +74,9 @@ add_action('init', function() {
 
 			$name = str_replace('.css', '_box', $file);
 
-			if ($need_version) {
-				$version = filemtime($base . $file);
-			}
-
 			$asset = [
 				'style' => $file,
+				'prefix' => 'tw_block_',
 				'directory' => 'build/blocks',
 				'version' => $version,
 				'footer' => false
@@ -171,23 +166,36 @@ add_action('init', function() {
 
 	}
 
-	tw_asset_list('registered', $assets);
+	tw_app_set('registered', $assets, 'assets');
+
+	/**
+	 * Automatically inject block styles
+	 */
+	if (!is_admin() and !is_ajax()) {
+		ob_start('tw_asset_inject');
+	}
 
 }, 30);
+
+
+/**
+ * Add an asset placeholder
+ */
+add_action('wp_head', 'tw_asset_placeholder', 6);
 
 
 /**
  * Print previously enqueued assets
  */
 add_action('wp_head', 'tw_asset_print', 5);
-add_action('wp_footer', 'tw_asset_print', 5);
+add_action('wp_footer', 'tw_asset_print', 9);
 
 function tw_asset_print() {
 
-	$assets_registered = tw_asset_list('registered');
-	$assets_localized = tw_asset_list('localized');
-	$assets_enqueued = tw_asset_list('enqueued');
-	$assets_printed = tw_asset_list('printed');
+	$assets_registered = tw_app_get('registered', 'assets', []);
+	$assets_localized = tw_app_get('localized', 'assets', []);
+	$assets_enqueued = tw_app_get('enqueued', 'assets', []);
+	$assets_printed = tw_app_get('printed', 'assets', []);
 
 	foreach ($assets_registered as $name => $asset) {
 
@@ -273,8 +281,8 @@ function tw_asset_print() {
 
 	}
 
-	tw_asset_list('localized', $assets_localized);
-	tw_asset_list('printed', $assets_printed);
+	tw_app_set('localized', $assets_localized, 'assets');
+	tw_app_set('printed', $assets_printed, 'assets');
 
 	if ($print_scripts) {
 		wp_scripts()->do_items($print_scripts);
@@ -283,28 +291,6 @@ function tw_asset_print() {
 	if ($print_styles) {
 		wp_styles()->do_items($print_styles);
 	}
-
-}
-
-
-/**
- * Get a list of currently registered assets
- *
- * @return array
- */
-function tw_asset_list($type, $assets = false) {
-
-	if (is_array($assets)) {
-		tw_app_set($type, $assets, 'assets');
-	} else {
-		$assets = tw_app_get($type, 'assets');
-	}
-
-	if (!is_array($assets)) {
-		$assets = [];
-	}
-
-	return $assets;
 
 }
 
@@ -322,7 +308,7 @@ function tw_asset_register($assets) {
 		return;
 	}
 
-	$data = tw_asset_list('registered');
+	$data = tw_app_get('registered', 'assets', []);
 
 	foreach ($assets as $name => $asset) {
 		if (!empty($data[$name]) and is_array($data[$name]) and (is_callable($asset) or is_bool($asset))) {
@@ -332,25 +318,38 @@ function tw_asset_register($assets) {
 		}
 	}
 
-	tw_asset_list('registered', $data);
+	tw_app_set('registered', $data, 'assets');
 
 }
 
 
 /**
- * Enqueue a single asset
+ * Enqueue one or a few assets
  *
- * @param string $name Name of the asset
+ * @param string[]|string $name
+ *
+ * @return void
  */
 function tw_asset_enqueue($name) {
 
-	$list = tw_asset_list('enqueued');
+	$enqueued = tw_app_get('enqueued', 'assets', []);
+	$registered = tw_app_get('registered', 'assets', []);
 
-	if (!in_array($name, $list)) {
+	if (is_string($name) and isset($registered[$name])) {
 
-		$list[] = $name;
+		$enqueued[] = $name;
 
-		tw_asset_list('enqueued', $list);
+		tw_app_set('enqueued', array_unique($enqueued), 'assets');
+
+	} elseif (is_array($name)) {
+
+		foreach ($name as $asset_name) {
+			if (is_string($asset_name) and isset($registered[$asset_name])) {
+				$enqueued[] = $asset_name;
+			}
+		}
+
+		tw_app_set('enqueued', array_unique($enqueued), 'assets');
 
 	}
 
@@ -402,10 +401,10 @@ function tw_asset_normalize($asset) {
 
 				if (strpos($link, 'http') !== 0 and strpos($link, '//') !== 0) {
 
-					$directory = '';
-
 					if (!empty($asset['directory'])) {
-						$directory = trailingslashit($asset['directory']);
+						$directory = $asset['directory'] . '/';
+					} else {
+						$directory = '';
 					}
 
 					$asset[$type][$key] = $base_url . $directory . $link;
@@ -434,7 +433,7 @@ function tw_asset_normalize($asset) {
 
 			$deps = [];
 
-			$assets = tw_asset_list('registered');
+			$assets = tw_app_get('registered', 'assets', []);
 
 			foreach (['script', 'style'] as $type) {
 
@@ -504,19 +503,95 @@ function tw_asset_normalize($asset) {
 
 
 /**
- * Get or set the asset preview status
+ * Inject styles to the content at a placeholder position
  *
- * @param bool|null $status
+ * @param string $content
  *
- * @return bool
+ * @return string
  */
-function tw_asset_autoload($status = null) {
+function tw_asset_inject($content) {
 
-	if (is_bool($status)) {
-		tw_app_set('is_preview', $status, 'assets');
-		return $status;
+	$placeholder = tw_asset_placeholder(true);
+
+	$assets = tw_app_get('registered', 'assets', []);
+
+	if (empty($assets) or strpos($content, $placeholder) === false) {
+		return $content;
+	}
+
+	preg_match_all('#[\'" =]+([a-z\-_]+?_box)#i', $content, $matches);
+
+	if (!empty($matches) and !empty($matches[1]) and is_array($matches[1])) {
+
+		$included = [];
+		$required = [];
+
+		foreach ($matches[1] as $token) {
+			if (strpos($token, 'tw_block_') === 0) {
+				$included[] = str_replace('tw_block_', '', $token);
+			} else {
+				$required[] = $token;
+			}
+		}
+
+		$missing = array_diff($required, $included);
+
+		$missing = array_unique($missing);
+
+		$stylesheets = [];
+
+		foreach ($missing as $name) {
+
+			if (!empty($assets[$name]) and !empty($assets[$name]['style']) and is_array($assets[$name]['style'])) {
+
+				if (!empty($assets[$name]['version'])) {
+					$version = $assets[$name]['version'];
+				} else {
+					$version = '';
+				}
+
+				foreach ($assets[$name]['style'] as $style) {
+
+					if ($version) {
+						$style .= '?v=' . $version;
+					}
+
+					$stylesheets[] = '<link rel="stylesheet" id="tw_block_' . $name . '-css" href="' . esc_url($style) . '" media="all" />';
+
+				}
+
+			}
+
+		}
+
+		if ($stylesheets) {
+			$replacement = implode("\n", $stylesheets);
+		} else {
+			$replacement = '';
+		}
+
+		$content = str_replace($placeholder, $replacement, $content);
+
+	}
+
+	return $content;
+
+}
+
+
+/**
+ * Return or print the asset placeholder
+ *
+ * @return string|void
+ */
+function tw_asset_placeholder($return = false) {
+
+	$placeholder = '<!-- TWEE_ASSET_PLACEHOLDER -->';
+
+	if ($return) {
+		return $placeholder;
 	} else {
-		return (bool) tw_app_get('is_preview', 'assets', true);
+		echo $placeholder;
 	}
 
 }

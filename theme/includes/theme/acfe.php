@@ -216,8 +216,6 @@ function tw_acfe_render_layout($field, $layout) {
 		return;
 	}
 
-	tw_asset_autoload(false);
-
 	$block = get_row(true);
 
 	if (!is_array($block)) {
@@ -230,11 +228,15 @@ function tw_acfe_render_layout($field, $layout) {
 
 	$content = tw_app_template('layout', ['preview_id' => $preview_id, 'block' => $block]);
 
+	$content = tw_asset_inject($content);
+
 	tw_acfe_render_reset();
 
 	if (strpos($content, 'gform_wrapper') > 0 and class_exists('GFForms')) {
 		$content = GFForms::ensure_hook_js_output($content);
 	}
+
+	$content = str_replace(["\n", "\r", "\t"], '', $content);
 
 	echo '<div style="display: none;">' . htmlspecialchars($content) . '</div>';
 	echo '<iframe style="display: block; width: 100%; position: relative; z-index: 1;" id="' . $preview_id . '" onload="tweePreviewBlock(this);"></iframe>';
@@ -338,8 +340,8 @@ function tw_acfe_render_setup() {
 	 * Reset the currently enqueued scripts
 	 * to include them again in an iframe
 	 */
-	$assets_printed = tw_asset_list('printed');
-	$assets_enqueued = tw_asset_list('enqueued');
+	$assets_printed = tw_app_get('printed', 'assets', []);
+	$assets_enqueued = tw_app_get('enqueued', 'assets', []);
 	$object_scripts = wp_scripts();
 	$object_styles = wp_styles();
 	$done_scripts = $object_scripts->done;
@@ -348,8 +350,8 @@ function tw_acfe_render_setup() {
 	$object_scripts->done = [];
 	$object_styles->done = [];
 
-	tw_asset_list('printed', []);
-	tw_asset_list('enqueued', []);
+	tw_app_set('printed', [], 'assets');
+	tw_app_set('enqueued', [], 'assets');
 	tw_app_set('assets_printed', $assets_printed, 'layouts');
 	tw_app_set('assets_enqueued', $assets_enqueued, 'layouts');
 	tw_app_set('done_scripts', $done_scripts, 'layouts');
@@ -367,22 +369,20 @@ function tw_acfe_render_reset() {
 
 	global $wp_query, $wp_the_query;
 
-	tw_asset_autoload(true);
-
 	$object_scripts = wp_scripts();
 	$object_styles = wp_styles();
 
-	$assets_printed = tw_app_get('assets_printed', 'layouts');
-	$assets_enqueued = tw_app_get('assets_enqueued', 'layouts');
-	$done_scripts = tw_app_get('done_scripts', 'layouts');
-	$done_styles = tw_app_get('done_styles', 'layouts');
+	$assets_printed = tw_app_get('assets_printed', 'layouts', []);
+	$assets_enqueued = tw_app_get('assets_enqueued', 'layouts', []);
+	$done_scripts = tw_app_get('done_scripts', 'layouts', []);
+	$done_styles = tw_app_get('done_styles', 'layouts', []);
 
 	if (is_array($assets_printed)) {
-		tw_asset_list('printed', $assets_printed);
+		tw_app_set('printed', $assets_printed, 'assets');
 	}
 
 	if (is_array($assets_enqueued)) {
-		tw_asset_list('enqueued', $assets_enqueued);
+		tw_app_set('enqueued', $assets_enqueued, 'assets');
 	}
 
 	$object_scripts->done = $done_scripts;

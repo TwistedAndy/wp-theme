@@ -81,13 +81,6 @@ function tw_block_attributes($class, $block) {
 		$classes = $class;
 	}
 
-	foreach ($classes as $class) {
-		if (strpos($class, '_box') > 0) {
-			tw_asset_enqueue($class);
-			break;
-		}
-	}
-
 	$settings = [];
 
 	if (!empty($block['settings'])) {

@@ -107,66 +107,6 @@ add_action('wp_head', function() {
 
 	add_filter('the_generator', '__return_false');
 
-	/**
-	 * Preload assets for the first two blocks
-	 */
-	$blocks = tw_app_get('current_blocks');
-
-	if (!is_array($blocks)) {
-
-		$object = get_queried_object();
-
-		if ($object instanceof WP_Post) {
-			$blocks = get_post_meta($object->ID, 'blocks', true);
-		} elseif ($object instanceof WP_Term) {
-			$blocks = get_term_meta($object->term_id, 'blocks', true);
-		} else {
-			$blocks = [];
-		}
-
-	}
-
-	$priority_assets = ['styles', 'header_box', 'modal_box'];
-
-	if (is_array($blocks)) {
-
-		tw_app_set('current_blocks', $blocks);
-
-		$index = 0;
-		$preload = 3;
-
-		foreach ($blocks as $block) {
-
-			if (!empty($block['acf_fc_layout'])) {
-				tw_asset_enqueue($block['acf_fc_layout'] . '_box');
-				$index++;
-			}
-
-			$priority_assets[] = $block['acf_fc_layout'] . '_box';
-
-			if ($index >= $preload) {
-				break;
-			}
-
-		}
-
-	}
-
-	/**
-	 * Reorder enqueued assets
-	 */
-	add_filter('twee_asset_enqueue', function($enqueued_assets) use ($priority_assets) {
-
-		$priority_assets = array_intersect($priority_assets, $enqueued_assets);
-
-		if ($priority_assets) {
-			$enqueued_assets = array_merge($priority_assets, array_diff($enqueued_assets, $priority_assets));
-		}
-
-		return $enqueued_assets;
-
-	});
-
 }, 3);
 
 
