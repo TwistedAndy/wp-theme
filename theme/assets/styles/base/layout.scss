@@ -1,5 +1,6 @@
 html {
 	scroll-behavior: smooth;
+	--wp-admin--admin-bar--height: 0px !important;
 }
 
 body {
@@ -90,7 +91,7 @@ section {
 			--gap-section-top: var(--gap-section);
 		}
 
-		& + .box_no_top, & + .box_no_both {
+		& + .box_no_top {
 			--gap-section-top: 0px;
 		}
 

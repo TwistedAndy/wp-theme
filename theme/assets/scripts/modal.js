@@ -1,5 +1,9 @@
 jQuery(document).on('tw_init', function(e, $) {
 
+	if (runOnce(this, 'modals')) {
+		return;
+	}
+
 	var wrapper = $(document.body);
 
 	$('[data-modal]').click(function(e) {

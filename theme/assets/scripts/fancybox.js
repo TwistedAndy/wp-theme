@@ -1,6 +1,6 @@
 jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 
-	if (typeof Fancybox !== 'function') {
+	if (typeof Fancybox !== 'function' || runOnce(this, 'fancybox')) {
 		return;
 	}
 

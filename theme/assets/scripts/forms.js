@@ -8,6 +8,10 @@ jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 
 	forms.not('.skip_processing').each(function() {
 
+		if (runOnce(this, 'forms')) {
+			return;
+		}
+
 		var form = $(this),
 			message,
 			button = $('[type="submit"]', form);

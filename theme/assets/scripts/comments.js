@@ -2,6 +2,10 @@ jQuery(document).on('tw_init', '.comments_box', function(e, $) {
 
 	$('[data-comments]', this).each(function() {
 
+		if (runOnce(this, 'comments')) {
+			return;
+		}
+
 		var button = $(this),
 			data = button.data('comments'),
 			section = button.parents('.comments_box'),

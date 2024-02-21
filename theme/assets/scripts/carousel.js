@@ -9,13 +9,13 @@ jQuery(document).on('tw_init', '.posts_box, .content_box', function(e, $) {
 
 	wrappers.each(function() {
 
+		if (runOnce(this, 'carousel')) {
+			return;
+		}
+
 		var wrapper = $(this),
 			carousel = wrapper.data('carousel'),
 			plugins = {};
-
-		if (carousel) {
-			return;
-		}
 
 		var args = {
 			infinite: true,

@@ -1,5 +1,9 @@
 jQuery(document).on('tw_init', '.header_box', function(e, $) {
 
+	if (runOnce(this, 'header')) {
+		return;
+	}
+
 	var wrapper = $(this),
 		submenus = $('.submenu', wrapper),
 		isFixed = false;
