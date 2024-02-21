@@ -27,59 +27,41 @@ function tw_acf_load_value($result, $post_id, $field) {
 	$entity = tw_acf_decode_post_id($post_id);
 
 	if (empty($entity['id']) or empty($entity['type'])) {
-		return $result;
+		return null;
 	}
 
-	if (!empty($field['_clone'])) {
-		$clone = acf_get_field($field['_clone']);
-	} else {
-		$clone = false;
-	}
+	if ($field['type'] === 'clone' and !empty($field['sub_fields'])) {
 
-	if ($clone) {
-		$name = $clone['name'];
-	} else {
-		$name = $field['name'];
+		$values = [];
+
+		foreach ($field['sub_fields'] as $sub_field) {
+			$values[$sub_field['key']] = tw_acf_load_value(null, $post_id, $sub_field);
+		}
+
+		return $values;
+
 	}
 
 	if ($entity['type'] == 'option') {
-		$value = get_option($post_id . '_' . $name, false);
+		$result = get_option($post_id . '_' . $field['name'], false);
 	} else {
-		$value = get_metadata($entity['type'], $entity['id'], $name, true);
+		$result = get_metadata($entity['type'], $entity['id'], $field['name'], true);
 	}
 
 	/**
 	 * Allow ACF to load flexible content fields in old format
 	 */
-	if (!empty($field['layouts']) and is_array($value) and is_string(reset($value))) {
-		return $result;
+	if (!empty($field['layouts']) and is_array($result) and is_string(reset($result))) {
+		return null;
 	}
 
-	if (in_array($field['type'], ['group', 'repeater', 'flexible_content', 'clone'])) {
+	if (in_array($field['type'], ['group', 'repeater', 'flexible_content'])) {
 
-		if (!empty($field['_clone']) and !empty($field['_name']) and is_array($value) and isset($value[$field['_name']])) {
-			$value = $value[$field['_name']];
+		$result = tw_acf_decode_data($result, $field);
+
+		if (!is_array($result)) {
+			return null;
 		}
-
-		$value = tw_acf_decode_data($value, $field);
-
-		if (is_array($value)) {
-			$result = $value;
-		}
-
-	} elseif ($clone) {
-
-		$cloned_values = tw_acf_load_value($result, $post_id, $clone);
-
-		if (isset($cloned_values[$field['key']])) {
-			$result = $cloned_values[$field['key']];
-		} else {
-			$result = $value;
-		}
-
-	} else {
-
-		$result = $value;
 
 	}
 
@@ -102,7 +84,19 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 	$entity = tw_acf_decode_post_id($post_id);
 
 	if (empty($entity['id']) or empty($entity['type'])) {
-		return $check;
+		return null;
+	}
+
+	if ($field['type'] === 'clone' and !empty($field['sub_fields']) and is_array($values)) {
+
+		foreach ($field['sub_fields'] as $sub_field) {
+			if (isset($values[$sub_field['key']])) {
+				tw_acf_save_value(null, $values[$sub_field['key']], $post_id, $sub_field);
+			}
+		}
+
+		return true;
+
 	}
 
 	$value = tw_acf_encode_data($values, $field);
