@@ -102,9 +102,9 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 
 		}
 
-		if (!isset($attributes['loading'])) {
+		if (!isset($attributes['loading']) or (is_bool($attributes['loading'])) and $attributes['loading']) {
 			$attributes['loading'] = 'lazy';
-		} elseif (empty($attributes['loading'])) {
+		} else {
 			unset($attributes['loading']);
 		}
 

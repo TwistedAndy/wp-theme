@@ -198,29 +198,29 @@ function tw_acf_load_reference($result, $field, $post_id) {
 	$cache_key = 'acf_map_cache_' . $entity['id'];
 	$cache_group = 'twee_meta_' . $entity['type'];
 
-	$value = tw_app_get($cache_key, $cache_group);
+	$map = tw_app_get($cache_key, $cache_group);
 
-	if ($value !== null) {
-		return $value;
+	if (!is_array($map)) {
+
+		$map_key = '_acf_map';
+
+		if ($entity['type'] == 'option') {
+			$map = get_option($entity['id'] . $map_key, null);
+		} else {
+			$map = get_metadata($entity['type'], $entity['id'], $map_key, true);
+		}
+
+		if (!is_array($map)) {
+			$map = [];
+		}
+
+		tw_app_set($cache_key, $map, $cache_group);
+
 	}
 
-	$map_key = '_acf_map';
-
-	if ($entity['type'] == 'option') {
-		$map = get_option($entity['id'] . $map_key, null);
-	} else {
-		$map = get_metadata($entity['type'], $entity['id'], $map_key, true);
+	if (!empty($map[$field]) and strpos($map[$field], 'field_') !== 0) {
+		$result = 'field_' . $map[$field];
 	}
-
-	if (is_array($map) and !empty($map[$field])) {
-		$result = $map[$field];
-	}
-
-	if ($result and strpos($result, 'field_') !== 0) {
-		$result = 'field_' . $result;
-	}
-
-	tw_app_set($cache_key, $result, $cache_group);
 
 	return $result;
 
