@@ -60,12 +60,6 @@ add_action('init', function() {
 
 	if (is_array($files)) {
 
-		if (!empty($assets['styles']) and !empty($assets['styles']['version'])) {
-			$version = $assets['styles']['version'];
-		} else {
-			$version = null;
-		}
-
 		foreach ($files as $file) {
 
 			if (strpos($file, '.css') === false or strpos($file, '.map') > 0) {
@@ -78,7 +72,6 @@ add_action('init', function() {
 				'style' => $file,
 				'prefix' => 'tw_block_',
 				'directory' => 'build/blocks',
-				'version' => $version,
 				'footer' => false
 			];
 
@@ -370,6 +363,7 @@ function tw_asset_normalize($asset) {
 	}
 
 	$base_url = get_template_directory_uri() . '/assets/';
+	$base_path = TW_ROOT . 'assets/';
 
 	$defaults = [
 		'deps' => [
@@ -405,6 +399,17 @@ function tw_asset_normalize($asset) {
 						$directory = $asset['directory'] . '/';
 					} else {
 						$directory = '';
+					}
+
+					$filepath = $base_path . $directory . $link;
+
+					if (!file_exists($filepath)) {
+						unset($asset[$type][$key]);
+						continue;
+					}
+
+					if (empty($asset['version'])) {
+						$asset['version'] = substr(filemtime($filepath), 4);
 					}
 
 					$asset[$type][$key] = $base_url . $directory . $link;

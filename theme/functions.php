@@ -16,7 +16,6 @@ tw_asset_register([
 		'style' => 'theme.css',
 		'footer' => false,
 		'display' => true,
-		'version' => '1.0.0',
 		'directory' => 'build'
 	],
 	'scripts' => [
@@ -26,7 +25,6 @@ tw_asset_register([
 		'script' => 'scripts.js',
 		'object' => 'tw_template',
 		'directory' => 'build',
-		'version' => '1.0.0',
 		'localize' => function() {
 			return [
 				'ajaxurl' => admin_url('admin-ajax.php'),
