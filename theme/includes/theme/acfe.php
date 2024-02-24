@@ -149,6 +149,32 @@ add_filter('acf/settings/google_api_key', function() {
 
 
 /**
+ * Add a field visibility setting
+ */
+add_action('acf/render_field_settings', function($field) {
+
+	acf_render_field_setting($field, [
+		'label' => __('Visibility', 'twee'),
+		'instructions' => '',
+		'name' => 'hide_label',
+		'prepend' => '',
+		'append' => '',
+		'type' => 'select',
+		'default_value' => '',
+		'allow_null' => false,
+		'choices' => [
+			'' => 'Visible',
+			'all' => 'Hidden',
+			'admin' => 'Hidden in WP Admin',
+			'front' => 'Hidden on Front',
+		],
+		'_append' => 'label'
+	], true);
+
+});
+
+
+/**
  * Include scripts to render blocks in separate
  * iframes with the automatic height adjustment
  */

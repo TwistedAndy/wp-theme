@@ -2,15 +2,12 @@ jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 
 	$('[data-loader]', this).each(function() {
 
-		var button = $(this);
-
-		if (button.data('initialized')) {
+		if (runOnce(this, 'loader')) {
 			return;
-		} else {
-			button.data('initialized', true);
 		}
 
-		var data = button.data('loader'),
+		var button = $(this),
+			data = button.data('loader'),
 			section = button.closest(data.wrapper),
 			terms = $('[data-term]', section),
 			search = $('[name="s"]', section),

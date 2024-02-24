@@ -14,10 +14,11 @@
  * @param string        $before    Code before the breadcrumbs
  * @param string        $after     Code after the breadcrumbs
  * @param WP_Query|null $query
+ * @param bool          $current
  *
  * @return string
  */
-function tw_breadcrumbs($separator = '', $before = '<nav class="breadcrumbs_box"><div class="fixed">', $after = '</div></nav>', $query = null) {
+function tw_breadcrumbs($separator = '', $before = '<nav class="breadcrumbs_box"><div class="fixed">', $after = '</div></nav>', $query = null, $current = true) {
 
 	$result = '';
 
@@ -56,13 +57,15 @@ function tw_breadcrumbs($separator = '', $before = '<nav class="breadcrumbs_box"
 
 	}
 
-	$current_page = '<span class="last">' . tw_content_heading($query) . '</span>';
-
-	if ($result) {
-		$current_page = $separator . $current_page;
+	if (empty($result)) {
+		return '';
 	}
 
-	return $before . implode($separator, $result) . $current_page . $after;
+	if ($current) {
+		return $before . implode($separator, $result) . $separator . '<span class="last">' . tw_content_heading($query) . '</span>' . $after;
+	} else {
+		return $before . implode($separator, $result) . $after;
+	}
 
 }
 
