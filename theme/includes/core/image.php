@@ -305,11 +305,29 @@ function tw_image_link($image, $size = 'full') {
 				$image_url = $upload_url . '/' . $file;
 			}
 
-			if (is_string($size) and $size !== 'full') {
+			if ($size === 'full' or strpos($image_url, '.svg') > 0) {
+				return apply_filters('wp_get_attachment_url', $image_url, $image);
+			}
 
-				$meta = get_post_meta($image, '_wp_attachment_metadata', true);
+			$meta = get_post_meta($image, '_wp_attachment_metadata', true);
 
-				if (is_array($meta) and !empty($meta['sizes'][$size]) and !empty($meta['sizes'][$size]['file'])) {
+			if (!is_array($meta)) {
+				$meta = [];
+			}
+
+			if (!empty($meta['width']) and !empty($meta['height'])) {
+
+				$data = tw_image_size($size, 0);
+
+				if ($meta['width'] < $data['width'] or $meta['height'] < $data['height']) {
+					return apply_filters('wp_get_attachment_url', $image_url, $image);
+				}
+
+			}
+
+			if (is_string($size)) {
+
+				if (!empty($meta['sizes'][$size]) and !empty($meta['sizes'][$size]['file'])) {
 					$thumb_url = path_join(dirname($image_url), $meta['sizes'][$size]['file']);
 				} else {
 					$thumb_url = tw_image_resize($image_url, $size, $image);
