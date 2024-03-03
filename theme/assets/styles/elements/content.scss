@@ -200,8 +200,10 @@
 	}
 
 	.gallery {
-		@extend %items;
-		margin-bottom: calc(var(--gap-content) + 5px);
+		display: flex;
+		flex-wrap: wrap;
+		width: calc(100% + var(--gap-grid));
+		margin: 0 calc(-1 * var(--gap-grid)) calc(var(--gap-content) + 5px) 0;
 		--width-item: 33.33%;
 		--gap-grid: 10px;
 		--gap-vertical: 10px;
@@ -261,7 +263,13 @@
 		}
 
 		&-item {
-			@extend %item;
+			display: inline-flex;
+			position: relative;
+			flex-direction: column;
+			flex-grow: 0;
+			flex-shrink: 0;
+			width: calc(var(--width-item) - var(--gap-grid));
+			margin: 0 var(--gap-grid) var(--gap-vertical) 0;
 
 			&:after {
 				content: '';

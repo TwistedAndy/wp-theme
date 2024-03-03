@@ -415,6 +415,9 @@ add_action('acf/input/admin_enqueue_scripts', function() { ?>
 		.acfe-modal-content > .acf-fields {
 			padding: 8px;
 		}
+		.acfe-modal.-open {
+			margin: 0 !important;
+		}
 		.layout > .acfe-fc-placeholder.acfe-fc-preview > a {
 			width: 50px;
 			height: 50px;

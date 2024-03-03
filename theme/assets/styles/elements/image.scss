@@ -9,7 +9,7 @@
 	&:after {
 		content: '';
 		display: block;
-		padding-bottom: 100%;
+		padding-bottom: var(--height-image);
 	}
 
 	img {
