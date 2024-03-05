@@ -7,7 +7,7 @@
 	box-sizing: border-box;
 	width: auto;
 	height: var(--height-control);
-	padding: 0 25px;
+	padding: 0 var(--gap-button);
 	margin: 0;
 	border: 1px solid transparent;
 	border-radius: var(--radius-small);

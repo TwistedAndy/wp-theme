@@ -6,7 +6,6 @@ let fs = require('fs'),
 	replace = require('gulp-replace'),
 	plumber = require('gulp-plumber'),
 	imagemin = require('gulp-imagemin'),
-	globalize = require('gulp-sass-glob'),
 	sourcemaps = require('gulp-sourcemaps'),
 	inject = require('gulp-inject-string'),
 	uglify = require('gulp-uglify-es').default;

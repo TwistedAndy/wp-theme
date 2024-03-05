@@ -22,6 +22,8 @@
 	/* Grid Paddings and Margins */
 	--gap-aside: 40px;
 	--gap-grid: 30px;
+	--gap-field: 16px;
+	--gap-button: 25px;
 	--gap-heading: 20px;
 	--gap-content: 20px;
 	--gap-contents: 30px;
@@ -38,7 +40,7 @@
 	/* Content Widths */
 	--width-item: 25%;
 	--width-small: 1000px;
-	--width-regular: #{$desktop_large};
+	--width-fixed: #{$desktop_large};
 	--width-scrollbar: 0px;
 	--width-contents: 640px;
 	--width-content: 480px;
@@ -79,6 +81,7 @@
 
 		--gap-grid: 20px;
 		--gap-aside: 20px;
+		--gap-button: 20px;
 		--gap-heading: 15px;
 		--gap-contents: 25px;
 		--gap-vertical: 30px;

@@ -8,19 +8,18 @@ jQuery(document).on('tw_init', '.header_box', function(e, $) {
 		submenus = $('.submenu', wrapper),
 		isFixed = false;
 
-	wrapper.on('click', '.menu_btn', function() {
-		if (wrapper.hasClass('is_menu')) {
-			wrapper.removeClass('is_menu');
-			unlockScroll();
-		} else {
-			wrapper.addClass('is_menu');
-			lockScroll();
-		}
+	$(window).on('beforeunload pagehide', function() {
+		togglePanel(false);
 	});
 
-	$(window).on('beforeunload pagehide', function() {
-		wrapper.removeClass('is_menu');
-		unlockScroll();
+	wrapper.on('click', '.menu_btn', function(e) {
+		togglePanel('is_menu', true);
+		e.preventDefault();
+	});
+
+	wrapper.on('click', '.search_btn', function(e) {
+		togglePanel('is_search', true);
+		e.preventDefault();
 	});
 
 	submenus.click(function(e) {
@@ -58,6 +57,7 @@ jQuery(document).on('tw_init', '.header_box', function(e, $) {
 	function handleScroll() {
 
 		var offset = wrapper.offset().top,
+			position = wrapper.position().top,
 			offsetFull = offset;
 
 		if (document.body.classList.contains('admin-bar')) {
@@ -72,7 +72,7 @@ jQuery(document).on('tw_init', '.header_box', function(e, $) {
 
 			if (!isFixed) {
 				wrapper.addClass('is_fixed');
-				document.documentElement.style.setProperty('--header-offset', '0px');
+				document.body.style.setProperty('--header-offset', '0px');
 			}
 
 			isFixed = true;
@@ -83,9 +83,45 @@ jQuery(document).on('tw_init', '.header_box', function(e, $) {
 				wrapper.removeClass('is_fixed');
 			}
 
-			document.documentElement.style.setProperty('--header-offset', (offset - window.scrollY) + 'px');
+			document.body.style.setProperty('--header-offset', (position - window.scrollY) + 'px');
 
 			isFixed = false;
+
+		}
+
+		document.body.style.setProperty('--header-shift', offset + 'px');
+
+	}
+
+	function togglePanel(toggleClass, lock) {
+
+		var classes = ['is_search', 'is_cart', 'is_search'].filter(function(value) {
+			return value !== toggleClass;
+		});
+
+		wrapper.removeClass(classes.join(' '));
+
+		if (wrapper.hasClass(toggleClass) || !toggleClass) {
+
+			wrapper.removeClass(toggleClass);
+
+			if (toggleClass === 'is_search') {
+				$('[name="s"]', wrapper).blur();
+			}
+
+			unlockScroll();
+
+		} else {
+
+			wrapper.addClass(toggleClass);
+
+			if (toggleClass === 'is_search') {
+				$('[name="s"]', wrapper).focus();
+			}
+
+			if (lock) {
+				lockScroll();
+			}
 
 		}
 
