@@ -36,12 +36,12 @@
 
 .buttons {
 	display: block;
-	margin: 0 -10px 10px;
+	margin: 0 calc(-1 * var(--gap-buttons)) var(--gap-buttons) 0;
 	font-size: 0;
 	line-height: 0;
 
 	&:last-child {
-		margin-bottom: -10px;
+		margin-bottom: calc(-1 * var(--gap-buttons));
 	}
 
 	&_wide {
@@ -51,7 +51,7 @@
 	}
 
 	.button {
-		margin: 0 10px 10px;
+		margin: 0 var(--gap-buttons) var(--gap-buttons) 0;
 	}
 
 }
