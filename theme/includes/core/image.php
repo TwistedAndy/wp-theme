@@ -108,7 +108,7 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 			unset($attributes['loading']);
 		}
 
-		if (empty($attributes['decoding'])) {
+		if (!isset($attributes['decoding']) or (is_bool($attributes['loading'])) and $attributes['loading']) {
 			$attributes['decoding'] = 'async';
 		}
 
@@ -319,8 +319,23 @@ function tw_image_link($image, $size = 'full') {
 
 				$data = tw_image_size($size, 0);
 
+				/**
+				 * WordPress does not create a thumbnail if an image is smaller than required
+				 */
 				if ($meta['width'] < $data['width'] or $meta['height'] < $data['height']) {
 					return apply_filters('wp_get_attachment_url', $image_url, $image);
+				}
+
+				/**
+				 * Try to find an existing thumbnail with the same dimensions
+				 */
+				if (!empty($meta['sizes']) and is_array($meta['sizes'])) {
+					foreach ($meta['sizes'] as $value) {
+						if (isset($value['width']) and ($value['width'] == $data['width']) and isset($value['height']) and $value['height'] == $data['height'] and !empty($value['file'])) {
+							$image_url = str_replace(wp_basename($image_url), $value['file'], $image_url);
+							return apply_filters('wp_get_attachment_url', $image_url, $image);
+						}
+					}
 				}
 
 			}
@@ -535,7 +550,7 @@ function tw_image_resize($image_url, $size, $image_id = 0) {
 					$crop_hash = '';
 				}
 
-				$filename = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id_string . $matches[1] . $url_hash . $crop_hash . '.' . $matches[2];
+				$filename = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id_string . $matches[1] . $url_hash . $crop_hash . '.webp';
 
 				if (!is_file($upload_dir . $filename)) {
 
@@ -567,7 +582,7 @@ function tw_image_resize($image_url, $size, $image_id = 0) {
 
 						$editor->resize($width, $height, $crop);
 
-						$editor->save($upload_dir . $filename);
+						$editor->save($upload_dir . $filename, 'image/webp');
 
 						do_action('twee_thumb_created', $upload_dir . $filename, $upload_url . $filename, $image_id);
 
