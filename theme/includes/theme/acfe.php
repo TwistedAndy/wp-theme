@@ -439,7 +439,18 @@ if (class_exists('WooCommerce')) {
 			wp_enqueue_script('jquery-core');
 			wp_enqueue_script('jquery-ui-core');
 		}
-
+		?>
+		<script>
+			jQuery(function($) {
+				$('#woocommerce-product-data').on('woocommerce_variations_loaded', function() {
+					acf.doAction('ready');
+				});
+				$('.acf-fields').on('mousewheel', 'input[type="number"]', function(e) {
+					$(this).blur();
+				});
+			});
+		</script>
+		<?php
 	});
 
 	/**
