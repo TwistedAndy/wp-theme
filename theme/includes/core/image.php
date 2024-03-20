@@ -497,11 +497,11 @@ function tw_image_resize($image_url, $size, $image_id = 0) {
 		return $thumb_url;
 	}
 
-	$position = mb_strrpos($image_url, '/');
+	$position = strrpos($image_url, '/');
 
-	if ($position < mb_strlen($image_url)) {
+	if ($position < strlen($image_url)) {
 
-		$filename = mb_strtolower(mb_substr($image_url, $position + 1));
+		$filename = strtolower(substr($image_url, $position + 1));
 
 		if (preg_match('#(.*?)\.(gif|jpg|jpeg|png|bmp|webp)$#is', $filename, $matches)) {
 
@@ -553,6 +553,10 @@ function tw_image_resize($image_url, $size, $image_id = 0) {
 				$filename = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id_string . $matches[1] . $url_hash . $crop_hash . '.webp';
 
 				if (!is_file($upload_dir . $filename)) {
+					$filename = str_replace('.webp', '.' . $matches[2], $filename);
+				}
+
+				if (!is_file($upload_dir . $filename)) {
 
 					$site_url = get_option('siteurl');
 
@@ -582,7 +586,13 @@ function tw_image_resize($image_url, $size, $image_id = 0) {
 
 						$editor->resize($width, $height, $crop);
 
-						$editor->save($upload_dir . $filename, 'image/webp');
+						$mime_type = 'image/webp';
+
+						if (!$editor->supports_mime_type($mime_type)) {
+							$mime_type = null;
+						}
+
+						$editor->save($upload_dir . $filename, $mime_type);
 
 						do_action('twee_thumb_created', $upload_dir . $filename, $upload_url . $filename, $image_id);
 
