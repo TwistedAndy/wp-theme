@@ -11,10 +11,10 @@ jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 			section = button.closest(data.wrapper),
 			terms = $('[data-term]', section),
 			search = $('[name="s"]', section),
-			wrapper = section.find('.items');
+			wrapper = section.find('.items'),
+			animate = !wrapper.hasClass('carousel');
 
-
-		var refreshItems = debouncer(function() {
+		var refreshItems = runLater(function() {
 			section.trigger('reset');
 		}, 1000);
 
@@ -22,11 +22,17 @@ jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 		data.noncer = tw_template.nonce;
 
 		section.on('reset', function() {
+
 			data = button.data('loader');
 			data.offset = 0;
+
 			button.data('loader', data);
-			wrapper.removeAttr('style').css('height', wrapper.height());
 			button.trigger('click');
+
+			if (animate) {
+				wrapper.removeAttr('style').css('height', wrapper.height());
+			}
+
 		});
 
 		terms.on('click', function(e) {
@@ -98,9 +104,12 @@ jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 					var posts = $(response['result']);
 
 					wrapper.append(posts);
-					wrapper.removeAttr('style');
-					heightNew = wrapper.height();
-					wrapper.css('height', heightOld);
+
+					if (animate) {
+						wrapper.removeAttr('style');
+						heightNew = wrapper.height();
+						wrapper.css('height', heightOld);
+					}
 
 					button.addClass('is_hidden');
 
@@ -116,16 +125,21 @@ jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 
 					}
 
-					section.trigger('init');
+					section.trigger('tw_init', [$]);
 
-					wrapper.animate({height: heightNew}, 400, function() {
-						wrapper.removeAttr('style');
-					});
+					if (animate) {
+						wrapper.animate({height: heightNew}, 400, function() {
+							wrapper.removeAttr('style');
+						});
+					}
 
 				} else {
 
 					button.addClass('is_hidden');
-					wrapper.removeAttr('style');
+
+					if (animate) {
+						wrapper.removeAttr('style');
+					}
 
 				}
 

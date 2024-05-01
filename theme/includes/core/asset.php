@@ -164,7 +164,7 @@ add_action('init', function() {
 	/**
 	 * Automatically inject block styles
 	 */
-	if (!is_admin() and !is_ajax()) {
+	if (!is_admin() and !wp_doing_ajax()) {
 		ob_start('tw_asset_inject');
 	}
 

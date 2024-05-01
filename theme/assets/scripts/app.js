@@ -10,15 +10,27 @@ function initApp() {
 		jQuery('[class*="_box"]').trigger('tw_init', [jQuery]);
 	}
 
-	document.body.style.setProperty('--width-scrollbar', getScrollbarWidth() + 'px');
+	let scrollbarWidth = parseInt(window.innerWidth - document.documentElement.clientWidth);
+
+	if (isNaN(scrollbarWidth) || scrollbarWidth < 0) {
+		scrollbarWidth = 0;
+	}
+
+	document.body.style.setProperty('--width-scrollbar', scrollbarWidth + 'px');
 
 }
 
-function runOnce(element, slug) {
+function runOnce(element, slug, timeout) {
 
 	slug = slug || 'element';
 
 	let key = 'tw_' + slug + '_loaded';
+
+	if (timeout > 0) {
+		setTimeout(function() {
+			element[key] = false;
+		}, timeout);
+	}
 
 	if (element[key]) {
 		return true;
@@ -94,26 +106,6 @@ function lockScroll() {
 
 function unlockScroll() {
 	document.body.classList.remove('is_locked');
-}
-
-function getScrollbarWidth() {
-
-	var outer = document.createElement('div'),
-		inner = document.createElement('div');
-
-	outer.style.visibility = 'hidden';
-	outer.style.overflow = 'scroll';
-	outer.style.msOverflowStyle = 'scrollbar';
-	outer.appendChild(inner);
-
-	document.body.appendChild(outer);
-
-	var scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
-
-	outer.parentNode.removeChild(outer);
-
-	return scrollbarWidth;
-
 }
 
 function setCookie(name, value, exdays) {

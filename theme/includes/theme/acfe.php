@@ -208,6 +208,11 @@ function tw_acfe_render_scripts() { ?>
 
 		document.addEventListener('DOMContentLoaded', function() {
 
+			jQuery(document.body).on('input change', '.acf-field textarea', function() {
+				this.style.minHeight = 'initial';
+				this.style.minHeight = (this.scrollHeight) + 'px';
+			});
+
 			if (typeof acf === 'undefined') {
 				return;
 			}
