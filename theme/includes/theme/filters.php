@@ -156,7 +156,7 @@ add_action('init', function() {
 
 	}
 
-}, 100);
+}, 200);
 
 
 /**
