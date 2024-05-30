@@ -63,6 +63,30 @@ function tw_acf_load_value($result, $post_id, $field) {
 			return null;
 		}
 
+		if (!empty($field['pagination']) and (acf_get_data('acf_is_rendering') or doing_action('wp_ajax_acf/ajax/query_repeater'))) {
+
+			if (acf_get_data('acf_inside_rest_call') or doing_action('wp_ajax_acf/ajax/fetch-block')) {
+				return $result;
+			}
+
+			$per_page = isset($field['rows_per_page']) ? (int) $field['rows_per_page'] : 20;
+
+			$chunks = array_chunk($result, $per_page);
+
+			if (acf_get_data('acf_is_rendering') or empty($_POST['paged']) or $_POST['paged'] < 1) {
+				$index = 0;
+			} else {
+				$index = (int) $_POST['paged'] - 1;
+			}
+
+			if (!empty($chunks[$index])) {
+				return $chunks[$index];
+			} else {
+				return [];
+			}
+
+		}
+
 	}
 
 	return $result;
@@ -102,6 +126,42 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 	$value = tw_acf_encode_data($values, $field);
 
 	$map_key = '_acf_map';
+
+	if ($field['type'] == 'repeater' and !empty($field['pagination']) and did_action('acf/save_post') and !isset($_POST['_acf_form'])) {
+
+		if ($entity['type'] == 'option') {
+			$old_values = get_option($entity['id'] . $field['name'], null);
+		} else {
+			$old_values = get_metadata($entity['type'], $entity['id'], $field['name'], true);
+		}
+
+		if (!is_array($old_values)) {
+			$old_values = [];
+		}
+
+		$per_page = isset($field['rows_per_page']) ? (int) $field['rows_per_page'] : 20;
+
+		$index = isset($_POST['paged']) ? (int) $_POST['paged'] : 0;
+
+		if ($index > 0) {
+			$index = $index - 1;
+		}
+
+		$chunks = array_chunk($old_values, $per_page);
+
+		if (isset($chunks[$index])) {
+			$chunks[$index] = $value;
+		} else {
+			$chunks[] = $value;
+		}
+
+		$value = [];
+
+		foreach ($chunks as $chunk) {
+			$value = array_merge($value, $chunk);
+		}
+
+	}
 
 	if ($entity['type'] == 'option') {
 
@@ -227,6 +287,58 @@ function tw_acf_load_reference($result, $field, $post_id) {
 }
 
 
+/**
+ * Adjust the total number of rows for repeaters
+ */
+add_action('acf/pre_render_field', function($field) {
+
+	if ($field['type'] == 'repeater') {
+		add_filter('acf/pre_load_metadata', 'tw_acf_total_rows', 10, 3);
+		acf_set_data('acf_is_rendering', true);
+	}
+
+	return $field;
+
+}, 5);
+
+
+/**
+ * Get the total number of rows for repeater fields
+ *
+ * @param int|null          $value
+ * @param object|string|int $post_id
+ * @param string            $name
+ *
+ * @return int|null
+ */
+function tw_acf_total_rows($value, $post_id, $name) {
+
+	$entity = tw_acf_decode_post_id($post_id);
+
+	if (empty($entity['id']) or empty($entity['type'])) {
+		return $value;
+	}
+
+	if ($entity['type'] == 'option') {
+		$data = get_option($entity['id'] . $name, null);
+	} else {
+		$data = get_metadata($entity['type'], $entity['id'], $name, true);
+	}
+
+	if (is_array($data)) {
+		$value = count($data);
+	} elseif (is_numeric($data)) {
+		$value = (int) $data;
+	}
+
+	acf_set_data('acf_is_rendering', false);
+	remove_filter('acf/pre_load_metadata', 'tw_acf_total_rows', 10);
+
+	return $value;
+
+}
+
+
 /*
  * Convert a field value in the compact format
  */
@@ -311,7 +423,15 @@ function tw_acf_encode_data($values, $field) {
 
 			foreach ($values as $row) {
 
+				if (!empty($row['acf_deleted'])) {
+					continue;
+				}
+
 				foreach ($row as $field_key => $value) {
+
+					if (!isset($fields[$field_key])) {
+						continue;
+					}
 
 					$sub_field = $fields[$field_key];
 
@@ -580,7 +700,7 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 
 	foreach ($metadata as $meta_key => $meta_value) {
 
-		if (strpos($meta_key, '_') !== 0 or strpos($meta_value, 'field_') !== 0) {
+		if (empty($meta_value) or strpos($meta_key, '_') !== 0 or strpos($meta_value, 'field_') !== 0) {
 			continue;
 		}
 
