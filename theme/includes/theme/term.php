@@ -25,57 +25,49 @@ function tw_term_data($key = 'term_id', $field = 'name', $taxonomy = '') {
 		$cache_group .= '_' . $taxonomy;
 	}
 
-	$labels = tw_app_get($cache_key, $cache_group);
+	$data = wp_cache_get($cache_key, $cache_group);
 
-	if (is_array($labels)) {
-		return $labels;
+	if (is_array($data)) {
+		return $data;
 	}
 
-	$labels = wp_cache_get($cache_key, $cache_group);
+	$data = [];
 
-	if (!is_array($labels)) {
+	$db = tw_app_database();
 
-		$labels = [];
+	$query = "SELECT * FROM {$db->terms} t";
 
-		$db = tw_app_database();
+	if ($taxonomy or in_array($field, ['all', 'description', 'parent', 'taxonomy', 'count'])) {
 
-		$query = "SELECT * FROM {$db->terms} t";
+		$query .= " LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id";
 
-		if ($taxonomy or in_array($field, ['all', 'description', 'parent', 'taxonomy', 'count'])) {
-
-			$query .= " LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id";
-
-			if ($taxonomy) {
-				$query .= $db->prepare(" WHERE tt.taxonomy = %s", $taxonomy);
-			}
-
+		if ($taxonomy) {
+			$query .= $db->prepare(" WHERE tt.taxonomy = %s", $taxonomy);
 		}
-
-		$result = $db->get_results($query, ARRAY_A);
-
-		if ($result) {
-			if (empty($field) or $field == 'all') {
-				foreach ($result as $term) {
-					if (!empty($term[$key])) {
-						$labels[$term[$key]] = $term;
-					}
-				}
-			} else {
-				foreach ($result as $term) {
-					if (!empty($term[$key])) {
-						$labels[$term[$key]] = $term[$field];
-					}
-				}
-			}
-		}
-
-		wp_cache_set($cache_key, $labels, $cache_group);
 
 	}
 
-	tw_app_set($cache_key, $labels, $cache_group);
+	$result = $db->get_results($query, ARRAY_A);
 
-	return $labels;
+	if ($result) {
+		if (empty($field) or $field == 'all') {
+			foreach ($result as $term) {
+				if (!empty($term[$key])) {
+					$data[$term[$key]] = $term;
+				}
+			}
+		} else {
+			foreach ($result as $term) {
+				if (!empty($term[$key])) {
+					$data[$term[$key]] = $term[$field];
+				}
+			}
+		}
+	}
+
+	wp_cache_set($cache_key, $data, $cache_group);
+
+	return $data;
 
 }
 
@@ -97,71 +89,63 @@ function tw_term_taxonomies($taxonomy = '', $field = 'term_id') {
 		$cache_group .= '_' . $taxonomy;
 	}
 
-	$terms = tw_app_get($cache_key, $cache_group);
+	$terms = wp_cache_get($cache_key, $cache_group);
 
 	if (is_array($terms)) {
 		return $terms;
 	}
 
-	$terms = wp_cache_get($cache_key, $cache_group);
+	$terms = [];
 
-	if (!is_array($terms)) {
+	$db = tw_app_database();
 
-		$terms = [];
+	$query = "SELECT t.term_id, t.name, t.slug, tt.taxonomy, tt.parent, tt.count FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id";
 
-		$db = tw_app_database();
+	if ($taxonomy) {
+		$query .= $db->prepare(" WHERE tt.taxonomy = %s", $taxonomy);
+	}
 
-		$query = "SELECT t.term_id, t.name, t.slug, tt.taxonomy, tt.parent, tt.count FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id";
+	$result = $db->get_results($query, ARRAY_A);
 
-		if ($taxonomy) {
-			$query .= $db->prepare(" WHERE tt.taxonomy = %s", $taxonomy);
-		}
+	if ($result) {
 
-		$result = $db->get_results($query, ARRAY_A);
+		foreach ($result as $term) {
 
-		if ($result) {
+			if ($taxonomy) {
 
-			foreach ($result as $term) {
+				if ($field == 'term_id') {
+					$terms[] = (int) $term['term_id'];
+				} elseif ($field == 'all') {
+					$terms[$term['term_id']] = $term;
+				} elseif (isset($term[$field])) {
+					$terms[$term['term_id']] = $term[$field];
+				}
 
-				if ($taxonomy) {
+			} else {
 
-					if ($field == 'term_id') {
-						$terms[] = (int) $term['term_id'];
-					} elseif ($field == 'all') {
-						$terms[$term['term_id']] = $term;
-					} elseif (isset($term[$field])) {
-						$terms[$term['term_id']] = $term[$field];
-					}
+				if (empty($term['taxonomy'])) {
+					continue;
+				}
 
-				} else {
+				if (empty($terms[$term['taxonomy']])) {
+					$terms[$term['taxonomy']] = [];
+				}
 
-					if (empty($term['taxonomy'])) {
-						continue;
-					}
-
-					if (empty($terms[$term['taxonomy']])) {
-						$terms[$term['taxonomy']] = [];
-					}
-
-					if ($field == 'term_id') {
-						$terms[$term['taxonomy']][] = (int) $term['term_id'];
-					} elseif ($field == 'all') {
-						$terms[$term['taxonomy']][$term['term_id']] = $term;
-					} elseif (isset($term[$field])) {
-						$terms[$term['taxonomy']][$term['term_id']] = $term[$field];
-					}
-
+				if ($field == 'term_id') {
+					$terms[$term['taxonomy']][] = (int) $term['term_id'];
+				} elseif ($field == 'all') {
+					$terms[$term['taxonomy']][$term['term_id']] = $term;
+				} elseif (isset($term[$field])) {
+					$terms[$term['taxonomy']][$term['term_id']] = $term[$field];
 				}
 
 			}
 
 		}
 
-		wp_cache_set($cache_key, $terms, $cache_group);
-
 	}
 
-	tw_app_set($cache_key, $terms, $cache_group);
+	wp_cache_set($cache_key, $terms, $cache_group);
 
 	return $terms;
 
@@ -239,7 +223,7 @@ function tw_term_link($term_id, $taxonomy) {
 	$cache_key = 'link_' . $term_id;
 	$cache_group = 'twee_terms_' . $taxonomy;
 
-	$link = tw_app_get($cache_key, $cache_group);
+	$link = wp_cache_get($cache_key, $cache_group);
 
 	if ($link !== null) {
 		return $link;
@@ -313,7 +297,7 @@ function tw_term_link($term_id, $taxonomy) {
 
 	}
 
-	tw_app_set($cache_key, $link, $cache_group);
+	wp_cache_set($cache_key, $link, $cache_group);
 
 	return $link;
 
@@ -332,39 +316,31 @@ function tw_term_parents($taxonomy) {
 	$cache_key = 'terms_parents';
 	$cache_group = 'twee_terms_' . $taxonomy;
 
-	$terms = tw_app_get($cache_key, $cache_group);
+	$parents = wp_cache_get($cache_key, $cache_group);
 
-	if (is_array($terms)) {
-		return $terms;
+	if (is_array($parents)) {
+		return $parents;
 	}
 
-	$terms = wp_cache_get($cache_key, $cache_group);
+	$parents = [];
 
-	if (!is_array($terms)) {
+	$db = tw_app_database();
 
-		$terms = [];
+	$query = $db->prepare("SELECT tt.term_id, tt.parent FROM {$db->term_taxonomy} tt WHERE tt.taxonomy = %s", $taxonomy);
 
-		$db = tw_app_database();
+	$rows = $db->get_results($query, ARRAY_A);
 
-		$query = $db->prepare("SELECT tt.term_id, tt.parent FROM {$db->term_taxonomy} tt WHERE tt.taxonomy = %s", $taxonomy);
-
-		$rows = $db->get_results($query, ARRAY_A);
-
-		if ($rows) {
-			foreach ($rows as $row) {
-				if (!empty($row['term_id']) and isset($row['parent'])) {
-					$terms[intval($row['term_id'])] = intval($row['parent']);
-				}
+	if ($rows) {
+		foreach ($rows as $row) {
+			if (!empty($row['term_id']) and isset($row['parent'])) {
+				$parents[(int) $row['term_id']] = (int) $row['parent'];
 			}
 		}
-
-		wp_cache_set($cache_key, $terms, $cache_group);
-
 	}
 
-	tw_app_set($cache_key, $terms, $cache_group);
+	wp_cache_set($cache_key, $parents, $cache_group);
 
-	return $terms;
+	return $parents;
 
 }
 
@@ -382,24 +358,16 @@ function tw_term_ancestors($term_id, $taxonomy) {
 	$cache_key = 'terms_ancestors_' . $term_id;
 	$cache_group = 'twee_terms_' . $taxonomy;
 
-	$result = tw_app_get($cache_key, $cache_group);
+	$ancestors = wp_cache_get($cache_key, $cache_group);
 
-	if (is_array($result)) {
-		return $result;
-	}
-
-	$result = wp_cache_get($cache_key, $cache_group);
-
-	if (is_array($result)) {
-		tw_app_set($cache_key, $result, $cache_group);
-		return $result;
+	if (is_array($ancestors)) {
+		return $ancestors;
 	}
 
 	$parents = tw_term_parents($taxonomy);
 
 	$thread = tw_term_ancestors_walker($term_id, [], $parents);
 
-	tw_app_set($cache_key, $thread, $cache_group);
 	wp_cache_set($cache_key, $thread, $cache_group);
 
 	return $thread;
@@ -451,29 +419,21 @@ function tw_term_children($term_id = 0, $taxonomy = '', $parents = []) {
 			$cache_group .= '_' . $taxonomy;
 		}
 
-		$children = tw_app_get($cache_key, $cache_group);
+		$children = wp_cache_get($cache_key, $cache_group);
 
 		if (is_array($children)) {
 			return $children;
 		}
 
-		$children = wp_cache_get($cache_key, $cache_group);
+		$children = [];
 
-		if (!is_array($children)) {
+		$parents = tw_term_parents($taxonomy);
 
-			$children = [];
-
-			$parents = tw_term_parents($taxonomy);
-
-			foreach ($parents as $child_id => $parent_id) {
-				$children[$child_id] = tw_term_children($child_id, $taxonomy, $parents);
-			}
-
-			wp_cache_set($cache_key, $children, $cache_group);
-
+		foreach ($parents as $child_id => $parent_id) {
+			$children[$child_id] = tw_term_children($child_id, $taxonomy, $parents);
 		}
 
-		tw_app_set($cache_key, $children, $cache_group);
+		wp_cache_set($cache_key, $children, $cache_group);
 
 	} else {
 
@@ -518,47 +478,39 @@ function tw_term_order($field = 'term_id') {
 	$cache_key = 'terms_order_' . $field;
 	$cache_group = 'twee_terms';
 
-	$order = tw_app_get($cache_key, $cache_group);
+	$order = wp_cache_get($cache_key, $cache_group);
 
 	if (is_array($order)) {
 		return $order;
 	}
 
-	$order = wp_cache_get($cache_key, $cache_group);
+	$order = [];
 
-	if (!is_array($order)) {
+	$db = tw_app_database();
 
-		$order = [];
+	$result = $db->get_results("SELECT t.term_id, t.slug, t.name, tm.meta_value FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id LEFT JOIN {$db->termmeta} tm ON t.term_id = tm.term_id AND tm.meta_key = 'order' WHERE tt.taxonomy LIKE 'pa_%'", ARRAY_A);
 
-		$db = tw_app_database();
+	if ($result) {
 
-		$result = $db->get_results("SELECT t.term_id, t.slug, t.name, tm.meta_value FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id LEFT JOIN {$db->termmeta} tm ON t.term_id = tm.term_id AND tm.meta_key = 'order' WHERE tt.taxonomy LIKE 'pa_%'", ARRAY_A);
+		foreach ($result as $term) {
 
-		if ($result) {
+			if (!empty($term[$field])) {
 
-			foreach ($result as $term) {
-
-				if (!empty($term[$field])) {
-
-					if (empty($term['meta_value'])) {
-						$term['meta_value'] = 0;
-					}
-
-					$order[$term[$field]] = (int) $term['meta_value'];
-
+				if (empty($term['meta_value'])) {
+					$term['meta_value'] = 0;
 				}
+
+				$order[$term[$field]] = (int) $term['meta_value'];
 
 			}
 
 		}
 
-		asort($order);
-
-		wp_cache_set($cache_key, $order, $cache_group);
-
 	}
 
-	tw_app_set($cache_key, $order, $cache_group);
+	asort($order);
+
+	wp_cache_set($cache_key, $order, $cache_group);
 
 	return $order;
 
@@ -577,49 +529,41 @@ function tw_term_posts($taxonomy) {
 	$cache_key = 'term_posts';
 	$cache_group = 'twee_post_terms_' . $taxonomy;
 
-	$terms = tw_app_get($cache_key, $cache_group);
+	$terms = wp_cache_get($cache_key, $cache_group);
 
 	if (is_array($terms)) {
 		return $terms;
 	}
 
-	$terms = wp_cache_get($cache_key, $cache_group);
+	$terms = [];
 
-	if (!is_array($terms)) {
+	$db = tw_app_database();
 
-		$terms = [];
-
-		$db = tw_app_database();
-
-		$rows = $db->get_results($db->prepare("
+	$rows = $db->get_results($db->prepare("
 			SELECT tr.object_id, tt.term_id
 			FROM {$db->term_relationships} tr 
 			LEFT JOIN {$db->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
 			WHERE tt.taxonomy = %s", $taxonomy), ARRAY_A);
 
-		if ($rows) {
+	if ($rows) {
 
-			foreach ($rows as $row) {
+		foreach ($rows as $row) {
 
-				if (empty($row['object_id']) or empty($row['term_id'])) {
-					continue;
-				}
-
-				if (!isset($terms[$row['term_id']])) {
-					$terms[$row['term_id']] = [];
-				}
-
-				$terms[$row['term_id']][] = (int) $row['object_id'];
-
+			if (empty($row['object_id']) or empty($row['term_id'])) {
+				continue;
 			}
+
+			if (!isset($terms[$row['term_id']])) {
+				$terms[$row['term_id']] = [];
+			}
+
+			$terms[$row['term_id']][] = (int) $row['object_id'];
 
 		}
 
-		wp_cache_set($cache_key, $terms, $cache_group);
-
 	}
 
-	tw_app_set($cache_key, $terms, $cache_group);
+	wp_cache_set($cache_key, $terms, $cache_group);
 
 	return $terms;
 
@@ -638,11 +582,7 @@ function tw_term_tree($taxonomy, $flatten = false) {
 	$cache_key = 'term_hierarchy';
 	$cache_group = 'twee_terms_' . $taxonomy;
 
-	$elements = tw_app_get($cache_key, $cache_group);
-
-	if (!is_array($elements)) {
-		$elements = wp_cache_get($cache_key, $cache_group);
-	}
+	$elements = wp_cache_get($cache_key, $cache_group);
 
 	if (!is_array($elements)) {
 
@@ -654,15 +594,15 @@ function tw_term_tree($taxonomy, $flatten = false) {
 
 		$elements = [];
 
-		$labels = tw_term_data('term_id', 'name', $taxonomy);
+		$data = tw_term_data('term_id', 'name', $taxonomy);
 
-		if ($labels) {
+		if ($data) {
 
 			if ($object->hierarchical) {
 
 				$parents = tw_term_parents($taxonomy);
 
-				foreach ($labels as $term_id => $label) {
+				foreach ($data as $term_id => $label) {
 
 					$term_id = (int) $term_id;
 
@@ -686,7 +626,7 @@ function tw_term_tree($taxonomy, $flatten = false) {
 
 			} else {
 
-				foreach ($labels as $term_id => $label) {
+				foreach ($data as $term_id => $label) {
 					$elements[] = [
 						'id' => (int) $term_id,
 						'name' => $label,
@@ -704,8 +644,6 @@ function tw_term_tree($taxonomy, $flatten = false) {
 
 		}
 
-		tw_app_set($cache_key, $elements, $cache_group);
-
 		wp_cache_set($cache_key, $elements, $cache_group);
 
 	}
@@ -714,17 +652,11 @@ function tw_term_tree($taxonomy, $flatten = false) {
 
 		$cache_key .= '_flatten';
 
-		$data = tw_app_get($cache_key, $cache_group);
-
-		if (!is_array($data)) {
-			$data = wp_cache_get($cache_key);
-		}
+		$data = wp_cache_get($cache_key);
 
 		if (!is_array($data)) {
 
 			$elements = tw_term_flatten_tree($elements);
-
-			tw_app_set($cache_key, $elements, $cache_group);
 
 			wp_cache_set($cache_key, $elements, $cache_group);
 

@@ -16,7 +16,7 @@
  *
  * @return array
  */
-function tw_post_data($type, $key = 'ID', $value = 'post_title') {
+function tw_post_data($type, $key = 'ID', $value = 'post_title', $order = 'p.post_title ASC, p.ID ASC') {
 
 	$cache_key = 'posts_' . $key;
 	$cache_group = 'twee_posts_' . $type;
@@ -34,59 +34,57 @@ function tw_post_data($type, $key = 'ID', $value = 'post_title') {
 		}
 	}
 
-	$posts = tw_app_get($cache_key, $cache_group);
+	$data = wp_cache_get($cache_key, $cache_group);
 
-	if (is_array($posts)) {
-		return $posts;
+	if (is_array($data)) {
+		return $data;
 	}
 
-	$posts = wp_cache_get($cache_key, $cache_group);
+	$data = [];
 
-	if (!is_array($posts)) {
+	$db = tw_app_database();
 
-		$posts = [];
+	if (is_string($order) and $order) {
+		$order = ' ORDER BY ' . $order;
+	} else {
+		$order = '';
+	}
 
-		$db = tw_app_database();
+	$rows = $db->get_results($db->prepare("SELECT {$select} FROM {$db->posts} p WHERE p.post_type = %s%s", $type, $order), ARRAY_A);
 
-		$rows = $db->get_results($db->prepare("SELECT {$select} FROM {$db->posts} p WHERE p.post_type = %s", $type), ARRAY_A);
+	if ($rows) {
 
-		if ($rows) {
+		foreach ($rows as $row) {
 
-			foreach ($rows as $row) {
+			if (is_array($value)) {
 
-				if (is_array($value)) {
+				$fields = [];
 
-					$data = [];
-
-					foreach ($value as $field) {
-						if (isset($row[$field])) {
-							$data[$field] = $row[$field];
-						}
+				foreach ($value as $field) {
+					if (isset($row[$field])) {
+						$fields[$field] = $row[$field];
 					}
-
-					$posts[$row[$key]] = $data;
-
-				} elseif ($value) {
-
-					$posts[$row[$key]] = $row[$value];
-
-				} else {
-
-					$posts[$row[$key]] = $row;
-
 				}
+
+				$data[$row[$key]] = $fields;
+
+			} elseif ($value) {
+
+				$data[$row[$key]] = $row[$value];
+
+			} else {
+
+				$data[$row[$key]] = $row;
 
 			}
 
 		}
 
-		wp_cache_set($cache_key, $posts, $cache_group);
-
 	}
 
-	tw_app_set($cache_key, $posts, $cache_group);
+	wp_cache_set($cache_key, $data, $cache_group);
 
-	return $posts;
+	return $data;
 
 }
 
@@ -103,49 +101,41 @@ function tw_post_terms($taxonomy) {
 	$cache_key = 'post_terms';
 	$cache_group = 'twee_post_terms_' . $taxonomy;
 
-	$terms = tw_app_get($cache_key, $cache_group);
+	$terms = wp_cache_get($cache_key, $cache_group);
 
 	if (is_array($terms)) {
 		return $terms;
 	}
 
-	$terms = wp_cache_get($cache_key, $cache_group);
+	$terms = [];
 
-	if (!is_array($terms)) {
+	$db = tw_app_database();
 
-		$terms = [];
+	$rows = $db->get_results($db->prepare("
+		SELECT tr.object_id, tt.term_id
+		FROM {$db->term_relationships} tr 
+		LEFT JOIN {$db->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
+		WHERE tt.taxonomy = %s", $taxonomy), ARRAY_A);
 
-		$db = tw_app_database();
+	if ($rows) {
 
-		$rows = $db->get_results($db->prepare("
-			SELECT tr.object_id, tt.term_id
-			FROM {$db->term_relationships} tr 
-			LEFT JOIN {$db->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
-			WHERE tt.taxonomy = %s", $taxonomy), ARRAY_A);
+		foreach ($rows as $row) {
 
-		if ($rows) {
-
-			foreach ($rows as $row) {
-
-				if (empty($row['object_id']) or empty($row['term_id'])) {
-					continue;
-				}
-
-				if (!isset($terms[$row['object_id']])) {
-					$terms[$row['object_id']] = [];
-				}
-
-				$terms[$row['object_id']][] = (int) $row['term_id'];
-
+			if (empty($row['object_id']) or empty($row['term_id'])) {
+				continue;
 			}
+
+			if (!isset($terms[$row['object_id']])) {
+				$terms[$row['object_id']] = [];
+			}
+
+			$terms[$row['object_id']][] = (int) $row['term_id'];
 
 		}
 
-		wp_cache_set($cache_key, $terms, $cache_group);
-
 	}
 
-	tw_app_set($cache_key, $terms, $cache_group);
+	wp_cache_set($cache_key, $terms, $cache_group);
 
 	return $terms;
 

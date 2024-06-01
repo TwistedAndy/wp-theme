@@ -255,10 +255,14 @@ function tw_acf_load_reference($result, $field, $post_id) {
 		return $result;
 	}
 
-	$cache_key = 'acf_map_cache_' . $entity['id'];
+	$cache_key = 'acf_map_cache';
 	$cache_group = 'twee_meta_' . $entity['type'];
 
-	$map = tw_app_get($cache_key, $cache_group);
+	if ($entity['type'] != 'option' and $entity['id'] > 0) {
+		$cache_group .= '_' . $entity['id'];
+	}
+
+	$map = wp_cache_get($cache_key, $cache_group);
 
 	if (!is_array($map)) {
 
@@ -274,7 +278,7 @@ function tw_acf_load_reference($result, $field, $post_id) {
 			$map = [];
 		}
 
-		tw_app_set($cache_key, $map, $cache_group);
+		wp_cache_set($cache_key, $map, $cache_group);
 
 	}
 
@@ -974,14 +978,18 @@ function tw_acf_decompress_fields($meta_type = 'post', $object_id = 0, $include_
 		return [];
 	}
 
-	$cache_key = 'unconvert_data_' . $object_id;
+	$cache_key = 'unconvert_data';
 	$cache_group = 'twee_meta_' . $meta_type;
+
+	if ($meta_type != 'option' and $object_id > 0) {
+		$cache_group .= '_' . $object_id;
+	}
 
 	if ($include_layouts) {
 		$cache_key .= '_layouts';
 	}
 
-	$data = tw_app_get($cache_key, $cache_group);
+	$data = wp_cache_get($cache_key, $cache_group);
 
 	if (is_array($data)) {
 		return $data;
@@ -1017,7 +1025,7 @@ function tw_acf_decompress_fields($meta_type = 'post', $object_id = 0, $include_
 
 	ksort($result);
 
-	tw_app_set($cache_key, $result, $cache_group);
+	wp_cache_set($cache_key, $result, $cache_group);
 
 	return $result;
 
@@ -1180,10 +1188,10 @@ function tw_acf_revision_fields($result, $post) {
 		return $result;
 	}
 
-	$cache_key = 'acf_revision_fields_' . $post['ID'];
-	$cache_group = 'twee_meta_post';
+	$cache_key = 'acf_revision_fields';
+	$cache_group = 'twee_meta_post_' . $post['ID'];
 
-	$fields = tw_app_get($cache_key, $cache_group, null);
+	$fields = wp_cache_get($cache_key, $cache_group, null);
 
 	if (is_array($fields)) {
 
@@ -1203,7 +1211,7 @@ function tw_acf_revision_fields($result, $post) {
 
 	$filters_key = 'acf_revision_filters';
 
-	$filters = tw_app_get($filters_key, $cache_group);
+	$filters = wp_cache_get($filters_key, $cache_group);
 
 	if (!is_array($filters)) {
 		$filters = [];
@@ -1273,8 +1281,8 @@ function tw_acf_revision_fields($result, $post) {
 
 	}
 
-	tw_app_set($cache_key, $fields, $cache_group);
-	tw_app_set($filters_key, $filters, $cache_group);
+	wp_cache_set($cache_key, $fields, $cache_group);
+	wp_cache_set($filters_key, $filters, $cache_group);
 
 	if ($fields) {
 		if (is_array($result)) {
@@ -1367,3 +1375,14 @@ add_action('edit_term', function($object_id) {
 add_action('save_post', function($object_id) {
 	tw_acf_compress_meta('post', $object_id);
 }, 5, 1);
+
+
+/**
+ * Refresh cache on the option page update
+ */
+add_action('acf/save_post', function($post_id) {
+	if ($post_id == 'option' or $post_id == 'options') {
+		tw_app_clear('twee_meta_option');
+		wp_cache_flush_group('twee_meta_option');
+	}
+}, 10, 2);

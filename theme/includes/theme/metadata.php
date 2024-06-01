@@ -25,63 +25,55 @@ function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode =
 		$cache_key .= '_decoded';
 	}
 
-	$meta = tw_app_get($cache_key, $cache_group);
+	$meta = wp_cache_get($cache_key, $cache_group);
 
 	if (is_array($meta)) {
 		return $meta;
 	}
 
-	$meta = wp_cache_get($cache_key, $cache_group);
+	$cached_keys = wp_cache_get('meta_keys', $cache_group);
 
-	if (!is_array($meta)) {
-
-		$cached_keys = wp_cache_get('meta_keys', $cache_group);
-
-		if (!is_array($cached_keys)) {
-			$cached_keys = [];
-		}
-
-		$cached_keys[] = $meta_key;
-
-		wp_cache_set('meta_keys', array_unique($cached_keys), $cache_group);
-
-		$meta = [];
-
-		$db = tw_app_database();
-
-		if ($meta_type == 'term') {
-			$table = $db->termmeta;
-			$key = 'term_id';
-		} elseif ($meta_type == 'user') {
-			$table = $db->usermeta;
-			$key = 'user_id';
-		} elseif ($meta_type == 'comment') {
-			$table = $db->commentmeta;
-			$key = 'comment_id';
-		} else {
-			$table = $db->postmeta;
-			$key = 'post_id';
-		}
-
-		$result = $db->get_results($db->prepare("SELECT meta.{$key}, meta.meta_value FROM {$table} AS meta WHERE meta.meta_key = %s", $meta_key), ARRAY_A);
-
-		if ($result) {
-			if ($decode) {
-				foreach ($result as $row) {
-					$meta[$row[$key]] = maybe_unserialize($row['meta_value']);
-				}
-			} else {
-				foreach ($result as $row) {
-					$meta[$row[$key]] = $row['meta_value'];
-				}
-			}
-		}
-
-		wp_cache_set($cache_key, $meta, $cache_group);
-
+	if (!is_array($cached_keys)) {
+		$cached_keys = [];
 	}
 
-	tw_app_set($cache_key, $meta, $cache_group);
+	$cached_keys[] = $meta_key;
+
+	wp_cache_set('meta_keys', array_unique($cached_keys), $cache_group);
+
+	$meta = [];
+
+	$db = tw_app_database();
+
+	if ($meta_type == 'term') {
+		$table = $db->termmeta;
+		$key = 'term_id';
+	} elseif ($meta_type == 'user') {
+		$table = $db->usermeta;
+		$key = 'user_id';
+	} elseif ($meta_type == 'comment') {
+		$table = $db->commentmeta;
+		$key = 'comment_id';
+	} else {
+		$table = $db->postmeta;
+		$key = 'post_id';
+	}
+
+	$result = $db->get_results($db->prepare("SELECT meta.{$key}, meta.meta_value FROM {$table} AS meta WHERE meta.meta_key = %s", $meta_key), ARRAY_A);
+
+	if ($result) {
+		if ($decode) {
+			foreach ($result as $row) {
+				$meta[$row[$key]] = maybe_unserialize($row['meta_value']);
+			}
+		} else {
+			foreach ($result as $row) {
+				$meta[$row[$key]] = $row['meta_value'];
+			}
+		}
+	}
+
+	wp_cache_set($cache_key, $meta, $cache_group);
 
 	return $meta;
 
