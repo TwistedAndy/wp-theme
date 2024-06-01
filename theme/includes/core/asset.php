@@ -93,6 +93,8 @@ add_action('init', function() {
 		return;
 	}
 
+	tw_app_set('registered', $assets, 'assets');
+
 	foreach ($assets as $name => $asset) {
 
 		if (!is_string($name) or empty($asset)) {
@@ -254,6 +256,14 @@ function tw_asset_print() {
 					$assets_localized[] = $name;
 				}
 
+			}
+
+			if (!empty($asset['deps'])) {
+				if (empty($asset['style']) and !empty($asset['deps']['style'])) {
+					$print_styles = array_merge($print_styles, $asset['deps']['style']);
+				} elseif (empty($asset['script']) and !empty($asset['deps']['script'])) {
+					$print_scripts = array_merge($print_scripts, $asset['deps']['script']);
+				}
 			}
 
 			$name = $asset_name;
@@ -430,12 +440,6 @@ function tw_asset_normalize($asset) {
 
 		if (is_array($asset['deps'])) {
 
-			if (empty($asset['prefix'])) {
-				$prefix = '';
-			} else {
-				$prefix = $asset['prefix'];
-			}
-
 			$deps = [];
 
 			$assets = tw_app_get('registered', 'assets', []);
@@ -477,6 +481,12 @@ function tw_asset_normalize($asset) {
 				foreach ($asset_deps as $dep) {
 
 					if ($assets and !empty($assets[$dep]) and !empty($assets[$dep][$type])) {
+
+						if (isset($assets[$dep]['prefix']) and is_string($assets[$dep]['prefix'])) {
+							$prefix = $assets[$dep]['prefix'];
+						} else {
+							$prefix = $defaults['prefix'];
+						}
 
 						$deps[$type][] = $prefix . $dep;
 
