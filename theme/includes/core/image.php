@@ -163,8 +163,6 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 					'dt' => 3840
 				];
 
-				$breakpoints = apply_filters('twee_media_breakpoints', $breakpoints, $image);
-
 				$queries = [];
 
 				foreach ($attributes['sizes'] as $breakpoint => $value) {
@@ -592,7 +590,23 @@ function tw_image_resize($image_url, $size, $image_id = 0) {
 							$mime_type = null;
 						}
 
-						$editor->save($upload_dir . $filename, $mime_type);
+						$result = $editor->save($upload_dir . $filename, $mime_type);
+
+						if (is_array($result) and is_readable($result['path'])) {
+
+							$position = strpos($result['path'], '/cache/');
+
+							if ($position > 0) {
+								$filename = substr($result['path'], $position);
+							} else {
+								return $image_url;
+							}
+
+						} else {
+
+							return $image_url;
+
+						}
 
 						do_action('twee_thumb_created', $upload_dir . $filename, $upload_url . $filename, $image_id);
 

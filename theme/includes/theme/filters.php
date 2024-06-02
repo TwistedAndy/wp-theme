@@ -76,9 +76,7 @@ add_filter('wp_nav_menu_items', function($items, $args) {
 		'<ul' => '<ul role="menu"',
 	];
 
-	$items = str_replace(array_keys($replace), array_values($replace), $items);
-
-	return preg_replace('# id="menu-item-\d+"#is', '', $items);
+	return str_replace(array_keys($replace), array_values($replace), $items);
 
 }, 10, 2);
 
