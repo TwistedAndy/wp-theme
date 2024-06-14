@@ -9,7 +9,7 @@ jQuery(document).on('tw_init', '.posts_box, .content_box', function(e, $) {
 
 	wrappers.each(function() {
 
-		if (runOnce(this, 'carousel', 500)) {
+		if (runOnce(this, 'carousel', 100)) {
 			return;
 		}
 
@@ -73,6 +73,10 @@ jQuery(document).on('tw_init', '.posts_box, .content_box', function(e, $) {
 			}
 
 		}
+
+		wrapper.on('refresh', function() {
+			carousel.reInit(args, plugins);
+		});
 
 		if (typeof carousel === 'object') {
 

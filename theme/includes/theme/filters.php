@@ -84,7 +84,7 @@ add_filter('wp_nav_menu_items', function($items, $args) {
 /**
  * Clean the header and preload block assets
  */
-add_action('wp_head', function() {
+add_action('template_redirect', function() {
 
 	if (is_admin()) {
 		return;
@@ -105,7 +105,7 @@ add_action('wp_head', function() {
 
 	add_filter('the_generator', '__return_false');
 
-}, 3);
+});
 
 
 /**

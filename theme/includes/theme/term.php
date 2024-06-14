@@ -225,7 +225,7 @@ function tw_term_link($term_id, $taxonomy) {
 
 	$link = wp_cache_get($cache_key, $cache_group);
 
-	if ($link !== null) {
+	if (is_string($link)) {
 		return $link;
 	}
 

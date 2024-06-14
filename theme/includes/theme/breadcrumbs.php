@@ -113,40 +113,72 @@ function tw_breadcrumbs_list($query = null) {
 		$post_type = $object->post_type;
 		$count = 0;
 
-		$taxonomies = get_object_taxonomies($object->post_type, 'objects');
+		if ($post_type == 'post') {
 
-		if ($taxonomies) {
+			$taxonomy = 'category';
 
-			$taxonomy = array_key_first($taxonomies);
+		} elseif ($post_type == 'product') {
 
-			foreach ($taxonomies as $key => $taxonomy_object) {
-				if ($taxonomy_object->hierarchical) {
-					$taxonomy = $key;
-					break;
+			$taxonomy = 'product_cat';
+
+		} else {
+
+			$taxonomies = get_object_taxonomies($post_type, 'objects');
+
+			if ($taxonomies) {
+
+				$taxonomy = array_key_first($taxonomies);
+
+				foreach ($taxonomies as $key => $taxonomy_object) {
+					if ($taxonomy_object->hierarchical) {
+						$taxonomy = $key;
+						break;
+					}
 				}
+
 			}
 
 		}
 
-		if ($taxonomy and $map = tw_post_terms($taxonomy) and isset($map[$post_id])) {
+		if ($taxonomy) {
 
-			$term = 0;
+			$current_term = get_post_meta($post_id, '_yoast_wpseo_primary_' . $taxonomy, true);
 
-			foreach ($map[$post_id] as $term_id) {
+			if (empty($current_term)) {
+				$current_term = get_post_meta($post_id, 'rank_math_primary_' . $taxonomy, true);
+			}
+
+			if (empty($current_term)) {
+
+				$map = tw_post_terms($taxonomy);
+
+				if (!empty($map[$post_id]) and is_array($map[$post_id])) {
+					$terms = $map[$post_id];
+				} else {
+					$terms = [];
+				}
+
+			} else {
+
+				$terms = [$current_term];
+
+			}
+
+			foreach ($terms as $term_id) {
 
 				$thread = tw_term_ancestors($term_id, $taxonomy);
 
 				if (count($thread) >= $count) {
-					$term = (int) $term_id;
+					$current_term = (int) $term_id;
 					$parent_terms = $thread;
 					$count = count($thread);
 				}
 
 			}
 
-			if ($term > 0) {
+			if ($current_term > 0) {
 				$parent_terms = array_reverse($parent_terms);
-				$parent_terms[] = $term;
+				$parent_terms[] = $current_term;
 			}
 
 		}
