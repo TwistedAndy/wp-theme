@@ -255,6 +255,13 @@ function tw_acfe_render_layout($field, $layout) {
 
 	$preview_id = 'tw_' . rand(0, 100000);
 
+	if (!empty($_REQUEST['post']) and $layout['name'] == 'catalog') {
+		$post_id = (int) $_REQUEST['post'];
+		$_REQUEST['post'] = get_option('woocommerce_shop_page_id', 0);
+	} else {
+		$post_id = 0;
+	}
+
 	tw_acfe_render_setup();
 
 	$content = tw_app_template('layout', ['preview_id' => $preview_id, 'block' => $block]);
@@ -262,6 +269,10 @@ function tw_acfe_render_layout($field, $layout) {
 	$content = tw_asset_inject($content);
 
 	tw_acfe_render_reset();
+
+	if ($post_id > 0) {
+		$_REQUEST['post'] = $post_id;
+	}
 
 	if (strpos($content, 'gform_wrapper') > 0 and class_exists('GFForms')) {
 		$content = GFForms::ensure_hook_js_output($content);

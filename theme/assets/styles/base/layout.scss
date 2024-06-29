@@ -64,6 +64,20 @@ body {
 
 }
 
+.tw {
+	--gap-section: 40px;
+	--gap-aside: 20px;
+
+	& > section:first-child:not(.box_no_top) {
+		--gap-section-top: var(--gap-section);
+	}
+
+	& > section:last-child:not(.box_no_bottom) {
+		--gap-section-bottom: var(--gap-section);
+	}
+
+}
+
 section {
 	position: relative;
 	padding: calc(var(--gap-section-top) + var(--gap-section-shift)) var(--gap-aside) var(--gap-section-bottom);

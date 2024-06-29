@@ -50,7 +50,7 @@ function tw_post_data($type, $key = 'ID', $value = 'post_title', $order = 'p.pos
 		$order = '';
 	}
 
-	$rows = $db->get_results($db->prepare("SELECT {$select} FROM {$db->posts} p WHERE p.post_type = %s%s", $type, $order), ARRAY_A);
+	$rows = $db->get_results($db->prepare("SELECT {$select} FROM {$db->posts} p WHERE p.post_type = %s %s", $type, $order), ARRAY_A);
 
 	if ($rows) {
 
