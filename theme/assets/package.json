@@ -12,19 +12,19 @@
 		"preview": "gulp preview",
 		"plugins": "gulp plugins",
 		"scripts": "gulp scripts",
-		"imagemin": "gulp imagemin"
+		"imagemin": "imagemin images/* -o images",
+		"svgo": "svgo -f images -o images"
 	},
 	"author": "Andrii Toniievych <toniyevych@gmail.com>",
 	"license": "MIT",
 	"devDependencies": {
-		"gulp": "^4.0.2",
-		"node-sass": "^8.0.0",
+		"gulp": "^5.0.0",
+		"node-sass": "^9.0.0",
 		"gulp-sass": "^5.1.0",
 		"gulp-notify": "^4.0.0",
 		"gulp-concat": "^2.6.1",
 		"gulp-plumber": "^1.2.1",
 		"gulp-replace": "^1.1.4",
-		"gulp-imagemin": "^7.1.0",
 		"gulp-sass-glob": "^1.1.0",
 		"gulp-uglify-es": "^3.0.0",
 		"gulp-sourcemaps": "^3.0.0",

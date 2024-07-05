@@ -5,7 +5,6 @@ let fs = require('fs'),
 	concat = require('gulp-concat'),
 	replace = require('gulp-replace'),
 	plumber = require('gulp-plumber'),
-	imagemin = require('gulp-imagemin'),
 	sourcemaps = require('gulp-sourcemaps'),
 	inject = require('gulp-inject-string'),
 	uglify = require('gulp-uglify-es').default;
@@ -18,7 +17,6 @@ let folders = {
 	build: './build',
 	styles: './styles',
 	scripts: './scripts',
-	images: './images',
 	blocks: './build/blocks'
 };
 
@@ -133,15 +131,6 @@ function scripts() {
 		.pipe(gulp.dest(folders.build));
 }
 
-function images() {
-	return gulp.src(folders.images + '/**/*.{png,gif,jpg,jpeg,svg}')
-		.pipe(plumber(options.plumber))
-		.pipe(imagemin())
-		.pipe(gulp.dest(function(file) {
-			return file.base;
-		}));
-}
-
 /**
  * Default Exports
  */
@@ -154,8 +143,6 @@ exports.blocks = blocks;
 exports.plugins = plugins;
 
 exports.scripts = scripts;
-
-exports.imagemin = images;
 
 exports.build = gulp.parallel(woo, theme, blocks, plugins, scripts);
 

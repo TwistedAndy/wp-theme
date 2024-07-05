@@ -44,13 +44,13 @@ function tw_post_data($type, $key = 'ID', $value = 'post_title', $order = 'p.pos
 
 	$db = tw_app_database();
 
-	if (is_string($order) and $order) {
-		$order = ' ORDER BY ' . $order;
-	} else {
-		$order = '';
+	$select = esc_sql($select);
+
+	if (!is_string($order) or empty($order)) {
+		$order = 'p.ID ASC';
 	}
 
-	$rows = $db->get_results($db->prepare("SELECT {$select} FROM {$db->posts} p WHERE p.post_type = %s %s", $type, $order), ARRAY_A);
+	$rows = $db->get_results($db->prepare("SELECT {$select} FROM {$db->posts} p WHERE p.post_type = %s ORDER BY %s", $type, $order), ARRAY_A);
 
 	if ($rows) {
 
@@ -138,6 +138,105 @@ function tw_post_terms($taxonomy) {
 	wp_cache_set($cache_key, $terms, $cache_group);
 
 	return $terms;
+
+}
+
+
+/**
+ * Get post terms with ancestors
+ *
+ * @param int    $post_id
+ * @param string $taxonomy
+ * @param bool   $single
+ *
+ * @return array
+ */
+function tw_post_term_thread($post_id, $taxonomy, $single = true) {
+
+	$cache_key = 'post_term_thread';
+	$cache_group = 'twee_post_terms_' . $taxonomy;
+
+	if ($single) {
+		$cache_key .= '_single';
+	}
+
+	$thread = wp_cache_get($cache_key, $cache_group);
+
+	if (is_array($thread)) {
+		return $thread;
+	}
+
+	$thread = [];
+	$threads = [];
+
+	$terms_map = tw_post_terms($taxonomy);
+
+	if (empty($terms_map[$post_id]) or !is_array($terms_map[$post_id])) {
+		wp_cache_set($cache_key, $thread, $cache_group);
+		return $thread;
+	}
+
+	foreach ($terms_map[$post_id] as $term) {
+
+		$ancestors = tw_term_ancestors($term, $taxonomy);
+
+		if ($ancestors) {
+			$ancestors = array_reverse($ancestors);
+		}
+
+		$ancestors[] = $term;
+
+		$threads[] = $ancestors;
+
+	}
+
+	$result = [];
+
+	$labels = tw_term_data('term_id', 'name', $taxonomy);
+
+	if ($single) {
+
+		foreach ($threads as $data) {
+			if (count($data) > count($thread)) {
+				$thread = $data;
+			}
+		}
+
+		if ($thread) {
+
+			$thread = array_reverse($thread);
+
+			foreach ($thread as $term) {
+				if (!empty($labels[$term])) {
+					$result[$term] = $labels[$term];
+				}
+			}
+
+		}
+
+	} else {
+
+		foreach ($threads as $index => $thread) {
+
+			if (empty($result[$index])) {
+				$result[$index] = [];
+			}
+
+			$thread = array_reverse($thread);
+
+			foreach ($thread as $term) {
+				if (!empty($labels[$term])) {
+					$result[$index][$term] = $labels[$term];
+				}
+			}
+
+		}
+
+	}
+
+	wp_cache_set($cache_key, $result, $cache_group);
+
+	return $result;
 
 }
 

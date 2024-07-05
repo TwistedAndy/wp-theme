@@ -53,8 +53,6 @@ tinymce.PluginManager.add('code', function(editor, url) {
 
         var isEscape = (e.keyCode === 27);
 
-        console.log(e.keyCode);
-
         if ("key" in e) {
             isEscape = (e.key === "Escape" || e.key === "Esc");
         }
