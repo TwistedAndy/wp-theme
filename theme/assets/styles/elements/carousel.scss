@@ -89,22 +89,27 @@
 			li:not([class^='is-']) {
 				width: 0;
 				padding: 0;
-				transform: scale(0);
+
+				button:before {
+					transform: scale(0);
+				}
+
 			}
 
 			li {
+				overflow: hidden;
 
-				&.is-after-next,
-				&.is-before-prev {
+				&.is-after-next button:before,
+				&.is-before-prev button:before {
 					transform: scale(0.333);
 				}
 
-				&.is-prev,
-				&.is-next {
+				&.is-prev button:before,
+				&.is-next button:before {
 					transform: scale(0.666);
 				}
 
-				&.is-current {
+				&.is-current button:before {
 					transform: scale(1);
 				}
 
@@ -112,34 +117,29 @@
 
 		}
 
-		li {
-			overflow: hidden;
-			width: 20px;
-			height: 20px;
-			padding: 5px;
-			transition: 0.2s;
-
-			&.is-current {
-
-				button {
-					background-color: var(--color-primary);
-				}
-
-			}
-
+		li.is-current button:before {
+			background-color: var(--color-primary);
 		}
 
 		button {
 			display: block;
-			width: 100%;
-			height: 100%;
-			border-radius: 50%;
-			background-color: var(--color-field);
-			transition: 0.2s;
+			width: 24px;
+			height: 24px;
+			padding: 6px;
 			cursor: pointer;
 
+			&:before {
+				content: '';
+				display: block;
+				width: 100%;
+				height: 100%;
+				border-radius: 50%;
+				background-color: var(--color-field);
+				transition: 0.2s;
+			}
+
 			@include hover {
-				&:hover {
+				&:hover:before {
 					background-color: var(--color-primary);
 				}
 			}

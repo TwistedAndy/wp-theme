@@ -45,7 +45,6 @@
 
 	ul:not([class]), ol:not([class]) {
 		display: block;
-		--gap-content: 10px;
 
 		ul, ol {
 			padding-top: calc(var(--gap-content) - 5px);
@@ -169,13 +168,18 @@
 
 	blockquote {
 		display: block;
-		padding: calc(var(--gap-content) - 5px) var(--gap-content);
-		margin-bottom: var(--gap-content);
-		background: var(--color-background);
-	}
+		padding: 10px 0 10px var(--gap-content);
+		margin: 0 0 var(--gap-content);
+		border-left: 3px solid var(--color-primary);
+		font-size: var(--size-large);
+		font-weight: 500;
+		font-style: normal;
+		line-height: 1.5;
 
-	.table {
-		overflow: auto;
+		&:last-child {
+			margin-bottom: 0;
+		}
+
 	}
 
 	.alignleft {
@@ -197,6 +201,18 @@
 		display: block;
 		max-width: 100%;
 		margin: 0 auto var(--gap-content);
+	}
+
+	p:not(:first-child) img {
+		margin-top: 5px;
+	}
+
+	p:not(:last-child) img {
+		margin-bottom: 5px;
+	}
+
+	.table {
+		overflow: auto;
 	}
 
 	.gallery {
@@ -392,11 +408,11 @@
 			--width-item: 100%;
 
 			&-columns-6, &-columns-7 {
-				width: 50%;
+				--width-item: 50%;
 			}
 
 			&-columns-8, &-columns-9 {
-				width: 33.33%;
+				--width-item: 33.33%;
 			}
 
 		}

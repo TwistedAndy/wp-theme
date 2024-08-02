@@ -5,8 +5,7 @@ jQuery(document).on('tw_init', '.header_box', function(e, $) {
 	}
 
 	var wrapper = $(this),
-		submenus = $('.submenu', wrapper),
-		isFixed = false;
+		submenus = $('.submenu', wrapper);
 
 	$(window).on('beforeunload pagehide', function() {
 		togglePanel(false);
@@ -22,86 +21,61 @@ jQuery(document).on('tw_init', '.header_box', function(e, $) {
 		e.preventDefault();
 	});
 
-	submenus.click(function(e) {
+	wrapper.nextAll('section').first().attr('id', 'contents');
 
-		var submenu = $(this);
-
-		if (window.innerWidth <= 1024) {
-
-			submenu.siblings('.submenu').removeClass('is_expanded').children('ul').slideUp();
-
-			submenu.toggleClass('is_expanded').children('ul').slideToggle(400, function() {
-				if (this.style.display === 'none') {
-					this.style.removeProperty('display');
-				}
-			});
-
-		} else {
-
-			submenus.removeClass('is_expanded');
-
-			submenus.children('ul').each(function() {
-				if (this.style.display === 'none') {
-					this.style.removeProperty('display');
-				}
-			});
-
+	wrapper.on('click', function(e) {
+		if (e.target === this) {
+			togglePanel(false);
 		}
+	});
+
+	submenus.each(function() {
+
+		var submenu = $(this),
+			list = $('> ul', submenu),
+			link = $('> a', submenu),
+			back = $('> .back', list);
+
+		link.click(function(e) {
+			if (window.innerWidth <= 1024) {
+				e.preventDefault();
+			}
+		});
+
+		if (back.length === 0) {
+			back = $('<li class="back">' + link.text() + '</li>');
+			list.prepend(back);
+		}
+
+		submenu.click(function(e) {
+
+			submenus.removeClass('is_active is_parent');
+
+			if (window.innerWidth <= 1024) {
+				submenu.addClass('is_active').parents('.submenu').addClass('is_active is_parent');
+				submenus.find('.sub-menu').scrollTop(0);
+			}
+
+			e.stopPropagation();
+
+		});
+
+		back.click(function(e) {
+			submenu.removeClass('is_active').parents('.submenu').removeClass('is_parent');
+			e.stopPropagation();
+		});
 
 	});
 
-	window.addEventListener('scroll', handleScroll);
-
-	handleScroll();
-
-	function handleScroll() {
-
-		var offset = wrapper.offset().top,
-			position = wrapper.position().top,
-			offsetFull = offset;
-
-		if (document.body.classList.contains('admin-bar')) {
-			if (window.innerWidth <= 782 && window.innerWidth >= 600) {
-				offsetFull -= 46;
-			} else if (window.innerWidth > 782) {
-				offsetFull -= 32;
-			}
-		}
-
-		if (window.scrollY > offsetFull) {
-
-			if (!isFixed) {
-				wrapper.addClass('is_fixed');
-				document.body.style.setProperty('--header-offset', '0px');
-			}
-
-			isFixed = true;
-
-		} else {
-
-			if (isFixed) {
-				wrapper.removeClass('is_fixed');
-			}
-
-			document.body.style.setProperty('--header-offset', (position - window.scrollY) + 'px');
-
-			isFixed = false;
-
-		}
-
-		document.body.style.setProperty('--header-shift', offset + 'px');
-
-	}
-
 	function togglePanel(toggleClass, lock) {
 
-		var classes = ['is_search', 'is_cart', 'is_search'].filter(function(value) {
+		var classes = ['is_search', 'is_cart', 'is_search', 'is_menu'].filter(function(value) {
 			return value !== toggleClass;
 		});
 
 		wrapper.removeClass(classes.join(' '));
 
-		if (wrapper.hasClass(toggleClass) || !toggleClass) {
+		if (!toggleClass || wrapper.hasClass(toggleClass)) {
 
 			wrapper.removeClass(toggleClass);
 

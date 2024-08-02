@@ -13,4 +13,6 @@
 
 	<main>
 
+		<a class="skip-link" href="#contents">Skip to Content</a>
+
 		<?php echo tw_app_template('header'); ?>

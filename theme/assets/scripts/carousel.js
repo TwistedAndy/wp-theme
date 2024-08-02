@@ -53,6 +53,17 @@ jQuery(document).on('tw_init', '.posts_box, .content_box', function(e, $) {
 				},
 				nextTpl: '',
 				prevTpl: ''
+			},
+			on: {
+				'ready change': function(carousel) {
+					carousel.slides.forEach(function(slide) {
+						if (slide.el.ariaHidden) {
+							$('a', slide.el).attr('tabindex', -1);
+						} else {
+							$('a', slide.el).removeAttr('tabindex');
+						}
+					});
+				},
 			}
 		};
 

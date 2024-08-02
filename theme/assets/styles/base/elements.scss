@@ -76,3 +76,26 @@
 .screen-reader-text {
 	@extend %hidden;
 }
+
+.skip-link {
+	position: fixed;
+	top: var(--height-bar);
+	left: 0;
+	width: auto;
+	padding: 5px 15px;
+	border-radius: 0;
+	background: var(--color-primary);
+	color: var(--color-base);
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 20px;
+	transform: translateX(-100%);
+	opacity: 0;
+	z-index: 25;
+
+	&:focus {
+		transform: translateX(0%);
+		opacity: 1;
+	}
+
+}

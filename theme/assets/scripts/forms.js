@@ -166,8 +166,23 @@ jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 				}
 			}
 
+			if (data.text && data.text.length > 0) {
+				message = $('<div class="success">' + data.text + '</div>');
+				form.append(message);
+				message.hide().slideDown();
+				form[0].reset();
+			}
+
 		}
 
+	});
+
+	/**
+	 * Autoresize textarea fields
+	 */
+	$(document.body).on('input change', 'textarea', function() {
+		this.style.minHeight = 'initial';
+		this.style.minHeight = (this.scrollHeight) + 'px';
 	});
 
 });

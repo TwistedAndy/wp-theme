@@ -26,6 +26,7 @@
 	-moz-appearance: none;
 	-webkit-appearance: none;
 	appearance: none;
+	gap: 10px;
 
 	@include hover {
 		&:hover {
@@ -66,8 +67,7 @@
 		flex-shrink: 0;
 		width: 16px;
 		height: 16px;
-		margin-right: 8px;
-		background-color: currentColor;
+		background: currentColor;
 		-webkit-mask: var(--mask-image) 50% 50% / contain no-repeat;
 	}
 
@@ -78,10 +78,11 @@
 	&:after {
 		content: '';
 		display: inline-block;
+		flex-grow: 0;
+		flex-shrink: 0;
 		width: 16px;
 		height: 16px;
-		margin-left: 8px;
-		background-color: currentColor;
+		background: currentColor;
 		-webkit-mask: var(--mask-image) 50% 50% / contain no-repeat;
 	}
 

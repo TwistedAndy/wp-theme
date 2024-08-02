@@ -2,7 +2,7 @@
 
 tw_asset_enqueue('header_box');
 
-$classes = ['header_box'];
+$classes = ['header_box', 'is_sticky'];
 
 $blocks = tw_app_get('current_blocks', null);
 

@@ -183,7 +183,7 @@ add_action('wp_head', 'tw_asset_placeholder', 6);
  * Print previously enqueued assets
  */
 add_action('wp_head', 'tw_asset_print', 5);
-add_action('wp_footer', 'tw_asset_print', 9);
+add_action('wp_footer', 'tw_asset_print', 100);
 
 function tw_asset_print() {
 

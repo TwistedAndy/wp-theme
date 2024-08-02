@@ -1,31 +1,455 @@
 .header_box {
 	display: block;
+	position: relative;
+	top: 0;
 	height: var(--height-header);
 	padding: 0 var(--gap-aside);
-	margin: 0 0 var(--gap-subsection);
-	background-color: var(--color-base);
+	background: var(--color-base);
+	box-shadow: var(--shadow-small);
 	color: var(--color-heading);
-	font-size: 16px;
+	font-size: var(--size-base);
 	font-weight: 400;
-	line-height: 1.5;
+	line-height: 20px;
 	transition: background-color 0.3s, box-shadow 0.3s, height 0.3s;
 	z-index: 10;
 
-	& + .box_light, & + .box_dark {
-		margin-top: calc(-1 * var(--gap-subsection));
+	&.is_sticky {
+		position: sticky;
+		top: calc(var(--height-bar) + var(--height-top));
 	}
 
 	&.is_fixed {
+		background-color: var(--color-base);
+		box-shadow: var(--shadow-small);
+	}
 
-		& ~ section, & ~ div {
-			--height-fixed: var(--height-header);
+	.fixed {
+		display: flex;
+		align-items: center;
+		height: var(--height-header);
+	}
+
+	.logo {
+		display: flex;
+		flex-grow: 0;
+		flex-shrink: 0;
+		align-items: center;
+		width: 172px;
+		margin: 0 var(--gap-grid) 0 0;
+		background: url(../images/ico_logo.svg) 50% 50% / contain no-repeat;
+
+		&:before {
+			content: '';
+			display: block;
+			padding-bottom: 29.07%;
 		}
 
-		.header {
-			position: fixed;
-			top: var(--height-bar);
+	}
+
+	.navigation {
+		display: flex;
+		flex-grow: 1;
+		align-self: stretch;
+		min-width: 0;
+	}
+
+	.menu {
+		font-weight: 600;
+		text-transform: uppercase;
+
+		&_btn {
+			display: none;
+			position: relative;
+			flex-shrink: 1;
+			order: 1;
+			width: 20px;
+			height: 20px;
+			margin: 0 0 0 var(--gap-grid);
+
+			&:before, &:after, span {
+				content: '';
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				width: 20px;
+				height: 2px;
+				margin: -1px 0 0 -10px;
+				border-radius: 2px;
+				background-color: currentColor;
+				transition: 0.2s;
+				opacity: 1;
+			}
+
+			&:before {
+				margin-top: -9px;
+			}
+
+			&:after {
+				margin-top: 7px;
+			}
+
+		}
+
+	}
+
+	@include media_min($desktop_small) {
+
+		.menu {
+			display: flex;
+			flex-grow: 1;
+			align-items: stretch;
+			justify-content: center;
+			min-width: 0;
+
+			& > li {
+				display: flex;
+				position: relative;
+				align-items: stretch;
+				margin: 0 var(--gap-grid) 0 0;
+
+				&:last-child {
+					margin-right: 0;
+				}
+
+				&.active > a:before {
+					right: 0;
+				}
+
+				@include hover {
+
+					&:hover > a {
+						color: var(--color-primary);
+
+						&:before {
+							right: 0;
+						}
+
+					}
+
+				}
+
+				& > a {
+					display: flex;
+					position: relative;
+					align-items: center;
+					justify-content: center;
+					text-align: center;
+
+					&:before {
+						content: '';
+						position: absolute;
+						right: 100%;
+						bottom: 0;
+						left: 0;
+						height: 2px;
+						background: var(--color-primary);
+						transition: 0.3s;
+					}
+
+				}
+
+			}
+
+			.icon {
+				margin-left: 0;
+			}
+
+		}
+
+		.submenu {
+
+			&:focus-within > ul {
+				transform: scale(1);
+				visibility: visible;
+				opacity: 1;
+			}
+
+			@include hover {
+				&:hover > ul {
+					transform: scale(1);
+					visibility: visible;
+					opacity: 1;
+				}
+			}
+
+			& > a {
+				display: block;
+				position: relative;
+				padding-right: 24px;
+
+				&:after {
+					content: '';
+					position: absolute;
+					top: 50%;
+					right: 0;
+					width: 12px;
+					height: 8px;
+					margin: -4px 0 0;
+					background: currentColor;
+					-webkit-mask: url(../images/ico_arrow_down.svg) 50% 50% / contain no-repeat;
+				}
+
+			}
+
+		}
+
+		.sub-menu {
+			display: block;
+			position: absolute;
+			top: 100%;
+			left: -16px;
+			min-width: calc(100% + 32px);
+			padding: 8px 0;
+			border-top: 1px solid var(--color-border);
+			border-radius: 0 0 var(--radius-regular) var(--radius-regular);
 			background-color: var(--color-base);
-			box-shadow: 0 1px 2px rgba($color_heading, 0.1);
+			box-shadow: var(--shadow-small);
+			transition: 0.3s;
+			transform: scaleY(0);
+			transform-origin: 0 0;
+			visibility: hidden;
+			opacity: 0;
+
+			.submenu {
+
+				& > a {
+					padding-right: 35px;
+
+					&:after {
+						right: 12px;
+						transform: rotate(-90deg);
+					}
+
+				}
+
+			}
+
+			.sub-menu {
+				top: -7px;
+				left: 100%;
+				padding: 7px 0;
+				margin: 0;
+				border-top-width: 0;
+				background-color: var(--color-background);
+				transform: scaleX(0);
+			}
+
+			li {
+				display: block;
+				position: relative;
+
+				&.back {
+					display: none;
+				}
+
+				&.active > a {
+					background-color: var(--color-primary);
+					color: var(--color-base);
+				}
+
+				@include hover {
+					&:hover > a {
+						background-color: var(--color-primary);
+						color: var(--color-base);
+					}
+				}
+
+			}
+
+			a {
+				display: flex;
+				align-items: center;
+				padding: 8px 16px;
+				text-transform: none;
+				transition: 0.2s;
+			}
+
+		}
+
+	}
+
+	@include desktop_small {
+
+		&:before {
+			content: '';
+			position: fixed;
+			top: calc(var(--height-header) + var(--height-bar) + var(--header-offset));
+			right: 0;
+			bottom: 0;
+			left: 0;
+			background: rgba($color_heading, 0.25);
+			transition: 0.4s;
+			visibility: hidden;
+			opacity: 0;
+		}
+
+		&.is_menu {
+
+			&:before {
+				visibility: visible;
+				opacity: 1;
+			}
+
+			.menu_btn {
+
+				span {
+					opacity: 0;
+				}
+
+				&:before, &:after {
+					margin-top: -1px;
+					transform: rotate(45deg);
+				}
+
+				&:after {
+					transform: rotate(-45deg);
+				}
+
+			}
+
+			.navigation {
+				transform: translateX(0);
+				visibility: visible;
+			}
+
+		}
+
+		.logo {
+			width: 125px;
+			margin-right: auto;
+		}
+
+		.navigation {
+			display: flex;
+			position: fixed;
+			top: calc(var(--height-header) + var(--height-bar) + var(--header-offset));
+			right: 0;
+			bottom: 0;
+			left: auto;
+			overflow: hidden;
+			flex-direction: column;
+			align-self: stretch;
+			width: 300px;
+			border-top: 1px solid var(--color-border);
+			background-color: var(--color-base);
+			box-shadow: var(--shadow-small);
+			transition: transform 0.3s, visibility 0.3s;
+			transform: translateX(100%);
+			visibility: hidden;
+		}
+
+		.menu {
+			display: block;
+			overflow-x: hidden;
+			overflow-y: auto;
+			flex-grow: 1;
+			width: auto;
+			min-height: 0;
+
+			&_btn {
+				display: block;
+			}
+
+			.back {
+				display: flex;
+				align-items: center;
+				width: 100%;
+				height: 50px;
+				padding: 0 var(--gap-aside) 0 0;
+				background-color: var(--color-background);
+				color: var(--color-heading);
+				font-weight: 600;
+
+				&:before {
+					content: '';
+					display: block;
+					flex-grow: 0;
+					flex-shrink: 0;
+					width: 12px;
+					height: 8px;
+					margin: 0 12px 0 var(--gap-aside);
+					background: currentColor;
+					transform: rotate(90deg);
+					-webkit-mask: url(../images/ico_arrow_down.svg) 50% 50% / contain no-repeat;
+				}
+
+			}
+
+			ul {
+				display: block;
+				position: absolute;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				overflow-x: hidden;
+				overflow-y: auto;
+				width: 100%;
+				background-color: var(--color-base);
+				transition: transform 0.3s;
+				transform: translateX(100%);
+				z-index: 1;
+			}
+
+			li {
+				display: flex;
+				position: static;
+				align-items: center;
+				border-top: 1px solid var(--color-border);
+
+				&:first-child {
+					border-top-width: 0;
+				}
+
+				a:focus + ul {
+					transform: translateX(0);
+					opacity: 0;
+					z-index: -1;
+				}
+
+				&.is_active > ul, & > ul:focus-within {
+					transform: translateX(0);
+					opacity: 1;
+					z-index: 3;
+				}
+
+				&.is_parent > ul {
+					overflow: hidden;
+					height: 100%;
+				}
+
+			}
+
+			a {
+				display: inline-flex;
+				align-items: center;
+				min-height: 50px;
+				padding: 5px var(--gap-aside);
+			}
+
+		}
+
+		.submenu {
+
+			&:after {
+				content: '';
+				display: inline-block;
+				width: 12px;
+				height: 8px;
+				margin: 0 15px 0 auto;
+				background-color: currentColor;
+				transition: 0.3s;
+				transform: rotate(-90deg);
+				-webkit-mask: url(../images/ico_arrow_down.svg) 50% 50% / contain no-repeat;
+			}
+
+		}
+
+	}
+
+	@include phone_large {
+
+		.navigation {
+			width: 100%;
 		}
 
 	}
