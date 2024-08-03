@@ -27,6 +27,10 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 	box-sizing: border-box;
 }
 
+html {
+	font-family: var(--font-main);
+}
+
 body {
 	min-width: 320px;
 	background-color: var(--color-base);
@@ -147,6 +151,7 @@ button {
 	background: none;
 	color: currentColor;
 	font-family: var(--font-main);
+	font-size: var(--size-base);
 	transition: 0.2s;
 	cursor: pointer;
 	-moz-appearance: none;

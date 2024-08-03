@@ -80,17 +80,17 @@
 		flex-wrap: wrap;
 		align-items: center;
 		justify-content: center;
-		height: 40px;
-		padding: 0 50px;
+		height: rem(40);
+		padding: 0 rem(50);
 		margin: var(--gap-vertical) 0 0;
 
 		&.is-dynamic {
 
-			li:not([class^='is-']) {
+			li:not([class^='is-']) button {
 				width: 0;
 				padding: 0;
 
-				button:before {
+				&:before {
 					transform: scale(0);
 				}
 
@@ -123,9 +123,10 @@
 
 		button {
 			display: block;
-			width: 24px;
-			height: 24px;
-			padding: 6px;
+			width: rem(24);
+			height: rem(24);
+			padding: rem(6);
+			transition: 0.2s;
 			cursor: pointer;
 
 			&:before {
@@ -153,8 +154,8 @@
 		position: absolute;
 		right: 0;
 		bottom: 0;
-		width: 40px;
-		height: 40px;
+		width: rem(40);
+		height: rem(40);
 		border: 1px solid var(--color-border);
 		border-radius: 50%;
 		background-color: var(--color-background);

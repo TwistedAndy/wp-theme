@@ -7,9 +7,9 @@
 	background: var(--color-base);
 	box-shadow: var(--shadow-small);
 	color: var(--color-heading);
-	font-size: var(--size-base);
+	font-size: rem(16);
 	font-weight: 400;
-	line-height: 20px;
+	line-height: rem(20);
 	transition: background-color 0.3s, box-shadow 0.3s, height 0.3s;
 	z-index: 10;
 
@@ -34,7 +34,7 @@
 		flex-grow: 0;
 		flex-shrink: 0;
 		align-items: center;
-		width: 172px;
+		width: rem(172);
 		margin: 0 var(--gap-grid) 0 0;
 		background: url(../images/ico_logo.svg) 50% 50% / contain no-repeat;
 
@@ -62,8 +62,8 @@
 			position: relative;
 			flex-shrink: 1;
 			order: 1;
-			width: 20px;
-			height: 20px;
+			width: rem(20);
+			height: rem(20);
 			margin: 0 0 0 var(--gap-grid);
 
 			&:before, &:after, span {
@@ -71,9 +71,9 @@
 				position: absolute;
 				top: 50%;
 				left: 50%;
-				width: 20px;
+				width: rem(20);
 				height: 2px;
-				margin: -1px 0 0 -10px;
+				margin: -1px 0 0 -#{rem(20)};
 				border-radius: 2px;
 				background-color: currentColor;
 				transition: 0.2s;
@@ -81,11 +81,11 @@
 			}
 
 			&:before {
-				margin-top: -9px;
+				margin-top: -#{rem(9)};
 			}
 
 			&:after {
-				margin-top: 7px;
+				margin-top: rem(7);
 			}
 
 		}

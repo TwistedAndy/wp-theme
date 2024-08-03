@@ -21,6 +21,7 @@
 
 	/* Grid Paddings and Margins */
 	--gap-aside: 40px;
+	--gap-card: 30px;
 	--gap-grid: 30px;
 	--gap-field: 16px;
 	--gap-button: 25px;
@@ -40,14 +41,14 @@
 
 	/* Content Widths */
 	--width-item: 25%;
-	--width-small: 1000px;
-	--width-fixed: #{$desktop_large};
+	--width-small: #{rem(1000)};
+	--width-fixed: #{rem($desktop_large)};
 	--width-scrollbar: 0px;
-	--width-contents: 640px;
-	--width-content: 480px;
+	--width-contents: #{rem(640)};
+	--width-content: #{rem(480)};
 
-	--height-control: 50px;
-	--height-header: 80px;
+	--height-control: #{rem(50)};
+	--height-header: #{rem(80)};
 	--height-image: 100%;
 	--height-bar: 0px;
 	--height-top: 0px;
@@ -57,7 +58,7 @@
 
 	--radius-small: 0px;
 	--radius-regular: 10px;
-	--radius-large: 30px;
+	--radius-large: 20px;
 
 	--shadow-small: 0 1px 2px rgba(0, 0, 0, 0.15);
 	--shadow-regular: 5px 5px 40px rgba(0, 0, 0, 0.05);
@@ -65,23 +66,24 @@
 	--mask-image: none;
 
 	/* Font Sizes */
-	--size-huge: 56px;
-	--size-big: 48px;
-	--size-h1: 40px;
-	--size-h2: 32px;
-	--size-h3: 24px;
-	--size-h4: 20px;
-	--size-h5: 18px;
-	--size-h6: 16px;
-	--size-tiny: 14px;
-	--size-base: 16px;
-	--size-small: 15px;
-	--size-large: 18px;
-	--size-content: 16px;
+	--size-huge: #{rem(64)};
+	--size-big: #{rem(48)};
+	--size-h1: #{rem(42)};
+	--size-h2: #{rem(32)};
+	--size-h3: #{rem(24)};
+	--size-h4: #{rem(20)};
+	--size-h5: #{rem(18)};
+	--size-h6: #{rem(16)};
+	--size-tiny: #{rem(14)};
+	--size-base: #{rem(16)};
+	--size-small: #{rem(15)};
+	--size-large: #{rem(20)};
+	--size-content: #{rem(18)};
 
 	@include desktop_small {
 
 		--gap-grid: 20px;
+		--gap-card: 20px;
 		--gap-aside: 20px;
 		--gap-button: 20px;
 		--gap-heading: 15px;
@@ -92,22 +94,22 @@
 		--gap-section-offset: 30px;
 		--gap-subsection: 30px;
 
-		--height-control: 42px;
-		--height-header: 60px;
+		--height-control: #{rem(44)};
+		--height-header: #{rem(42)};
 
 		--width-item: 33.333%;
 
-		--size-huge: 48px;
-		--size-big: 42px;
-		--size-h1: 36px;
-		--size-h2: 28px;
-		--size-h3: 20px;
-		--size-h4: 18px;
-		--size-tiny: 13px;
-		--size-base: 15px;
-		--size-small: 14px;
-		--size-large: 18px;
-		--size-content: 15px;
+		--size-huge: #{rem(48)};
+		--size-big: #{rem(42)};
+		--size-h1: #{rem(36)};
+		--size-h2: #{rem(28)};
+		--size-h3: #{rem(20)};
+		--size-h4: #{rem(18)};
+		--size-tiny: #{rem(13)};
+		--size-base: #{rem(15)};
+		--size-small: #{rem(14)};
+		--size-large: #{rem(18)};
+		--size-content: #{rem(16)};
 
 	}
 
@@ -122,11 +124,11 @@
 
 		--width-item: 50%;
 
-		--size-huge: 42px;
-		--size-big: 36px;
-		--size-h1: 32px;
-		--size-h2: 24px;
-		--size-h4: 16px;
+		--size-huge: #{rem(42)};
+		--size-big: #{rem(36)};
+		--size-h1: #{rem(32)};
+		--size-h2: #{rem(24)};
+		--size-h4: #{rem(16)};
 
 	}
 
@@ -134,9 +136,9 @@
 
 		--width-item: 100%;
 
-		--size-huge: 36px;
-		--size-big: 32px;
-		--size-h1: 28px;
+		--size-huge: #{rem(36)};
+		--size-big: #{rem(32)};
+		--size-h1: #{rem(28)};
 
 	}
 

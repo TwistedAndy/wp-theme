@@ -130,7 +130,7 @@
 
 	.comment-respond {
 		display: block;
-		padding: 30px;
+		padding: var(--gap-card);
 		margin-top: var(--gap-subsection);
 		border: 1px solid var(--color-border);
 		background-color: var(--color-background);
@@ -161,9 +161,9 @@
 			display: block;
 			margin-left: auto;
 			color: var(--color-muted);
-			font-size: 15px;
+			font-size: var(--size-small);
 			font-weight: 600;
-			line-height: 20px;
+			line-height: 1.333;
 		}
 
 	}
@@ -239,9 +239,9 @@
 		display: block;
 		margin: 12px 0 -6px;
 		color: var(--color-bright);
-		font-size: 16px;
+		font-size: var(--size-base);
 		font-weight: 500;
-		line-height: 20px;
+		line-height: 1.25;
 	}
 
 	.success {
@@ -252,9 +252,9 @@
 		border-radius: var(--radius-small);
 		background-color: #f2fdf2;
 		color: #007700;
-		font-size: 16px;
+		font-size: var(--size-base);
 		font-weight: 500;
-		line-height: 20px;
+		line-height: 1.25;
 		text-align: center;
 	}
 
@@ -292,9 +292,7 @@
 		}
 
 		input {
-			display: block;
-			position: absolute;
-			left: -1000px;
+			@extend %hidden;
 		}
 
 		input:checked + label ~ label {
@@ -307,10 +305,6 @@
 
 		.checkbox {
 			margin: 0;
-		}
-
-		.comment-respond {
-			padding: 20px;
 		}
 
 	}

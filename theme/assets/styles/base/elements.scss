@@ -86,9 +86,9 @@
 	border-radius: 0;
 	background: var(--color-primary);
 	color: var(--color-base);
-	font-size: 15px;
+	font-size: rem(16);
 	font-weight: 500;
-	line-height: 20px;
+	line-height: rem(20);
 	transform: translateX(-100%);
 	opacity: 0;
 	z-index: 25;

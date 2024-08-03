@@ -16,11 +16,11 @@ body {
 .admin-bar {
 	--height-bar: 32px;
 
-	@include media_max(782px) {
+	@include media_max(782) {
 		--height-bar: 46px;
 	}
 
-	@include media_max(600px) {
+	@include media_max(600) {
 		--height-bar: 0px;
 
 		#wpadminbar {

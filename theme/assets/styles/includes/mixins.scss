@@ -1,18 +1,20 @@
-@mixin clear() {
+@function rem($size) {
+	@if (unitless($size)) {
+		@return ($size / 16) + rem;
+	} @else {
+		@return ($size / 16px) + rem;
+	}
+}
 
+@mixin clear() {
 	&:after {
 		display: table;
 		content: '';
 		clear: both;
 	}
-
 }
 
 @mixin placeholder() {
-
-	&:-ms-input-placeholder {
-		@content
-	}
 
 	&::-moz-placeholder {
 		@content
@@ -31,61 +33,61 @@
 }
 
 @mixin media_min($width) {
-	@media (min-width: $width) {
+	@media (min-width: rem($width)) {
 		@content;
 	}
 }
 
 @mixin media_max($width) {
-	@media (max-width: $width) {
+	@media (max-width: rem($width)) {
 		@content;
 	}
 }
 
 @mixin desktop_large() {
-	@media (max-width: $desktop_large) {
+	@media (max-width: rem($desktop_large)) {
 		@content;
 	}
 }
 
 @mixin desktop_small() {
-	@media (max-width: $desktop_small) {
+	@media (max-width: rem($desktop_small)) {
 		@content;
 	}
 }
 
 @mixin tablet_large() {
-	@media (max-width: $tablet_large) {
+	@media (max-width: rem($tablet_large)) {
 		@content;
 	}
 }
 
 @mixin tablet_small() {
-	@media (max-width: $tablet_small) {
+	@media (max-width: rem($tablet_small)) {
 		@content;
 	}
 }
 
 @mixin phone_large() {
-	@media (max-width: $phone_large) {
+	@media (max-width: rem($phone_large)) {
 		@content;
 	}
 }
 
 @mixin phone_small() {
-	@media (max-width: $phone_small) {
+	@media (max-width: rem($phone_small)) {
 		@content;
 	}
 }
 
 @mixin container_min($width) {
-	@container (min-width: #{$width}) {
+	@container (min-width: rem($width)) {
 		@content;
 	}
 }
 
 @mixin container_max($width) {
-	@container (max-width: #{$width}) {
+	@container (max-width: rem($width)) {
 		@content;
 	}
 }

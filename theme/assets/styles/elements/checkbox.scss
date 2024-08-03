@@ -1,9 +1,9 @@
 %checkbox {
 	display: flex;
 	align-items: flex-start;
-	font-size: 16px;
+	font-size: rem(16);
 	font-weight: 400;
-	line-height: 20px;
+	line-height: rem(20);
 
 	input {
 		margin-right: 10px;

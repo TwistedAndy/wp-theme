@@ -6,7 +6,8 @@
 	justify-content: center;
 	box-sizing: border-box;
 	width: auto;
-	height: var(--height-control);
+	height: auto;
+	min-height: var(--height-control);
 	padding: 0 var(--gap-button);
 	margin: 0;
 	border: 1px solid transparent;
@@ -15,11 +16,10 @@
 	background-size: 19px 19px;
 	color: var(--color-base);
 	font-family: var(--font-main);
-	font-size: 16px;
+	font-size: rem(16);
 	font-weight: 500;
-	line-height: 20px;
+	line-height: rem(20);
 	text-align: center;
-	vertical-align: middle;
 	transition: 0.2s;
 	cursor: pointer;
 	z-index: 2;
@@ -65,8 +65,8 @@
 		display: inline-block;
 		flex-grow: 0;
 		flex-shrink: 0;
-		width: 16px;
-		height: 16px;
+		width: rem(16);
+		height: rem(16);
 		background: currentColor;
 		-webkit-mask: var(--mask-image) 50% 50% / contain no-repeat;
 	}
@@ -80,8 +80,8 @@
 		display: inline-block;
 		flex-grow: 0;
 		flex-shrink: 0;
-		width: 16px;
-		height: 16px;
+		width: rem(16);
+		height: rem(16);
 		background: currentColor;
 		-webkit-mask: var(--mask-image) 50% 50% / contain no-repeat;
 	}
