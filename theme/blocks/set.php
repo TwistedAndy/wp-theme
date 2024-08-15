@@ -1,7 +1,5 @@
 <?php if (!empty($block['set'])) {
 
-	$current_id = get_queried_object_id();
-
 	if (!is_array($block['set'])) {
 		$block['set'] = [$block['set']];
 	}

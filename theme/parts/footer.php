@@ -14,12 +14,16 @@
 			]); ?>
 		<?php } ?>
 
-		<?php if ($items = get_field('socials', 'options')) { ?>
+		<?php if ($items = get_option('options_socials', false) and is_array($items)) { ?>
 			<div class="socials">
 				<?php foreach ($items as $item) { ?>
 					<a href="<?php echo esc_url($item['link']); ?>" class="social social_<?php echo $item['icon']; ?>" target="_blank" aria-label="<?php echo ucfirst($item['icon']); ?>"></a>
 				<?php } ?>
 			</div>
+		<?php } ?>
+
+		<?php if (is_active_sidebar('footer')) { ?>
+			<?php dynamic_sidebar('footer'); ?>
 		<?php } ?>
 
 	</div>

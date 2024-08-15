@@ -18,6 +18,8 @@
  */
 function tw_block_render($blocks) {
 
+	static $block_id;
+
 	if (!is_array($blocks) or empty($blocks)) {
 		return '';
 	}
@@ -26,7 +28,9 @@ function tw_block_render($blocks) {
 		$blocks = [$blocks];
 	}
 
-	$block_id = 0;
+	if (empty($block_id) or !is_numeric($block_id)) {
+		$block_id = 0;
+	}
 
 	ob_start();
 

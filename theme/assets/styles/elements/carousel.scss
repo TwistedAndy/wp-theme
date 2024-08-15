@@ -62,6 +62,7 @@
 
 		&.is-dragging {
 			cursor: grabbing;
+			pointer-events: none;
 		}
 
 	}
@@ -81,7 +82,7 @@
 		align-items: center;
 		justify-content: center;
 		height: rem(40);
-		padding: 0 rem(50);
+		padding: 0 rem(48);
 		margin: var(--gap-vertical) 0 0;
 
 		&.is-dynamic {
@@ -170,9 +171,9 @@
 			position: absolute;
 			top: 50%;
 			left: 50%;
-			width: 8px;
-			height: 12px;
-			margin: -6px 0 0 -4px;
+			width: rem(8);
+			height: rem(12);
+			margin: -#{rem(6)} 0 0 -#{rem(4)};
 			background-color: currentColor;
 			-webkit-mask: url(../images/ico_arrow.svg) 50% 50% no-repeat;
 		}

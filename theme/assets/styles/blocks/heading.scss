@@ -1,0 +1,61 @@
+.heading_box {
+
+	&.is_compact {
+		--gap-section: var(--gap-subsection);
+	}
+
+	.contents {
+		@extend %contents;
+		position: relative;
+		z-index: 2;
+	}
+
+	.background {
+		display: block;
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		z-index: 0;
+		inset: 0;
+
+		&.mobile {
+			display: none;
+		}
+
+		&:before {
+			content: '';
+			position: absolute;
+			background: var(--color-heading);
+			opacity: 0.333;
+			z-index: 2;
+			inset: 0;
+		}
+
+		img {
+			display: block;
+			position: relative;
+			width: 100%;
+			height: 100%;
+			z-index: 1;
+			object-fit: cover;
+		}
+
+	}
+
+	@include tablet_small {
+
+		.background {
+
+			&.desktop {
+				display: none;
+			}
+
+			&.mobile {
+				display: block;
+			}
+
+		}
+
+	}
+
+}

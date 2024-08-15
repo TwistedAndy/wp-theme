@@ -72,7 +72,7 @@
 			&:before {
 				content: '';
 				position: absolute;
-				top: 10px;
+				top: calc(0.75 * var(--size-content) - 3px);
 				left: 0;
 				width: 6px;
 				height: 6px;

@@ -13,7 +13,7 @@
 	border: 1px solid transparent;
 	border-radius: var(--radius-small);
 	background: var(--color-primary) 50% 50% no-repeat;
-	background-size: 19px 19px;
+	background-size: rem(19) rem(19);
 	color: var(--color-base);
 	font-family: var(--font-main);
 	font-size: rem(16);
@@ -26,7 +26,7 @@
 	-moz-appearance: none;
 	-webkit-appearance: none;
 	appearance: none;
-	gap: 10px;
+	gap: rem(8);
 
 	@include hover {
 		&:hover {

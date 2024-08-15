@@ -1,0 +1,169 @@
+.media_box {
+
+	.contents {
+		@extend %contents;
+	}
+
+	.media {
+		display: block;
+		position: relative;
+		color: $color_heading;
+		font-size: 0;
+		line-height: 0;
+		text-align: center;
+
+		&.is_video {
+
+			&:before {
+				content: '';
+				position: absolute;
+				background: $color_heading;
+				transition: 0.2s;
+				opacity: 0.25;
+				z-index: 2;
+				inset: 0;
+			}
+
+		}
+
+		img {
+			display: inline-block;
+			position: relative;
+			width: auto;
+			max-width: 100%;
+			height: auto;
+			z-index: 1;
+			object-fit: cover;
+		}
+
+	}
+
+	.play {
+		@extend %play;
+	}
+
+	@include media_min($tablet_large) {
+
+		&.is_reversed {
+
+			.fixed {
+				flex-direction: row;
+			}
+
+			.wrapper {
+				padding: 0 0 0 var(--gap-section-offset);
+			}
+
+			.media {
+				right: auto;
+				left: 0;
+			}
+
+		}
+
+		&.is_full {
+			--gap-section-top: var(--gap-section);
+
+			.media {
+				position: absolute;
+
+				img {
+					display: block;
+					width: 100%;
+					height: 100%;
+				}
+
+			}
+
+		}
+
+		&.is_card {
+			--gap-section-offset: var(--gap-subsection);
+
+			&.is_reversed {
+
+				.media img {
+					border-radius: var(--radius-regular) 0 0 var(--radius-regular);
+				}
+
+			}
+
+			.fixed {
+				background-color: var(--color-background);
+			}
+
+			.wrapper {
+				padding: 0 var(--gap-section-offset);
+			}
+
+			.media img {
+				border-radius: 0 var(--radius-regular) var(--radius-regular) 0;
+			}
+
+		}
+
+		&.is_compact {
+			--gap-section: 50px;
+
+			.fixed {
+				max-width: 1080px;
+			}
+
+		}
+
+		.fixed {
+			display: flex;
+			position: static;
+			flex-direction: row-reverse;
+			align-items: center;
+		}
+
+		.wrapper {
+			display: block;
+			align-self: center;
+			width: 50%;
+			padding: 0 var(--gap-section-offset) 0 0;
+			--width-contents: #{rem(600)};
+		}
+
+		.media {
+			top: 0;
+			right: 0;
+			bottom: 0;
+			flex-grow: 0;
+			flex-shrink: 0;
+			width: 50%;
+
+			&.is_video {
+
+				&:before {
+					border-radius: var(--radius-regular);
+				}
+
+			}
+
+			img {
+				border-radius: var(--radius-regular);
+			}
+
+		}
+
+	}
+
+	@include tablet_large {
+
+		.fixed {
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.media {
+			position: relative;
+			width: auto;
+			margin: calc(-1 * var(--gap-section-top)) calc(-1 * var(--gap-aside)) calc(var(--gap-contents) + 5px);
+		}
+
+	}
+
+}
