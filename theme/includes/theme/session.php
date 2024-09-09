@@ -2,28 +2,10 @@
 /**
  * Load and store the data in session
  *
- * @author  Andrii Toniievych <andy@absoluteweb.com>
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
  * @version 4.1
  */
-
-/**
- * Init a session
- */
-add_action('woocommerce_init', function() {
-
-	$object = WooCommerce::instance();
-
-	if (empty($object->session)) {
-		$object->initialize_session();
-	}
-
-	if ($object->session instanceof WC_Session and !$object->session->get_session_cookie()) {
-		$object->session->set_customer_session_cookie(true);
-	}
-
-});
-
 
 /**
  * Get data from session
@@ -82,6 +64,9 @@ function tw_session_set($key, $data) {
 		}
 
 		if ($object->session instanceof WC_Session) {
+			if (!$object->session->get_session_cookie()) {
+				$object->session->set_customer_session_cookie(true);
+			}
 			$object->session->set($key, $data);
 		}
 

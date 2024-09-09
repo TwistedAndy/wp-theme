@@ -312,6 +312,57 @@ function tw_app_template($template, $item = [], $folder = 'parts') {
 
 
 /**
+ * Remove an object filter from
+ *
+ * @param string $tag
+ * @param string $class_name
+ * @param string $method_name
+ * @param int    $priority
+ *
+ * @return bool
+ */
+function tw_app_remove_filter($tag, $class_name = '', $method_name = '', $priority = 10) {
+
+	global $wp_filter;
+
+	if (!is_array($wp_filter) or empty($wp_filter[$tag]) or empty($wp_filter[$tag]->callbacks)) {
+		return false;
+	}
+
+	$is_filter_removed = false;
+
+	if (!empty($wp_filter[$tag]->callbacks[$priority])) {
+
+		$filters = $wp_filter[$tag]->callbacks[$priority];
+
+		foreach ($filters as $filter) {
+
+			if (empty($filter['function']) or !is_array($filter['function']) or empty($filter['function'][0]) or empty($filter['function'][1])) {
+				continue;
+			}
+
+			if ($filter['function'][1] !== $method_name) {
+				continue;
+			}
+
+			if (!is_a($filter['function'][0], $class_name)) {
+				continue;
+			}
+
+			$wp_filter[$tag]->remove_filter($tag, $filter['function'], $priority);
+
+			$is_filter_removed = true;
+
+		}
+
+	}
+
+	return $is_filter_removed;
+
+}
+
+
+/**
  * Declare supported features
  *
  * @param string|string[] $feature

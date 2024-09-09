@@ -3,6 +3,7 @@
 define('TW_ROOT', __DIR__ . '/');
 define('TW_INC', TW_ROOT . 'includes/');
 define('TW_URL', get_stylesheet_directory_uri() . '/');
+define('TW_HOME', untrailingslashit(get_site_url()));
 
 include TW_INC . 'core/app.php';
 

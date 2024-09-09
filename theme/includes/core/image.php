@@ -20,11 +20,13 @@
  */
 function tw_image($image, $size = 'full', $before = '', $after = '', $attributes = []) {
 
-	$thumb = tw_image_link($image, $size);
-
 	if (!is_array($attributes)) {
 		$attributes = [];
 	}
+
+	$base_url = !empty($attributes['base_url']);
+
+	$thumb = tw_image_link($image, $size, $base_url);
 
 	if ($thumb) {
 
@@ -49,6 +51,10 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 					$link_href = $attributes['link'];
 				}
 
+			}
+
+			if ($link_href and empty($base_url)) {
+				$link_href = str_replace(TW_HOME, '', $link_href);
 			}
 
 		}
@@ -86,7 +92,7 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 		}
 
 		if ($link_image_size and empty($link_href)) {
-			$link_href = tw_image_link($image, $link_image_size);
+			$link_href = tw_image_link($image, $link_image_size, $base_url);
 		}
 
 		if ($link_href) {
@@ -97,7 +103,7 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 				$link_class = ' class="' . $attributes['link_class'] . '"';
 			}
 
-			$before = $before . '<a href="' . esc_url($link_href) . '"' . $link_class . '>';
+			$before = $before . '<a href="' . esc_url($link_href) . '"' . $link_class . ' title="' . esc_attr($attributes['alt']) . '">';
 			$after = '</a>' . $after;
 
 		}
@@ -144,7 +150,7 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 				$data = tw_image_size($src_size, $image);
 
 				if ($data['width'] > 0) {
-					$srcset[] = tw_image_link($image, $src_size) . ' ' . round($data['width']) . 'w';
+					$srcset[] = tw_image_link($image, $src_size, $base_url) . ' ' . round($data['width']) . 'w';
 				}
 
 			}
@@ -253,12 +259,13 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 /**
  * Get a thumbnail link
  *
- * @param int|array|WP_Post $image WordPress Post object, ACF image array or an attachment ID
- * @param string|array      $size  Size of the thumbnail
+ * @param int|array|WP_Post $image    WP_Post object, ACF image array or an attachment ID
+ * @param string|array      $size     Size of the thumbnail
+ * @param bool              $base_url Include the base URL to the image
  *
  * @return string
  */
-function tw_image_link($image, $size = 'full') {
+function tw_image_link($image, $size = 'full', $base_url = false) {
 
 	$dir = wp_upload_dir();
 
@@ -303,6 +310,10 @@ function tw_image_link($image, $size = 'full') {
 				$image_url = $upload_url . '/' . $file;
 			}
 
+			if (empty($base_url)) {
+				$image_url = str_replace(TW_HOME, '', $image_url);
+			}
+
 			if ($size === 'full' or strpos($image_url, '.svg') > 0) {
 				return apply_filters('wp_get_attachment_url', $image_url, $image);
 			}
@@ -343,12 +354,12 @@ function tw_image_link($image, $size = 'full') {
 				if (!empty($meta['sizes'][$size]) and !empty($meta['sizes'][$size]['file'])) {
 					$thumb_url = path_join(dirname($image_url), $meta['sizes'][$size]['file']);
 				} else {
-					$thumb_url = tw_image_resize($image_url, $size, $image);
+					$thumb_url = tw_image_resize($image_url, $size, $image, $base_url);
 				}
 
 			} elseif (is_array($size)) {
 
-				$thumb_url = tw_image_resize($image_url, $size, $image);
+				$thumb_url = tw_image_resize($image_url, $size, $image, $base_url);
 
 			} else {
 
@@ -362,7 +373,7 @@ function tw_image_link($image, $size = 'full') {
 
 		if (strpos($image, 'http') === 0 or strpos($image, '//') === 0) {
 
-			$thumb_url = tw_image_resize($image, $size);
+			$thumb_url = tw_image_resize($image, $size, 0, $base_url);
 
 		} else {
 
@@ -390,12 +401,13 @@ function tw_image_link($image, $size = 'full') {
  * @param string|array      $size     Size of the image
  * @param string            $property Return as a mask
  * @param bool              $style    Include a style attribute
+ * @param bool              $base_url Include a site base URL
  *
  * @return string
  */
-function tw_image_attribute($image, $size = 'full', $property = '--mask-image', $style = true) {
+function tw_image_attribute($image, $size = 'full', $property = '--mask-image', $style = true, $base_url = false) {
 
-	$link = tw_image_link($image, $size);
+	$link = tw_image_link($image, $size, $base_url);
 
 	$attribute = '';
 
@@ -481,13 +493,14 @@ function tw_image_size($size, $image_id = 0) {
 /**
  * Create a thumbnail and return a link
  *
- * @param string       $image_url Image URL
- * @param array|string $size      Size of the image
- * @param int          $image_id  Image ID
+ * @param string       $image_url
+ * @param array|string $size
+ * @param int          $image_id
+ * @param bool         $base_url
  *
  * @return string
  */
-function tw_image_resize($image_url, $size, $image_id = 0) {
+function tw_image_resize($image_url, $size, $image_id = 0, $base_url = false) {
 
 	$thumb_url = '';
 
@@ -556,13 +569,15 @@ function tw_image_resize($image_url, $size, $image_id = 0) {
 
 				if (!is_file($upload_dir . $filename)) {
 
-					$site_url = get_option('siteurl');
+					if (strpos($image_url, TW_HOME) === 0) {
+						$image_path = str_replace(TW_HOME, '', $image_url);
+					} else {
+						$image_path = $image_url;
+					}
 
-					$image_path = $image_url;
+					if (strpos($image_path, '/') === 0 and strpos($image_path, '//') !== 0) {
 
-					if (strpos($image_url, $site_url) === 0) {
-
-						$image_path = str_replace(trailingslashit($site_url), ABSPATH, $image_url);
+						$image_path = untrailingslashit(ABSPATH) . $image_path;
 
 						if (!is_file($image_path)) {
 							$image_path = $image_url;
@@ -628,6 +643,10 @@ function tw_image_resize($image_url, $size, $image_id = 0) {
 
 		}
 
+	}
+
+	if (empty($base_url)) {
+		$thumb_url = str_replace(TW_HOME, '', $thumb_url);
 	}
 
 	return $thumb_url;

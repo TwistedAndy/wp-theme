@@ -209,8 +209,9 @@ function tw_acfe_render_scripts() { ?>
 		document.addEventListener('DOMContentLoaded', function() {
 
 			jQuery(document.body).on('input change', '.acf-field textarea', function() {
+				this.style.height = 'auto';
 				this.style.minHeight = 'initial';
-				this.style.minHeight = (this.scrollHeight) + 'px';
+				this.style.minHeight = this.scrollHeight + 'px';
 			});
 
 			if (typeof acf === 'undefined') {
@@ -229,6 +230,10 @@ function tw_acfe_render_scripts() { ?>
 					jQuery('.acfe-flexible-placeholder', element).removeAttr('style');
 				}, 250);
 			});
+
+			setTimeout(function() {
+				jQuery('.acf-field-wysiwyg textarea').trigger('change')
+			}, 250);
 
 		});
 

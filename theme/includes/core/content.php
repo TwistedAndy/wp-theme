@@ -123,10 +123,11 @@ function tw_content_text($object = false, $length = 250, $allowed_tags = false, 
  *
  * @param array  $link
  * @param string $class
+ * @param string $hidden
  *
  * @return string
  */
-function tw_content_link($link, $class = 'button') {
+function tw_content_link($link, $class = 'button', $hidden = '') {
 
 	$result = '';
 
@@ -144,7 +145,11 @@ function tw_content_link($link, $class = 'button') {
 			$target = '';
 		}
 
-		$result = '<a href="' . esc_url($link['url']) . '"' . $class . $target . '>' . $link['title'] . '</a>';
+		if ($hidden) {
+			$hidden = '<span class="sr-hidden">' . $hidden . '</span>';
+		}
+
+		$result = '<a href="' . esc_url($link['url']) . '"' . $class . $target . '>' . $link['title'] . $hidden . '</a>';
 
 	}
 
