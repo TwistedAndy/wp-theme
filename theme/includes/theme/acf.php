@@ -87,6 +87,10 @@ function tw_acf_load_value($result, $post_id, $field) {
 
 		}
 
+	} elseif ($field['type'] == 'google_map' and is_string($result)) {
+
+		$result = json_decode($result, true);
+
 	}
 
 	return $result;
@@ -531,10 +535,6 @@ function tw_acf_decode_data($values, $field) {
 						$value = '';
 					}
 
-					if (in_array($sub_field['type'], ['google_map']) and is_string($value)) {
-						$value = json_decode($value, true);
-					}
-
 					$data[$i][$sub_field['key']] = $value;
 
 				}
@@ -551,10 +551,6 @@ function tw_acf_decode_data($values, $field) {
 					$value = tw_acf_decode_data($values[$name], $sub_field);
 				} else {
 					$value = '';
-				}
-
-				if (in_array($sub_field['type'], ['google_map']) and is_string($value)) {
-					$value = json_decode($value, true);
 				}
 
 				$data[$sub_field['key']] = $value;
