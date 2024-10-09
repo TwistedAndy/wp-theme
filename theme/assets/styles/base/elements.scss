@@ -35,32 +35,15 @@
 }
 
 .buttons {
-	display: block;
-	margin: 0 calc(-1 * var(--gap-buttons)) var(--gap-buttons) 0;
-	font-size: 0;
-	line-height: 0;
+	@extend %buttons;
 
-	&:last-child {
-		margin-bottom: calc(-1 * var(--gap-buttons));
-	}
+	.items + & {
+		text-align: center;
 
-	&_wide {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-	}
+		.button {
+			margin-top: var(--gap-contents);
+		}
 
-	.button {
-		margin: 0 var(--gap-buttons) var(--gap-buttons) 0;
-	}
-
-}
-
-.items + .buttons {
-	text-align: center;
-
-	.button {
-		margin-top: var(--gap-contents);
 	}
 
 }

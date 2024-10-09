@@ -183,7 +183,7 @@ function tw_content_heading($query = null, $before = '', $after = '', $add_page_
 
 	$object = $query->get_queried_object();
 
-	if ($query->is_home()) {
+	if ($query->is_front_page()) {
 
 		$title = get_bloginfo('name', 'display');
 

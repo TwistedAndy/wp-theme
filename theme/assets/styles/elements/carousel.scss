@@ -56,13 +56,17 @@
 		transform: translate3d(0, 0, 0);
 		backface-visibility: hidden;
 
-		&.is-draggable {
-			cursor: grab;
-		}
+		@include hover {
 
-		&.is-dragging {
-			cursor: grabbing;
-			pointer-events: none;
+			&.is-draggable {
+				cursor: grab;
+			}
+
+			&.is-dragging {
+				cursor: grabbing;
+				pointer-events: none;
+			}
+
 		}
 
 	}
@@ -83,7 +87,7 @@
 		justify-content: center;
 		height: rem(40);
 		padding: 0 rem(48);
-		margin: var(--gap-vertical) 0 0;
+		margin: var(--gap-grid-y) 0 0;
 
 		&.is-dynamic {
 

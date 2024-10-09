@@ -65,8 +65,8 @@
 		display: inline-block;
 		flex-grow: 0;
 		flex-shrink: 0;
-		width: rem(16);
-		height: rem(16);
+		width: var(--width-icon);
+		height: var(--height-icon);
 		background: currentColor;
 		-webkit-mask: var(--mask-image) 50% 50% / contain no-repeat;
 	}
@@ -80,10 +80,28 @@
 		display: inline-block;
 		flex-grow: 0;
 		flex-shrink: 0;
-		width: rem(16);
-		height: rem(16);
+		width: var(--width-icon);
+		height: var(--height-icon);
 		background: currentColor;
 		-webkit-mask: var(--mask-image) 50% 50% / contain no-repeat;
+	}
+
+}
+
+%buttons {
+	display: block;
+	margin: 0 calc(-1 * var(--gap-buttons-x)) var(--gap-buttons-y) 0;
+	font-size: 0;
+	line-height: 0;
+
+	&:last-child {
+		margin-bottom: calc(-1 * var(--gap-buttons-y));
+	}
+
+	.button {
+		flex-grow: 1;
+		flex-basis: auto;
+		margin: 0 var(--gap-buttons-x) var(--gap-buttons-y) 0;
 	}
 
 }

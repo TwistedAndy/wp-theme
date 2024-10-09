@@ -51,7 +51,7 @@
 			}
 
 			.wrapper {
-				padding: 0 0 0 var(--gap-section-offset);
+				padding: 0 0 0 var(--gap-section-inner);
 			}
 
 			.media {
@@ -78,7 +78,7 @@
 		}
 
 		&.is_card {
-			--gap-section-offset: var(--gap-subsection);
+			--gap-section-inner: var(--gap-section-small);
 
 			&.is_reversed {
 
@@ -93,7 +93,7 @@
 			}
 
 			.wrapper {
-				padding: 0 var(--gap-section-offset);
+				padding: 0 var(--gap-section-inner);
 			}
 
 			.media img {
@@ -122,7 +122,7 @@
 			display: block;
 			align-self: center;
 			width: 50%;
-			padding: 0 var(--gap-section-offset) 0 0;
+			padding: 0 var(--gap-section-inner) 0 0;
 			--width-contents: #{rem(600)};
 		}
 
@@ -161,7 +161,7 @@
 		.media {
 			position: relative;
 			width: auto;
-			margin: calc(-1 * var(--gap-section-top)) calc(-1 * var(--gap-aside)) calc(var(--gap-contents) + 5px);
+			margin: calc(-1 * var(--gap-section-top)) calc(-1 * var(--gap-section-side)) calc(var(--gap-contents) + 5px);
 		}
 
 	}

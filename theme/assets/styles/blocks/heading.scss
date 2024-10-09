@@ -1,7 +1,7 @@
 .heading_box {
 
 	&.is_compact {
-		--gap-section: var(--gap-subsection);
+		--gap-section: var(--gap-section-small);
 	}
 
 	.contents {

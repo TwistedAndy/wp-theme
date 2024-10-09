@@ -29,7 +29,7 @@ function tw_block_render($blocks) {
 	}
 
 	if (empty($block_id) or !is_numeric($block_id)) {
-		$block_id = 0;
+		$block_id = (int) tw_app_get('block_id', 'default', 0);
 	}
 
 	ob_start();
@@ -57,6 +57,8 @@ function tw_block_render($blocks) {
 			include $filename;
 
 			$block_id++;
+
+			tw_app_set('block_id', $block_id, 'default');
 
 		}
 

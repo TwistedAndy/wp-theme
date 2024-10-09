@@ -3,7 +3,7 @@
 	position: relative;
 	top: 0;
 	height: var(--height-header);
-	padding: 0 var(--gap-aside);
+	padding: 0 var(--gap-section-side);
 	background: var(--color-base);
 	box-shadow: var(--shadow-small);
 	color: var(--color-heading);
@@ -15,7 +15,7 @@
 
 	&.is_sticky {
 		position: sticky;
-		top: calc(var(--height-bar) + var(--height-top));
+		top: calc(var(--height-bar) + var(--offset-top));
 	}
 
 	&.is_fixed {
@@ -273,7 +273,7 @@
 		&:before {
 			content: '';
 			position: fixed;
-			top: calc(var(--height-header) + var(--height-bar) + var(--header-offset));
+			top: calc(var(--height-header) + var(--height-bar) + var(--offset-header));
 			right: 0;
 			bottom: 0;
 			left: 0;
@@ -322,7 +322,7 @@
 		.navigation {
 			display: flex;
 			position: fixed;
-			top: calc(var(--height-header) + var(--height-bar) + var(--header-offset));
+			top: calc(var(--height-header) + var(--height-bar) + var(--offset-header));
 			right: 0;
 			bottom: 0;
 			left: auto;
@@ -355,7 +355,7 @@
 				align-items: center;
 				width: 100%;
 				height: 50px;
-				padding: 0 var(--gap-aside) 0 0;
+				padding: 0 var(--gap-section-side) 0 0;
 				background-color: var(--color-background);
 				color: var(--color-heading);
 				font-weight: 600;
@@ -367,7 +367,7 @@
 					flex-shrink: 0;
 					width: 12px;
 					height: 8px;
-					margin: 0 12px 0 var(--gap-aside);
+					margin: 0 12px 0 var(--gap-section-side);
 					background: currentColor;
 					transform: rotate(90deg);
 					-webkit-mask: url(../images/ico_arrow_down.svg) 50% 50% / contain no-repeat;
@@ -423,7 +423,7 @@
 				display: inline-flex;
 				align-items: center;
 				min-height: 50px;
-				padding: 5px var(--gap-aside);
+				padding: 5px var(--gap-section-side);
 			}
 
 		}

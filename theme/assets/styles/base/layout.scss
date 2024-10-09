@@ -64,7 +64,7 @@ body {
 
 .tw {
 	--gap-section: 40px;
-	--gap-aside: 20px;
+	--gap-section-side: 20px;
 
 	& > section:first-child:not(.box_no_top) {
 		--gap-section-top: var(--gap-section);
@@ -82,10 +82,10 @@ body {
 
 section {
 	position: relative;
-	padding: calc(var(--gap-section-top) + var(--gap-section-shift)) var(--gap-aside) var(--gap-section-bottom);
+	padding: calc(var(--gap-section-top) + var(--offset-section)) var(--gap-section-side) var(--gap-section-bottom);
 	background-color: var(--color-section);
 	color: var(--color-text);
-	scroll-margin-top: calc(var(--height-top) + var(--gap-section) - var(--gap-section-top));
+	scroll-margin-top: calc(var(--offset-top) + var(--gap-section) - var(--gap-section-top));
 	--gap-section-bottom: var(--gap-section);
 
 	&:first-of-type {
@@ -115,22 +115,20 @@ section {
 
 	&_light {
 		--gap-section-top: var(--gap-section);
-		--color-section: #{$color_background};
-		--color-background: #{$color_white};
+		@extend %colors_light;
 	}
 
 	&_dark {
-		color: #{$color_white};
 		--gap-section-top: var(--gap-section);
-		--color-section: #{$color_text};
-		--color-background: #{$color_muted};
-		--color-muted: #{rgba($color_white, 0.8)};
-		--color-text: #{rgba($color_white, 0.9)};
-		--color-field: #{rgba($color_white, 0.5)};
-		--color-heading: #{$color_white};
-		--color-border: #{rgba($color_white, 0.2)};
-		--color-link: #{$color_white};
-		--color-base: #{$color_heading};
+		@extend %colors_light;
+	}
+
+	&_top {
+		--gap-section-top: var(--gap-section);
+	}
+
+	&_bottom {
+		--gap-section-bottom: var(--gap-section);
 	}
 
 	&_no_top {

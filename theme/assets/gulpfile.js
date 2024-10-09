@@ -83,7 +83,8 @@ function blocks() {
 		folder = '../elements/',
 		strings = [
 			"@import '../includes/variables';",
-			"@import '../includes/mixins';"
+			"@import '../includes/mixins';",
+			"@import '../includes/colors';"
 		],
 		exclude = [
 			'content.scss',

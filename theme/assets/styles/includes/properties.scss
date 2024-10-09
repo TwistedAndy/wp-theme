@@ -5,64 +5,69 @@
 	--font-heading: Arial, sans-serif;
 
 	/* Colors */
-	--color-icon: #{$color_heading};
-	--color-link: #{$color_primary};
-	--color-base: #{$color_white};
-	--color-text: #{$color_text};
-	--color-field: #{$color_field};
-	--color-muted: #{$color_muted};
-	--color-heading: #{$color_heading};
-	--color-border: #{$color_border};
-	--color-bright: #{$color_bright};
-	--color-primary: #{$color_primary};
-	--color-secondary: #{$color_secondary};
-	--color-background: #{$color_background};
-	--color-section: transparent;
+	@extend %colors_default;
 
-	/* Grid Paddings and Margins */
-	--gap-aside: 40px;
+	/* Shadows */
+	--shadow-small: 0 1px 2px rgba(var(--color-shadow), 0.15);
+	--shadow-regular: 0 5px 10px rgba(var(--color-shadow), 0.1);
+	--shadow-large: 0 5px 40px rgba(var(--color-shadow), 0.05);
+
+	/* Paddings & Margins */
 	--gap-card: 30px;
-	--gap-grid: 30px;
+	--gap-list: 12px;
 	--gap-field: 16px;
 	--gap-button: 25px;
-	--gap-buttons: 10px;
 	--gap-heading: 20px;
 	--gap-content: 20px;
 	--gap-contents: 30px;
-	--gap-vertical: 35px;
+
+	--gap-buttons: 10px;
+	--gap-buttons-x: var(--gap-buttons);
+	--gap-buttons-y: var(--gap-buttons);
+
+	--gap-table: 15px;
+	--gap-table-x: var(--gap-table);
+	--gap-table-y: calc(var(--gap-table) - 5px);
+
+	--gap-grid: 30px;
+	--gap-grid-x: var(--gap-grid);
+	--gap-grid-y: var(--gap-grid);
 
 	--gap-section: 80px;
 	--gap-section-top: 0px;
 	--gap-section-bottom: var(--gap-section);
-	--gap-section-shift: 0px;
-	--gap-section-offset: 80px;
-	--gap-subsection: 40px;
-	--gap-table: 15px;
+	--gap-section-inner: 80px;
+	--gap-section-small: 40px;
+	--gap-section-side: 40px;
 
-	/* Content Widths */
-	--width-item: 25%;
-	--width-small: #{rem(1000)};
-	--width-fixed: #{rem($desktop_large)};
-	--width-scrollbar: 0px;
-	--width-contents: #{rem(640)};
-	--width-content: #{rem(480)};
+	/* Offsets */
+	--offset-top: 0px;
+	--offset-bottom: 0px;
+	--offset-section: 0px;
+	--offset-header: 0px;
 
+	/* Dimensions */
 	--height-control: #{rem(50)};
 	--height-header: #{rem(80)};
 	--height-image: 100%;
+	--height-icon: #{rem(16)};
 	--height-bar: 0px;
-	--height-top: 0px;
-	--height-bottom: 0px;
 
-	--header-offset: 0px;
+	--width-icon: var(--height-icon);
+	--width-item: 25%;
+	--width-scrollbar: 0px;
+	--width-content: #{rem(480)};
+	--width-contents: #{rem(640)};
+
+	--width-fixed: #{rem($desktop_large)};
+	--width-fixed-small: #{rem(1000)};
+	--width-fixed-large: calc(100vw - var(--width-scrollbar));
 
 	--radius-small: 0px;
 	--radius-regular: 10px;
 	--radius-large: 20px;
 
-	--shadow-small: 0 1px 2px rgba(0, 0, 0, 0.15);
-	--shadow-regular: 5px 5px 40px rgba(0, 0, 0, 0.05);
-
+	/* Mask Images */
 	--mask-image: none;
 
 	/* Font Sizes */
@@ -84,15 +89,14 @@
 
 		--gap-grid: 20px;
 		--gap-card: 20px;
-		--gap-aside: 20px;
 		--gap-button: 20px;
 		--gap-heading: 15px;
 		--gap-contents: 25px;
-		--gap-vertical: 30px;
 
 		--gap-section: 50px;
-		--gap-section-offset: 30px;
-		--gap-subsection: 30px;
+		--gap-section-inner: 30px;
+		--gap-section-small: 30px;
+		--gap-section-side: 20px;
 
 		--height-control: #{rem(44)};
 		--height-header: #{rem(42)};
@@ -115,12 +119,8 @@
 
 	@include tablet_small {
 
-		--gap-contents: 20px;
-		--gap-vertical: 25px;
-
 		--gap-section: 40px;
-		--gap-section-offset: 20px;
-		--gap-subsection: 25px;
+		--gap-section-inner: 20px;
 
 		--width-item: 50%;
 

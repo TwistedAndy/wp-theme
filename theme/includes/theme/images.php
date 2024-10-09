@@ -406,7 +406,11 @@ add_action('twee_image_compress', function($file, $url, $image_id = 0) {
  */
 add_action('twee_thumb_created', function($file, $url, $image_id) {
 
-	if (!function_exists('as_schedule_single_action')) {
+	if (!function_exists('as_schedule_single_action') or !is_readable($file)) {
+		return;
+	}
+
+	if (strpos($file, '.webp') > 0 or filesize($file) > 20 * 1024 * 1024) {
 		return;
 	}
 

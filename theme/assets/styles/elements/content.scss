@@ -47,15 +47,15 @@
 		display: block;
 
 		ul, ol {
-			padding-top: calc(var(--gap-content) - 5px);
+			padding-top: var(--gap-list);
 		}
 
 		li {
 			display: block;
 			position: relative;
 			padding: 0 0 0 25px;
-			margin-bottom: 15px;
-			--gap-content: 10px;
+			margin-bottom: var(--gap-list);
+			--gap-content: var(--gap-list);
 
 			&:last-child {
 				margin-bottom: 0;
@@ -132,17 +132,8 @@
 	}
 
 	td, th {
-		padding: 10px;
+		padding: var(--gap-table-y) var(--gap-table-x);
 		border-bottom: 1px solid var(--color-border);
-
-		&:first-child {
-			padding-left: 20px;
-		}
-
-		&:last-child {
-			padding-right: 20px;
-		}
-
 	}
 
 	th {
@@ -218,14 +209,14 @@
 	.gallery {
 		display: flex;
 		flex-wrap: wrap;
-		width: calc(100% + var(--gap-grid));
-		margin: 0 calc(-1 * var(--gap-grid)) calc(var(--gap-content) + 5px) 0;
+		width: calc(100% + var(--gap-grid-x));
+		margin: 0 calc(-1 * var(--gap-grid-x)) calc(var(--gap-content) + 5px) 0;
 		--width-item: 33.33%;
-		--gap-grid: 10px;
-		--gap-vertical: 10px;
+		--gap-grid-x: 10px;
+		--gap-grid-y: 10px;
 
 		&:last-child {
-			margin-bottom: calc(-1 * var(--gap-vertical));
+			margin-bottom: calc(-1 * var(--gap-grid-y));
 		}
 
 		&.carousel {
@@ -284,8 +275,8 @@
 			flex-direction: column;
 			flex-grow: 0;
 			flex-shrink: 0;
-			width: calc(var(--width-item) - var(--gap-grid));
-			margin: 0 var(--gap-grid) var(--gap-vertical) 0;
+			width: calc(var(--width-item) - var(--gap-grid-x));
+			margin: 0 var(--gap-grid-x) var(--gap-grid-y) 0;
 
 			&:after {
 				content: '';

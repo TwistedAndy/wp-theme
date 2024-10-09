@@ -90,7 +90,7 @@ function tw_breadcrumbs_list($query = null) {
 		return $breadcrumbs;
 	}
 
-	if ($query->is_home() or $query->is_front_page()) {
+	if ($query->is_front_page()) {
 		return $breadcrumbs;
 	}
 

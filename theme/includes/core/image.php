@@ -114,7 +114,7 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 			unset($attributes['loading']);
 		}
 
-		if (!isset($attributes['decoding']) or (is_bool($attributes['loading'])) and $attributes['loading']) {
+		if (!isset($attributes['decoding']) and !empty($attributes['loading'])) {
 			$attributes['decoding'] = 'async';
 		}
 
