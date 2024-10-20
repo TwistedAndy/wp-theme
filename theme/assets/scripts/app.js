@@ -1,197 +1,394 @@
-document.addEventListener('rocket-DOMContentLoaded', initApp);
-document.addEventListener('DOMContentLoaded', initApp);
+const Twee = {
 
-window.addEventListener('rocket-load', initApp);
-window.addEventListener('load', initApp);
+	modules: {},
 
-function initApp() {
+	/**
+	 * Initialize app
+	 */
+	initApp: function() {
 
-	if (typeof jQuery === 'function') {
-		jQuery('[class*="_box"]').trigger('tw_init', [jQuery]);
-	}
+		Twee.initStyles();
 
-	let scrollbarWidth = parseInt(window.innerWidth - document.documentElement.clientWidth);
+		window.addEventListener('load', Twee.initStyles);
+		window.addEventListener('resize', Twee.initStyles);
 
-	if (isNaN(scrollbarWidth) || scrollbarWidth < 0) {
-		scrollbarWidth = 0;
-	}
+		window.addEventListener('load', Twee.initModules);
+		window.addEventListener('rocket-load', Twee.initModules);
+		document.addEventListener('rocket-DOMContentLoaded', Twee.initModules);
+		document.addEventListener('DOMContentLoaded', Twee.initModules);
 
-	document.body.style.setProperty('--width-scrollbar', scrollbarWidth + 'px');
+	},
 
-}
+	/**
+	 * Initialize base styles
+	 */
+	initStyles: function() {
 
-function runOnce(element, slug, timeout) {
+		let scrollbarWidth = parseInt(window.innerWidth - document.documentElement.clientWidth);
 
-	slug = slug || 'element';
-
-	let key = 'tw_' + slug + '_loaded';
-
-	if (timeout > 0) {
-		setTimeout(function() {
-			element[key] = false;
-		}, timeout);
-	}
-
-	if (element[key]) {
-		return true;
-	} else {
-		element[key] = true;
-		return false;
-	}
-
-}
-
-function runLater(fn, bufferInterval) {
-
-	var timeout;
-
-	return function() {
-		clearTimeout(timeout);
-		timeout = setTimeout(fn.apply.bind(fn, this, arguments), bufferInterval);
-	};
-
-}
-
-function smoothScrollTo(element, speed) {
-
-	var $ = jQuery,
-		wrapper = $('html, body');
-
-	speed = parseInt(speed) || 1000;
-
-	element = $(element);
-
-	if (element.length > 0) {
-
-		var offset = element.offset().top - scrollOffset() - 20;
-
-		if (element.attr('id')) {
-			var scroll = wrapper.scrollTop();
-			window.location.hash = element.attr('id');
-			wrapper.scrollTop(scroll);
+		if (isNaN(scrollbarWidth) || scrollbarWidth < 0) {
+			scrollbarWidth = 0;
 		}
 
-		wrapper.stop().animate({
-			'scrollTop': offset
-		}, speed);
+		document.body.style.setProperty('--width-scrollbar', scrollbarWidth + 'px');
 
-	}
+	},
 
-}
+	/**
+	 * Initialize all modules
+	 */
+	initModules: function() {
 
-function scrollOffset() {
+		var selectors = [];
 
-	var header = jQuery('.header_box .header'),
-		offset = header.height();
+		Object.getOwnPropertyNames(Twee.modules).forEach(function(name) {
 
-	if (document.body.classList.contains('admin-bar')) {
+			let module = Twee.modules[name];
 
-		var width = window.innerWidth;
+			if (!module.attached) {
+				jQuery(document).on('tw_init', module.selector, module.callback);
+				module.attached = true;
+				selectors = selectors.concat(module.selector.split(','));
+			}
 
-		if (width <= 782 && width >= 600) {
-			offset += 46;
-		} else if (width > 782) {
-			offset += 32;
+		});
+
+		if (selectors.length > 0) {
+
+			selectors = selectors.map(function(selector) {
+				return selector.toString().trim();
+			});
+
+			selectors = selectors.filter(function(item, i, array) {
+				return array.indexOf(item) === i;
+			});
+
+			Twee.initModule(selectors.join(', '));
+
 		}
 
-	}
+	},
 
-	return offset;
+	/**
+	 * Initialize a module
+	 *
+	 * @param selector
+	 */
+	initModule: function(selector) {
+		jQuery(selector).each(function() {
+			jQuery(this).trigger('tw_init', [jQuery, jQuery(this)]);
+		});
+	},
 
-}
+	/**
+	 * Add a module to the registry
+	 *
+	 * The system will run a callback when the page is loaded and all the dependencies are presented.
+	 * A callback is triggered once per element, but it can be changed with the multiple flag.
+	 *
+	 * @param {string}   key        A unique module ID
+	 * @param {string}   selector   Root element selector
+	 * @param {function} callback   A function called on page initialization
+	 * @param {Array}    deps       An array with global dependencies
+	 * @param {boolean}  multiple   Allow running a callback more than once on an element
+	 * @param {int}      timeout    Allow running a callback again when the timeout is reached
+	 */
+	addModule: function(key, selector, callback, deps = [], multiple = false, timeout = 0) {
 
-function lockScroll() {
-	document.body.classList.add('is_locked');
-}
-
-function unlockScroll() {
-	document.body.classList.remove('is_locked');
-}
-
-function setCookie(name, value, exdays) {
-
-	var date = new Date();
-
-	exdays = parseInt(exdays) || 365;
-
-	date.setTime(date.getTime() + (exdays * 24 * 60 * 60 * 1000));
-
-	var expires = 'expires=' + date.toUTCString();
-
-	document.cookie = name + '=' + value + ';' + expires + ';path=/';
-
-}
-
-function getCookie(name) {
-
-	name = name + '=';
-
-	var decodedCookie = decodeURIComponent(document.cookie);
-
-	var parts = decodedCookie.split(';');
-
-	for (var i = 0; i < parts.length; i++) {
-
-		var part = parts[i];
-
-		while (part.charAt(0) === ' ') {
-			part = part.substring(1);
+		if (selector) {
+			selector = selector.toString();
+		} else {
+			selector = 'html';
 		}
 
-		if (part.indexOf(name) === 0) {
-			return part.substring(name.length, part.length);
+		if (typeof this.modules[key] === 'undefined') {
+
+			this.modules[key] = {
+				attached: false,
+				selector: selector,
+				callback: function(e) {
+
+					let status = true,
+						target = e.currentTarget;
+
+					if (deps && deps.length > 0) {
+						deps.forEach(function(dep) {
+							if (typeof window[dep] === 'undefined') {
+								status = false;
+							}
+						});
+					}
+
+					if (!status) {
+						return;
+					}
+
+					if (multiple || Twee.runOnce(target, key, timeout)) {
+						callback.call(target, jQuery, jQuery(target), e);
+					}
+
+				}
+			};
+
+		} else {
+
+			console.warn('Module ' + key + ' is already added');
+
 		}
 
+	},
+
+	/**
+	 * Run a code only once per element
+	 *
+	 * @param {HTMLElement} element
+	 * @param {string}      slug
+	 * @param {int}         timeout
+	 *
+	 * @returns {boolean}
+	 */
+	runOnce: function(element, slug, timeout = 0) {
+
+		slug = slug || 'element';
+
+		let key = 'tw_' + slug + '_loaded';
+
+		if (timeout > 0) {
+			setTimeout(function() {
+				element[key] = false;
+			}, timeout);
+		}
+
+		if (element[key]) {
+			return false;
+		} else {
+			element[key] = true;
+			return true;
+		}
+
+	},
+
+	/**
+	 * Run a callback only once after specified delay
+	 *
+	 * @param {function} callback
+	 * @param {int}      delay
+	 *
+	 * @returns {function}
+	 */
+	runLater: function(callback, delay) {
+
+		let timeout;
+
+		return function() {
+			clearTimeout(timeout);
+			timeout = setTimeout(callback.apply.bind(callback, this, arguments), delay);
+		};
+
+	},
+
+	/**
+	 * Get the current top offset
+	 *
+	 * @returns {int}
+	 */
+	scrollOffset: function() {
+
+		var header = jQuery('.header_box'),
+			offset = header.height();
+
+		if (document.body.classList.contains('admin-bar')) {
+
+			var width = window.innerWidth;
+
+			if (width <= 782 && width >= 600) {
+				offset += 46;
+			} else if (width > 782) {
+				offset += 32;
+			}
+
+		}
+
+		return offset;
+
+	},
+
+	/**
+	 * Smooth scroll to an element
+	 *
+	 * @param {HTMLElement|jQuery}  element
+	 * @param {int}                 speed
+	 */
+	smoothScrollTo: function(element, speed = 1000) {
+
+		var wrapper = jQuery('html, body');
+
+		element = jQuery(element);
+
+		if (element.length > 0) {
+
+			var offset = element.offset().top - Twee.scrollOffset() - 20;
+
+			if (element.attr('id')) {
+				var scroll = wrapper.scrollTop();
+				window.location.hash = element.attr('id');
+				wrapper.scrollTop(scroll);
+			}
+
+			wrapper.stop().animate({
+				'scrollTop': offset
+			}, speed);
+
+		}
+
+	},
+
+	/**
+	 * Lock the screen scroll
+	 */
+	lockScroll: function() {
+		document.body.classList.add('is_locked');
+	},
+
+	/**
+	 * Unlock the screen scroll
+	 */
+	unlockScroll: function() {
+		document.body.classList.remove('is_locked');
+	},
+
+	/**
+	 * Set a cookie value
+	 *
+	 * @param {string}  name
+	 * @param {string}  value
+	 * @param {int}     expire
+	 */
+	setCookie: function(name, value, expire = 365) {
+
+		let date = new Date();
+
+		date.setTime(date.getTime() + (expire * 24 * 60 * 60 * 1000));
+
+		let expires = 'expires=' + date.toUTCString();
+
+		document.cookie = name.toString() + '=' + value.toString() + ';' + expires + ';path=/';
+
+	},
+
+	/**
+	 * Get a cookie value
+	 *
+	 * @param {string} name
+	 *
+	 * @returns {string}
+	 */
+	getCookie: function(name) {
+
+		name = name + '=';
+
+		let decodedCookie = decodeURIComponent(document.cookie),
+			parts = decodedCookie.split(';');
+
+		for (var i = 0; i < parts.length; i++) {
+
+			var part = parts[i];
+
+			while (part.charAt(0) === ' ') {
+				part = part.substring(1);
+			}
+
+			if (part.indexOf(name) === 0) {
+				return part.substring(name.length, part.length);
+			}
+
+		}
+
+		return '';
+
+	},
+
+	/**
+	 * Get an array from cookies
+	 *
+	 * @param {string} name
+	 *
+	 * @returns {string[]}
+	 */
+	getCookieValue: function(name) {
+		return getCookie(name).split('|') || [];
+	},
+
+	/**
+	 * Set an array to cookies
+	 *
+	 * @param {string}      name
+	 * @param {string[]}    value
+	 */
+	setCookieValue: function(name, value) {
+
+		if (!Array.isArray(value)) {
+			value = [value];
+		}
+
+		value = value.filter(function(item) {
+			return item;
+		});
+
+		return setCookie(name, value.join('|'), 365);
+
+	},
+
+	/**
+	 * Append an element to an array in cookies
+	 *
+	 * @param {string} name
+	 * @param {string} value
+	 */
+	addCookieValue: function(name, value) {
+
+		var array = getCookieValue(name);
+
+		array.push(value.toString());
+
+		setCookieValue(name, array);
+
+	},
+
+	/**
+	 * Remove an element from an array in cookies
+	 *
+	 * @param {string} name
+	 * @param {string} value
+	 */
+	removeCookieValue: function(name, value) {
+
+		var array = getCookieValue(name);
+
+		array = array.filter(function(item) {
+			return item !== value;
+		});
+
+		setCookieValue(name, array);
+
+	},
+
+	/**
+	 * Check if an array in cookies contains a value
+	 *
+	 * @param name
+	 * @param value
+	 *
+	 * @returns {boolean}
+	 */
+	hasCookieValue: function(name, value) {
+
+		var array = getCookieValue(name);
+
+		return (array.indexOf(value) !== -1);
+
 	}
 
-	return '';
+};
 
-}
-
-function getCookieValue(name) {
-	return getCookie(name).split('|') || [];
-}
-
-function setCookieValue(name, value) {
-
-	if (!Array.isArray(value)) {
-		value = [value];
-	}
-
-	value = value.filter(function(item) {
-		return item;
-	});
-
-	return setCookie(name, value.join('|'), 365);
-
-}
-
-function addCookieValue(name, value) {
-
-	var array = getCookieValue(name);
-
-	array.push(value.toString());
-
-	setCookieValue(name, array);
-
-}
-
-function removeCookieValue(name, value) {
-
-	var array = getCookieValue(name);
-
-	array = array.filter(function(item) {
-		return item !== value;
-	});
-
-	setCookieValue(name, array);
-
-}
-
-function hasCookieValue(name, value) {
-
-	var array = getCookieValue(name);
-
-	return (array.indexOf(value) !== -1);
-
-}
+Twee.initApp();

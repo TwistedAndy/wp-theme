@@ -1,6 +1,4 @@
-jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
-
-	var forms = $(this);
+Twee.addModule('forms', '.form_box, .comment_box', function($, forms) {
 
 	if (forms.hasClass('form_box') && !forms.is('form')) {
 		forms = $('form', this);
@@ -180,7 +178,7 @@ jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 	/**
 	 * Autoresize textarea fields
 	 */
-	$(document.body).on('input change', 'textarea', function() {
+	forms.on('input change', 'textarea', function() {
 		this.style.minHeight = 'initial';
 		this.style.minHeight = (this.scrollHeight) + 'px';
 	});

@@ -1,10 +1,6 @@
-jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
+Twee.addModule('loader', 'html', function($, container) {
 
-	$('[data-loader]', this).each(function() {
-
-		if (runOnce(this, 'loader')) {
-			return;
-		}
+	container.on('click', '[data-loader]', function() {
 
 		var button = $(this),
 			data = button.data('loader'),
@@ -14,7 +10,7 @@ jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 			wrapper = section.find('.items'),
 			animate = !wrapper.hasClass('carousel');
 
-		var refreshItems = runLater(function() {
+		var refreshItems = Twee.runLater(function() {
 			section.trigger('reset');
 		}, 1000);
 
@@ -125,7 +121,7 @@ jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
 
 					}
 
-					section.trigger('tw_init', [$]);
+					Twee.initModule(section);
 
 					if (animate) {
 						wrapper.animate({height: heightNew}, 400, function() {

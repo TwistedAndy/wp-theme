@@ -1,11 +1,6 @@
-jQuery(document).on('tw_init', '.header_box', function(e, $) {
+Twee.addModule('header', '.header_box', function($, wrapper) {
 
-	if (runOnce(this, 'header')) {
-		return;
-	}
-
-	var wrapper = $(this),
-		submenus = $('.submenu', wrapper);
+	var submenus = $('.submenu', wrapper);
 
 	$(window).on('beforeunload pagehide', function() {
 		togglePanel(false);

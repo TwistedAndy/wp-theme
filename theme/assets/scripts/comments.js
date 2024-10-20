@@ -1,66 +1,53 @@
-jQuery(document).on('tw_init', '.comments_box', function(e, $) {
+Twee.addModule('comments', '.comments_box', function($, section) {
 
-	$('[data-comments]', this).each(function() {
+	var button = $('[data-comments]', section),
+		data = button.data('comments'),
+		wrapper = section.find('.comments'),
+		increment = data.page === data.pages ? -1 : 1;
 
-		if (runOnce(this, 'comments')) {
-			return;
-		}
+	data.action = 'comment_list';
+	data.noncer = tw_template.nonce;
 
-		var button = $(this),
-			data = button.data('comments'),
-			section = button.parents('.comments_box'),
-			wrapper = section.find('.comments'),
-			increment = data.page === data.pages ? -1 : 1;
+	wrapper.on('reset', function() {
 
-		data.action = 'comment_list';
-		data.noncer = tw_template.nonce;
+		wrapper.children().remove();
 
-		wrapper.on('reset', function() {
+		data.page = 1;
 
-			wrapper.children().remove();
+		button.trigger('click');
 
-			data.page = 1;
+	});
 
-			button.trigger('click');
+	button.on('click', function() {
 
-		});
+		data.page += increment;
 
-		button.on('click', function() {
+		$.ajax(tw_template.ajaxurl, {
+			type: 'post',
+			dataType: 'html',
+			data: data,
+			beforeSend: function() {
+				button.addClass('is_loading');
+			}
+		}).always(function() {
+			button.removeClass('is_loading');
+		}).done(function(response) {
 
-			data.page += increment;
+			if (response) {
 
-			$.ajax(tw_template.ajaxurl, {
-				type: 'post',
-				dataType: 'html',
-				data: data,
-				beforeSend: function() {
-					button.addClass('is_loading');
-				},
-			}).always(function() {
-				button.removeClass('is_loading');
-			}).done(function(response) {
+				var comments = $(response).find('.comments').html();
 
-				if (response) {
+				if (comments) {
 
-					var comments = $(response).find('.comments').html();
+					wrapper.append($(comments));
 
-					if (comments) {
-
-						wrapper.append($(comments));
-
-						if (data.page < data.pages) {
-							button.removeClass('is_hidden');
-						} else {
-							button.addClass('is_hidden');
-						}
-
-						section.trigger('init');
-
+					if (data.page < data.pages) {
+						button.removeClass('is_hidden');
 					} else {
-
 						button.addClass('is_hidden');
-
 					}
+
+					section.trigger('init');
 
 				} else {
 
@@ -68,7 +55,11 @@ jQuery(document).on('tw_init', '.comments_box', function(e, $) {
 
 				}
 
-			});
+			} else {
+
+				button.addClass('is_hidden');
+
+			}
 
 		});
 

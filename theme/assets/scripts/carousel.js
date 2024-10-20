@@ -1,15 +1,8 @@
-jQuery(document).on('tw_init', '.posts_box, .content_box', function(e, $) {
+Twee.addModule('carousel', 'html', function($, container) {
 
-	if (typeof Carousel !== 'function') {
-		return;
-	}
+	$('.items.carousel', container).each(function() {
 
-	let section = $(this),
-		wrappers = section.find('.carousel');
-
-	wrappers.each(function() {
-
-		if (runOnce(this, 'carousel', 100)) {
+		if (Twee.runOnce(this, 'carousel', 500)) {
 			return;
 		}
 
@@ -57,15 +50,13 @@ jQuery(document).on('tw_init', '.posts_box, .content_box', function(e, $) {
 			on: {
 				'ready change': function(carousel) {
 					carousel.slides.forEach(function(slide) {
-						if (slide && slide.el) {
-							if (slide.el.ariaHidden) {
-								$('a', slide.el).attr('tabindex', -1);
-							} else {
-								$('a', slide.el).removeAttr('tabindex');
-							}
+						if (slide.el.ariaHidden) {
+							$('a', slide.el).attr('tabindex', -1);
+						} else {
+							$('a', slide.el).removeAttr('tabindex');
 						}
 					});
-				},
+				}
 			}
 		};
 
@@ -87,41 +78,6 @@ jQuery(document).on('tw_init', '.posts_box, .content_box', function(e, $) {
 
 		}
 
-		let slides = $('.' + args.classes.slide, wrapper);
-
-		if (slides.length > 12) {
-
-			slides = slides.slice(12).detach();
-
-			args.on['Panzoom.beforeTransform'] = function(instance) {
-
-				if (slides.length < 1) {
-					return;
-				}
-
-				let currentPosition = instance.panzoom.current.e,
-					lastPosition = instance.pages[instance.pages.length - 1].pos;
-
-				if (currentPosition < (instance.viewportDim - lastPosition)) {
-
-					let batch = instance.getVisibleSlides().size || 5;
-
-					slides.slice(0, batch).each(function() {
-						instance.appendSlide({
-							el: this,
-							isDom: true,
-							transition: false
-						});
-					});
-
-					slides = slides.slice(batch);
-
-				}
-
-			};
-
-		}
-
 		wrapper.on('refresh', function() {
 			carousel.reInit(args, plugins);
 		});
@@ -132,7 +88,7 @@ jQuery(document).on('tw_init', '.posts_box, .content_box', function(e, $) {
 
 		} else {
 
-			carousel = new Carousel(this, args, plugins);
+			carousel = new Carousel(wrapper.get(0), args, plugins);
 
 			wrapper.data('carousel', carousel);
 
@@ -140,4 +96,4 @@ jQuery(document).on('tw_init', '.posts_box, .content_box', function(e, $) {
 
 	});
 
-});
+}, ['Carousel'], true);

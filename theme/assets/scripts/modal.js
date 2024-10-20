@@ -1,34 +1,28 @@
-jQuery(document).on('tw_init', function(e, $) {
-
-	if (runOnce(this, 'modals')) {
-		return;
-	}
-
-	var wrapper = $(document.body);
+Twee.addModule('modals', 'html', function($, wrapper) {
 
 	$('[data-modal]').click(function(e) {
 
 		var modal = $(this).data('modal');
 
 		if (modal) {
-			$('#modal_' + modal).trigger('show');
+			$('#modal_' + modal).trigger('open');
 		}
 
 	});
 
 	$('a[href^="#modal_"]').click(function(e) {
-		$($(this).attr('href')).trigger('show');
+		$($(this).attr('href')).trigger('open');
 		e.preventDefault();
 	});
 
 	wrapper.on('close', '.modal_box', function() {
 		$(this).removeClass('is_visible');
-		unlockScroll();
+		Twee.unlockScroll();
 	});
 
-	wrapper.on('show', '.modal_box', function() {
+	wrapper.on('open', '.modal_box', function() {
 		$(this).addClass('is_visible');
-		lockScroll();
+		Twee.lockScroll();
 	});
 
 	wrapper.on('click', '.modal_box', function() {
@@ -43,7 +37,7 @@ jQuery(document).on('tw_init', function(e, $) {
 		}
 	});
 
-	$(document).keyup(function(e) {
+	wrapper.on('keyup', function(e) {
 		if (e.which === 27) {
 			$('.modal_box').trigger('close');
 		}

@@ -1,8 +1,4 @@
-jQuery(document).on('tw_init', function(e, $) {
-
-	if (runOnce(this, 'sticky')) {
-		return;
-	}
+Twee.addModule('sticky', 'html', function($) {
 
 	let elements = $('.header_box.is_sticky'),
 		header = $('.header_box').get(0);
@@ -81,8 +77,8 @@ jQuery(document).on('tw_init', function(e, $) {
 
 			if (item.top !== false) {
 
-				if (element.style.getPropertyValue('--height-top') !== value) {
-					element.style.setProperty('--height-top', value);
+				if (element.style.getPropertyValue('--offset-top') !== value) {
+					element.style.setProperty('--offset-top', value);
 					item.top = parseInt(window.getComputedStyle(element, null).getPropertyValue('top').replace('px', '')) || 0;
 					rect = element.getBoundingClientRect();
 				}
@@ -96,8 +92,8 @@ jQuery(document).on('tw_init', function(e, $) {
 
 				value = bottomBar + 'px';
 
-				if (element.style.getPropertyValue('--height-bottom') !== value) {
-					element.style.setProperty('--height-bottom', value);
+				if (element.style.getPropertyValue('--offset-bottom') !== value) {
+					element.style.setProperty('--offset-bottom', value);
 					item.bottom = parseInt(window.getComputedStyle(element, null).getPropertyValue('bottom').replace('px', '')) || 0;
 					rect = element.getBoundingClientRect();
 				}
@@ -117,17 +113,17 @@ jQuery(document).on('tw_init', function(e, $) {
 
 		});
 
-		updateProperty(document.body, '--height-top', topBar + 'px');
-		updateProperty(document.body, '--height-bottom', bottomBar + 'px');
+		updateProperty(document.body, '--offset-top', topBar + 'px');
+		updateProperty(document.body, '--offset-bottom', bottomBar + 'px');
 
 		if (header) {
 
 			var rect = header.getBoundingClientRect();
 
 			if (rect.y > 0) {
-				updateProperty(document.body, '--header-offset', rect.y + 'px');
+				updateProperty(document.body, '--offset-header', rect.y + 'px');
 			} else {
-				updateProperty(document.body, '--header-offset', '0px');
+				updateProperty(document.body, '--offset-header', '0px');
 			}
 
 		}

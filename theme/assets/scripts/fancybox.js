@@ -1,13 +1,9 @@
-jQuery(document).on('tw_init', '[class*="_box"]', function(e, $) {
+Twee.addModule('fancybox', 'section', function() {
 
-	if (typeof Fancybox !== 'function' || runOnce(this, 'fancybox')) {
-		return;
-	}
-
-	Fancybox.bind(this, 'a[href$=".png"], a[href$=".jpg"], a[href$=".jpeg"], a[href$=".gif"]', {
+	Fancybox.bind(this, 'a[href*=".png"], a[href*=".jpg"], a[href*=".jpeg"], a[href*=".gif"], a[href*=".webp"]', {
 		groupAll: true
 	});
 
-	Fancybox.bind(this, 'a[href*="youtube.com"], a[href*="youtu.be"], a[href*="vimeo.com"], a[href$="mp4"]', {});
+	Fancybox.bind(this, 'a[href*="youtube.com"], a[href*="youtu.be"], a[href*="vimeo.com"], a[href*=".mp4"]', {});
 
-});
+}, ['Fancybox']);
