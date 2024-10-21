@@ -2,7 +2,7 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 	$('.items.carousel', container).each(function() {
 
-		if (Twee.runOnce(this, 'carousel', 500)) {
+		if (!Twee.runOnce(this, 'carousel', 500)) {
 			return;
 		}
 

@@ -107,6 +107,10 @@ section {
 			--gap-section-top: var(--gap-section);
 		}
 
+		& + .box_top_half {
+			--gap-section-top: calc(0.5 * var(--gap-section));
+		}
+
 		& + .box_no_top {
 			--gap-section-top: 0px;
 		}
@@ -127,8 +131,16 @@ section {
 		--gap-section-top: var(--gap-section);
 	}
 
+	&_top_half {
+		--gap-section-top: calc(0.5 * var(--gap-section));
+	}
+
 	&_bottom {
 		--gap-section-bottom: var(--gap-section);
+	}
+
+	&_bottom_half {
+		--gap-section-bottom: calc(0.5 * var(--gap-section));
 	}
 
 	&_no_top {

@@ -15,7 +15,7 @@
                 "class": "",
                 "id": ""
             },
-            "hide_label": "",
+            "hide_label": "all",
             "layout": "block",
             "acfe_seamless_style": 1,
             "sub_fields": [
@@ -133,12 +133,13 @@
                 "class": "",
                 "id": ""
             },
+            "hide_label": "all",
+            "acfe_repeater_stylised_button": 0,
             "collapsed": "field_61f66638c91aa",
             "min": 0,
             "max": 0,
             "layout": "table",
             "button_label": "Add Button",
-            "acfe_repeater_stylised_button": 0,
             "sub_fields": [
                 {
                     "key": "field_61f665ebc91a8",
@@ -226,10 +227,34 @@
                 "class": "",
                 "id": ""
             },
-            "hide_label": "",
+            "hide_label": "all",
             "layout": "block",
             "acfe_seamless_style": 1,
             "sub_fields": [
+                {
+                    "key": "field_61f666ab49998",
+                    "label": "Background",
+                    "name": "background",
+                    "type": "button_group",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "26.66",
+                        "class": "",
+                        "id": ""
+                    },
+                    "hide_label": "",
+                    "choices": {
+                        "default": "Default",
+                        "light": "Light",
+                        "dark": "Dark"
+                    },
+                    "allow_null": 0,
+                    "default_value": "",
+                    "layout": "horizontal",
+                    "return_format": "value"
+                },
                 {
                     "key": "field_61f6667d49997",
                     "label": "Options",
@@ -239,15 +264,14 @@
                     "required": 0,
                     "conditional_logic": 0,
                     "wrapper": {
-                        "width": "66.666",
+                        "width": "20",
                         "class": "",
                         "id": ""
                     },
+                    "hide_label": "",
                     "choices": {
                         "hidden": "Hidden",
-                        "border": "Border",
-                        "top": "No Top Padding",
-                        "bottom": "No Bottom Padding"
+                        "border": "Border"
                     },
                     "allow_custom": 0,
                     "default_value": [],
@@ -257,22 +281,54 @@
                     "save_custom": 0
                 },
                 {
-                    "key": "field_61f666ab49998",
-                    "label": "Background",
-                    "name": "background",
+                    "key": "field_67161cf341bf4",
+                    "label": "Top Padding",
+                    "name": "top",
                     "type": "select",
                     "instructions": "",
                     "required": 0,
                     "conditional_logic": 0,
                     "wrapper": {
-                        "width": "16.666",
+                        "width": "16.66",
                         "class": "",
                         "id": ""
                     },
+                    "hide_label": "",
                     "choices": {
                         "default": "Default",
-                        "light": "Light",
-                        "dark": "Dark"
+                        "none": "None",
+                        "half": "Half",
+                        "normal": "Normal"
+                    },
+                    "default_value": "default",
+                    "allow_null": 0,
+                    "multiple": 0,
+                    "ui": 0,
+                    "return_format": "value",
+                    "ajax": 0,
+                    "placeholder": "",
+                    "allow_custom": 0,
+                    "search_placeholder": ""
+                },
+                {
+                    "key": "field_67161d4d41bf5",
+                    "label": "Bottom Padding",
+                    "name": "bottom",
+                    "type": "select",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "16.66",
+                        "class": "",
+                        "id": ""
+                    },
+                    "hide_label": "",
+                    "choices": {
+                        "default": "Default",
+                        "none": "None",
+                        "half": "Half",
+                        "normal": "Normal"
                     },
                     "default_value": "default",
                     "allow_null": 0,
@@ -293,10 +349,11 @@
                     "required": 0,
                     "conditional_logic": 0,
                     "wrapper": {
-                        "width": "16.666",
+                        "width": "20",
                         "class": "",
                         "id": ""
                     },
+                    "hide_label": "",
                     "default_value": "",
                     "placeholder": "",
                     "prepend": "",

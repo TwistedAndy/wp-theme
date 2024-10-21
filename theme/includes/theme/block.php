@@ -101,14 +101,26 @@ function tw_block_attributes($class, $block) {
 			$classes[] = 'box_border';
 		}
 
-		if (in_array('top', $options)) {
+	}
+
+	if (!empty($settings['top']) and $settings['top'] != 'default') {
+		if ($settings['top'] == 'normal') {
+			$classes[] = 'box_top';
+		} elseif ($settings['top'] == 'half') {
+			$classes[] = 'box_top_half';
+		} elseif ($settings['top'] == 'none') {
 			$classes[] = 'box_no_top';
 		}
+	}
 
-		if (in_array('bottom', $options)) {
+	if (!empty($settings['bottom']) and $settings['bottom'] != 'default') {
+		if ($settings['bottom'] == 'normal') {
+			$classes[] = 'box_bottom';
+		} elseif ($settings['bottom'] == 'half') {
+			$classes[] = 'box_bottom_half';
+		} elseif ($settings['bottom'] == 'none') {
 			$classes[] = 'box_no_bottom';
 		}
-
 	}
 
 	if (!empty($settings['background']) and $settings['background'] != 'default') {
