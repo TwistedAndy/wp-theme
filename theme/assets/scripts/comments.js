@@ -1,9 +1,9 @@
 Twee.addModule('comments', '.comments_box', function($, section) {
 
 	var button = $('[data-comments]', section),
-		data = button.data('comments'),
+		data = button.data('comments') || {},
 		wrapper = section.find('.comments'),
-		increment = data.page === data.pages ? -1 : 1;
+		increment = (data && data.page === data.pages) ? -1 : 1;
 
 	data.action = 'comment_list';
 	data.noncer = tw_template.nonce;

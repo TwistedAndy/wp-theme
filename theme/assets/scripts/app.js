@@ -7,10 +7,9 @@ const Twee = {
 	 */
 	initApp: function() {
 
-		Twee.initStyles();
-
 		window.addEventListener('load', Twee.initStyles);
 		window.addEventListener('resize', Twee.initStyles);
+		document.addEventListener('DOMContentLoaded', Twee.initStyles);
 
 		window.addEventListener('load', Twee.initModules);
 		window.addEventListener('rocket-load', Twee.initModules);
@@ -39,7 +38,7 @@ const Twee = {
 	 */
 	initModules: function() {
 
-		var selectors = [];
+		let selectors = [];
 
 		Object.getOwnPropertyNames(Twee.modules).forEach(function(name) {
 
@@ -188,58 +187,41 @@ const Twee = {
 	},
 
 	/**
-	 * Get the current top offset
-	 *
-	 * @returns {int}
-	 */
-	scrollOffset: function() {
-
-		var header = jQuery('.header_box'),
-			offset = header.height();
-
-		if (document.body.classList.contains('admin-bar')) {
-
-			var width = window.innerWidth;
-
-			if (width <= 782 && width >= 600) {
-				offset += 46;
-			} else if (width > 782) {
-				offset += 32;
-			}
-
-		}
-
-		return offset;
-
-	},
-
-	/**
 	 * Smooth scroll to an element
 	 *
 	 * @param {HTMLElement|jQuery}  element
 	 * @param {int}                 speed
+	 * @param {int}                 offset
 	 */
-	smoothScrollTo: function(element, speed = 1000) {
+	smoothScrollTo: function(element, speed = 1000, offset = 0) {
 
-		var wrapper = jQuery('html, body');
+		let wrapper = jQuery('html, body');
 
-		element = jQuery(element);
+		element = jQuery(element).first();
 
-		if (element.length > 0) {
-
-			var offset = element.offset().top - Twee.scrollOffset() - 20;
-
-			if (element.attr('id')) {
-				var scroll = wrapper.scrollTop();
-				window.location.hash = element.attr('id');
-				wrapper.scrollTop(scroll);
-			}
-
-			wrapper.stop().animate({
-				'scrollTop': offset
-			}, speed);
-
+		if (element.length === 0) {
+			return;
 		}
+
+		let top = document.body.style.getPropertyValue('--offset-scroll');
+
+		if (top.indexOf('px') !== -1) {
+			top = Number(top.replace('px', ''));
+		} else {
+			top = 0;
+		}
+
+		let position = element.offset().top - top - offset;
+
+		if (element.attr('id')) {
+			let scroll = wrapper.scrollTop();
+			window.location.hash = element.attr('id');
+			wrapper.scrollTop(scroll);
+		}
+
+		wrapper.stop().animate({
+			'scrollTop': position
+		}, speed);
 
 	},
 
@@ -270,9 +252,7 @@ const Twee = {
 
 		date.setTime(date.getTime() + (expire * 24 * 60 * 60 * 1000));
 
-		let expires = 'expires=' + date.toUTCString();
-
-		document.cookie = name.toString() + '=' + value.toString() + ';' + expires + ';path=/';
+		document.cookie = name.toString() + '=' + value.toString() + ';expires=' + date.toUTCString() + ';path=/';
 
 	},
 
@@ -290,9 +270,9 @@ const Twee = {
 		let decodedCookie = decodeURIComponent(document.cookie),
 			parts = decodedCookie.split(';');
 
-		for (var i = 0; i < parts.length; i++) {
+		for (let i = 0; i < parts.length; i++) {
 
-			var part = parts[i];
+			let part = parts[i];
 
 			while (part.charAt(0) === ' ') {
 				part = part.substring(1);
@@ -307,87 +287,6 @@ const Twee = {
 		return '';
 
 	},
-
-	/**
-	 * Get an array from cookies
-	 *
-	 * @param {string} name
-	 *
-	 * @returns {string[]}
-	 */
-	getCookieValue: function(name) {
-		return getCookie(name).split('|') || [];
-	},
-
-	/**
-	 * Set an array to cookies
-	 *
-	 * @param {string}      name
-	 * @param {string[]}    value
-	 */
-	setCookieValue: function(name, value) {
-
-		if (!Array.isArray(value)) {
-			value = [value];
-		}
-
-		value = value.filter(function(item) {
-			return item;
-		});
-
-		return setCookie(name, value.join('|'), 365);
-
-	},
-
-	/**
-	 * Append an element to an array in cookies
-	 *
-	 * @param {string} name
-	 * @param {string} value
-	 */
-	addCookieValue: function(name, value) {
-
-		var array = getCookieValue(name);
-
-		array.push(value.toString());
-
-		setCookieValue(name, array);
-
-	},
-
-	/**
-	 * Remove an element from an array in cookies
-	 *
-	 * @param {string} name
-	 * @param {string} value
-	 */
-	removeCookieValue: function(name, value) {
-
-		var array = getCookieValue(name);
-
-		array = array.filter(function(item) {
-			return item !== value;
-		});
-
-		setCookieValue(name, array);
-
-	},
-
-	/**
-	 * Check if an array in cookies contains a value
-	 *
-	 * @param name
-	 * @param value
-	 *
-	 * @returns {boolean}
-	 */
-	hasCookieValue: function(name, value) {
-
-		var array = getCookieValue(name);
-
-		return (array.indexOf(value) !== -1);
-
-	}
 
 };
 

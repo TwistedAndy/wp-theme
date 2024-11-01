@@ -106,7 +106,7 @@ function blocks() {
 		.pipe(inject.prepend(strings.join("\n") + "\n"))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
-		.pipe(replace('../', '../../'))
+		.pipe(replace('url(../images/', 'url(../../images/'))
 		.pipe(sourcemaps.write('./', options.sourcemaps.blocks))
 		.pipe(gulp.dest(folders.blocks));
 }

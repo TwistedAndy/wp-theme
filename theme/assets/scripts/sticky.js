@@ -1,22 +1,41 @@
 Twee.addModule('sticky', 'html', function($) {
 
-	let elements = $('.header_box.is_sticky'),
+	let elements = document.querySelectorAll('.header_box.is_sticky'),
 		header = $('.header_box').get(0);
 
 	function handleScroll() {
 
-		let topBar = 0,
+		let scroll = 0,
+			topBar = 0,
 			bottomBar = 0,
 			itemsTop = [],
 			itemsBottom = [];
 
-		elements.each(function() {
+		if (document.body.classList.contains('admin-bar')) {
 
-			let element = this,
-				styles = window.getComputedStyle(element, null),
+			let width = window.innerWidth;
+
+			if (width <= 782 && width >= 600) {
+				topBar += 46;
+			} else if (width > 782) {
+				topBar += 32;
+			}
+
+			scroll = topBar;
+
+		}
+
+		elements.forEach(function(element) {
+
+			let styles = window.getComputedStyle(element, null),
 				position = styles.getPropertyValue('position'),
 				bottom = styles.getPropertyValue('bottom'),
-				top = styles.getPropertyValue('top');
+				top = styles.getPropertyValue('top'),
+				rect = element.getBoundingClientRect();
+
+			if (rect.height > 0 && top.indexOf('px') !== -1) {
+				scroll += rect.height;
+			}
 
 			if (position !== 'fixed' && position !== 'sticky') {
 				return;
@@ -24,7 +43,7 @@ Twee.addModule('sticky', 'html', function($) {
 
 			let data = {
 				element: element,
-				rect: this.getBoundingClientRect(),
+				rect: rect,
 				top: false,
 				bottom: false
 			};
@@ -115,6 +134,7 @@ Twee.addModule('sticky', 'html', function($) {
 
 		updateProperty(document.body, '--offset-top', topBar + 'px');
 		updateProperty(document.body, '--offset-bottom', bottomBar + 'px');
+		updateProperty(document.body, '--offset-scroll', scroll + 'px');
 
 		if (header) {
 
@@ -136,8 +156,8 @@ Twee.addModule('sticky', 'html', function($) {
 		}
 	}
 
-	window.addEventListener('scroll', handleScroll);
-	window.addEventListener('load', handleScroll);
+	window.addEventListener('scroll', handleScroll, {passive: true});
+	window.addEventListener('load', handleScroll, {passive: true});
 
 	handleScroll();
 
