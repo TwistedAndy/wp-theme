@@ -13,10 +13,12 @@
  * @param string $type
  * @param string $key
  * @param string $value
+ * @param string $status
+ * @param string $order
  *
  * @return array
  */
-function tw_post_data($type, $key = 'ID', $value = 'post_title', $order = 'p.post_title ASC, p.ID ASC') {
+function tw_post_data($type, $key = 'ID', $value = 'post_title', $status = '', $order = 'p.post_title ASC, p.ID ASC') {
 
 	$cache_key = 'posts_' . $key;
 	$cache_group = 'twee_posts_' . $type;
@@ -34,6 +36,18 @@ function tw_post_data($type, $key = 'ID', $value = 'post_title', $order = 'p.pos
 		}
 	}
 
+	if ($status) {
+		$cache_key .= '_' . $status;
+	}
+
+	if (is_string($order) and $order != 'p.post_title ASC, p.ID ASC') {
+		$cache_key .= '_' . crc32($order);
+	}
+
+	if (!is_string($order) or empty($order)) {
+		$order = 'p.ID ASC';
+	}
+
 	$data = wp_cache_get($cache_key, $cache_group);
 
 	if (is_array($data)) {
@@ -46,11 +60,24 @@ function tw_post_data($type, $key = 'ID', $value = 'post_title', $order = 'p.pos
 
 	$select = esc_sql($select);
 
-	if (!is_string($order) or empty($order)) {
-		$order = 'p.ID ASC';
+	if ($status) {
+
+		$status = esc_sql($status);
+
+		if (strpos($status, ',') > 0) {
+			$parts = array_map('trim', explode(',', $status));
+			$where = " AND p.post_status IN ('" . implode("','", $parts) . "')";
+		} else {
+			$where = " AND p.post_status = '{$status}'";
+		}
+
+	} else {
+
+		$where = '';
+
 	}
 
-	$rows = $db->get_results($db->prepare("SELECT {$select} FROM {$db->posts} p WHERE p.post_type = %s ORDER BY %s", $type, $order), ARRAY_A);
+	$rows = $db->get_results($db->prepare("SELECT {$select} FROM {$db->posts} p WHERE p.post_type = %s" . $where . " ORDER BY %s", $type, $order), ARRAY_A);
 
 	if ($rows) {
 

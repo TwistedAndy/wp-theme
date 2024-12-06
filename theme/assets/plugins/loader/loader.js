@@ -1,6 +1,6 @@
 Twee.addModule('loader', 'html', function($, container) {
 
-	container.on('click', '[data-loader]', function() {
+	container.find('[data-loader]').each(function() {
 
 		var button = $(this),
 			data = button.data('loader'),

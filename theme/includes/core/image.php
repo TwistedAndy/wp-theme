@@ -8,6 +8,12 @@
  */
 
 /**
+ * Clear cached thumbnails on image removal
+ */
+add_action('delete_attachment', 'tw_image_clear');
+
+
+/**
  * Get the thumbnail with given size
  *
  * @param int|array|WP_Post $image      A post object, ACF image array, or an attachment ID
@@ -380,7 +386,7 @@ function tw_image_link($image, $size = 'full', $base_url = false) {
 			$path = 'assets/images/' . $image;
 
 			if (file_exists(TW_ROOT . $path)) {
-				$thumb_url = tw_image_resize(TW_URL . $path, $size);
+				$thumb_url = tw_image_resize(TW_URL . $path, $size, 0, $base_url);
 			}
 
 		}
@@ -833,5 +839,39 @@ function tw_image_sizes($sizes = []) {
 	}
 
 	return $data;
+
+}
+
+
+/**
+ * Clear cached thumbnails
+ *
+ * @param int $image_id
+ *
+ * @return void
+ */
+function tw_image_clear($image_id) {
+
+	$dir = wp_upload_dir();
+
+	$base = $dir['basedir'] . '/cache/';
+
+	$folders = array_diff(scandir($base), ['..', '.', 'logs']);
+
+	foreach ($folders as $folder) {
+
+		if (strpos($folder, 'thumbs_') === false or !(is_dir($base . $folder))) {
+			continue;
+		}
+
+		$files = scandir($base . $folder);
+
+		foreach ($files as $file) {
+			if (strpos($file, $image_id . '_') === 0 and is_readable($base . $folder . '/' . $file)) {
+				unlink($base . $folder . '/' . $file);
+			}
+		}
+
+	}
 
 }
