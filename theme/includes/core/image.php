@@ -239,7 +239,7 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 		}
 
 		$data = [];
-		$list = ['loading', 'alt', 'class', 'id', 'width', 'height', 'style', 'srcset', 'sizes', 'decoding'];
+		$list = ['loading', 'alt', 'class', 'id', 'width', 'height', 'style', 'srcset', 'sizes', 'decoding', 'fetchpriority'];
 
 		foreach ($attributes as $key => $attribute) {
 			if (in_array($key, $list) or strpos($key, 'data') === 0) {
@@ -708,6 +708,26 @@ function tw_image_calculate($image_width, $image_height, $thumb_width, $thumb_he
 		}
 
 	} else {
+
+		if (empty($thumb_height)) {
+
+			if (empty($thumb_width) or !is_numeric($thumb_width)) {
+				$thumb_width = $image_width;
+			}
+
+			$thumb_height = $thumb_width / $thumb_ratio;
+
+		}
+
+		if (empty($thumb_width)) {
+
+			if (empty($thumb_height) or !is_numeric($thumb_height)) {
+				$thumb_height = $image_height;
+			}
+
+			$thumb_width = $thumb_height * $thumb_ratio;
+
+		}
 
 		if ($image_ratio < $thumb_ratio) {
 			$thumb_width = $thumb_width * $image_ratio / $thumb_ratio;
