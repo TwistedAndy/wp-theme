@@ -32,6 +32,10 @@ if (!empty($block['title']) or !empty($block['caption']) or !empty($block['text'
 		</div>
 	<?php } ?>
 
+	<?php if (!empty($block['middle'])) { ?>
+		<?php echo $block['middle']; ?>
+	<?php } ?>
+
 	<?php if (!empty($block['buttons'])) { ?>
 		<?php echo tw_block_buttons($block['buttons']); ?>
 	<?php } ?>

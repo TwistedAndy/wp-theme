@@ -1,5 +1,7 @@
 <?php
 
+global $wp_query;
+
 $object = get_queried_object();
 
 $blocks = get_field('blocks', $object);
@@ -20,19 +22,39 @@ if (empty($blocks)) {
 
 	}
 
-	$blocks[] = [
-		'acf_fc_layout' => 'posts',
-		'contents' => [
-			'title' => $title,
-			'tag' => 'h1',
-			'text' => $text
-		],
-		'options' => ['current'],
-		'template' => 'post',
-		'settings' => [
-			'background' => 'default'
-		]
-	];
+	if ($wp_query instanceof WP_Query and $wp_query->is_search() and empty($wp_query->posts)) {
+
+		$blocks[] = [
+			'acf_fc_layout' => 'message',
+			'image' => 'pic_search.svg',
+			'search' => true,
+			'contents' => [
+				'title' => __('No results found', 'twee'),
+				'tag' => 'h2',
+				'text' => __("Sorry, we couldn't find what you are looking for.", 'twee'),
+			],
+			'settings' => [
+				'background' => 'default'
+			]
+		];
+
+	} else {
+
+		$blocks[] = [
+			'acf_fc_layout' => 'posts',
+			'contents' => [
+				'title' => $title,
+				'tag' => 'h1',
+				'text' => $text
+			],
+			'options' => ['current'],
+			'template' => 'post',
+			'settings' => [
+				'background' => 'default'
+			]
+		];
+
+	}
 
 }
 
