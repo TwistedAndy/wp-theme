@@ -35,229 +35,227 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 	$thumb = tw_image_link($image, $size, $base_url);
 
 	if ($thumb) {
+		return '';
+	}
 
-		$link_href = false;
-		$link_image_size = false;
+	$link_href = false;
+	$link_image_size = false;
 
-		if (!empty($attributes['link'])) {
+	if (!empty($attributes['link'])) {
 
-			if ($attributes['link'] == 'url' and $image instanceof WP_Post) {
+		if ($attributes['link'] == 'url' and $image instanceof WP_Post) {
 
-				$link_href = get_permalink($image);
+			$link_href = get_permalink($image);
 
-			} else {
-
-				$sizes = tw_image_sizes();
-
-				$sizes = $sizes['registered'];
-
-				if (is_array($attributes['link']) or $attributes['link'] == 'full' or !empty($sizes[$attributes['link']])) {
-					$link_image_size = $attributes['link'];
-				} else {
-					$link_href = $attributes['link'];
-				}
-
-			}
-
-			if ($link_href and empty($base_url)) {
-				$link_href = str_replace(TW_HOME, '', $link_href);
-			}
-
-		}
-
-		if ($image instanceof WP_Post) {
-
-			if (empty($attributes['alt'])) {
-				$attributes['alt'] = $image->post_title;
-			}
-
-			if ($image->post_type === 'attachment') {
-				$image = $image->ID;
-			} else {
-				$image = get_post_meta($image->ID, '_thumbnail_id', true);
-			}
-
-		} elseif (is_array($image) and !empty($image['id'])) {
-
-			$image = $image['id'];
-
-		}
-
-		if (is_numeric($image)) {
-
-			$alt = (string) get_post_meta($image, '_wp_attachment_image_alt', true);
-
-			if ($alt) {
-				$attributes['alt'] = $alt;
-			}
-
-		}
-
-		if (empty($attributes['alt'])) {
-			$attributes['alt'] = '';
-		}
-
-		if ($link_image_size and empty($link_href)) {
-			$link_href = tw_image_link($image, $link_image_size, $base_url);
-		}
-
-		if ($link_href) {
-
-			$link_class = '';
-
-			if (!empty($attributes['link_class'])) {
-				$link_class = ' class="' . $attributes['link_class'] . '"';
-			}
-
-			$before = $before . '<a href="' . esc_url($link_href) . '"' . $link_class . ' title="' . esc_attr($attributes['alt']) . '">';
-			$after = '</a>' . $after;
-
-		}
-
-		if (!isset($attributes['loading']) or (is_bool($attributes['loading'])) and $attributes['loading']) {
-			$attributes['loading'] = 'lazy';
 		} else {
-			unset($attributes['loading']);
-		}
 
-		if (!isset($attributes['decoding']) and !empty($attributes['loading'])) {
-			$attributes['decoding'] = 'async';
-		}
+			$sizes = tw_image_sizes();
 
-		if (!empty($attributes['before'])) {
-			$before = $before . $attributes['before'];
-		}
+			$sizes = $sizes['registered'];
 
-		if (!empty($attributes['after'])) {
-			$after = $attributes['after'] . $after;
-		}
-
-		if (empty($attributes['width']) or empty($attributes['height'])) {
-
-			$data = tw_image_size($size, $image);
-
-			if ($data['width'] > 0 and $data['height'] > 0) {
-				$attributes['width'] = round($data['width']);
-				$attributes['height'] = round($data['height']);
+			if (is_array($attributes['link']) or $attributes['link'] == 'full' or !empty($sizes[$attributes['link']])) {
+				$link_image_size = $attributes['link'];
+			} else {
+				$link_href = $attributes['link'];
 			}
 
 		}
 
-		if (!empty($attributes['srcset']) and is_array($attributes['srcset'])) {
-
-			$srcset = [];
-
-			$attributes['srcset'][] = $size;
-
-			$attributes['srcset'] = array_unique($attributes['srcset']);
-
-			foreach ($attributes['srcset'] as $src_size) {
-
-				$data = tw_image_size($src_size, $image);
-
-				if ($data['width'] > 0) {
-					$srcset[] = tw_image_link($image, $src_size, $base_url) . ' ' . round($data['width']) . 'w';
-				}
-
-			}
-
-			$attributes['srcset'] = implode(', ', $srcset);
-
-			if (!empty($attributes['sizes']) and is_array($attributes['sizes'])) {
-
-				$breakpoints = [
-					'ps' => 420,
-					'pl' => 480,
-					'ts' => 640,
-					'tl' => 768,
-					'ds' => 1024,
-					'dl' => 1360,
-					'dt' => 3840
-				];
-
-				$queries = [];
-
-				foreach ($attributes['sizes'] as $breakpoint => $value) {
-
-					$screen = 0;
-					$width = '';
-
-					if (strpos($value, 'px') > 0) {
-						$width = $value;
-					} elseif (is_numeric($value)) {
-						if ($value > 100) {
-							$width = $value . 'px';
-						} else {
-							$width = $value . 'vw';
-						}
-					} elseif (is_string($value)) {
-						$width = $value;
-					}
-
-					if (empty($width)) {
-						continue;
-					}
-
-					if (is_numeric($breakpoint)) {
-						$screen = $breakpoint;
-					} elseif (!empty($breakpoints[$breakpoint]) and is_numeric($breakpoints[$breakpoint])) {
-						$screen = $breakpoints[$breakpoint];
-					}
-
-					if ($screen < 320) {
-						continue;
-					}
-
-					$queries[$screen] = $width;
-
-				}
-
-				if ($queries) {
-
-					$sizes = [];
-
-					ksort($queries);
-
-					foreach ($queries as $screen => $width) {
-						$sizes[] = '(max-width: ' . $screen . 'px) ' . $width;
-					}
-
-					$attributes['sizes'] = implode(', ', $sizes);
-
-				}
-
-			}
-
+		if ($link_href and empty($base_url)) {
+			$link_href = str_replace(TW_HOME, '', $link_href);
 		}
-
-		if (empty($attributes['srcset'])) {
-			unset($attributes['srcset']);
-		}
-
-		if (empty($attributes['sizes'])) {
-			unset($attributes['sizes']);
-		}
-
-		$data = [];
-		$list = ['loading', 'alt', 'class', 'id', 'width', 'height', 'style', 'srcset', 'sizes', 'decoding', 'fetchpriority'];
-
-		foreach ($attributes as $key => $attribute) {
-			if (in_array($key, $list) or strpos($key, 'data') === 0) {
-				$data[] = $key . '="' . esc_attr($attribute) . '"';
-			}
-		}
-
-		if ($data) {
-			$data = ' ' . implode(' ', $data);
-		} else {
-			$data = '';
-		}
-
-		$thumb = $before . '<img src="' . $thumb . '"' . $data . ' />' . $after;
 
 	}
 
-	return $thumb;
+	if ($image instanceof WP_Post) {
+
+		if (empty($attributes['alt'])) {
+			$attributes['alt'] = $image->post_title;
+		}
+
+		if ($image->post_type === 'attachment') {
+			$image = $image->ID;
+		} else {
+			$image = get_post_meta($image->ID, '_thumbnail_id', true);
+		}
+
+	} elseif (is_array($image) and !empty($image['id'])) {
+
+		$image = $image['id'];
+
+	}
+
+	if (is_numeric($image)) {
+
+		$alt = (string) get_post_meta($image, '_wp_attachment_image_alt', true);
+
+		if ($alt) {
+			$attributes['alt'] = $alt;
+		}
+
+	}
+
+	if (empty($attributes['alt'])) {
+		$attributes['alt'] = '';
+	}
+
+	if ($link_image_size and empty($link_href)) {
+		$link_href = tw_image_link($image, $link_image_size, $base_url);
+	}
+
+	if ($link_href) {
+
+		$link_class = '';
+
+		if (!empty($attributes['link_class'])) {
+			$link_class = ' class="' . $attributes['link_class'] . '"';
+		}
+
+		$before = $before . '<a href="' . esc_url($link_href) . '"' . $link_class . ' title="' . esc_attr($attributes['alt']) . '">';
+		$after = '</a>' . $after;
+
+	}
+
+	if (!isset($attributes['loading']) or (is_bool($attributes['loading'])) and $attributes['loading']) {
+		$attributes['loading'] = 'lazy';
+	} else {
+		unset($attributes['loading']);
+	}
+
+	if (!isset($attributes['decoding']) and !empty($attributes['loading'])) {
+		$attributes['decoding'] = 'async';
+	}
+
+	if (!empty($attributes['before'])) {
+		$before = $before . $attributes['before'];
+	}
+
+	if (!empty($attributes['after'])) {
+		$after = $attributes['after'] . $after;
+	}
+
+	if (empty($attributes['width']) or empty($attributes['height'])) {
+
+		$data = tw_image_size($size, $image);
+
+		if ($data['width'] > 0 and $data['height'] > 0) {
+			$attributes['width'] = round($data['width']);
+			$attributes['height'] = round($data['height']);
+		}
+
+	}
+
+	if (!empty($attributes['srcset']) and is_array($attributes['srcset'])) {
+
+		$srcset = [];
+
+		$attributes['srcset'][] = $size;
+
+		$attributes['srcset'] = array_unique($attributes['srcset']);
+
+		foreach ($attributes['srcset'] as $src_size) {
+
+			$data = tw_image_size($src_size, $image);
+
+			if ($data['width'] > 0) {
+				$srcset[] = tw_image_link($image, $src_size, $base_url) . ' ' . round($data['width']) . 'w';
+			}
+
+		}
+
+		$attributes['srcset'] = implode(', ', $srcset);
+
+		if (!empty($attributes['sizes']) and is_array($attributes['sizes'])) {
+
+			$breakpoints = [
+				'ps' => 420,
+				'pl' => 480,
+				'ts' => 640,
+				'tl' => 768,
+				'ds' => 1024,
+				'dl' => 1360,
+				'dt' => 3840
+			];
+
+			$queries = [];
+
+			foreach ($attributes['sizes'] as $breakpoint => $value) {
+
+				$screen = 0;
+				$width = '';
+
+				if (strpos($value, 'px') > 0) {
+					$width = $value;
+				} elseif (is_numeric($value)) {
+					if ($value > 100) {
+						$width = $value . 'px';
+					} else {
+						$width = $value . 'vw';
+					}
+				} elseif (is_string($value)) {
+					$width = $value;
+				}
+
+				if (empty($width)) {
+					continue;
+				}
+
+				if (is_numeric($breakpoint)) {
+					$screen = $breakpoint;
+				} elseif (!empty($breakpoints[$breakpoint]) and is_numeric($breakpoints[$breakpoint])) {
+					$screen = $breakpoints[$breakpoint];
+				}
+
+				if ($screen < 320) {
+					continue;
+				}
+
+				$queries[$screen] = $width;
+
+			}
+
+			if ($queries) {
+
+				$sizes = [];
+
+				ksort($queries);
+
+				foreach ($queries as $screen => $width) {
+					$sizes[] = '(max-width: ' . $screen . 'px) ' . $width;
+				}
+
+				$attributes['sizes'] = implode(', ', $sizes);
+
+			}
+
+		}
+
+	}
+
+	if (empty($attributes['srcset'])) {
+		unset($attributes['srcset']);
+	}
+
+	if (empty($attributes['sizes'])) {
+		unset($attributes['sizes']);
+	}
+
+	$data = [];
+	$list = ['loading', 'alt', 'class', 'id', 'width', 'height', 'style', 'srcset', 'sizes', 'decoding', 'fetchpriority'];
+
+	foreach ($attributes as $key => $attribute) {
+		if (in_array($key, $list) or strpos($key, 'data') === 0) {
+			$data[] = $key . '="' . esc_attr($attribute) . '"';
+		}
+	}
+
+	if ($data) {
+		$data = ' ' . implode(' ', $data);
+	} else {
+		$data = '';
+	}
+
+	return $before . '<img src="' . $thumb . '"' . $data . ' />' . $after;
 
 }
 
@@ -415,20 +413,18 @@ function tw_image_attribute($image, $size = 'full', $property = '--mask-image', 
 
 	$link = tw_image_link($image, $size, $base_url);
 
-	$attribute = '';
+	if (empty($link)) {
+		return '';
+	}
 
-	if ($link) {
+	if ($property) {
+		$attribute = $property . ': url(' . esc_attr($link) . ');';
+	} else {
+		$attribute = 'background-image: url(' . esc_attr($link) . ');';
+	}
 
-		if ($property) {
-			$attribute = $property . ': url(' . esc_attr($link) . ');';
-		} else {
-			$attribute = 'background-image: url(' . esc_attr($link) . ');';
-		}
-
-		if ($style) {
-			$attribute = ' style="' . $attribute . '"';
-		}
-
+	if ($style) {
+		$attribute = ' style="' . $attribute . '"';
 	}
 
 	return $attribute;
@@ -568,6 +564,10 @@ function tw_image_resize($image_url, $size, $image_id = 0, $base_url = false) {
 				}
 
 				$filename = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id_string . $matches[1] . $url_hash . $crop_hash . '.webp';
+
+				if (!is_dir($upload_dir . '/cache/')) {
+					mkdir($upload_dir . '/cache/', 0755, true);
+				}
 
 				if (!is_file($upload_dir . $filename)) {
 					$filename = str_replace('.webp', '.' . $matches[2], $filename);
@@ -875,6 +875,10 @@ function tw_image_clear($image_id) {
 	$dir = wp_upload_dir();
 
 	$base = $dir['basedir'] . '/cache/';
+
+	if (!is_dir($base)) {
+		return;
+	}
 
 	$folders = array_diff(scandir($base), ['..', '.', 'logs']);
 
