@@ -34,7 +34,7 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 
 	$thumb = tw_image_link($image, $size, $base_url);
 
-	if ($thumb) {
+	if (empty($thumb)) {
 		return '';
 	}
 

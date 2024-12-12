@@ -330,31 +330,71 @@ function tw_asset_register($assets) {
  * Enqueue one or a few assets
  *
  * @param string[]|string $name
+ * @param bool            $instant
  *
  * @return void
  */
-function tw_asset_enqueue($name) {
+function tw_asset_enqueue($name, $instant = false) {
 
-	$enqueued = tw_app_get('enqueued', 'assets', []);
-	$registered = tw_app_get('registered', 'assets', []);
+	$assets_registered = tw_app_get('registered', 'assets', []);
 
-	if (is_string($name) and isset($registered[$name])) {
-
-		$enqueued[] = $name;
-
-		tw_app_set('enqueued', array_unique($enqueued), 'assets');
-
-	} elseif (is_array($name)) {
-
+	if (is_array($name)) {
 		foreach ($name as $asset_name) {
-			if (is_string($asset_name) and isset($registered[$asset_name])) {
-				$enqueued[] = $asset_name;
-			}
+			tw_asset_enqueue($asset_name, $instant);
+		}
+	}
+
+	if (!is_string($name) or empty($assets_registered[$name]) or !is_array($assets_registered[$name])) {
+		return;
+	}
+
+	$assets_enqueued = tw_app_get('enqueued', 'assets', []);
+
+	if ($instant) {
+
+		$assets_localized = tw_app_get('localized', 'assets', []);
+
+		$asset = $assets_registered[$name];
+
+		if (!empty($asset['prefix'])) {
+			$asset_name = $asset['prefix'] . $name;
+		} else {
+			$asset_name = $name;
 		}
 
-		tw_app_set('enqueued', array_unique($enqueued), 'assets');
+		if (!empty($asset['localize'])) {
+
+			if (is_callable($asset['localize'])) {
+				$asset['localize'] = call_user_func($asset['localize']);
+			}
+
+			if (!empty($asset['object'])) {
+				$object = $asset['object'];
+			} else {
+				$object = $asset_name;
+			}
+
+			if (is_array($asset['localize']) and !in_array($name, $assets_localized)) {
+				$assets_localized[] = $name;
+				tw_app_set('localized', $assets_localized, 'assets');
+				wp_localize_script($asset_name, $object, $asset['localize']);
+			}
+
+		}
+
+		if (wp_script_is($asset_name, 'registered')) {
+			wp_enqueue_script($asset_name);
+		}
+
+		if (wp_style_is($asset_name, 'registered')) {
+			wp_enqueue_style($asset_name);
+		}
 
 	}
+
+	$assets_enqueued[] = $name;
+
+	tw_app_set('enqueued', array_unique($assets_enqueued), 'assets');
 
 }
 
