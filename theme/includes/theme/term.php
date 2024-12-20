@@ -757,8 +757,6 @@ function tw_term_flatten_tree($tree) {
 function tw_term_clear_cache($taxonomy) {
 	tw_app_clear('twee_terms');
 	tw_app_clear('twee_terms_' . $taxonomy);
-	wp_cache_flush_group('twee_terms');
-	wp_cache_flush_group('twee_terms_' . $taxonomy);
 }
 
 

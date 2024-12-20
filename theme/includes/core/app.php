@@ -141,7 +141,7 @@ function tw_app_get($key, $group = 'default', $default = null) {
 /**
  * Clear a runtime cache group
  *
- * @param $group
+ * @param string $group
  *
  * @return void
  */
@@ -151,6 +151,12 @@ function tw_app_clear($group) {
 
 	if (isset($twee_cache[$group])) {
 		unset($twee_cache[$group]);
+	}
+
+	if (wp_cache_supports('flush_group')) {
+		wp_cache_flush_group($group);
+	} else {
+		wp_cache_flush();
 	}
 
 }

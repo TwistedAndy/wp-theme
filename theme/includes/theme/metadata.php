@@ -109,7 +109,6 @@ function tw_metadata_clean($meta_type, $meta_key, $object_id) {
 
 		wp_cache_delete($cache_key, $cache_group);
 		wp_cache_delete($cache_key . '_decoded', $cache_group);
-		wp_cache_flush_group($cache_group . '_' . $object_id);
 
 	}
 

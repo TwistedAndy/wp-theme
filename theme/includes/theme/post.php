@@ -415,7 +415,6 @@ function tw_post_clear_cache($post_id, $post) {
 	if ($post instanceof WP_Post) {
 		$cache_group = 'twee_posts_' . $post->post_type;
 		tw_app_clear($cache_group);
-		wp_cache_flush_group($cache_group);
 	}
 }
 
@@ -429,5 +428,4 @@ add_action('delete_post', 'tw_post_clear_cache', 10, 2);
 add_action('set_object_terms', function($object_id, $terms, $ids, $taxonomy) {
 	$cache_group = 'twee_post_terms_' . $taxonomy;
 	tw_app_clear($cache_group);
-	wp_cache_flush_group($cache_group);
 }, 10, 4);

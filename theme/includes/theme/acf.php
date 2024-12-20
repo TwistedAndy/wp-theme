@@ -1379,6 +1379,5 @@ add_action('save_post', function($object_id) {
 add_action('acf/save_post', function($post_id) {
 	if ($post_id == 'option' or $post_id == 'options') {
 		tw_app_clear('twee_meta_option');
-		wp_cache_flush_group('twee_meta_option');
 	}
 }, 10, 2);
