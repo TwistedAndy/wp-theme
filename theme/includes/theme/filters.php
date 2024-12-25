@@ -170,6 +170,16 @@ add_filter('use_widgets_block_editor', '__return_false');
 
 
 /**
+ * Fix the pagination links
+ */
+add_filter('paginate_links_output', function($links) {
+
+	return str_replace(['/page/1/"', '/page/1"', '/page/1/?', '/page/1?'], ['/"', '"', '/?', '?'], $links);
+
+});
+
+
+/**
  * Add all public terms to the links field
  */
 add_action('wp_link_query', function($results, $query) {

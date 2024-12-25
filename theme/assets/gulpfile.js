@@ -3,10 +3,9 @@ let fs = require('fs'),
 	sass = require('gulp-sass'),
 	notify = require('gulp-notify'),
 	concat = require('gulp-concat'),
-	replace = require('gulp-replace'),
 	plumber = require('gulp-plumber'),
 	sourcemaps = require('gulp-sourcemaps'),
-	inject = require('gulp-inject-string'),
+	insert = require('gulp-insert'),
 	uglify = require('gulp-uglify-es').default;
 
 if (typeof sass.compiler === 'undefined') {
@@ -79,34 +78,21 @@ function theme() {
 
 function blocks() {
 
-	let files = fs.readdirSync('./styles/elements/'),
-		folder = '../elements/',
-		strings = [
-			"@import '../includes/variables';",
-			"@import '../includes/mixins';",
-			"@import '../includes/colors';"
-		],
-		exclude = [
-			'content.scss',
-			'carousel.scss',
-			'select2.scss',
-		]
-
-	files.forEach(function(file) {
-		if (exclude.indexOf(file) === -1) {
-			strings.push("@import '" + folder + file + "';");
-		}
-	});
+	const elements = searchElements();
 
 	return gulp.src(sources.blocks, {
 			base: './styles/blocks',
 			since: gulp.lastRun(blocks)
 		})
 		.pipe(plumber(options.plumber))
-		.pipe(inject.prepend(strings.join("\n") + "\n"))
+		.pipe(insert.transform(function(contents, file) {
+			return injectImports(contents, elements);
+		}))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
-		.pipe(replace('url(../images/', 'url(../../images/'))
+		.pipe(insert.transform(function(contents, file) {
+			return contents.replaceAll('url(../images/', 'url(../../images/');
+		}))
 		.pipe(sourcemaps.write('./', options.sourcemaps.blocks))
 		.pipe(gulp.dest(folders.blocks));
 }
@@ -130,6 +116,88 @@ function scripts() {
 		.pipe(uglify())
 		.pipe(sourcemaps.write('./', options.sourcemaps.scripts))
 		.pipe(gulp.dest(folders.build));
+}
+
+/**
+ * Additional functions
+ *
+ * @param {string} contents
+ * @param {object} elements
+ *
+ * @returns {string}
+ */
+function injectImports(contents, elements) {
+
+	let requiredImports = [],
+		importRegex = /@import '?(\.\.\/[\w\-]+\/[\w\-]+)(.scss)?'?;/g,
+		elementRegex = /@extend\s+(%[\w\-]+);/g;
+
+	let existingImports = Array.from(contents.matchAll(importRegex), match => match[1]),
+		existingElements = Array.from(contents.matchAll(elementRegex), match => match[1]);
+
+	if (contents.indexOf('@include') !== -1) {
+		requiredImports.push('../includes/variables');
+		requiredImports.push('../includes/mixins');
+	} else if (contents.indexOf('$') !== -1) {
+		requiredImports.push('../includes/variables');
+	}
+
+	existingElements.forEach(element => {
+		if (elements[element] && requiredImports.indexOf(elements[element]) === -1) {
+			requiredImports.push(elements[element]);
+		}
+	});
+
+	requiredImports = requiredImports.filter(function(value, index, array) {
+		return array.indexOf(value) === index;
+	});
+
+	let addImports = requiredImports.filter(link => existingImports.indexOf(link) === -1),
+		removeImports = existingImports.filter(link => requiredImports.indexOf(link) === -1);
+
+	if (addImports.length > 0 || removeImports.length > 0 || requiredImports.length !== existingImports.length) {
+
+		existingImports.forEach(link => {
+			contents = contents.replaceAll('@import \'' + link + '\';', '');
+		});
+
+		contents = contents.trim();
+
+		contents = requiredImports.map(link => {
+			return '@import \'' + link + '\';';
+		}).join('\n') + '\n' + contents;
+
+	}
+
+	return contents;
+
+}
+
+/**
+ * Get a list of elements with paths
+ *
+ * @returns {object}
+ */
+function searchElements() {
+
+	let elementsFolder = './styles/elements/',
+		elementMap = {};
+
+	fs.readdirSync(elementsFolder).forEach(function(file) {
+
+		let data = fs.readFileSync(elementsFolder + file, 'utf8'),
+			regex = /(%[\w\-]+)\s*{/g;
+
+		let results = Array.from(data.matchAll(regex), match => match[1]);
+
+		results.forEach(match => {
+			elementMap[match] = '../elements/' + file.replace('.scss', '');
+		});
+
+	});
+
+	return elementMap;
+
 }
 
 /**
