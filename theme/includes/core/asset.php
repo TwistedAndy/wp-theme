@@ -188,7 +188,6 @@ add_action('wp_footer', 'tw_asset_print', 100);
 function tw_asset_print() {
 
 	$assets_registered = tw_app_get('registered', 'assets', []);
-	$assets_localized = tw_app_get('localized', 'assets', []);
 	$assets_enqueued = tw_app_get('enqueued', 'assets', []);
 	$assets_printed = tw_app_get('printed', 'assets', []);
 
@@ -239,31 +238,8 @@ function tw_asset_print() {
 				$asset_name = $name;
 			}
 
-			if (!empty($asset['localize'])) {
-
-				if (is_callable($asset['localize'])) {
-					$asset['localize'] = call_user_func($asset['localize']);
-				}
-
-				if (!empty($asset['object'])) {
-					$object = $asset['object'];
-				} else {
-					$object = $name;
-				}
-
-				if (is_array($asset['localize']) and !in_array($name, $assets_localized)) {
-					wp_localize_script($asset_name, $object, $asset['localize']);
-					$assets_localized[] = $name;
-				}
-
-			}
-
-			if (!empty($asset['deps'])) {
-				if (empty($asset['style']) and !empty($asset['deps']['style'])) {
-					$print_styles = array_merge($print_styles, $asset['deps']['style']);
-				} elseif (empty($asset['script']) and !empty($asset['deps']['script'])) {
-					$print_scripts = array_merge($print_scripts, $asset['deps']['script']);
-				}
+			if (!empty($asset['localize']) or (!empty($asset['deps']) and !empty($asset['deps']['script']))) {
+				tw_asset_localize($name);
 			}
 
 			$name = $asset_name;
@@ -284,7 +260,6 @@ function tw_asset_print() {
 
 	}
 
-	tw_app_set('localized', $assets_localized, 'assets');
 	tw_app_set('printed', $assets_printed, 'assets');
 
 	if ($print_scripts) {
@@ -352,8 +327,6 @@ function tw_asset_enqueue($name, $instant = false) {
 
 	if ($instant) {
 
-		$assets_localized = tw_app_get('localized', 'assets', []);
-
 		$asset = $assets_registered[$name];
 
 		if (!empty($asset['prefix'])) {
@@ -362,24 +335,8 @@ function tw_asset_enqueue($name, $instant = false) {
 			$asset_name = $name;
 		}
 
-		if (!empty($asset['localize'])) {
-
-			if (is_callable($asset['localize'])) {
-				$asset['localize'] = call_user_func($asset['localize']);
-			}
-
-			if (!empty($asset['object'])) {
-				$object = $asset['object'];
-			} else {
-				$object = $asset_name;
-			}
-
-			if (is_array($asset['localize']) and !in_array($name, $assets_localized)) {
-				$assets_localized[] = $name;
-				tw_app_set('localized', $assets_localized, 'assets');
-				wp_localize_script($asset_name, $object, $asset['localize']);
-			}
-
+		if (!empty($asset['localize']) or (!empty($asset['deps']) and !empty($asset['deps']['script']))) {
+			tw_asset_localize($name);
 		}
 
 		if (wp_script_is($asset_name, 'registered')) {
@@ -395,6 +352,86 @@ function tw_asset_enqueue($name, $instant = false) {
 	$assets_enqueued[] = $name;
 
 	tw_app_set('enqueued', array_unique($assets_enqueued), 'assets');
+
+}
+
+
+/**
+ * Localize an asset
+ *
+ * @param string $name
+ *
+ * @return void
+ */
+function tw_asset_localize($name) {
+
+	$assets_registered = tw_app_get('registered', 'assets', []);
+	$assets_localized = tw_app_get('localized', 'assets', []);
+	$assets_map = tw_app_get('map', 'assets', false);
+
+	if (!is_array($assets_map)) {
+
+		$assets_map = [];
+
+		foreach ($assets_registered as $key => $asset) {
+			if (!empty($asset['prefix'])) {
+				$assets_map[$asset['prefix'] . $key] = $key;
+			} else {
+				$assets_map[$key] = $key;
+			}
+		}
+
+		tw_app_set('map', $assets_map, 'assets');
+
+	}
+
+	if (!empty($assets_map[$name])) {
+		$name = $assets_map[$name];
+	}
+
+	if (in_array($name, $assets_localized)) {
+		return;
+	}
+
+	if (empty($assets_registered[$name])) {
+		return;
+	}
+
+	$asset = $assets_registered[$name];
+
+	if (!empty($asset['prefix'])) {
+		$asset_name = $asset['prefix'] . $name;
+	} else {
+		$asset_name = $name;
+	}
+
+	if (!empty($asset['deps']) and !empty($asset['deps']['script'])) {
+		foreach ($asset['deps']['script'] as $dependency) {
+			tw_asset_localize($dependency);
+		}
+	}
+
+	if (!is_array($asset) or empty($asset['localize'])) {
+		$assets_localized[] = $name;
+		tw_app_set('localized', $assets_localized, 'assets');
+		return;
+	}
+
+	if (is_callable($asset['localize'])) {
+		$asset['localize'] = call_user_func($asset['localize']);
+	}
+
+	if (!empty($asset['object'])) {
+		$object = $asset['object'];
+	} else {
+		$object = $asset_name;
+	}
+
+	if (is_array($asset['localize']) and wp_script_is($asset_name, 'registered')) {
+		$assets_localized[] = $name;
+		tw_app_set('localized', $assets_localized, 'assets');
+		wp_localize_script($asset_name, $object, $asset['localize']);
+	}
 
 }
 
@@ -472,85 +509,91 @@ function tw_asset_normalize($asset) {
 
 	}
 
-	if (!empty($asset['deps'])) {
+	if (empty($asset['deps'])) {
+		return $asset;
+	}
 
-		if (is_string($asset['deps'])) {
-			$asset['deps'] = [$asset['deps']];
+	if (is_string($asset['deps'])) {
+		$asset['deps'] = [$asset['deps']];
+	}
+
+	if (!is_array($asset['deps'])) {
+		return $asset;
+	}
+
+	$deps = [];
+
+	$assets = tw_app_get('registered', 'assets', []);
+
+	foreach (['script', 'style'] as $type) {
+
+		if (isset($asset['deps'][$type]) and empty($asset['deps'][$type])) {
+			continue;
 		}
 
-		if (is_array($asset['deps'])) {
+		$asset_deps = [];
 
-			$deps = [];
+		if (!empty($asset['deps'][$type])) {
 
-			$assets = tw_app_get('registered', 'assets', []);
+			if (!is_array($asset['deps'][$type])) {
+				$asset['deps'][$type] = [$asset['deps'][$type]];
+			}
 
-			foreach (['script', 'style'] as $type) {
+			if (!empty($asset['deps'][$type][0]) and is_string($asset['deps'][$type][0])) {
+				$asset_deps = $asset['deps'][$type];
+			}
 
-				if (isset($asset['deps'][$type]) and empty($asset['deps'][$type])) {
-					continue;
-				}
+		} else {
 
-				$asset_deps = [];
+			if ($type !== 'script' and !empty($asset['deps']['script']) and is_string($asset['deps']['script'][0])) {
+				$asset_deps = array_merge($asset_deps, $asset['deps']['script']);
+			}
 
-				if (!empty($asset['deps'][$type])) {
+			if ($type !== 'style' and !empty($asset['deps']['style']) and is_string($asset['deps']['style'][0])) {
+				$asset_deps = array_merge($asset_deps, $asset['deps']['style']);
+			}
 
-					if (!is_array($asset['deps'][$type])) {
-						$asset['deps'][$type] = [$asset['deps'][$type]];
-					}
+			if (isset($asset['deps'][0]) and is_string($asset['deps'][0])) {
+				$asset_deps = array_merge($asset_deps, $asset['deps']);
+			}
 
-					if (!empty($asset['deps'][$type][0]) and is_string($asset['deps'][$type][0])) {
-						$asset_deps = $asset['deps'][$type];
-					}
+		}
 
+		foreach ($asset_deps as $dep) {
+
+			if ($assets and !empty($assets[$dep]) and !empty($assets[$dep][$type])) {
+
+				if (isset($assets[$dep]['prefix']) and is_string($assets[$dep]['prefix'])) {
+					$prefix = $assets[$dep]['prefix'];
 				} else {
-
-					if ($type !== 'script' and !empty($asset['deps']['script']) and is_string($asset['deps']['script'][0])) {
-						$asset_deps = array_merge($asset_deps, $asset['deps']['script']);
-					}
-
-					if ($type !== 'style' and !empty($asset['deps']['style']) and is_string($asset['deps']['style'][0])) {
-						$asset_deps = array_merge($asset_deps, $asset['deps']['style']);
-					}
-
-					if (isset($asset['deps'][0]) and is_string($asset['deps'][0])) {
-						$asset_deps = array_merge($asset_deps, $asset['deps']);
-					}
-
+					$prefix = $defaults['prefix'];
 				}
 
-				foreach ($asset_deps as $dep) {
+				$deps[$type][] = $prefix . $dep;
 
-					if ($assets and !empty($assets[$dep]) and !empty($assets[$dep][$type])) {
+			} else {
 
-						if (isset($assets[$dep]['prefix']) and is_string($assets[$dep]['prefix'])) {
-							$prefix = $assets[$dep]['prefix'];
-						} else {
-							$prefix = $defaults['prefix'];
-						}
+				if (!empty($assets[$dep])) {
+					$prefix = $assets[$dep]['prefix'] ?? 'tw_';
+				} else {
+					$prefix = '';
+				}
 
-						$deps[$type][] = $prefix . $dep;
+				if ($type == 'script' and wp_script_is($prefix . $dep, 'registered')) {
+					$deps[$type][] = $dep;
+				}
 
-					} else {
-
-						if ($type == 'script' and wp_script_is($dep, 'registered')) {
-							$deps[$type][] = $dep;
-						}
-
-						if ($type == 'style' and wp_style_is($dep, 'registered')) {
-							$deps[$type][] = $dep;
-						}
-
-					}
-
+				if ($type == 'style' and wp_style_is($prefix . $dep, 'registered')) {
+					$deps[$type][] = $dep;
 				}
 
 			}
 
-			$asset['deps'] = $deps;
-
 		}
 
 	}
+
+	$asset['deps'] = $deps;
 
 	return $asset;
 
