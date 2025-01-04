@@ -118,7 +118,7 @@ function tw_metadata_clean($meta_type, $meta_key, $object_id) {
 /**
  * Clear meta caches
  */
-foreach (['post', 'term', 'post', 'comment'] as $meta_type) {
+foreach (['post', 'term', 'user', 'comment'] as $meta_type) {
 
 	add_action('added_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key) use ($meta_type) {
 		tw_metadata_clean($meta_type, $meta_key, $object_id);
