@@ -15,7 +15,7 @@
 
 	&.is_sticky {
 		position: sticky;
-		top: calc(var(--height-bar) + var(--offset-top));
+		top: var(--offset-top);
 	}
 
 	&.is_fixed {

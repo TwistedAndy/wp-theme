@@ -1,16 +1,12 @@
 .posts_box {
+	--width-item: 33.333%;
 
 	.contents {
 		@extend %contents;
 	}
 
-	.items {
-		@extend %items;
-		--width-item: 33.333%;
-	}
 
 	.item {
-		@extend %item;
 		align-items: flex-start;
 
 		& > :last-child {
@@ -71,19 +67,11 @@
 	}
 
 	@include desktop_small {
-
-		.items {
-			--width-item: 50%;
-		}
-
+		--width-item: 50%;
 	}
 
 	@include phone_small {
-
-		.items {
-			--width-item: 100%;
-		}
-
+		--width-item: 100%;
 	}
 
 }

@@ -5,7 +5,7 @@
 	color: var(--color-text);
 	font-size: var(--size-content);
 	font-weight: 400;
-	line-height: 1.5;
+	line-height: var(--line-content);
 
 	&:last-child {
 		margin-bottom: 0;

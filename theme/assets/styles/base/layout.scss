@@ -119,12 +119,13 @@ section {
 
 	&_light {
 		--gap-section-top: var(--gap-section);
-		@extend %colors_light;
+		--color-section: var(--theme-light-background);
+		--color-background: var(--theme-light-base);
 	}
 
 	&_dark {
 		--gap-section-top: var(--gap-section);
-		@extend %colors_light;
+		@include theme('dark');
 	}
 
 	&_top {

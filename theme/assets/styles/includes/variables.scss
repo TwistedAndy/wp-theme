@@ -8,6 +8,7 @@ $phone_large: 480;
 $phone_small: 400;
 
 $color_white: #FFFFFF;
+$color_black: #000000;
 $color_text: #1B1D1F;
 $color_muted: #74787D;
 $color_field: #A8ABB0;
@@ -19,4 +20,20 @@ $color_primary: #0079C1;
 $color_secondary: #95C11F;
 $color_background: #F7F8F9;
 
-$scope: ':root';
+$colors: (
+	'base',
+	'section',
+	'background',
+	'text',
+	'muted',
+	'heading',
+	'border',
+	'field',
+	'shadow',
+	'icon',
+	'link',
+	'error',
+	'success',
+	'primary',
+	'secondary'
+);

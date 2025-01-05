@@ -161,7 +161,12 @@
 		.media {
 			position: relative;
 			width: auto;
-			margin: calc(-1 * var(--gap-section-top)) calc(-1 * var(--gap-section-side)) calc(var(--gap-contents) + 5px);
+			margin: 0 calc(-1 * var(--gap-section-side)) calc(var(--gap-contents) + 5px);
+
+			&:last-child {
+				margin-bottom: 0;
+			}
+
 		}
 
 	}

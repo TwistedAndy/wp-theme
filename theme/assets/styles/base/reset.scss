@@ -38,7 +38,7 @@ body {
 	font-family: var(--font-main);
 	font-size: var(--size-base);
 	font-weight: 400;
-	line-height: 1.25;
+	line-height: var(--line-base);
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	text-rendering: optimizeLegibility;
@@ -94,27 +94,32 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
 	font-size: var(--size-h1);
-	line-height: 1.2;
+	line-height: var(--line-h1);
 }
 
 h2 {
 	font-size: var(--size-h2);
+	line-height: var(--line-h2);
 }
 
 h3 {
 	font-size: var(--size-h3);
+	line-height: var(--line-h3);
 }
 
 h4 {
 	font-size: var(--size-h4);
+	line-height: var(--line-h4);
 }
 
 h5 {
 	font-size: var(--size-h5);
+	line-height: var(--line-h5);
 }
 
 h6 {
 	font-size: var(--size-h6);
+	line-height: var(--line-h6);
 }
 
 p {

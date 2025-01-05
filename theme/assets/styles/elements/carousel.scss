@@ -16,7 +16,7 @@
 	&.is-horizontal {
 
 		.carousel-track {
-			width: calc(100% + var(--gap-grid));
+			width: calc(100% + var(--gap-grid-x));
 		}
 
 		.item {
