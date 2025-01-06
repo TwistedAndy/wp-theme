@@ -3,7 +3,7 @@ const Twee = {
 	modules: {},
 
 	/**
-	 * Initialize app
+	 * Initialize an app
 	 */
 	initApp: function() {
 
@@ -37,62 +37,73 @@ const Twee = {
 	 * Initialize all modules
 	 */
 	initModules: function() {
-
-		let selectors = [];
-
-		Object.getOwnPropertyNames(Twee.modules).forEach(function(name) {
-
-			let module = Twee.modules[name];
-
-			if (!module.attached) {
-				jQuery(document).on('tw_init', module.selector, module.callback);
-				module.attached = true;
-				selectors = selectors.concat(module.selector.split(','));
-			}
-
-		});
-
-		if (selectors.length > 0) {
-
-			selectors = selectors.map(function(selector) {
-				return selector.toString().trim();
-			});
-
-			selectors = selectors.filter(function(item, i, array) {
-				return array.indexOf(item) === i;
-			});
-
-			Twee.initModule(selectors.join(', '));
-
-		}
-
+		Object.keys(Twee.getModules()).map(Twee.initModule);
 	},
 
 	/**
 	 * Initialize a module
 	 *
-	 * @param selector
+	 * @param {string} key
+	 *
+	 * @return {Object}
 	 */
-	initModule: function(selector) {
-		jQuery(selector).each(function() {
-			jQuery(this).trigger('tw_init', [jQuery, jQuery(this)]);
-		});
+	initModule: function(key) {
+
+		let module = Twee.getModule(key),
+			status = true;
+
+		if (!module) {
+			return false;
+		}
+
+		if (module.deps && module.deps.length > 0 && Array.isArray(module.deps)) {
+
+			module.deps.forEach((dep) => {
+
+				if (!status || !dep) {
+					return;
+				}
+
+				const item = Twee.getModule(dep);
+
+				if (item) {
+					if (item.deps && item.deps.indexOf(key) !== -1) {
+						console.log('Dependency loop detected: ' + dep);
+						return true;
+					} else {
+						status = Twee.initModule(dep);
+					}
+				} else if (typeof window[dep] === 'undefined') {
+					status = false;
+				}
+
+			});
+
+		}
+
+		if (status) {
+			jQuery(module.selector).each(function() {
+				Twee.runModule(this, key, module);
+			});
+		}
+
+		return status;
+
 	},
 
 	/**
-	 * Add a module to the registry
+	 * Register a module
 	 *
-	 * The system will run a callback when the page is loaded and all the dependencies are presented.
-	 * A callback is triggered once per element, but it can be changed with the multiple flag.
+	 * A callback will be triggered once per element matching
+	 * a selector once all dependencies are resolved
 	 *
-	 * @param {string}   key        A unique module ID
-	 * @param {string}   selector   Root element selector
-	 * @param {function} callback   A function called on page initialization
-	 * @param {Array}    deps       An array with global dependencies
-	 * @param {boolean}  multiple   Allow running a callback more than once on an element
-	 * @param {int}      timeout    Allow running a callback again when the timeout is reached
+	 * @param {string}   key        A unique module key
+	 * @param {string}   selector   Target element selector
+	 * @param {function} callback   A function called on initialization
+	 * @param {Array}    deps       An array with global variables or module keys
+	 * @param {boolean}  multiple   Allow running a callback multiple times on the same element
 	 */
-	addModule: function(key, selector, callback, deps = [], multiple = false, timeout = 0) {
+	addModule: function(key, selector, callback, deps = [], multiple = false) {
 
 		if (selector) {
 			selector = selector.toString();
@@ -100,45 +111,96 @@ const Twee = {
 			selector = 'html';
 		}
 
-		if (typeof this.modules[key] === 'undefined') {
+		const modules = Twee.getModules();
 
-			this.modules[key] = {
-				attached: false,
-				selector: selector,
-				callback: function(e) {
-
-					let status = true,
-						target = e.currentTarget;
-
-					if (deps && deps.length > 0) {
-						deps.forEach(function(dep) {
-							if (typeof window[dep] === 'undefined') {
-								status = false;
-							}
-						});
-					}
-
-					if (!status) {
-						return;
-					}
-
-					if (multiple || Twee.runOnce(target, key, timeout)) {
-						callback.call(target, jQuery, jQuery(target), e);
-					}
-
-				}
-			};
-
-		} else {
-
+		if (typeof modules[key] !== 'undefined') {
 			console.warn('Module ' + key + ' is already added');
+		}
+
+		modules[key] = {
+			key: key,
+			multiple: multiple,
+			selector: selector,
+			callback: callback,
+			deps: deps
+		};
+
+	},
+
+	/**
+	 * Get all registered modules
+	 *
+	 * @returns {Object}
+	 */
+	getModules: function() {
+		return Twee.modules;
+	},
+
+	/**
+	 *  Get a registered module
+	 *
+	 * @param {string} key
+	 *
+	 * @returns {Object|boolean}
+	 */
+	getModule: function(key) {
+
+		const modules = Twee.getModules();
+
+		if (typeof modules[key] === 'object' && modules[key].selector && typeof modules[key].callback === 'function') {
+			return modules[key];
+		} else {
+			return false;
+		}
+
+	},
+
+	/**
+	 * Run all modules matching an element
+	 *
+	 * @param {HTMLElement|jQuery|string} element
+	 */
+	runModules: function(element) {
+
+		const modules = Twee.getModules();
+
+		Object.keys(modules).forEach(function(key) {
+
+			const module = Twee.getModule(key);
+
+			if (module) {
+				jQuery(element).filter(module.selector).each(function() {
+					Twee.runModule(this, key, module);
+				});
+			}
+
+		});
+
+	},
+
+	/**
+	 * Run a callback on an element
+	 *
+	 * @param {HTMLElement} element
+	 * @param {string} key
+	 * @param {Object} module
+	 */
+	runModule: function(element, key, module) {
+
+		if (element instanceof HTMLElement && (Twee.runOnce(element, key) || module.multiple)) {
+
+			module.callback.call(element, jQuery, jQuery(element), module);
+
+			setTimeout(function() {
+				jQuery(element).trigger('twee_init_' + key, [key, module]);
+			});
 
 		}
 
 	},
 
 	/**
-	 * Run a code only once per element
+	 * Allow running code only once per element
 	 *
 	 * @param {HTMLElement} element
 	 * @param {string}      slug
@@ -168,7 +230,7 @@ const Twee = {
 	},
 
 	/**
-	 * Run a callback only once after specified delay
+	 * Run a callback after a delay
 	 *
 	 * @param {function} callback
 	 * @param {int}      delay
@@ -183,45 +245,6 @@ const Twee = {
 			clearTimeout(timeout);
 			timeout = setTimeout(callback.apply.bind(callback, this, arguments), delay);
 		};
-
-	},
-
-	/**
-	 * Smooth scroll to an element
-	 *
-	 * @param {HTMLElement|jQuery}  element
-	 * @param {int}                 speed
-	 * @param {int}                 offset
-	 */
-	smoothScrollTo: function(element, speed = 1000, offset = 0) {
-
-		let wrapper = jQuery('html, body');
-
-		element = jQuery(element).first();
-
-		if (element.length === 0) {
-			return;
-		}
-
-		let top = document.body.style.getPropertyValue('--offset-scroll');
-
-		if (top.indexOf('px') !== -1) {
-			top = Number(top.replace('px', ''));
-		} else {
-			top = 0;
-		}
-
-		let position = element.offset().top - top - offset;
-
-		if (element.attr('id')) {
-			let scroll = wrapper.scrollTop();
-			window.location.hash = element.attr('id');
-			wrapper.scrollTop(scroll);
-		}
-
-		wrapper.stop().animate({
-			'scrollTop': position
-		}, speed);
 
 	},
 
@@ -286,7 +309,7 @@ const Twee = {
 
 		return '';
 
-	},
+	}
 
 };
 

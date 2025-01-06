@@ -121,7 +121,7 @@ Twee.addModule('loader', 'html', function($, container) {
 
 					}
 
-					Twee.initModule(section);
+					Twee.runModules(section);
 
 					if (animate) {
 						wrapper.animate({height: heightNew}, 400, function() {
