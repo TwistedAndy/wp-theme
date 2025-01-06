@@ -53,7 +53,14 @@ const Twee = {
 			status = true;
 
 		if (!module) {
+			console.warn('Module not found: ' + key);
 			return false;
+		}
+
+		let elements = jQuery(module.selector);
+
+		if (elements.length === 0) {
+			return status;
 		}
 
 		if (module.deps && module.deps.length > 0 && Array.isArray(module.deps)) {
@@ -68,7 +75,7 @@ const Twee = {
 
 				if (item) {
 					if (item.deps && item.deps.indexOf(key) !== -1) {
-						console.log('Dependency loop detected: ' + dep);
+						console.warn('Dependency loop detected: ' + dep);
 						return true;
 					} else {
 						status = Twee.initModule(dep);
@@ -82,7 +89,7 @@ const Twee = {
 		}
 
 		if (status) {
-			jQuery(module.selector).each(function() {
+			elements.each(function() {
 				Twee.runModule(this, key, module);
 			});
 		}
@@ -158,24 +165,12 @@ const Twee = {
 	/**
 	 * Run all modules matching an element
 	 *
-	 * @param {HTMLElement|jQuery|string} element
+	 * @param {HTMLElement|jQuery|string} selector
 	 */
-	runModules: function(element) {
-
-		const modules = Twee.getModules();
-
-		Object.keys(modules).forEach(function(key) {
-
-			const module = Twee.getModule(key);
-
-			if (module) {
-				jQuery(element).filter(module.selector).each(function() {
-					Twee.runModule(this, key, module);
-				});
-			}
-
+	runModules: function(selector) {
+		Object.keys(Twee.getModules()).forEach(function(key) {
+			Twee.initModule(key);
 		});
-
 	},
 
 	/**
@@ -187,7 +182,7 @@ const Twee = {
 	 */
 	runModule: function(element, key, module) {
 
-		if (element instanceof HTMLElement && (Twee.runOnce(element, key) || module.multiple)) {
+		if (element instanceof HTMLElement && element.matches(module.selector) && (Twee.runOnce(element, key) || module.multiple)) {
 
 			module.callback.call(element, jQuery, jQuery(element), module);
 
