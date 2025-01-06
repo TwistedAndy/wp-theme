@@ -23,7 +23,7 @@ tw_asset_register([
 	'scripts' => [
 		'footer' => true,
 		'display' => true,
-		'deps' => ['jquery'],
+		'deps' => ['jquery', 'app'],
 		'script' => 'scripts.js',
 		'object' => 'tw_template',
 		'directory' => 'build',
