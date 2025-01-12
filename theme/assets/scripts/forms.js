@@ -8,7 +8,7 @@ Twee.addModule('forms', '.form_box, .comment_box', function($, forms) {
 
 	forms.not('.skip_processing').each(function() {
 
-		if (runOnce(this, 'forms')) {
+		if (!Twee.runOnce(this, 'forms')) {
 			return;
 		}
 

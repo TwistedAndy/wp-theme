@@ -200,6 +200,14 @@ function tw_acfe_render_scripts() { ?>
 
 		}
 
+		function tweeResizeField() {
+			if (this instanceof HTMLElement) {
+				this.style.height = 'auto';
+				this.style.minHeight = 'initial';
+				this.style.minHeight = (this.scrollHeight + 4) + 'px';
+			}
+		}
+
 		window.addEventListener('message', function(e) {
 			if (e.data && e.data.type === 'resize' && e.data.frame && e.data.height) {
 				document.getElementById(e.data.frame).style.height = Math.ceil(e.data.height) + 'px';
@@ -208,18 +216,14 @@ function tw_acfe_render_scripts() { ?>
 
 		document.addEventListener('DOMContentLoaded', function() {
 
-			jQuery(document.body).on('input change', '.acf-field textarea', function() {
-				this.style.height = 'auto';
-				this.style.minHeight = 'initial';
-				this.style.minHeight = this.scrollHeight + 'px';
-			});
-
 			if (typeof acf === 'undefined') {
 				return;
 			}
 
+			const $ = jQuery;
+
 			acf.addAction('acfe/fields/flexible_content/before_preview', function(response, element) {
-				var preview = jQuery('.acfe-flexible-placeholder', element);
+				var preview = $('.acfe-flexible-placeholder', element);
 				if (preview.length > 0) {
 					preview.css('height', Math.ceil(preview.height()));
 				}
@@ -227,13 +231,21 @@ function tw_acfe_render_scripts() { ?>
 
 			acf.addAction('acfe/fields/flexible_content/preview', function(response, element) {
 				setTimeout(function() {
-					jQuery('.acfe-flexible-placeholder', element).removeAttr('style');
-				}, 250);
+					$('.acfe-flexible-placeholder', element).removeAttr('style');
+				}, 100);
 			});
 
+			acf.addAction('show', function(layout) {
+				setTimeout(function() {
+					$('.acf-field textarea', layout).each(tweeResizeField);
+				}, 0);
+			});
+
+			$(document.body).on('input change', '.acf-field textarea', tweeResizeField);
+
 			setTimeout(function() {
-				jQuery('.acf-field-wysiwyg textarea').trigger('change')
-			}, 250);
+				jQuery('.acf-field textarea').each(tweeResizeField);
+			}, 100);
 
 		});
 
@@ -298,7 +310,7 @@ function tw_acfe_render_layout($field, $layout) {
  */
 function tw_acfe_render_setup() {
 
-	global $wp_query, $wp_the_query;
+	global $wp_query, $wp_the_query, $post;
 
 	if (tw_app_get('new_query', 'layouts')) {
 
@@ -329,7 +341,7 @@ function tw_acfe_render_setup() {
 
 		if (!empty($entity['type']) and !empty($entity['id']) and is_numeric($entity['id'])) {
 
-			if ($entity['type'] == 'post' and $post = get_post($entity['id'])) {
+			if ($entity['type'] == 'post' and $item = get_post($entity['id'])) {
 
 				if ($entity['id'] == get_option('woocommerce_shop_page_id', 0) and function_exists('WC')) {
 
@@ -345,8 +357,8 @@ function tw_acfe_render_setup() {
 
 				} else {
 					$query_args = [
-						'p' => $post->ID,
-						'post_type' => $post->post_type
+						'p' => $item->ID,
+						'post_type' => $item->post_type
 					];
 				}
 
@@ -380,6 +392,7 @@ function tw_acfe_render_setup() {
 		tw_app_set('new_query', $wp_query, 'layouts');
 		tw_app_set('old_query', $old_query, 'layouts');
 		tw_app_set('old_the_query', $old_the_query, 'layouts');
+		tw_app_set('old_post', $post, 'layouts');
 
 	}
 
@@ -414,7 +427,7 @@ function tw_acfe_render_setup() {
  */
 function tw_acfe_render_reset() {
 
-	global $wp_query, $wp_the_query;
+	global $wp_query, $wp_the_query, $post;
 
 	$object_scripts = wp_scripts();
 	$object_styles = wp_styles();
@@ -438,6 +451,7 @@ function tw_acfe_render_reset() {
 	if (tw_app_get('old_query', 'layouts')) {
 		$wp_query = tw_app_get('old_query', 'layouts');
 		$wp_the_query = tw_app_get('old_the_query', 'layouts');
+		$post = tw_app_get('old_post', 'layouts');
 		wp_reset_postdata();
 	}
 
@@ -459,8 +473,13 @@ if (class_exists('WooCommerce')) {
 		if ($post_type == 'product') {
 			wp_enqueue_script('jquery-core');
 			wp_enqueue_script('jquery-ui-core');
-		}
-		?>
+		} elseif ($post_type == 'shop_order' or $post_type == 'shop_subscription') { ?>
+			<style>
+				.display_meta td, .display_meta th {
+					vertical-align: baseline !important;
+				}
+			</style>
+		<?php } ?>
 		<script>
 			jQuery(function($) {
 				$('#woocommerce-product-data').on('woocommerce_variations_loaded', function() {
@@ -550,7 +569,7 @@ if (class_exists('WooCommerce')) {
 /**
  * A fallback for the get field function
  */
-if (!function_exists('get_field')) {
+if (!is_admin() and !function_exists('get_field')) {
 
 	function get_field($field, $post_id = false, $format = true) {
 
