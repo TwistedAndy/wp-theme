@@ -12,35 +12,42 @@
  *
  * @param string $type
  * @param string $key
- * @param string $value
+ * @param string $fields
  * @param string $status
  * @param string $order
  *
  * @return array
  */
-function tw_post_data($type, $key = 'ID', $value = 'post_title', $status = '', $order = 'p.post_title ASC, p.ID ASC') {
+function tw_post_data($type, $key = 'ID', $fields = 'post_title', $status = '', $order = 'p.ID ASC') {
 
 	$cache_key = 'posts_' . $key;
 	$cache_group = 'twee_posts_' . $type;
 
 	$select = 'p.*';
 
-	if ($value) {
-		if (is_string($value)) {
-			$cache_key .= '_' . $value;
-			$select = 'p.' . $key . ', p.' . $value;
-		} elseif (is_array($value)) {
-			asort($value);
-			$cache_key .= '_' . implode('_', $value);
-			$select = 'p.' . $key . ', p.' . implode(', p.', $value);
+	if ($fields) {
+
+		if (is_string($fields) and strpos($fields, ',') > 0) {
+			$fields = explode(',', $fields);
 		}
+
+		if (is_string($fields)) {
+			$cache_key .= '_' . $fields;
+			$select = 'p.' . $key . ', p.' . $fields;
+		} elseif (is_array($fields)) {
+			$fields = array_map('trim', $fields);
+			asort($fields);
+			$cache_key .= '_' . implode('_', $fields);
+			$select = 'p.' . $key . ', p.' . implode(', p.', $fields);
+		}
+
 	}
 
 	if ($status) {
 		$cache_key .= '_' . $status;
 	}
 
-	if (is_string($order) and $order != 'p.post_title ASC, p.ID ASC') {
+	if (is_string($order) and $order != 'p.ID ASC') {
 		$cache_key .= '_' . crc32($order);
 	}
 
@@ -79,34 +86,27 @@ function tw_post_data($type, $key = 'ID', $value = 'post_title', $status = '', $
 
 	$rows = $db->get_results($db->prepare("SELECT {$select} FROM {$db->posts} p WHERE p.post_type = %s" . $where . " ORDER BY %s", $type, $order), ARRAY_A);
 
-	if ($rows) {
-
+	if (is_array($fields)) {
 		foreach ($rows as $row) {
-
-			if (is_array($value)) {
-
-				$fields = [];
-
-				foreach ($value as $field) {
-					if (isset($row[$field])) {
-						$fields[$field] = $row[$field];
-					}
+			$array = [];
+			foreach ($fields as $field) {
+				if (isset($row[$field])) {
+					$array[$field] = $row[$field];
+				} else {
+					$array[$field] = '';
 				}
-
-				$data[$row[$key]] = $fields;
-
-			} elseif ($value) {
-
-				$data[$row[$key]] = $row[$value];
-
-			} else {
-
-				$data[$row[$key]] = $row;
-
 			}
+			$data[$row[$key]] = $array;
 
 		}
-
+	} elseif ($fields and is_string($fields)) {
+		foreach ($rows as $row) {
+			$data[$row[$key]] = $row[$fields];
+		}
+	} else {
+		foreach ($rows as $row) {
+			$data[$row[$key]] = $row;
+		}
 	}
 
 	wp_cache_set($cache_key, $data, $cache_group);
