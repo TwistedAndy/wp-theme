@@ -652,7 +652,7 @@ function tw_term_tree($taxonomy, $flatten = false) {
 
 		$cache_key .= '_flatten';
 
-		$data = wp_cache_get($cache_key);
+		$data = wp_cache_get($cache_key, $cache_group);
 
 		if (!is_array($data)) {
 
@@ -730,14 +730,17 @@ function tw_term_flatten_tree($tree) {
 
 	foreach ($tree as $element) {
 
-		$list[] = $element;
-
 		if (!empty($element['children'])) {
-			$list = array_merge($list, tw_term_flatten_tree($element['children']));
+			$children = $element['children'];
+			unset($element['children']);
+		} else {
+			$children = false;
 		}
 
-		if (isset($element['children'])) {
-			unset($element['children']);
+		$list[] = $element;
+
+		if ($children) {
+			$list = array_merge($list, tw_term_flatten_tree($children));
 		}
 
 	}
