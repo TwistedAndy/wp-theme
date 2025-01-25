@@ -48,6 +48,10 @@
 
 }
 
+.contents {
+	@extend %contents;
+}
+
 .content {
 	@extend %content;
 }
@@ -55,7 +59,7 @@
 .items {
 	@extend %items;
 
-	& > .item {
+	.item {
 		@extend %item;
 	}
 

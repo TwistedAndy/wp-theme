@@ -1,6 +1,6 @@
 <?php
 
-if (strpos(TW_HOME, '.test') === 0) {
+if (strpos(TW_HOME, '.test') === false) {
 	return;
 }
 

@@ -2,12 +2,6 @@
 	@return ($size / 16) + rem;
 }
 
-@mixin theme($theme: light, $colors: $colors) {
-	@each $color in $colors {
-		--color-#{$color}: var(--theme-#{$theme}-#{$color});
-	}
-}
-
 @mixin dark() {
 	@media (prefers-color-scheme: dark) {
 		@content;

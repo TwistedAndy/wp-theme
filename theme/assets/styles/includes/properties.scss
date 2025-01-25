@@ -1,59 +1,67 @@
 :root {
 
-	/* Light Theme */
-	--theme-light-base: #{$color_white};
-	--theme-light-section: transparent;
-	--theme-light-background: #{$color_background};
-
-	--theme-light-text: #{$color_text};
-	--theme-light-muted: #{$color_muted};
-	--theme-light-heading: #{$color_heading};
-
-	--theme-light-border: #{$color_border};
-	--theme-light-field: #{$color_field};
-	--theme-light-shadow: 0, 0, 0;
-
-	--theme-light-icon: #{$color_heading};
-	--theme-light-link: #{$color_primary};
-	--theme-light-error: #{$color_error};
-	--theme-light-success: #{$color_success};
-
-	--theme-light-primary: #{$color_primary};
-	--theme-light-secondary: #{$color_secondary};
-
-
-	/* Dark Theme */
-	--theme-dark-base: #{$color_black};
-	--theme-dark-section: #{$color_text};
-	--theme-dark-background: #{$color_background};
-
-	--theme-dark-text: #{rgba($color_white, 0.9)};
-	--theme-dark-muted: #{rgba($color_white, 0.8)};
-	--theme-dark-heading: #{$color_white};
-
-	--theme-dark-border: #{rgba($color_white, 0.1)};
-	--theme-dark-field: #{rgba($color_white, 0.2)};
-	--theme-dark-shadow: 0, 0, 0;
-
-	--theme-dark-icon: #{$color_white};
-	--theme-dark-link: #{$color_primary};
-	--theme-dark-error: #{$color_error};
-	--theme-dark-success: #{$color_success};
-
-	--theme-dark-primary: #{$color_primary};
-	--theme-dark-secondary: #{$color_secondary};
-
 	/* Fonts */
 	--font-main: Arial, sans-serif;
 	--font-heading: Arial, sans-serif;
 
-	/* Colors */
-	@include theme('light');
+	/* Theme Colors */
+	--theme-base: #{$color_white};
+	--theme-section: transparent;
+	--theme-background: #{$color_background};
+
+	--theme-text: #{$color_text};
+	--theme-muted: #{$color_muted};
+	--theme-heading: #{$color_heading};
+
+	--theme-border: #{$color_border};
+	--theme-field: #{$color_field};
+	--theme-shadow: 0, 0, 0;
+
+	--theme-icon: #{$color_heading};
+	--theme-link: #{$color_primary};
+	--theme-error: #{$color_error};
+	--theme-success: #{$color_success};
+
+	--theme-primary: #{$color_primary};
+	--theme-secondary: #{$color_secondary};
 
 	/* Dark Mode */
 	@include dark {
-		@include theme('dark');
+		--theme-base: #{$color_black};
+		--theme-section: #{$color_text};
+		--theme-background: #{$color_background};
+
+		--theme-text: #{rgba($color_white, 0.9)};
+		--theme-muted: #{rgba($color_white, 0.8)};
+		--theme-heading: #{$color_white};
+
+		--theme-border: #{rgba($color_white, 0.1)};
+		--theme-field: #{rgba($color_white, 0.2)};
+
+		--theme-icon: #{$color_white};
+		--theme-link: #{$color_primary};
 	}
+
+	/* Default Colors */
+	--color-base: var(--theme-base);
+	--color-section: var(--theme-section);
+	--color-background: var(--theme-background);
+
+	--color-text: var(--theme-text);
+	--color-muted: var(--theme-muted);
+	--color-heading: var(--theme-heading);
+
+	--color-border: var(--theme-border);
+	--color-field: var(--theme-field);
+	--color-shadow: var(--theme-shadow);
+
+	--color-icon: var(--theme-icon);
+	--color-link: var(--theme-link);
+	--color-error: var(--theme-error);
+	--color-success: var(--theme-success);
+
+	--color-primary: var(--theme-primary);
+	--color-secondary: var(--theme-secondary);
 
 	/* Shadows */
 	--shadow-small: 0 1px 2px rgba(var(--color-shadow), 0.15);

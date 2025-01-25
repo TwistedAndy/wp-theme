@@ -119,13 +119,24 @@ section {
 
 	&_light {
 		--gap-section-top: var(--gap-section);
-		--color-section: var(--theme-light-background);
-		--color-background: var(--theme-light-base);
+		--color-section: var(--theme-background);
+		--color-background: var(--theme-base);
 	}
 
 	&_dark {
+		color: $color_white;
 		--gap-section-top: var(--gap-section);
-		@include theme('dark');
+		--color-base: #{$color_black};
+		--color-section: #{$color_heading};
+		--color-background: #{$color_text};
+		--color-text: #{rgba($color_white, 0.9)};
+		--color-muted: #{rgba($color_white, 0.8)};
+		--color-heading: #{$color_white};
+		--color-border: #{rgba($color_white, 0.1)};
+		--color-field: #{rgba($color_white, 0.2)};
+		--color-shadow: 0, 0, 0;
+		--color-icon: #{$color_white};
+		--color-link: #{$color_primary};
 	}
 
 	&_top {
