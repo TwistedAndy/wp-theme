@@ -281,6 +281,8 @@ function tw_acfe_render_layout($field, $layout) {
 
 	tw_acfe_render_setup();
 
+	$block['acf_preview_id'] = $preview_id;
+
 	$content = tw_app_template('layout', ['preview_id' => $preview_id, 'block' => $block]);
 
 	$content = tw_asset_inject($content);

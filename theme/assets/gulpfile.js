@@ -135,7 +135,7 @@ function injectImports(contents, elements) {
 	let existingImports = Array.from(contents.matchAll(importRegex), match => match[1]),
 		existingElements = Array.from(contents.matchAll(elementRegex), match => match[1]);
 
-	if (contents.indexOf('@include') !== -1) {
+	if (contents.indexOf('@include') !== -1 || contents.indexOf('@extend') !== -1) {
 		requiredImports.push('../includes/variables');
 		requiredImports.push('../includes/mixins');
 	} else if (contents.indexOf('$') !== -1) {

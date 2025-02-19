@@ -37,7 +37,7 @@ add_action('wp_ajax_generate_preview', function() {
 
 				foreach ($blocks as $index => $block) {
 
-					if ($block['acf_fc_layout']!== 'set' or empty($block['set'])) {
+					if ($block['acf_fc_layout'] !== 'set' or empty($block['set'])) {
 						continue;
 					}
 
@@ -59,7 +59,7 @@ add_action('wp_ajax_generate_preview', function() {
 
 		}
 
-		$link = get_permalink((int) $post);
+		$link = get_permalink($post);
 
 	} elseif (!empty($_POST['term']) and is_numeric($_POST['term'])) {
 
@@ -151,9 +151,7 @@ add_action('acf/input/admin_enqueue_scripts', function() { ?>
 						button.removeClass('.acfe-flexible-icon').removeClass('dashicons-camera-alt').addClass('dashicons-update');
 					}
 				}).done(function(response) {
-					if (!response.success) {
-						alert(response.message);
-					}
+					alert(response.message);
 				}).always(function() {
 					button.addClass('.acfe-flexible-icon').addClass('dashicons-camera-alt').removeClass('dashicons-update');
 				});

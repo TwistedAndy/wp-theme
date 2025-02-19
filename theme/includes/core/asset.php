@@ -238,8 +238,22 @@ function tw_asset_print() {
 				$asset_name = $name;
 			}
 
-			if (!empty($asset['localize']) or (!empty($asset['deps']) and !empty($asset['deps']['script']))) {
+			if (!empty($asset['deps'])) {
+				$deps = $asset['deps'];
+			} else {
+				$deps = [];
+			}
+
+			if (!empty($asset['localize']) or !empty($deps['script'])) {
 				tw_asset_localize($name);
+			}
+
+			if (!empty($deps['script']) and empty($asset['script'])) {
+				$print_scripts = array_merge($print_scripts, $deps['script']);
+			}
+
+			if (!empty($deps['style']) and empty($asset['style'])) {
+				$print_styles = array_merge($print_styles, $deps['style']);
 			}
 
 			$name = $asset_name;
@@ -345,6 +359,24 @@ function tw_asset_enqueue($name, $instant = false) {
 
 		if (wp_style_is($asset_name, 'registered')) {
 			wp_enqueue_style($asset_name);
+		}
+
+		if (!empty($asset['deps'])) {
+			$deps = $asset['deps'];
+		} else {
+			$deps = [];
+		}
+
+		if (!empty($deps['script']) and empty($asset['script'])) {
+			foreach ($deps['script'] as $script) {
+				wp_enqueue_script($script);
+			}
+		}
+
+		if (!empty($deps['style']) and empty($asset['style'])) {
+			foreach ($deps['style'] as $style) {
+				wp_enqueue_style($style);
+			}
 		}
 
 	}
