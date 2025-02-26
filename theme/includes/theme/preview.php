@@ -1,13 +1,53 @@
 <?php
 
+/**
+ * Add a thumbnail for a layout
+ */
+add_filter('acfe/flexible/thumbnail', function($thumbnail, $field, $layout) {
+
+	if (!is_array($layout) or empty($layout['name'])) {
+		return $thumbnail;
+	}
+
+	$file = 'assets/preview/' . $layout['name'] . '.webp';
+
+	$preview = TW_ROOT . $file;
+
+	if (is_readable($preview)) {
+		return TW_URL . $file;
+	} else {
+		return $thumbnail;
+	}
+
+}, 10, 3);
+
+
+/**
+ * Run the code below only on the local server
+ */
 if (strpos(TW_HOME, '.test') === false) {
 	return;
 }
 
+
+/**
+ * Add an icon to generate a preview
+ */
+add_filter('acfe/flexible/layouts/icons', function($icons) {
+
+	$new = [
+		'thumbnail' => '<a class="acf-icon small light acfe-flexible-icon acf-js-tooltip dashicons dashicons-camera-alt" href="#" data-name="generate-preview" title="' . __('Generate a preview', 'acf') . '"></a>'
+	];
+
+	return array_merge($new, $icons);
+
+}, 50);
+
+
 /**
  * Process AJAX requests
  */
-add_action('wp_ajax_generate_preview', function() {
+add_action('wp_ajax_twee_generate_preview', function() {
 
 	$result = [
 		'success' => 0,
@@ -79,47 +119,26 @@ add_action('wp_ajax_generate_preview', function() {
 		wp_send_json($result);
 	}
 
-	$result = tw_preview_generate($link, $_POST['id']);
+	$result = [
+		'success' => 0,
+		'message' => '',
+	];
+
+	$command = '"C:\Program Files\NodeJS\node.exe" "D:\Work\Theme\wp-content\themes\screens.js" "' . $link . '?preview" #block_' . $_POST['id'] . ' 2>&1';
+
+	exec($command, $output, $result_code);
+
+	if ($result_code === 0) {
+		$result['success'] = 1;
+	}
+
+	if ($output and is_array($output)) {
+		$result['message'] = implode("\n", $output);
+	}
 
 	wp_send_json($result);
 
 });
-
-
-/**
- * Add an icon to generate a preview
- */
-add_filter('acfe/flexible/layouts/icons', function($icons) {
-
-	$new = [
-		'thumbnail' => '<a class="acf-icon small light acfe-flexible-icon acf-js-tooltip dashicons dashicons-camera-alt" href="#" data-name="generate-preview" title="' . __('Generate a preview', 'acf') . '"></a>'
-	];
-
-	return array_merge($new, $icons);
-
-}, 50);
-
-
-/**
- * Add a thumbnail for a layout
- */
-add_filter('acfe/flexible/thumbnail', function($thumbnail, $field, $layout) {
-
-	if (!is_array($layout) or empty($layout['name'])) {
-		return $thumbnail;
-	}
-
-	$file = '/assets/preview/' . $layout['name'] . '.webp';
-
-	$preview = TW_ROOT . $file;
-
-	if (is_readable($preview)) {
-		return TW_URL . $file;
-	} else {
-		return $thumbnail;
-	}
-
-}, 10, 3);
 
 
 /**
@@ -142,7 +161,7 @@ add_action('acf/input/admin_enqueue_scripts', function() { ?>
 					type: 'post',
 					dataType: 'json',
 					data: {
-						action: 'generate_preview',
+						action: 'twee_generate_preview',
 						post: $('[name="post_ID"]', form).val(),
 						term: $('[name="tag_ID"]', form).val(),
 						id: layout.data('id').replace('row-', '')
@@ -177,35 +196,3 @@ add_action('acf/input/admin_enqueue_scripts', function() { ?>
 
 	</style>
 <?php }, 20);
-
-
-/**
- * Generate a preview for a block
- *
- * @param string $link
- * @param int    $block
- *
- * @return array
- */
-function tw_preview_generate($link, $block) {
-
-	$result = [
-		'success' => 0,
-		'message' => '',
-	];
-
-	$command = '"C:\Program Files\NodeJS\node.exe" "D:\Work\Theme\wp-content\themes\screens.js" "' . $link . '?preview" #block_' . $block . ' 2>&1';
-
-	exec($command, $output, $result_code);
-
-	if ($result_code === 0) {
-		$result['success'] = 1;
-	}
-
-	if ($output and is_array($output)) {
-		$result['message'] = implode("\n", $output);
-	}
-
-	return $result;
-
-}
