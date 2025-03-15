@@ -521,13 +521,42 @@ function tw_term_order($field = 'term_id') {
  * Get an array with posts for each term
  *
  * @param string $taxonomy
+ * @param string $type
+ * @param string $status
+ * @param bool   $children
  *
  * @return array
  */
-function tw_term_posts($taxonomy) {
+function tw_term_posts($taxonomy, $type = '', $status = '', $children = true) {
 
 	$cache_key = 'term_posts';
 	$cache_group = 'twee_post_terms_' . $taxonomy;
+
+	if ($type and is_string($type)) {
+		$type = trim($type);
+		$cache_key .= '_' . $type;
+	} else {
+		$type = '';
+	}
+
+	if ($status and is_string($status)) {
+		$status = trim($status);
+		$cache_key .= '_' . $status;
+	} else {
+		$status = '';
+	}
+
+	if ($children) {
+
+		$object = get_taxonomy($taxonomy);
+
+		if ($object instanceof \WP_Taxonomy and empty($object->hierarchical)) {
+			$children = false;
+		} else {
+			$cache_group .= '_children';
+		}
+
+	}
 
 	$terms = wp_cache_get($cache_key, $cache_group);
 
@@ -537,15 +566,91 @@ function tw_term_posts($taxonomy) {
 
 	$terms = [];
 
-	$db = tw_app_database();
+	if ($children) {
 
-	$rows = $db->get_results($db->prepare("
-			SELECT tr.object_id, tt.term_id
-			FROM {$db->term_relationships} tr 
-			LEFT JOIN {$db->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
-			WHERE tt.taxonomy = %s", $taxonomy), ARRAY_A);
+		$term_posts = tw_term_posts($taxonomy, $type, $status, false);
+		$term_children = tw_term_children(0, $taxonomy);
 
-	if ($rows) {
+		foreach ($term_children as $term_id => $children) {
+
+			$collections = [(int) $term_id];
+
+			if ($children) {
+				$collections = array_merge($children, $collections);
+			}
+
+			foreach ($collections as $collection) {
+
+				if (!empty($term_posts[$collection])) {
+
+					$items = $term_posts[$collection];
+
+					if (!isset($terms[$term_id])) {
+						$terms[$term_id] = [];
+					}
+
+					$terms[$term_id] = array_merge($terms[$term_id], $items);
+
+				}
+
+			}
+
+		}
+
+	} else {
+
+		$db = tw_app_database();
+
+		$where = [];
+
+		if ($status) {
+
+			$status = esc_sql($status);
+
+			if (strpos($status, ',')) {
+				$status = explode(',', $status);
+			} else {
+				$status = [$status];
+			}
+
+			$where[] = "p.post_status IN ('" . implode(',', $status) . "')";
+
+		}
+
+		if ($type) {
+
+			$type = esc_sql($type);
+
+			if (strpos($type, ',')) {
+				$type = explode(',', $status);
+			} else {
+				$type = [$type];
+			}
+
+			$where[] = "p.post_type IN ('" . implode(',', $type) . "')";
+
+		}
+
+		if ($where) {
+
+			$where = implode(' AND ', $where);
+
+			$rows = $db->get_results($db->prepare("
+				SELECT tr.object_id, tt.term_id
+				FROM {$db->term_relationships} tr 
+				LEFT JOIN {$db->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
+				LEFT JOIN {$db->posts} p ON p.ID = tr.object_id
+				WHERE tt.taxonomy = %s AND {$where}", $taxonomy), ARRAY_A);
+
+		} else {
+
+			$rows = $db->get_results($db->prepare("
+				SELECT tr.object_id, tt.term_id
+				FROM {$db->term_relationships} tr 
+				LEFT JOIN {$db->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
+				WHERE tt.taxonomy = %s", $taxonomy), ARRAY_A);
+
+		}
 
 		foreach ($rows as $row) {
 

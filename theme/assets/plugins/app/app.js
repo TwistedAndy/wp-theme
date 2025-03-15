@@ -37,17 +37,20 @@ const Twee = {
 	 * Initialize all modules
 	 */
 	initModules: function() {
-		Object.keys(Twee.getModules()).map(Twee.initModule);
+		Object.keys(Twee.getModules()).map(function(key) {
+			Twee.initModule(key, false);
+		});
 	},
 
 	/**
 	 * Initialize a module
 	 *
 	 * @param {string} key
+	 * @param {HTMLElement|jQuery|string|boolean} elements
 	 *
 	 * @return {Object}
 	 */
-	initModule: function(key) {
+	initModule: function(key, elements) {
 
 		let module = Twee.getModule(key),
 			status = true;
@@ -57,7 +60,11 @@ const Twee = {
 			return false;
 		}
 
-		let elements = jQuery(module.selector);
+		if (elements === 'undefined' || elements === false) {
+			elements = jQuery(module.selector);
+		} else {
+			elements = jQuery(elements);
+		}
 
 		if (elements.length === 0) {
 			return status;
@@ -168,9 +175,19 @@ const Twee = {
 	 * @param {HTMLElement|jQuery|string} selector
 	 */
 	runModules: function(selector) {
+
 		Object.keys(Twee.getModules()).forEach(function(key) {
-			Twee.initModule(key);
+
+			const module = Twee.getModule(key);
+
+			if (module && module.selector) {
+				jQuery(selector).filter(module.selector).each(function() {
+					Twee.initModule(key, this);
+				});
+			}
+
 		});
+
 	},
 
 	/**
