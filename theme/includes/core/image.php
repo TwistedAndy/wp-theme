@@ -61,10 +61,6 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 
 		}
 
-		if ($link_href and empty($base_url)) {
-			$link_href = str_replace(TW_HOME, '', $link_href);
-		}
-
 	}
 
 	if ($image instanceof WP_Post) {
@@ -315,7 +311,13 @@ function tw_image_link($image, $size = 'full', $base_url = false) {
 			}
 
 			if (empty($base_url)) {
+
 				$image_url = str_replace(TW_HOME, '', $image_url);
+
+				if (TW_FOLDER and strpos($image_url, TW_FOLDER) !== 0) {
+					$image_url = TW_FOLDER . $image_url;
+				}
+
 			}
 
 			if ($size === 'full' or strpos($image_url, '.svg') > 0) {
@@ -652,7 +654,13 @@ function tw_image_resize($image_url, $size, $image_id = 0, $base_url = false) {
 	}
 
 	if (empty($base_url)) {
-		$thumb_url = str_replace(TW_HOME, '', $thumb_url);
+
+		$thumb_url =  str_replace(TW_HOME, '', $thumb_url);
+
+		if (TW_FOLDER and strpos($thumb_url, TW_FOLDER) !== 0) {
+			$thumb_url = TW_FOLDER . $thumb_url;
+		}
+
 	}
 
 	return $thumb_url;
@@ -737,12 +745,12 @@ function tw_image_calculate($image_width, $image_height, $thumb_width, $thumb_he
 
 		if ($image_width < $thumb_width) {
 			$thumb_width = $image_width;
-			$thumb_height = $thumb_width / $thumb_ratio;
+			$thumb_height = $thumb_width / $image_ratio;
 		}
 
 		if ($image_height < $thumb_height) {
 			$thumb_height = $image_height;
-			$thumb_width = $thumb_height * $thumb_ratio;
+			$thumb_width = $thumb_height * $image_ratio;
 		}
 
 	}

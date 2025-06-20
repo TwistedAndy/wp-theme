@@ -1,98 +1,90 @@
 Twee.addModule('sticky', 'html', function($) {
 
 	let elements = document.querySelectorAll('.header_box.is_sticky'),
-		header = $('.header_box').get(0);
+		header = $('.header_box').get(0),
+		isAdmin = document.body.classList.contains('admin-bar');
 
-	function handleScroll() {
+	const handleScroll = Twee.throttle(function() {
 
-		let scroll = 0,
-			topBar = 0,
-			bottomBar = 0,
+		let offsetScroll = 0,
+			offsetTop = 0,
+			offsetBottom = 0,
+			items = [],
 			itemsTop = [],
 			itemsBottom = [];
 
-		if (document.body.classList.contains('admin-bar')) {
+		if (isAdmin) {
 
-			let width = window.innerWidth;
-
-			if (width <= 782 && width >= 600) {
-				topBar += 46;
-			} else if (width > 782) {
-				topBar += 32;
+			if (window.innerWidth <= 782 && window.innerWidth >= 600) {
+				offsetTop += 46;
+			} else if (window.innerWidth > 782) {
+				offsetTop += 32;
 			}
 
-			scroll = topBar;
+			offsetScroll = offsetTop;
 
 		}
 
 		elements.forEach(function(element) {
 
 			let styles = window.getComputedStyle(element, null),
-				position = styles.getPropertyValue('position'),
-				bottom = styles.getPropertyValue('bottom'),
-				top = styles.getPropertyValue('top'),
-				rect = element.getBoundingClientRect();
-
-			if (rect.height > 0 && top.indexOf('px') !== -1) {
-				scroll += rect.height;
-			}
+				position = styles.getPropertyValue('position');
 
 			if (position !== 'fixed' && position !== 'sticky') {
 				return;
 			}
 
-			let data = {
+			let bottom = styles.getPropertyValue('bottom'),
+				top = styles.getPropertyValue('top'),
+				rect = element.getBoundingClientRect();
+
+			if (rect.height > 0 && top.indexOf('px') !== -1) {
+				offsetScroll += rect.height;
+			}
+
+			let item = {
 				element: element,
 				rect: rect,
 				top: false,
 				bottom: false
 			};
 
-			if (position === 'fixed') {
-
-				top = parseInt(top.replace('px', ''));
-				bottom = parseInt(bottom.replace('px', ''));
-
-				if (top <= bottom) {
-					data.top = top;
-					itemsTop.push(data);
-				} else {
-					data.bottom = bottom;
-					itemsBottom.unshift(data);
-				}
-
-			} else {
-
-				if (top.indexOf('px') !== -1) {
-					data.top = parseInt(top.replace('px', ''));
-					itemsTop.push(data);
-				} else if (bottom.indexOf('px') !== -1) {
-					data.bottom = parseInt(bottom.replace('px', ''));
-					itemsBottom.unshift(data);
-				}
-
+			if (top.indexOf('px') !== -1) {
+				item.top = Number(top.replace('px', ''));
+				itemsTop.push(item);
+			} else if (bottom.indexOf('px') !== -1) {
+				item.bottom = Number(bottom.replace('px', ''));
+				itemsBottom.unshift(item);
 			}
 
 		});
 
 		if (itemsTop.length > 0) {
+
 			itemsTop.sort(function(a, b) {
 				return a.rect.top - b.rect.top;
 			});
+
+			items = itemsTop;
+
 		}
 
 		if (itemsBottom.length > 0) {
+
 			itemsBottom.sort(function(a, b) {
 				return b.rect.top - a.rect.top;
 			});
+
+			items = items.concat(itemsBottom);
+
 		}
 
-		itemsTop.concat(itemsBottom).forEach(function(item) {
+		items.forEach(function(item) {
 
 			var element = item.element,
 				rect = item.rect,
 				isFixed = false,
-				value = topBar + 'px';
+				value = offsetTop + 'px';
 
 			if (item.top !== false) {
 
@@ -102,14 +94,14 @@ Twee.addModule('sticky', 'html', function($) {
 					rect = element.getBoundingClientRect();
 				}
 
-				if (Math.abs(item.top - rect.top) < 1) {
-					topBar += rect.height;
+				if (Math.abs(item.top - rect.top) < 10) {
+					offsetTop += rect.height;
 					isFixed = window.scrollY > 0;
 				}
 
 			} else if (item.bottom !== false) {
 
-				value = bottomBar + 'px';
+				value = offsetBottom + 'px';
 
 				if (element.style.getPropertyValue('--offset-bottom') !== value) {
 					element.style.setProperty('--offset-bottom', value);
@@ -118,7 +110,7 @@ Twee.addModule('sticky', 'html', function($) {
 				}
 
 				if (Math.abs(window.innerHeight - rect.height - rect.top - item.bottom) < 1) {
-					bottomBar += rect.height;
+					offsetBottom += rect.height;
 					isFixed = true;
 				}
 
@@ -132,9 +124,9 @@ Twee.addModule('sticky', 'html', function($) {
 
 		});
 
-		updateProperty(document.body, '--offset-top', topBar + 'px');
-		updateProperty(document.body, '--offset-bottom', bottomBar + 'px');
-		updateProperty(document.body, '--offset-scroll', scroll + 'px');
+		updateProperty(document.body, '--offset-top', offsetTop + 'px');
+		updateProperty(document.body, '--offset-bottom', offsetBottom + 'px');
+		updateProperty(document.body, '--offset-scroll', offsetScroll + 'px');
 
 		if (header) {
 
@@ -148,7 +140,7 @@ Twee.addModule('sticky', 'html', function($) {
 
 		}
 
-	}
+	}, 50);
 
 	function updateProperty(element, property, value) {
 		if (element.style.getPropertyValue(property) !== value) {
@@ -157,6 +149,7 @@ Twee.addModule('sticky', 'html', function($) {
 	}
 
 	window.addEventListener('scroll', handleScroll, {passive: true});
+	window.addEventListener('scrollend', handleScroll, {passive: true});
 	window.addEventListener('load', handleScroll, {passive: true});
 
 	handleScroll();

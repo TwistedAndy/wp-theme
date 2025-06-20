@@ -35,19 +35,9 @@ body {
 	display: flex;
 	position: relative;
 	flex-direction: column;
+	align-items: stretch;
 	min-height: 100dvh;
-	padding-top: var(--height-bar);
-
-	& > main {
-		display: flex;
-		position: relative;
-		flex-direction: column;
-		flex-grow: 1;
-		flex-shrink: 0;
-		align-items: stretch;
-		width: 100%;
-	}
-
+	padding: var(--height-bar) 0 0;
 }
 
 .fixed {

@@ -180,7 +180,7 @@ add_filter('paginate_links_output', function($links) {
 
 
 /**
- * Add all public terms to the links field
+ * Add all public terms to the link field
  */
 add_action('wp_link_query', function($results, $query) {
 

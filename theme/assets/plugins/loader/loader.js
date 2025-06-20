@@ -1,16 +1,21 @@
 Twee.addModule('loader', 'html', function($, container) {
 
-	container.find('[data-loader]').each(function() {
+	$('[data-loader]', container).each(function() {
 
 		var button = $(this),
 			data = button.data('loader'),
-			section = button.closest(data.wrapper),
-			terms = $('[data-term]', section),
+			section = button.closest(data.wrapper);
+
+		if (section.closest('.wrapper_box').length > 0) {
+			section = section.closest('.wrapper_box');
+		}
+
+		var terms = $('[data-term]', section),
 			search = $('[name="s"]', section),
 			wrapper = section.find('.items'),
 			animate = !wrapper.hasClass('carousel');
 
-		var refreshItems = Twee.runLater(function() {
+		var refreshItems = Twee.debounce(function() {
 			section.trigger('reset');
 		}, 1000);
 
@@ -33,7 +38,14 @@ Twee.addModule('loader', 'html', function($, container) {
 
 		terms.on('click', function(e) {
 
-			$(this).addClass('active').siblings().removeClass('active');
+			var term = $(this),
+				list = term.closest('.woocommerce-widget-layered-nav-list');
+
+			if (list.length > 0) {
+				term.toggleClass('active').parent().toggleClass('chosen');
+			} else {
+				term.addClass('active').siblings().removeClass('active');
+			}
 
 			refreshItems();
 
@@ -47,9 +59,9 @@ Twee.addModule('loader', 'html', function($, container) {
 
 		button.on('click', function() {
 
-			data = button.data('loader');
+			var carousel = wrapper.data('carousel');
 
-			var slider = wrapper.data('slider');
+			data = button.data('loader');
 
 			data.terms = [];
 
@@ -85,21 +97,33 @@ Twee.addModule('loader', 'html', function($, container) {
 				var heightOld = wrapper.height(),
 					heightNew = 0;
 
-				wrapper.removeAttr('style');
-
-				if (slider) {
-					slider.destroy();
+				if (animate) {
+					wrapper.removeAttr('style');
 				}
 
 				if (data.offset === 0) {
-					wrapper.children().remove();
+					if (carousel) {
+						carousel.slides.forEach(function(slide) {
+							carousel.removeSlide(slide.index);
+						});
+					} else {
+						wrapper.children().remove();
+					}
 				}
 
 				if (response['result']) {
 
 					var posts = $(response['result']);
 
-					wrapper.append(posts);
+					if (carousel) {
+						posts.each(function() {
+							carousel.appendSlide({
+								html: this.innerHTML
+							});
+						});
+					} else {
+						wrapper.append(posts);
+					}
 
 					if (animate) {
 						wrapper.removeAttr('style');

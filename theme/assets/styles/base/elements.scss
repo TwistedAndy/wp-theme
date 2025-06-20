@@ -60,8 +60,68 @@
 .items {
 	@extend %items;
 
+	&_1 {
+		--width-item: 100%;
+	}
+
+	&_2 {
+		--width-item: 50%;
+	}
+
+	&_3 {
+		--width-item: 33.33333%;
+	}
+
+	&_4 {
+		--width-item: 25%;
+	}
+
+	&_5 {
+		--width-item: 20%;
+	}
+
+	&_6 {
+		--width-item: 16.66666%;
+	}
+
 	.item {
 		@extend %item;
+	}
+
+	@include desktop_large {
+
+		&_5, &_6 {
+			--width-item: 25%;
+		}
+
+	}
+
+	@include tablet_large {
+
+		&_1, &_2 {
+			--width-item: 100%;
+		}
+
+		&_3, &_4 {
+			--width-item: 50%;
+		}
+
+		&_5, &_6 {
+			--width-item: 33.33333%;
+		}
+
+	}
+
+	@include phone_large {
+
+		&_3, &_4 {
+			--width-item: 100%;
+		}
+
+		&_5, &_6 {
+			--width-item: 50%;
+		}
+
 	}
 
 }

@@ -185,6 +185,10 @@ function tw_acfe_render_scripts() { ?>
 
 		function tweePreviewBlock(frame) {
 
+			if (typeof frame !== 'object' || !frame.contentWindow || !frame.contentWindow.document) {
+				return;
+			}
+
 			var contents = frame.contentWindow.document,
 				field = document.createElement('textarea');
 

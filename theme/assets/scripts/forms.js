@@ -140,7 +140,8 @@ Twee.addModule('forms', '.form_box, .comment_box', function($, forms) {
 				window.location.href = data.link;
 			}
 
-			if (data.errors) {
+			if (data.errors && Object.keys(data.errors).length > 0) {
+
 				for (let i in data.errors) {
 					if (data.errors.hasOwnProperty(i)) {
 						message = $('<div class="error">' + data['errors'][i] + '</div>');
@@ -148,6 +149,9 @@ Twee.addModule('forms', '.form_box, .comment_box', function($, forms) {
 						message.hide().slideDown();
 					}
 				}
+
+				form.trigger('form_error', data);
+
 			}
 
 			if (data.files) {
@@ -169,6 +173,7 @@ Twee.addModule('forms', '.form_box, .comment_box', function($, forms) {
 				form.append(message);
 				message.hide().slideDown();
 				form[0].reset();
+				form.trigger('form_success', data);
 			}
 
 		}

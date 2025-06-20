@@ -242,21 +242,65 @@ const Twee = {
 	},
 
 	/**
-	 * Run a callback after a delay
+	 * Run a function after a delay
 	 *
 	 * @param {function} callback
 	 * @param {int}      delay
 	 *
 	 * @returns {function}
 	 */
-	runLater: function(callback, delay) {
+	debounce: function(callback, delay) {
 
-		let timeout;
+		let timeout = false;
 
 		return function() {
 			clearTimeout(timeout);
 			timeout = setTimeout(callback.apply.bind(callback, this, arguments), delay);
 		};
+
+	},
+
+	/**
+	 * Throttle the number of function calls
+	 *
+	 * @param {function} callback
+	 * @param {int}      limit
+	 *
+	 * @returns {function}
+	 */
+	throttle: function(callback, limit) {
+
+		let isThrottled = false,
+			savedArgs = null,
+			savedThis = null;
+
+		function wrapper() {
+
+			if (isThrottled) {
+				savedArgs = arguments;
+				savedThis = this;
+				return;
+			}
+
+			callback.apply(this, arguments);
+
+			isThrottled = true;
+
+			setTimeout(function() {
+
+				isThrottled = false;
+
+				if (savedArgs) {
+					wrapper.apply(savedThis, savedArgs);
+					savedArgs = null;
+					savedThis = null;
+				}
+
+			}, limit);
+
+		}
+
+		return wrapper;
 
 	},
 

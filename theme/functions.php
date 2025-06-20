@@ -5,6 +5,9 @@ define('TW_INC', TW_ROOT . 'includes/');
 define('TW_URL', get_stylesheet_directory_uri() . '/');
 define('TW_HOME', untrailingslashit(get_site_url()));
 
+$url = parse_url(TW_HOME);
+define('TW_FOLDER', (is_array($url) and !empty($url['path'])) ? $url['path'] : '');
+
 include TW_INC . 'core/app.php';
 
 tw_app_include(TW_INC . 'core');

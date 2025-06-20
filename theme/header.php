@@ -9,10 +9,8 @@
 
 <?php do_action('wp_body_open'); ?>
 
+<a class="skip-link" href="#contents">Skip to Content</a>
+
 <div id="site">
 
-	<main>
-
-		<a class="skip-link" href="#contents">Skip to Content</a>
-
-		<?php echo tw_app_template('header'); ?>
+	<?php echo tw_app_template('header'); ?>

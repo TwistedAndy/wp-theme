@@ -86,16 +86,20 @@ function tw_loader_handle() {
 
 		foreach ($_REQUEST['terms'] as $term_id) {
 
-			$term = get_term(intval($term_id));
+			$term = get_term((int) $term_id);
 
 			if ($term instanceof WP_Term) {
-				$terms[$term->taxonomy][] = $term->term_id;
+				if (empty($terms[$term->taxonomy])) {
+					$terms[$term->taxonomy] = [$term->term_id];
+				} else {
+					$terms[$term->taxonomy][] = $term->term_id;
+				}
 			}
 
 		}
 
 		/**
-		 * Terms specified in the terms field have a higher priority than tax query
+		 * Terms specified in the term field have a higher priority than the tax query
 		 */
 		if ($terms) {
 
@@ -132,10 +136,10 @@ function tw_loader_handle() {
 
 	}
 
-	$meta_query = [];
-
 	if (!empty($_REQUEST['query_meta']) and is_array($_REQUEST['query_meta'])) {
 		$meta_query = $_REQUEST['query_meta'];
+	} else {
+		$meta_query = [];
 	}
 
 	if (!empty($_REQUEST['query_order'])) {
@@ -219,6 +223,10 @@ function tw_loader_handle() {
 		$args['author'] = $params['author'];
 	}
 
+	if (!empty($_REQUEST['query_date']) and is_array($_REQUEST['query_date'])) {
+		$args['date_query'] = $_REQUEST['query_date'];
+	}
+
 	$query = new WP_Query($args);
 
 	if ($query->have_posts()) {
@@ -293,6 +301,7 @@ function tw_loader_button($wrapper, $template = 'post', $query = false, $number 
 	$type = $query->query_vars['post_type'];
 	$object = $query->get_queried_object();
 	$tax_query = $query->get('tax_query');
+	$date_query = $query->get('date_query');
 
 	if (!is_array($tax_query) or empty($tax_query)) {
 		$tax_query = [];
@@ -356,6 +365,7 @@ function tw_loader_button($wrapper, $template = 'post', $query = false, $number 
 		'post__in' => $post_in,
 		'post__not_in' => $post_not,
 		'query_tax' => $tax_query,
+		'query_date' => $date_query,
 		'query_meta' => $query->get('meta_query'),
 		'query_order' => $query->get('orderby'),
 		'query_direction' => $query->get('order')
