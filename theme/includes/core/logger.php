@@ -39,19 +39,37 @@ function tw_logger_error($message, $scope = 'theme') {
  */
 function tw_logger_write($message, $type = 'info', $scope = 'theme', $time = true) {
 
-	if (is_array($message) or is_object($message)) {
-		$message = 'Object: ' . serialize($message);
+	if (function_exists('wc_get_logger')) {
+
+		$logger = wc_get_logger();
+
+		if ($type == 'error') {
+			$logger->error($message, ['source' => $scope]);
+		} elseif ($type == 'info') {
+			$logger->info($message, ['source' => $scope]);
+		} elseif ($type == 'debug') {
+			$logger->debug($message, ['source' => $scope]);
+		} else {
+			$logger->notice($message, ['source' => $scope]);
+		}
+
 	} else {
-		$message = date('H:i:s') . ' ' . $message;
+
+		if (is_array($message) or is_object($message)) {
+			$message = 'Object: ' . serialize($message);
+		} else {
+			$message = date('H:i:s') . ' ' . $message;
+		}
+
+		$filename = tw_logger_filename($type, $scope, $time);
+
+		$handler = fopen($filename, 'a');
+
+		fwrite($handler, $message . PHP_EOL);
+
+		fclose($handler);
+
 	}
-
-	$filename = tw_logger_filename($type, $scope, $time);
-
-	$handler = fopen($filename, 'a');
-
-	fwrite($handler, $message . PHP_EOL);
-
-	fclose($handler);
 
 }
 
