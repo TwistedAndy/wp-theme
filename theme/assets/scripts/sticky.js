@@ -150,6 +150,7 @@ Twee.addModule('sticky', 'html', function($) {
 
 	window.addEventListener('scroll', handleScroll, {passive: true});
 	window.addEventListener('scrollend', handleScroll, {passive: true});
+	window.addEventListener('resize', handleScroll, {passive: true});
 	window.addEventListener('load', handleScroll, {passive: true});
 
 	handleScroll();

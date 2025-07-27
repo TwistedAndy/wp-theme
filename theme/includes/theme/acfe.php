@@ -199,7 +199,9 @@ function tw_acfe_render_scripts() { ?>
 			contents.close();
 
 			window.addEventListener('resize', function() {
-				frame.style.height = Math.ceil(frame.contentWindow.document.body.scrollHeight) + 'px';
+				if (contents.body) {
+					frame.style.height = Math.ceil(contents.body.scrollHeight) + 'px';
+				}
 			});
 
 		}
@@ -318,6 +320,14 @@ function tw_acfe_render_setup() {
 
 	global $wp_query, $wp_the_query, $post;
 
+	if (is_admin() and function_exists('WC') and $wc_query = WC()->query) {
+		add_filter('query_vars', [$wc_query, 'add_query_vars'], 0);
+		add_action('parse_request', [$wc_query, 'parse_request'], 0);
+		add_action('pre_get_posts', [$wc_query, 'pre_get_posts']);
+	} else {
+		$wc_query = false;
+	}
+
 	if (tw_app_get('new_query', 'layouts')) {
 
 		$wp_query = tw_app_get('new_query', 'layouts');
@@ -402,6 +412,10 @@ function tw_acfe_render_setup() {
 
 	}
 
+	if ($wc_query) {
+		$wc_query->init_query_vars();
+	}
+
 	/**
 	 * Reset the currently enqueued scripts
 	 * to include them again in an iframe
@@ -434,6 +448,12 @@ function tw_acfe_render_setup() {
 function tw_acfe_render_reset() {
 
 	global $wp_query, $wp_the_query, $post;
+
+	if (is_admin() and function_exists('WC') and $wc_query = WC()->query) {
+		remove_filter('query_vars', [$wc_query, 'add_query_vars'], 0);
+		remove_action('parse_request', [$wc_query, 'parse_request'], 0);
+		remove_action('pre_get_posts', [$wc_query, 'pre_get_posts']);
+	}
 
 	$object_scripts = wp_scripts();
 	$object_styles = wp_styles();
@@ -529,7 +549,7 @@ if (class_exists('WooCommerce')) {
 	/**
 	 * Render fields on the variation section
 	 */
-	add_action('woocommerce_product_after_variable_attributes', function($loop, $variation_data, $variation) {
+	add_action('woocommerce_variation_options', function($loop, $variation_data, $variation) {
 
 		if (!function_exists('acf_get_field_groups')) {
 			return;
@@ -545,7 +565,9 @@ if (class_exists('WooCommerce')) {
 			foreach ($acf_field_group['location'] as $group_locations) {
 				foreach ($group_locations as $rule) {
 					if ($rule['param'] == 'post_type' and $rule['operator'] == '==' and $rule['value'] == 'product_variation') {
+						echo '<div class="acf-fields acf-variable-fields">';
 						acf_render_fields($variation->ID, acf_get_fields($acf_field_group));
+						echo '</div>';
 						break 2;
 					}
 				}
@@ -554,7 +576,7 @@ if (class_exists('WooCommerce')) {
 
 		remove_filter('acf/prepare_field', 'tw_acf_variation_field_name');
 
-	}, 10, 3);
+	}, 5, 3);
 
 
 	/**

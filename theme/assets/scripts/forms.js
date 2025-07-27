@@ -1,9 +1,11 @@
 Twee.addModule('forms', '.form_box, .comment_box', function($, forms) {
 
-	if (forms.hasClass('form_box') && !forms.is('form')) {
-		forms = $('form', this);
-	} else {
-		forms = $('form.form_box, form.comment-form', this);
+	if (!forms.is('form')) {
+		if (forms.hasClass('form_box')) {
+			forms = $('form', this);
+		} else {
+			forms = $('form.form_box, form.comment-form, .newsletter form.form', this);
+		}
 	}
 
 	forms.not('.skip_processing').each(function() {
