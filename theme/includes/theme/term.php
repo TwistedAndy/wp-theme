@@ -727,6 +727,10 @@ function tw_term_tree($taxonomy, $flatten = false) {
 
 				}
 
+				usort($elements, function($a, $b) {
+					return strcmp($a['name'], $b['name']);
+				});
+
 				$elements = tw_term_build_tree($elements, 0, 0);
 
 			} else {
@@ -790,10 +794,6 @@ function tw_term_tree($taxonomy, $flatten = false) {
 function tw_term_build_tree($elements, $parent_id = 0, $depth = 0) {
 
 	$branch = [];
-
-	uasort($elements, function($a, $b) {
-		return strcmp($a['name'], $b['name']);
-	});
 
 	foreach ($elements as $index => $element) {
 

@@ -125,7 +125,7 @@ function tw_block_attributes($class, $block) {
 
 	$result = ' class="' . implode(' ', $classes) . '"';
 
-	if (isset($_GET['preview'])) {
+	if (isset($_GET['preview']) and empty($_GET['preview'])) {
 		$result .= ' id="block_' . tw_app_get('block_id', 'default', 0) . '"';
 		$result .= ' data-layout="' . esc_attr($block['acf_fc_layout']) . '"';
 	} elseif (!empty($settings['block_id'])) {
