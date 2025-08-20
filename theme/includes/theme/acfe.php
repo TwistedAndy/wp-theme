@@ -256,6 +256,31 @@ function tw_acfe_render_scripts() { ?>
 		});
 
 	</script>
+	<style>
+		.acf-render-label {
+			display: block;
+			position: absolute;
+			top: 0;
+			left: 0;
+			padding: 4px 10px;
+			border-radius: 0 0 8px 0;
+			background-color: #be0000;
+			color: #ffffff;
+			font-size: 11px;
+			font-weight: 600;
+			line-height: 18px;
+			text-transform: uppercase;
+			z-index: 10;
+		}
+
+		.acf-render-label-blue {
+			background-color: rgba(0, 55, 190, 0.91)
+		}
+
+		.acf-render-label-green {
+			background-color: #009600
+		}
+	</style>
 <?php }
 
 
@@ -305,8 +330,20 @@ function tw_acfe_render_layout($field, $layout) {
 
 	$content = str_replace(["\n", "\r", "\t"], '', $content);
 
+	if (!empty($block['settings']) and is_array($block['settings'])) {
+		$settings = $block['settings'];
+	} else {
+		$settings = [];
+	}
+
+	$block_message = '';
+
+	if (!empty($settings['options']) and in_array('hidden', $settings['options'])) {
+		$block_message = '<div class="acf-render-label">HIDDEN</div>';
+	}
+
 	echo '<div style="display: none;">' . htmlspecialchars($content) . '</div>';
-	echo '<iframe style="display: block; width: 100%; position: relative; z-index: 1;" id="' . $preview_id . '" onload="tweePreviewBlock(this);"></iframe>';
+	echo '<iframe style="display: block; width: 100%; position: relative; z-index: 1;" id="' . $preview_id . '" onload="tweePreviewBlock(this);"></iframe>' . $block_message;
 
 }
 

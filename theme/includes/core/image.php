@@ -107,7 +107,19 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 			$link_class = ' class="' . $attributes['link_class'] . '"';
 		}
 
-		$before = $before . '<a href="' . esc_url($link_href) . '"' . $link_class . ' title="' . esc_attr($attributes['alt']) . '">';
+		$link_attributes = '';
+
+		if (!empty($attributes['link_title'])) {
+			$link_attributes .= ' title="' . esc_attr($attributes['link_title']) . '"';
+		} elseif (!empty($attributes['alt'])) {
+			$link_attributes .= ' title="' . esc_attr($attributes['alt']) . '"';
+		}
+
+		if (!empty($attributes['link_target'])) {
+			$link_attributes .= ' target="' . esc_attr($attributes['link_target']) . '"';
+		}
+
+		$before = $before . '<a href="' . esc_url($link_href) . '"' . $link_class . $link_attributes . '">';
 		$after = '</a>' . $after;
 
 	}

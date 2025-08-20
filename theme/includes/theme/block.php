@@ -26,6 +26,8 @@ function tw_block_render($blocks) {
 		$blocks = [$blocks];
 	}
 
+	$is_front = !is_admin();
+
 	$block_id = (int) tw_app_get('block_id', 'default', 0);
 
 	ob_start();
@@ -36,13 +38,13 @@ function tw_block_render($blocks) {
 			continue;
 		}
 
-		$options = [];
-
 		if (!empty($block['settings']) and !empty($block['settings']['options'])) {
 			$options = $block['settings']['options'];
+		} else {
+			$options = [];
 		}
 
-		if (in_array('hidden', $options)) {
+		if (in_array('hidden', $options) and $is_front) {
 			continue;
 		}
 

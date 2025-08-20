@@ -63,6 +63,32 @@
 	--color-primary: var(--theme-primary);
 	--color-secondary: var(--theme-secondary);
 
+	/* Buttons */
+	--button-border: var(--theme-primary);
+	--button-base: var(--theme-primary);
+	--button-text: var(--theme-base);
+
+	--button-border-active: var(--theme-secondary);
+	--button-base-active: var(--theme-secondary);
+	--button-text-active: var(--theme-base);
+
+	--button-border-disabled: var(--theme-border);
+	--button-base-disabled: var(--theme-background);
+	--button-text-disabled: var(--theme-muted);
+
+	/* Fields */
+	--field-border: var(--color-field);
+	--field-base: var(--color-base);
+	--field-text: var(--color-text);
+
+	--field-border-active: var(--color-primary);
+	--field-base-active: var(--color-base);
+	--field-text-active: var(--color-text);
+
+	--field-border-disabled: var(--theme-border);
+	--field-base-disabled: var(--theme-background);
+	--field-text-disabled: var(--theme-muted);
+
 	/* Shadows */
 	--shadow-small: 0 1px 2px rgba(var(--color-shadow), 0.15);
 	--shadow-regular: 0 5px 10px rgba(var(--color-shadow), 0.1);
@@ -141,6 +167,8 @@
 	--size-small: #{rem(15)};
 	--size-large: #{rem(20)};
 	--size-content: #{rem(18)};
+	--size-button: #{rem(16)};
+	--size-field: #{rem(16)};
 
 	--line-huge: 1.1;
 	--line-big: 1.15;
@@ -155,6 +183,8 @@
 	--line-small: 1.25;
 	--line-large: 1.333;
 	--line-content: 1.5;
+	--line-button: #{rem(20)};
+	--line-field: #{rem(22)};
 
 	@include desktop_small {
 

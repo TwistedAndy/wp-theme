@@ -43,9 +43,13 @@ function tw_acf_load_value($result, $post_id, $field) {
 	}
 
 	if ($entity['type'] == 'option') {
-		$result = get_option($post_id . '_' . $field['name'], false);
+		$result = get_option($post_id . '_' . $field['name'], null);
 	} else {
-		$result = get_metadata($entity['type'], $entity['id'], $field['name'], true);
+		$result = get_metadata_raw($entity['type'], $entity['id'], $field['name'], true);
+	}
+
+	if (is_null($result) and isset($field['default_value'])) {
+		$result = $field['default_value'];
 	}
 
 	/**

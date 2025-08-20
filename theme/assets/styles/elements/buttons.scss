@@ -10,15 +10,15 @@
 	min-height: var(--height-control);
 	padding: 0 var(--gap-button);
 	margin: 0;
-	border: 1px solid transparent;
+	border: 1px solid var(--button-border);
 	border-radius: var(--radius-small);
-	background: var(--color-primary) 50% 50% no-repeat;
+	background: var(--button-base) 50% 50% no-repeat;
 	background-size: rem(19) rem(19);
-	color: var(--color-base);
+	color: var(--button-text);
 	font-family: var(--font-main);
-	font-size: rem(16);
-	font-weight: 500;
-	line-height: rem(20);
+	font-size: var(--size-button);
+	font-weight: 600;
+	line-height: var(--line-button);
 	text-align: center;
 	transition: 0.2s;
 	cursor: pointer;
@@ -30,32 +30,30 @@
 
 	@include hover {
 		&:hover {
-			background-color: var(--color-secondary);
+			border-color: var(--button-border-active);
+			background-color: var(--button-base-active);
+			color: var(--button-text-active);
 		}
 	}
 
 }
 
 %button_outline {
-	border-color: currentColor;
-	background-color: transparent;
-	color: currentColor;
-
-	@include hover {
-		&:hover {
-			border-color: var(--color-primary);
-			background-color: transparent;
-			color: var(--color-primary);
-		}
-	}
-
+	--button-border: var(--color-heading);
+	--button-base: var(--color-base);
+	--button-text: var(--color-heading);
+	--button-border-active: var(--color-primary);
+	--button-base-active: var(--color-base);
+	--button-text-active: var(--color-primary);
 }
 
 %button_disabled {
-	border-color: var(--color-border);
-	background-color: var(--color-background);
-	color: var(--color-muted);
-	cursor: default;
+	--button-base: var(--color-background);
+	--button-text: var(--color-muted);
+	--button-border: var(--color-border);
+	--button-border-active: var(--color-border);
+	--button-base-active: var(--color-background);
+	--button-text-active: var(--color-muted);
 }
 
 %button_icon_before {
@@ -99,8 +97,8 @@
 	}
 
 	.button {
-		flex-grow: 1;
 		flex-basis: auto;
+		flex-grow: 1;
 		margin: 0 var(--gap-buttons-x) var(--gap-buttons-y) 0;
 	}
 
