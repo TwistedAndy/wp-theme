@@ -16,10 +16,15 @@ tw_app_include(TW_INC . 'widgets');
 
 
 tw_asset_register([
-	'name' => 'template',
-	'styles' => [
-		'style' => 'theme.css',
+	'base' => [
+		'style' => 'base.css',
 		'footer' => false,
+		'display' => true,
+		'directory' => 'build'
+	],
+	'other' => [
+		'style' => 'other.css',
+		'footer' => true,
 		'display' => true,
 		'directory' => 'build'
 	],

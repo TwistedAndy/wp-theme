@@ -1,0 +1,301 @@
+@import '../elements/hidden';
+@import '../elements/play';
+
+.content {
+
+	.gallery {
+		display: flex;
+		flex-wrap: wrap;
+		width: calc(100% + var(--gap-grid-x));
+		margin: 0 calc(-1 * var(--gap-grid-x)) calc(var(--gap-content) + 5px) 0;
+		--width-item: 33.33%;
+		--gap-grid-x: 10px;
+		--gap-grid-y: 10px;
+
+		&:last-child {
+			margin-bottom: calc(-1 * var(--gap-grid-y));
+		}
+
+		&.carousel {
+			display: block;
+			flex-wrap: nowrap;
+			margin-bottom: 0;
+
+			.gallery-item {
+				margin-bottom: 0;
+			}
+
+		}
+
+		&-columns-1 {
+			--width-item: 100%;
+		}
+
+		&-columns-2 {
+			--width-item: 50%;
+		}
+
+		&-columns-4 {
+			--width-item: 25%;
+		}
+
+		&-columns-5 {
+			--width-item: 20%;
+		}
+
+		&-columns-6 {
+			--width-item: 16.66%;
+		}
+
+		&-columns-7 {
+			--width-item: 14.28%;
+		}
+
+		&-columns-8 {
+			--width-item: 12.5%;
+		}
+
+		&-columns-9 {
+			--width-item: 11.11%;
+		}
+
+		&-columns-6 .gallery-caption,
+		&-columns-7 .gallery-caption,
+		&-columns-8 .gallery-caption,
+		&-columns-9 .gallery-caption {
+			@extend %hidden;
+		}
+
+		&-item {
+			display: inline-flex;
+			position: relative;
+			flex-direction: column;
+			flex-grow: 0;
+			flex-shrink: 0;
+			width: calc(var(--width-item) - var(--gap-grid-x));
+			margin: 0 var(--gap-grid-x) var(--gap-grid-y) 0;
+
+			&:after {
+				content: '';
+				display: block;
+				padding-bottom: 66.666%;
+			}
+
+			.play {
+				@extend %play;
+			}
+
+			img {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				inset: 0;
+				object-fit: cover;
+			}
+
+		}
+
+		&-icon {
+			display: flex;
+			flex-direction: column;
+			flex-grow: 1;
+
+			a, img {
+				display: block;
+				flex-grow: 1;
+				width: 100%;
+				height: auto;
+				border-radius: var(--radius-small);
+			}
+
+			img {
+				height: 100%;
+				object-fit: cover;
+			}
+
+		}
+
+		&-caption {
+			display: block;
+			padding: 10px;
+			background: var(--color-background);
+		}
+
+	}
+
+	.f-thumbs {
+		margin-top: 10px;
+		--f-thumb-border-radius: 0px;
+		--f-thumb-width: 16.666%;
+		--f-thumb-height: auto;
+
+		&.is-horizontal .f-thumbs__track {
+			width: calc(100% + var(--f-thumb-gap));
+			padding: 0;
+			--f-thumb-gap: 10px;
+		}
+
+		&__slide {
+			width: calc(var(--f-thumb-width) - var(--f-thumb-gap));
+
+			&__button {
+				width: 100%;
+				height: auto;
+				margin: 0;
+
+				&:before {
+					content: '';
+					display: block;
+					padding-bottom: 66.666%;
+				}
+
+			}
+
+			&__img {
+				width: 100%;
+				height: 100%;
+				padding: 0;
+				border-radius: var(--f-thumb-border-radius);
+			}
+
+		}
+
+	}
+
+	@include tablet_large {
+
+		.gallery {
+			--width-item: 50%;
+
+			&-columns-1, &-columns-2 {
+				--width-item: 100%;
+			}
+
+			&-columns-6, &-columns-7 {
+				--width-item: 33.33%;
+			}
+
+			&-columns-8, &-columns-9 {
+				--width-item: 25%;
+			}
+
+		}
+
+	}
+
+	@include phone_large {
+
+		.gallery {
+			--width-item: 100%;
+
+			&-columns-6, &-columns-7 {
+				--width-item: 50%;
+			}
+
+			&-columns-8, &-columns-9 {
+				--width-item: 33.33%;
+			}
+
+		}
+
+	}
+
+}
+
+.wp {
+
+	&-block-embed,
+	&-embed-video,
+	&-video {
+		display: block;
+		position: relative;
+		width: 100%;
+		margin: calc(var(--gap-content) + 5px) auto;
+
+		&:first-child {
+			margin-top: 0;
+		}
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
+	}
+
+	&-block-embed.wp-has-aspect-ratio {
+
+		&:before {
+			content: '';
+			display: block;
+			position: relative;
+			width: 100%;
+			padding-bottom: 56.25%;
+		}
+
+		.wp-block-embed__wrapper {
+			display: block;
+			position: absolute;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+		}
+
+		iframe {
+			display: block;
+			width: 100%;
+			height: 100%;
+		}
+
+	}
+
+	&-embed-video,
+	&-video-shortcode,
+	&-has-aspect-ratio {
+
+		&:before {
+			content: '';
+			display: block;
+			position: relative;
+			width: 0;
+			padding-bottom: 56.25%;
+		}
+
+		iframe {
+			display: block;
+			position: absolute;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+		}
+
+	}
+
+	&-caption {
+		display: block;
+		overflow: hidden;
+		padding: 10px;
+		margin-bottom: var(--gap-content);
+		background: var(--color-background);
+
+		&-text {
+			display: block;
+			margin: 0;
+			text-align: center;
+		}
+
+		.wp-caption-text {
+			padding: 10px 10px 0;
+		}
+
+		a, img {
+			display: block;
+			margin: 0;
+		}
+
+	}
+
+}

@@ -29,12 +29,12 @@
 
 		.carousel-button {
 			bottom: 50%;
-			margin-bottom: calc(-0.5 * var(--height-control));
-			right: calc(-0.5 * var(--height-control));
+			margin-bottom: calc(-0.5 * var(--height-button));
+			right: calc(-0.5 * var(--height-button));
 
 			&.is-prev {
 				right: auto;
-				left: calc(-0.5 * var(--height-control));
+				left: calc(-0.5 * var(--height-button));
 			}
 
 		}

@@ -6,10 +6,6 @@
 @import '../elements/items';
 @import '../elements/play';
 
-.content {
-	@extend %content;
-}
-
 .button {
 
 	@extend %button;
@@ -130,7 +126,7 @@
 	@extend %carousel;
 }
 
-.screen-reader-text {
+.screen-reader-text, .sr-hidden {
 	@extend %hidden;
 }
 

@@ -34,16 +34,10 @@
 		flex-grow: 0;
 		flex-shrink: 0;
 		align-items: center;
-		width: rem(172);
+		width: var(--width-logo);
+		height: var(--height-logo);
 		margin: 0 var(--gap-grid) 0 0;
-		background: url(../images/ico_logo.svg) 50% 50% / contain no-repeat;
-
-		&:before {
-			content: '';
-			display: block;
-			padding-bottom: 29.07%;
-		}
-
+		background: var(--mask-logo) 0 50% / contain no-repeat;
 	}
 
 	.navigation {
@@ -315,7 +309,6 @@
 		}
 
 		.logo {
-			width: 125px;
 			margin-right: auto;
 		}
 

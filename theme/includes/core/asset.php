@@ -649,6 +649,18 @@ function tw_asset_inject($content) {
 		return $content;
 	}
 
+	$file = TW_ROOT . 'assets/build/properties.css';
+
+	$replacement = '';
+
+	if (file_exists($file)) {
+
+		$properties = file_get_contents($file);
+
+		$replacement .= '<style>' . $properties . '</style>';
+
+	}
+
 	preg_match_all('#[\'" =]+([a-z\-_]+?_box)#i', $content, $matches);
 
 	if (!empty($matches) and !empty($matches[1]) and is_array($matches[1])) {
@@ -695,16 +707,12 @@ function tw_asset_inject($content) {
 		}
 
 		if ($stylesheets) {
-			$replacement = implode("\n", $stylesheets);
-		} else {
-			$replacement = '';
+			$replacement .= implode("\n", $stylesheets);
 		}
-
-		$content = str_replace($placeholder, $replacement, $content);
 
 	}
 
-	return $content;
+	return str_replace($placeholder, $replacement, $content);
 
 }
 

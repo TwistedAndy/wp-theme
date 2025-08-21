@@ -21,7 +21,9 @@ let folders = {
 
 let sources = {
 	woo: 'styles/woo.scss',
-	theme: 'styles/theme.scss',
+	base: 'styles/base.scss',
+	other: 'styles/other.scss',
+	props: 'styles/includes/properties.scss',
 	blocks: 'styles/blocks/*.scss',
 	plugins: 'plugins/**/*.scss',
 	scripts: 'scripts/*.js'
@@ -68,11 +70,27 @@ function woo() {
 }
 
 function theme() {
-	return gulp.src(sources.theme)
+	return gulp.src([
+			sources.base,
+			sources.other
+		])
 		.pipe(plumber(options.plumber))
+		.pipe(insert.transform(function(contents, file) {
+			return injectImports(contents, []);
+		}))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
 		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
+		.pipe(gulp.dest(folders.build));
+}
+
+function props() {
+	return gulp.src(sources.props)
+		.pipe(plumber(options.plumber))
+		.pipe(insert.transform(function(contents, file) {
+			return injectImports(contents, []);
+		}))
+		.pipe(sass(options.sass))
 		.pipe(gulp.dest(folders.build));
 }
 
@@ -135,7 +153,7 @@ function injectImports(contents, elements) {
 	let existingImports = Array.from(contents.matchAll(importRegex), match => match[1]),
 		existingElements = Array.from(contents.matchAll(elementRegex), match => match[1]);
 
-	if (contents.indexOf('@include') !== -1 || contents.indexOf('@extend') !== -1) {
+	if (contents.indexOf('@include') !== -1 || contents.indexOf('@extend') !== -1 || contents.indexOf('rem(') !== -1) {
 		requiredImports.push('../includes/mixins');
 	}
 
@@ -210,18 +228,19 @@ exports.plugins = plugins;
 
 exports.scripts = scripts;
 
-exports.build = gulp.parallel(woo, theme, blocks, plugins, scripts);
+exports.build = gulp.parallel(woo, theme, props, blocks, plugins, scripts);
 
 exports.default = function() {
 
 	gulp.watch(
 		[
-			'styles/theme.scss',
+			'styles/base.scss',
+			'styles/other.scss',
 			'styles/base/*.scss',
 			'styles/elements/*.scss',
 			'styles/includes/*.scss',
 		],
-		gulp.parallel(theme)
+		gulp.parallel(theme, props)
 	);
 
 	gulp.watch(

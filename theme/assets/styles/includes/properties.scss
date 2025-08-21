@@ -108,9 +108,9 @@
 	--field-text-disabled: var(--theme-muted);
 
 	/* Shadows */
-	--shadow-small: 0 1px 2px rgbo(--color-shadow, 15%);
-	--shadow-regular: 0 5px 10px rgbo(--color-shadow, 10%);
-	--shadow-large: 0 5px 40px rgbo(--color-shadow, 5%);
+	--shadow-small: 0 1px 2px #{rgbo(--color-shadow, 15%)};
+	--shadow-regular: 0 5px 10px #{rgbo(--color-shadow, 15%)};
+	--shadow-large: 0 5px 40px #{rgbo(--color-shadow, 5%)};
 
 	/* Paddings & Margins */
 	--gap-card: 30px;
@@ -148,13 +148,16 @@
 	--offset-scroll: 0px;
 
 	/* Dimensions */
-	--height-control: #{rem(50)};
+	--height-button: #{rem(50)};
+	--height-field: var(--height-button);
 	--height-header: #{rem(80)};
 	--height-image: 100%;
 	--height-icon: #{rem(16)};
+	--height-logo: 34px;
 	--height-bar: 0px;
 
 	--width-icon: var(--height-icon);
+	--width-logo: 170px;
 	--width-item: 25%;
 	--width-scrollbar: 0px;
 	--width-content: #{rem(640)};
@@ -170,6 +173,7 @@
 
 	/* Mask Image */
 	--mask-image: none;
+	--mask-logo: url(../../images/ico_logo.svg);
 
 	@include desktop_small {
 
@@ -196,7 +200,7 @@
 		--gap-section-small: 35px;
 		--gap-section-side: 20px;
 
-		--height-control: #{rem(44)};
+		--height-button: #{rem(44)};
 		--height-header: #{rem(70)};
 
 		--width-item: 33.333%;

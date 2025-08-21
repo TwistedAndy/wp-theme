@@ -1,12 +1,9 @@
 @charset "utf-8";
 
 @import 'includes/mixins';
-@import 'includes/properties';
 
 @import 'base/fonts';
 @import 'base/reset';
 @import 'base/fields';
 @import 'base/layout';
-@import 'base/elements';
-@import 'base/animation';
-@import 'base/wp';
+@import 'base/base';

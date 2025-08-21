@@ -3,7 +3,7 @@ input, select, textarea {
 	position: relative;
 	box-sizing: border-box;
 	width: 100%;
-	padding: calc(0.5 * var(--height-control) - 0.5 * var(--line-field) - 1px) var(--gap-field);
+	padding: calc(0.5 * var(--height-field) - 0.5 * var(--line-field) - 1px) var(--gap-field);
 	margin: 0;
 	border: 1px solid var(--field-border);
 	border-radius: var(--radius-small);
