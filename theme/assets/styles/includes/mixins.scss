@@ -1,5 +1,18 @@
+$desktop_large: 1420;
+$desktop_small: 1024;
+
+$tablet_large: 768;
+$tablet_small: 640;
+
+$phone_large: 480;
+$phone_small: 400;
+
 @function rem($size) {
 	@return ($size / 16) + rem;
+}
+
+@function rgbo($property, $opacity) {
+	@return #{'rgb(from var(' + $property + ') r g b / ' + $opacity + ')'};
 }
 
 @mixin dark() {

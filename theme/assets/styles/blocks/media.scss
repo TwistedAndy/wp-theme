@@ -7,7 +7,7 @@
 	.media {
 		display: block;
 		position: relative;
-		color: $color_heading;
+		color: var(--color-heading);
 		font-size: 0;
 		line-height: 0;
 		text-align: center;
@@ -17,7 +17,7 @@
 			&:before {
 				content: '';
 				position: absolute;
-				background: $color_heading;
+				background: var(--theme-black);
 				transition: 0.2s;
 				opacity: 0.25;
 				z-index: 2;

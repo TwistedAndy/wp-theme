@@ -35,9 +35,19 @@ body {
 	display: flex;
 	position: relative;
 	flex-direction: column;
-	align-items: stretch;
 	min-height: 100dvh;
-	padding: var(--height-bar) 0 0;
+	padding-top: var(--height-bar);
+
+	& > main {
+		display: flex;
+		position: relative;
+		flex-direction: column;
+		flex-grow: 1;
+		flex-shrink: 0;
+		align-items: stretch;
+		width: 100%;
+	}
+
 }
 
 .fixed {
@@ -110,23 +120,21 @@ section {
 	&_light {
 		--gap-section-top: var(--gap-section);
 		--color-section: var(--theme-background);
-		--color-background: var(--theme-base);
+		--color-background: var(--theme-white);
 	}
 
 	&_dark {
-		color: $color_white;
+		color: var(--theme-white);
 		--gap-section-top: var(--gap-section);
-		--color-base: #{$color_black};
-		--color-section: #{$color_heading};
-		--color-background: #{$color_text};
-		--color-text: #{rgba($color_white, 0.9)};
-		--color-muted: #{rgba($color_white, 0.8)};
-		--color-heading: #{$color_white};
-		--color-border: #{rgba($color_white, 0.1)};
-		--color-field: #{rgba($color_white, 0.2)};
-		--color-shadow: 0, 0, 0;
-		--color-icon: #{$color_white};
-		--color-link: #{$color_primary};
+		--color-base: var(--theme-black);
+		--color-section: #1a003e;
+		--color-background: var(--theme-text);
+		--color-text: #{rgbo(--theme-white, 90%)};
+		--color-muted: #{rgbo(--theme-white, 80%)};
+		--color-heading: #{--theme-white};
+		--color-border: #{rgbo(--theme-white, 10%)};
+		--color-field: #{rgbo(--theme-white, 10%)};
+		--color-icon: var(--theme-white);
 	}
 
 	&_top {
