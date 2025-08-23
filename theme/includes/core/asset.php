@@ -148,7 +148,10 @@ add_action('init', function() {
 				}
 
 				if ($type == 'script') {
-					wp_register_script($current_key, $file, $deps[$type], $asset['version'], $asset['footer']);
+					wp_register_script($current_key, $file, $deps[$type], $asset['version'], [
+						'in_footer' => $asset['footer'],
+						'strategy' => 'defer',
+					]);
 				} elseif ($type == 'style') {
 					wp_register_style($current_key, $file, $deps[$type], $asset['version']);
 				}
@@ -649,67 +652,102 @@ function tw_asset_inject($content) {
 		return $content;
 	}
 
-	$file = TW_ROOT . 'assets/build/properties.css';
-
 	$replacement = '';
+
+	$file = TW_ROOT . 'assets/styles/base/fonts.scss';
 
 	if (file_exists($file)) {
 
-		$properties = file_get_contents($file);
+		$fonts = file_get_contents($file);
 
-		$replacement .= '<style>' . $properties . '</style>';
+		if ($fonts) {
+			$folder = str_replace(TW_HOME, '', TW_URL);
+			$replacement = str_replace(['../fonts/', "\t", "\n", "\r", '  '], [$folder . 'assets/fonts/', '', '', '', ' '], $fonts) . "\n";
+		}
 
+	}
+
+	$file = TW_ROOT . 'assets/build/properties.css';
+
+	if (file_exists($file)) {
+		$replacement .= file_get_contents($file);
+	}
+
+	if ($replacement) {
+		$replacement = "\n<style>" . $replacement . "</style>\n";
 	}
 
 	preg_match_all('#[\'" =]+([a-z\-_]+?_box)#i', $content, $matches);
 
-	if (!empty($matches) and !empty($matches[1]) and is_array($matches[1])) {
+	if (empty($matches) or empty($matches[1]) or !is_array($matches[1])) {
+		return str_replace($placeholder, $replacement, $content);
+	}
 
-		$included = [];
-		$required = [];
+	$included = [];
+	$required = [];
 
-		foreach ($matches[1] as $token) {
-			if (strpos($token, 'tw_block_') === 0) {
-				$included[] = str_replace('tw_block_', '', $token);
+	foreach ($matches[1] as $token) {
+		if (strpos($token, 'tw_block_') === 0) {
+			$included[] = str_replace('tw_block_', '', $token);
+		} else {
+			$required[] = $token;
+		}
+	}
+
+	$missing = array_diff($required, $included);
+
+	if (empty($missing)) {
+		return str_replace($placeholder, $replacement, $content);
+	}
+
+	$intersect = array_intersect(['header_box', 'modal_box'], $missing);
+
+	if ($intersect) {
+		$missing = array_merge($intersect, $missing);
+	}
+
+	$missing = array_unique($missing);
+
+	$preload = [];
+	$stylesheets = [];
+
+	$limit = apply_filters('twee_asset_limit', 4);
+
+	foreach ($missing as $index => $name) {
+
+		if (empty($assets[$name]) or empty($assets[$name]['style']) or !is_array($assets[$name]['style'])) {
+			continue;
+		}
+
+		if (!empty($assets[$name]['version'])) {
+			$version = $assets[$name]['version'];
+		} else {
+			$version = '';
+		}
+
+		foreach ($assets[$name]['style'] as $style) {
+
+			if ($version) {
+				$style .= '?v=' . $version;
+			}
+
+			if ($index <= $limit) {
+				$stylesheets[] = '<link rel="stylesheet" href="' . esc_url($style) . '" media="all" />';
 			} else {
-				$required[] = $token;
-			}
-		}
-
-		$missing = array_diff($required, $included);
-
-		$missing = array_unique($missing);
-
-		$stylesheets = [];
-
-		foreach ($missing as $name) {
-
-			if (!empty($assets[$name]) and !empty($assets[$name]['style']) and is_array($assets[$name]['style'])) {
-
-				if (!empty($assets[$name]['version'])) {
-					$version = $assets[$name]['version'];
-				} else {
-					$version = '';
-				}
-
-				foreach ($assets[$name]['style'] as $style) {
-
-					if ($version) {
-						$style .= '?v=' . $version;
-					}
-
-					$stylesheets[] = '<link rel="stylesheet" id="tw_block_' . $name . '-css" href="' . esc_url($style) . '" media="all" />';
-
-				}
-
+				$stylesheets[] = '<link rel="preload" as="style" href="' . esc_url($style) . '" onload="this.onload=null;this.rel=\'stylesheet\'" />';
+				$preload[] = '<link rel="stylesheet" href="' . esc_url($style) . '" media="all" />';
 			}
 
 		}
 
-		if ($stylesheets) {
-			$replacement .= implode("\n", $stylesheets);
-		}
+	}
 
+	if ($stylesheets) {
+		$replacement .= "\n" . implode("\n", $stylesheets) . "\n";
+	}
+
+	if ($preload) {
+		$replacement .= "<noscript>\n" . implode("\n", $preload) . "\n</noscript>\n";
 	}
 
 	return str_replace($placeholder, $replacement, $content);

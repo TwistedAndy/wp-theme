@@ -1,12 +1,23 @@
 Twee.addModule('sticky', 'html', function($) {
 
-	let elements = document.querySelectorAll('.header_box.is_sticky'),
+	let isAdmin = document.body.classList.contains('admin-bar'),
+		elements = document.querySelectorAll('.header_box.is_sticky'),
 		header = $('.header_box').get(0),
-		isAdmin = document.body.classList.contains('admin-bar');
+		ticking = false;
 
 	const handleScroll = Twee.throttle(function() {
+		if (!ticking) {
+			requestAnimationFrame(updateStickyState);
+			ticking = true;
+		}
+	}, 16);
 
-		let offsetScroll = 0,
+	function updateStickyState() {
+
+		ticking = false;
+
+		let offsetHeader = 0,
+			offsetScroll = 0,
 			offsetTop = 0,
 			offsetBottom = 0,
 			items = [],
@@ -79,9 +90,12 @@ Twee.addModule('sticky', 'html', function($) {
 
 		}
 
+		let propertyChanges = [],
+			classChanges = [];
+
 		items.forEach(function(item) {
 
-			var element = item.element,
+			let element = item.element,
 				rect = item.rect,
 				isFixed = false,
 				value = offsetTop + 'px';
@@ -89,7 +103,11 @@ Twee.addModule('sticky', 'html', function($) {
 			if (item.top !== false) {
 
 				if (element.style.getPropertyValue('--offset-top') !== value) {
-					element.style.setProperty('--offset-top', value);
+					propertyChanges.push({
+						'element': element,
+						'property': '--offset-top',
+						'value': value
+					});
 					item.top = parseInt(window.getComputedStyle(element, null).getPropertyValue('top').replace('px', '')) || 0;
 					rect = element.getBoundingClientRect();
 				}
@@ -104,7 +122,11 @@ Twee.addModule('sticky', 'html', function($) {
 				value = offsetBottom + 'px';
 
 				if (element.style.getPropertyValue('--offset-bottom') !== value) {
-					element.style.setProperty('--offset-bottom', value);
+					propertyChanges.push({
+						'element': element,
+						'property': '--offset-bottom',
+						'value': value
+					});
 					item.bottom = parseInt(window.getComputedStyle(element, null).getPropertyValue('bottom').replace('px', '')) || 0;
 					rect = element.getBoundingClientRect();
 				}
@@ -117,42 +139,69 @@ Twee.addModule('sticky', 'html', function($) {
 			}
 
 			if ((!isFixed && element.classList.contains('is_fixed'))) {
-				element.classList.remove('is_fixed');
+				classChanges.push({
+					'element': element,
+					'class': 'is_fixed',
+					'status': false
+				});
 			} else if (isFixed && !element.classList.contains('is_fixed')) {
-				element.classList.add('is_fixed');
+				classChanges.push({
+					'element': element,
+					'class': 'is_fixed',
+					'status': true
+				});
 			}
 
 		});
 
-		updateProperty(document.body, '--offset-top', offsetTop + 'px');
-		updateProperty(document.body, '--offset-bottom', offsetBottom + 'px');
-		updateProperty(document.body, '--offset-scroll', offsetScroll + 'px');
-
 		if (header) {
 
-			var rect = header.getBoundingClientRect();
+			let rect = header.getBoundingClientRect();
 
 			if (rect.y > 0) {
-				updateProperty(document.body, '--offset-header', rect.y + 'px');
-			} else {
-				updateProperty(document.body, '--offset-header', '0px');
+				offsetHeader = rect.y;
 			}
 
 		}
 
-	}, 50);
+		/**
+		 * Split property get and set operations to avoid forced reflows
+		 */
+		let properties = ['--offset-top', '--offset-bottom', '--offset-scroll', '--offset-header'];
 
-	function updateProperty(element, property, value) {
-		if (element.style.getPropertyValue(property) !== value) {
-			element.style.setProperty(property, value);
+		let values = [offsetTop + 'px', offsetBottom + 'px', offsetScroll + 'px', offsetHeader + 'px'];
+
+		properties.forEach(function(property, index) {
+			if (document.body.style.getPropertyValue(property) !== values[index]) {
+				propertyChanges.push({
+					'element': document.body,
+					'property': property,
+					'value': values[index]
+				});
+			}
+		});
+
+		if (propertyChanges.length > 0) {
+			propertyChanges.forEach(function(change) {
+				change.element.style.setProperty(change.property, change.value);
+			});
 		}
+
+		if (classChanges.length > 0) {
+			classChanges.forEach(function(change) {
+				if (change.status) {
+					change.element.classList.add(change.class);
+				} else {
+					change.element.classList.remove(change.class);
+				}
+			});
+		}
+
 	}
 
-	window.addEventListener('scroll', handleScroll, {passive: true});
-	window.addEventListener('scrollend', handleScroll, {passive: true});
-	window.addEventListener('resize', handleScroll, {passive: true});
-	window.addEventListener('load', handleScroll, {passive: true});
-
-	handleScroll();
+	window.addEventListener('scroll', handleScroll, { passive: true });
+	window.addEventListener('scrollend', handleScroll, { passive: true });
+	window.addEventListener('resize', handleScroll, { passive: true });
+	window.addEventListener('load', handleScroll, { passive: true });
 
 });

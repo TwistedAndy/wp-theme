@@ -159,7 +159,7 @@
 	--width-icon: var(--height-icon);
 	--width-logo: 170px;
 	--width-item: 25%;
-	--width-scrollbar: 0px;
+	--width-scrollbar: 15px;
 	--width-content: #{rem(640)};
 	--width-contents: #{rem(640)};
 
@@ -204,6 +204,7 @@
 		--height-header: #{rem(70)};
 
 		--width-item: 33.333%;
+		--width-scrollbar: 0px;
 
 	}
 

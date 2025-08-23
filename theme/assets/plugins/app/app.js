@@ -26,10 +26,14 @@ const Twee = {
 		let scrollbarWidth = parseInt(window.innerWidth - document.documentElement.clientWidth);
 
 		if (isNaN(scrollbarWidth) || scrollbarWidth < 0) {
-			scrollbarWidth = 0;
+			scrollbarWidth = '0px';
+		} else {
+			scrollbarWidth = scrollbarWidth + 'px';
 		}
 
-		document.body.style.setProperty('--width-scrollbar', scrollbarWidth + 'px');
+		if (document.body.style.getPropertyValue('--width-scrollbar') !== scrollbarWidth) {
+			document.body.style.setProperty('--width-scrollbar', scrollbarWidth);
+		}
 
 	},
 
