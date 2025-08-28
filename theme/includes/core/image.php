@@ -39,30 +39,50 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 	 */
 	if ($size == 'auto') {
 
-		if (!empty($attributes['theme_width']) and is_numeric($attributes['theme_width'])) {
-			$theme_width = (int) $attributes['theme_width'];
+		if (!empty($attributes['cards_width']) and is_numeric($attributes['cards_width'])) {
+			$cards_width = (int) $attributes['cards_width'];
 		} else {
-			$theme_width = TW_THEME_WIDTH;
+			$cards_width = TW_THEME_WIDTH;
+		}
+
+		if (!empty($attributes['cards_gap']) and is_numeric($attributes['cards_gap'])) {
+			$cards_gap = (int) $attributes['cards_gap'];
+		} else {
+			$cards_gap = TW_THEME_GAP;
+		}
+
+		if (!empty($attributes['cards_padding']) and is_numeric($attributes['cards_padding'])) {
+			$cards_padding = (int) $attributes['cards_padding'];
+		} else {
+			$cards_padding = 0;
 		}
 
 		$size = 'medium';
 
 		if (!empty($attributes['sizes']) and is_array($attributes['sizes']) and !empty($attributes['sizes']['dt'])) {
-			$value = (int) $attributes['sizes']['dt'];
-		} elseif (!empty($attributes['size']) and is_numeric($attributes['size'])) {
-			$value = (int) $attributes['size'];
+			$value = $attributes['sizes']['dt'];
 		} else {
-			$value = 0;
+			$value = false;
 		}
 
-		if ($value > 0) {
+		$width = 0;
 
-			if ($value > 100) {
-				$width = $value;
-			} elseif ($value <= 12) {
-				$width = round($theme_width / $value);
-			} else {
-				$width = round($value * $theme_width / 100);
+		if ($value) {
+
+			if (is_numeric($value) and $value > 0) {
+				if ($value > 100) {
+					$width = (int) $value;
+				} elseif ($value <= 12) {
+					$width = (int) round(($cards_width - $cards_gap * $value - 1) / $value) - $cards_padding;
+				} else {
+					$width = (int) round($cards_width * $value / 100) - $cards_padding;
+				}
+			} elseif (strpos($value, 'px') > 0) {
+				$width = (int) round(str_replace('px', '', $value));
+			} elseif (strpos($value, '%') > 0) {
+				$width = (int) round((float) str_replace('%', '', $value) / 100 * $cards_width) - $cards_padding;
+			} elseif (strpos($value, 'vw') > 0) {
+				$width = (int) round((float) str_replace('vw', '', $value) / 100 * $cards_width) - $cards_padding;
 			}
 
 			foreach ($sizes as $key => $value) {
@@ -451,7 +471,7 @@ function tw_image_srcset($image, $attributes) {
 
 	if (empty($attributes['sizes']['dl'])) {
 
-		$keys = ['ds', 'tl', 'ts', 'pl', 'ps'];
+		$keys = ['dt', 'ds', 'tl', 'ts', 'pl', 'ps'];
 
 		foreach ($keys as $key) {
 			if (!empty($attributes['sizes'][$key])) {
@@ -502,7 +522,7 @@ function tw_image_srcset($image, $attributes) {
 			$width_list[$screen_width] = (int) round(str_replace('px', '', $value));
 			$media_list[$screen_width] = $value;
 		} elseif (strpos($value, '%') > 0) {
-			$width_list[$screen_width] = (int) round((float) str_replace('%', '', $value) / 100 * $screen_width) - $cards_padding;
+			$width_list[$screen_width] = (int) round((float) str_replace('%', '', $value) / 100 * $cards_width) - $cards_padding;
 			$media_list[$screen_width] = $value;
 		} elseif (strpos($value, 'vw') > 0) {
 			$width_list[$screen_width] = (int) round((float) str_replace('vw', '', $value) / 100 * $screen_width) - $cards_padding;
