@@ -256,15 +256,12 @@ add_filter('comment_form_fields', function($fields) {
 		$field = $fields['comment'];
 		unset($fields['comment']);
 		$fields['comment'] = $field;
-
-		$field = $fields['cookies'];
-		unset($fields['cookies']);
-		$fields['cookies'] = $field;
-
 	}
 
 	if (!empty($fields['cookies'])) {
-		$fields['cookies'] = str_replace('comment-form-cookies-consent', 'comment-form-cookies-consent checkbox', $fields['cookies']);
+		$field = $fields['cookies'];
+		unset($fields['cookies']);
+		$fields['cookies'] = str_replace('comment-form-cookies-consent', 'comment-form-cookies-consent checkbox', $field);
 	}
 
 	foreach ($fields as $key => $field) {

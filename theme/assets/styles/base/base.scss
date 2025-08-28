@@ -34,13 +34,12 @@
 .buttons {
 	@extend %buttons;
 
-	.items + & {
+	.items + &, .contents + & {
 		text-align: center;
+	}
 
-		.button {
-			margin-top: var(--gap-contents);
-		}
-
+	.items + &:has(.button:not(.is_hidden)) {
+		margin-top: var(--gap-contents);
 	}
 
 }

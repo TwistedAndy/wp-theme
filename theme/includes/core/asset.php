@@ -247,7 +247,7 @@ function tw_asset_print() {
 				$deps = [];
 			}
 
-			if (!empty($asset['localize']) or !empty($deps['script'])) {
+			if (!empty($asset['localize']) or !empty($deps['script']) or !empty($deps['style']) or !empty($asset['inline'])) {
 				tw_asset_localize($name);
 			}
 
@@ -446,26 +446,40 @@ function tw_asset_localize($name) {
 		}
 	}
 
-	if (!is_array($asset) or empty($asset['localize'])) {
+	if (!is_array($asset) or (empty($asset['localize']) and empty($asset['inline']))) {
 		$assets_localized[] = $name;
 		tw_app_set('localized', $assets_localized, 'assets');
 		return;
 	}
 
-	if (is_callable($asset['localize'])) {
-		$asset['localize'] = call_user_func($asset['localize']);
+	if (!empty($asset['localize'])) {
+
+		if (is_callable($asset['localize'])) {
+			$asset['localize'] = call_user_func($asset['localize']);
+		}
+
+		if (!empty($asset['object'])) {
+			$object = $asset['object'];
+		} else {
+			$object = $asset_name;
+		}
+
+		if (is_array($asset['localize']) and wp_script_is($asset_name, 'registered')) {
+			$assets_localized[] = $name;
+			tw_app_set('localized', $assets_localized, 'assets');
+			wp_localize_script($asset_name, $object, $asset['localize']);
+		}
+
 	}
 
-	if (!empty($asset['object'])) {
-		$object = $asset['object'];
-	} else {
-		$object = $asset_name;
-	}
+	if (!empty($asset['inline'])) {
 
-	if (is_array($asset['localize']) and wp_script_is($asset_name, 'registered')) {
-		$assets_localized[] = $name;
-		tw_app_set('localized', $assets_localized, 'assets');
-		wp_localize_script($asset_name, $object, $asset['localize']);
+		if (is_callable($asset['inline'])) {
+			$asset['inline'] = call_user_func($asset['inline']);
+		}
+
+		wp_add_inline_style($asset_name, $asset['inline']);
+
 	}
 
 }
@@ -500,6 +514,7 @@ function tw_asset_normalize($asset) {
 		'display' => false,
 		'directory' => '',
 		'localize' => [],
+		'inline' => '',
 		'object' => ''
 	];
 
@@ -672,6 +687,8 @@ function tw_asset_inject($content) {
 	if (file_exists($file)) {
 		$replacement .= file_get_contents($file);
 	}
+
+	$replacement = apply_filters('twee_asset_critical', $replacement);
 
 	if ($replacement) {
 		$replacement = "\n<style>" . $replacement . "</style>\n";

@@ -120,89 +120,61 @@ add_filter('wp_prepare_attachment_for_js', function($response, $attachment, $met
  */
 add_filter('wp_generate_attachment_metadata', function($metadata, $attachment_id) {
 
-	global $_wp_additional_image_sizes;
-
 	$mime = get_post_mime_type($attachment_id);
 
 	$file = get_attached_file($attachment_id);
 
-	if ($mime == 'image/svg+xml' and file_exists($file)) {
+	if ($mime != 'image/svg+xml' or !file_exists($file)) {
+		return $metadata;
+	}
 
-		$upload_dir = wp_upload_dir();
+	$upload_dir = wp_upload_dir();
 
-		$filename = basename($file);
-		$relative_path = str_replace($upload_dir['basedir'], '', $file);
+	$relative_path = str_replace($upload_dir['basedir'], '', $file);
 
-		$contents = file_get_contents($file);
+	$contents = file_get_contents($file);
 
-		$width = 0;
-		$height = 0;
+	$width = 0;
+	$height = 0;
 
-		$reg_width = '#<svg[^>]+?width="([^"]*?)"[^>]*?>#is';
-		$reg_height = '#<svg[^>]+?height="([^"]*?)"[^>]*?>#is';
-		$reg_viewport = '#<svg[^>]+?viewBox="0 0 ([0-9]+) ([0-9]+)"[^>]*?>#is';
+	$reg_width = '#<svg[^>]+?width=[\'"]?([0-9.]+)[\'"]?[^>]*?>#is';
+	$reg_height = '#<svg[^>]+?height=[\'"]?([0-9.]+)[\'"]?[^>]*?>#is';
 
-		preg_match($reg_width, $contents, $matches);
+	preg_match($reg_width, $contents, $matches);
 
-		if ($matches and !empty($matches[1])) {
-			$width = intval($matches[1]);
+	if ($matches and !empty($matches[1])) {
+		$width = (int) round($matches[1]);
+	}
+
+	preg_match($reg_height, $contents, $matches);
+
+	if ($matches and !empty($matches[1])) {
+		$height = (int) round($matches[1]);
+	}
+
+	if (empty($width) or empty($height)) {
+
+		$reg_viewport = '#<svg[^>]+?viewBox=[\'"]?[0-9.]+\s+[0-9.]+\s+([0-9.]+)\s+([0-9.]+)[\'"]?[^>]*?>#is';
+
+		preg_match($reg_viewport, $contents, $matches);
+
+		if ($matches and !empty($matches[1]) and !empty($matches[2])) {
+			$width = (int) round($matches[1]);
+			$height = (int) round($matches[2]);
 		}
-
-		preg_match($reg_height, $contents, $matches);
-
-		if ($matches and !empty($matches[1])) {
-			$height = intval($matches[1]);
-		}
-
-		if (empty($width) or empty($height)) {
-
-			preg_match($reg_viewport, $contents, $matches);
-
-			if ($matches and !empty($matches[1]) and !empty($matches[2])) {
-				$width = intval($matches[1]);
-				$height = intval($matches[2]);
-			}
-
-		}
-
-		if (empty($width) or empty($height)) {
-			return $metadata;
-		}
-
-		$metadata = [
-			'width' => $width,
-			'height' => $height,
-			'file' => $relative_path
-		];
-
-		$sizes = [];
-
-		foreach (get_intermediate_image_sizes() as $size) {
-
-			$data = [
-				'width' => get_option($size . '_size_w'),
-				'height' => get_option($size . '_size_h'),
-				'crop' => get_option($size . '_crop')
-			];
-
-			foreach ($data as $key => $value) {
-				if (isset($_wp_additional_image_sizes[$size]) and isset($_wp_additional_image_sizes[$size][$key])) {
-					$data[$key] = $_wp_additional_image_sizes[$size][$key];
-				}
-			}
-
-			$data['file'] = $filename;
-			$data['mime-type'] = 'image/svg+xml';
-
-			$sizes[$size] = $data;
-
-		}
-
-		$metadata['sizes'] = $sizes;
 
 	}
 
-	return $metadata;
+	if (empty($width) or empty($height)) {
+		return $metadata;
+	}
+
+	return [
+		'width' => $width,
+		'height' => $height,
+		'file' => $relative_path
+	];
+
 }, 10, 2);
 
 

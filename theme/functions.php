@@ -18,6 +18,7 @@ tw_app_include(TW_INC . 'widgets');
 tw_asset_register([
 	'base' => [
 		'style' => 'base.css',
+		'inline' => '',
 		'footer' => false,
 		'display' => true,
 		'directory' => 'build'
