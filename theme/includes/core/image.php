@@ -14,7 +14,7 @@ add_action('delete_attachment', 'tw_image_clear');
 
 
 /**
- * Get the thumbnail with given size
+ * Get a thumbnail in a given size
  *
  * @param int|array|WP_Post $image      A post object, ACF image array, or an attachment ID
  * @param string|array      $size       Size of the image
@@ -32,6 +32,50 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 
 	$base_url = !empty($attributes['base_url']);
 
+	$sizes = tw_image_sizes();
+
+	/**
+	 * Find the best matching size
+	 */
+	if ($size == 'auto') {
+
+		if (!empty($attributes['theme_width']) and is_numeric($attributes['theme_width'])) {
+			$theme_width = (int) $attributes['theme_width'];
+		} else {
+			$theme_width = TW_THEME_WIDTH;
+		}
+
+		$size = 'medium';
+
+		if (!empty($attributes['sizes']) and is_array($attributes['sizes']) and !empty($attributes['sizes']['dt'])) {
+			$value = (int) $attributes['sizes']['dt'];
+		} elseif (!empty($attributes['size']) and is_numeric($attributes['size'])) {
+			$value = (int) $attributes['size'];
+		} else {
+			$value = 0;
+		}
+
+		if ($value > 0) {
+
+			if ($value > 100) {
+				$width = $value;
+			} elseif ($value <= 12) {
+				$width = round($theme_width / $value);
+			} else {
+				$width = round($value * $theme_width / 100);
+			}
+
+			foreach ($sizes as $key => $value) {
+				if (!empty($value['width']) and $value['width'] >= $width) {
+					$size = $key;
+					break;
+				}
+			}
+
+		}
+
+	}
+
 	$thumb = tw_image_link($image, $size, $base_url);
 
 	if (empty($thumb)) {
@@ -48,17 +92,15 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 			$link_href = get_permalink($image);
 
 		} else {
-
-			$sizes = tw_image_sizes();
-
-			$sizes = $sizes['registered'];
-
 			if (is_array($attributes['link']) or $attributes['link'] == 'full' or !empty($sizes[$attributes['link']])) {
 				$link_image_size = $attributes['link'];
 			} else {
 				$link_href = $attributes['link'];
 			}
+		}
 
+		if ($link_href and empty($base_url)) {
+			$link_href = TW_FOLDER . str_replace(TW_HOME, '', $link_href);
 		}
 
 	}
@@ -153,98 +195,15 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 
 	}
 
-	if (!empty($attributes['srcset']) and is_array($attributes['srcset'])) {
-
-		$srcset = [];
-
-		$attributes['srcset'][] = $size;
-
-		$attributes['srcset'] = array_unique($attributes['srcset']);
-
-		foreach ($attributes['srcset'] as $src_size) {
-
-			$data = tw_image_size($src_size, $image);
-
-			if ($data['width'] > 0) {
-				$srcset[] = tw_image_link($image, $src_size, $base_url) . ' ' . round($data['width']) . 'w';
-			}
-
-		}
-
-		$attributes['srcset'] = implode(', ', $srcset);
-
-		if (!empty($attributes['sizes']) and is_array($attributes['sizes'])) {
-
-			$breakpoints = [
-				'ps' => 420,
-				'pl' => 480,
-				'ts' => 640,
-				'tl' => 768,
-				'ds' => 1024,
-				'dl' => 1360,
-				'dt' => 3840
-			];
-
-			$queries = [];
-
-			foreach ($attributes['sizes'] as $breakpoint => $value) {
-
-				$screen = 0;
-				$width = '';
-
-				if (strpos($value, 'px') > 0) {
-					$width = $value;
-				} elseif (is_numeric($value)) {
-					if ($value > 100) {
-						$width = $value . 'px';
-					} else {
-						$width = $value . 'vw';
-					}
-				} elseif (is_string($value)) {
-					$width = $value;
-				}
-
-				if (empty($width)) {
-					continue;
-				}
-
-				if (is_numeric($breakpoint)) {
-					$screen = $breakpoint;
-				} elseif (!empty($breakpoints[$breakpoint]) and is_numeric($breakpoints[$breakpoint])) {
-					$screen = $breakpoints[$breakpoint];
-				}
-
-				if ($screen < 320) {
-					continue;
-				}
-
-				$queries[$screen] = $width;
-
-			}
-
-			if ($queries) {
-
-				$sizes = [];
-
-				ksort($queries);
-
-				foreach ($queries as $screen => $width) {
-					$sizes[] = '(max-width: ' . $screen . 'px) ' . $width;
-				}
-
-				$attributes['sizes'] = implode(', ', $sizes);
-
-			}
-
-		}
-
+	if (stripos($thumb, '.svg') === false) {
+		$attributes = tw_image_srcset($image, $attributes);
 	}
 
-	if (empty($attributes['srcset'])) {
+	if (empty($attributes['srcset']) or is_array($attributes['srcset'])) {
 		unset($attributes['srcset']);
 	}
 
-	if (empty($attributes['sizes'])) {
+	if (empty($attributes['sizes']) or is_array($attributes['sizes'])) {
 		unset($attributes['sizes']);
 	}
 
@@ -332,7 +291,7 @@ function tw_image_link($image, $size = 'full', $base_url = false) {
 
 			}
 
-			if ($size === 'full' or strpos($image_url, '.svg') > 0) {
+			if ($size === 'full' or stripos($image_url, '.svg') > 0) {
 				return apply_filters('wp_get_attachment_url', $image_url, $image);
 			}
 
@@ -447,6 +406,328 @@ function tw_image_attribute($image, $size = 'full', $property = '--mask-image', 
 
 
 /**
+ * Fill the sizes and srcset attributes
+ *
+ * @param int   $image
+ * @param array $attributes
+ *
+ * @return array
+ */
+function tw_image_srcset($image, $attributes) {
+
+	if (!is_array($attributes) or empty($attributes) or empty($attributes['sizes']) or !is_array($attributes['sizes'])) {
+		return $attributes;
+	}
+
+	$sizes = tw_image_sizes();
+
+	if (!empty($attributes['cards_width']) and is_numeric($attributes['cards_width'])) {
+		$cards_width = (int) $attributes['cards_width'];
+	} else {
+		$cards_width = TW_THEME_WIDTH;
+	}
+
+	if (!empty($attributes['cards_padding']) and is_numeric($attributes['cards_padding'])) {
+		$cards_padding = (int) $attributes['cards_padding'];
+	} else {
+		$cards_padding = 0;
+	}
+
+	if (!empty($attributes['cards_gap']) and is_numeric($attributes['cards_gap'])) {
+		$cards_gap = (int) $attributes['cards_gap'];
+	} else {
+		$cards_gap = TW_THEME_GAP;
+	}
+
+	$breakpoints = [
+		'ps' => 420,
+		'pl' => 480,
+		'ts' => 640,
+		'tl' => 768,
+		'ds' => 1024,
+		'dl' => TW_THEME_WIDTH - 1,
+		'dt' => TW_THEME_WIDTH
+	];
+
+	if (empty($attributes['sizes']['dl'])) {
+
+		$keys = ['ds', 'tl', 'ts', 'pl', 'ps'];
+
+		foreach ($keys as $key) {
+			if (!empty($attributes['sizes'][$key])) {
+				$attributes['sizes']['dl'] = $attributes['sizes'][$key];
+				break;
+			}
+		}
+
+	}
+
+	if (empty($attributes['sizes']['dt']) and !empty($attributes['sizes']['dl'])) {
+		$attributes['sizes']['dt'] = $attributes['sizes']['dl'];
+	}
+
+	$width_list = [];
+	$media_list = [];
+
+	foreach ($breakpoints as $breakpoint => $screen_width) {
+
+		if (empty($attributes['sizes'][$breakpoint])) {
+			continue;
+		}
+
+		$value = $attributes['sizes'][$breakpoint];
+
+		if (is_numeric($value) and $value > 0) {
+			if ($value > 100) {
+				$width_list[$screen_width] = (int) $value;
+				$media_list[$screen_width] = $value . 'px';
+			} elseif ($value <= 12) {
+				if ($breakpoint == 'dt') {
+					$width_list[$screen_width] = (int) round(($cards_width - $cards_gap * ($value - 1)) / $value) - $cards_padding;
+					$media_list[$screen_width] = $width_list[$screen_width] . 'px';
+				} else {
+					$width_list[$screen_width] = (int) round(($screen_width - $cards_gap * ($value - 1)) / $value) - $cards_padding;
+					$media_list[$screen_width] = (int) round(100 / $value, 2) . 'vw';
+				}
+			} else {
+				if ($breakpoint == 'dt') {
+					$width_list[$screen_width] = (int) round($cards_width * $value / 100) - $cards_padding;
+					$media_list[$screen_width] = $width_list[$screen_width] . 'px';
+				} else {
+					$width_list[$screen_width] = (int) round(((float) $value / 100) * $screen_width);
+					$media_list[$screen_width] = $value . 'vw';
+				}
+			}
+		} elseif (strpos($value, 'px') > 0) {
+			$width_list[$screen_width] = (int) round(str_replace('px', '', $value));
+			$media_list[$screen_width] = $value;
+		} elseif (strpos($value, '%') > 0) {
+			$width_list[$screen_width] = (int) round((float) str_replace('%', '', $value) / 100 * $screen_width) - $cards_padding;
+			$media_list[$screen_width] = $value;
+		} elseif (strpos($value, 'vw') > 0) {
+			$width_list[$screen_width] = (int) round((float) str_replace('vw', '', $value) / 100 * $screen_width) - $cards_padding;
+			$media_list[$screen_width] = $value;
+		}
+
+	}
+
+	if (empty($attributes['srcset']) or !is_array($attributes['srcset'])) {
+
+		$srcset = ['thumbnail', 'medium', 'large', 'full'];
+
+		if ($width_list) {
+			foreach ($width_list as $image_width) {
+				foreach ($sizes as $key => $array) {
+					if (!empty($array['width']) and $array['width'] >= $image_width) {
+						$srcset[] = $key;
+						break;
+					}
+				}
+			}
+		}
+
+		$attributes['srcset'] = array_unique($srcset);
+
+	}
+
+	$queries = [];
+
+	$last_width = '';
+	$last_index = '';
+
+	foreach ($media_list as $screen_width => $media_width) {
+
+		if ($screen_width == TW_THEME_WIDTH) {
+			$queries[$screen_width] = '(min-width: ' . $screen_width . 'px) ' . $media_width;
+		} else {
+			if ($last_width === $media_width and isset($queries[$last_index])) {
+				unset($queries[$last_index]);
+			}
+			$queries[$screen_width] = '(max-width: ' . $screen_width . 'px) ' . $media_width;
+		}
+
+		$last_width = $media_width;
+		$last_index = $screen_width;
+
+	}
+
+	if (empty($queries)) {
+		return $attributes;
+	}
+
+	ksort($queries);
+
+	$attributes['sizes'] = implode(', ', $queries);
+
+	if (!empty($attributes['srcset']) and is_array($attributes['srcset'])) {
+
+		$base_url = !empty($attributes['base_url']);
+
+		$srcset = [];
+		$widths = [];
+
+		$attributes['srcset'] = array_unique($attributes['srcset']);
+
+		foreach ($attributes['srcset'] as $src_size) {
+
+			$data = tw_image_size($src_size, $image);
+
+			if ($data['width'] > 0 and !in_array($data['width'], $widths)) {
+				$widths[] = $data['width'];
+				$srcset[] = tw_image_link($image, $src_size, $base_url) . ' ' . round($data['width']) . 'w';
+			}
+
+		}
+
+		$attributes['srcset'] = implode(', ', $srcset);
+
+	}
+
+	return $attributes;
+
+}
+
+
+/**
+ * Register and return thumbnail sizes
+ *
+ * @param array|bool $sizes
+ *
+ * @return array
+ */
+function tw_image_sizes($sizes = false) {
+
+	$cache_key = 'tw_image_sizes';
+	$system_names = ['thumbnail', 'medium', 'large'];
+
+	if (!empty($sizes) and is_array($sizes)) {
+
+		$result = tw_image_sizes();
+
+		foreach ($sizes as $name => $size) {
+
+			if (empty($name) or !is_string($name) or !is_array($size)) {
+				continue;
+			}
+
+			$is_system_size = in_array($name, $system_names);
+
+			if (empty($size['hidden']) or $is_system_size) {
+
+				if (!isset($size['crop'])) {
+					$size['crop'] = true;
+				}
+
+				if (empty($size['width'])) {
+					$size['width'] = 0;
+				}
+
+				if (empty($size['height'])) {
+					$size['height'] = 0;
+				}
+
+				if ($is_system_size) {
+
+					if (get_option($name . '_size_w') != $size['width']) {
+						update_option($name . '_size_w', $size['width']);
+					}
+
+					if (get_option($name . '_size_h') != $size['height']) {
+						update_option($name . '_size_h', $size['height']);
+					}
+
+					if (isset($size['crop']) and get_option($name . '_crop') != $size['crop']) {
+						update_option($name . '_crop', $size['crop']);
+					}
+
+					$size['system'] = true;
+
+				} else {
+
+					add_image_size($name, $size['width'], $size['height'], $size['crop']);
+
+				}
+
+				if (isset($size['thumb']) and $size['thumb']) {
+					set_post_thumbnail_size($size['width'], $size['height'], $size['crop']);
+				}
+
+			}
+
+			$result[$name] = $size;
+
+		}
+
+		uasort($result, function($a, $b) {
+			if ($a['width'] == $b['width']) {
+				return 0;
+			} else {
+				return ($a['width'] < $b['width']) ? -1 : 1;
+			}
+		});
+
+		tw_app_set($cache_key, $result);
+
+		return $result;
+
+	}
+
+	$result = tw_app_get($cache_key);
+
+	if (is_array($result)) {
+		if ($sizes and is_string($sizes) and isset($result[$sizes])) {
+			return $result[$sizes];
+		} else {
+			return $result;
+		}
+	}
+
+	$result = [];
+
+	$system_sizes = [];
+
+	foreach ($system_names as $size) {
+		$system_sizes[$size] = [
+			'width' => (int) get_option($size . '_size_w'),
+			'height' => (int) get_option($size . '_size_h'),
+			'crop' => (bool) get_option($size . '_crop')
+		];
+	}
+
+	$sizes = wp_get_additional_image_sizes();
+
+	if (is_array($sizes)) {
+		unset($sizes['1536x1536'], $sizes['2048x2048']);
+	}
+
+	if ($sizes) {
+		$sizes = array_merge($system_sizes, $sizes);
+	} else {
+		$sizes = $system_sizes;
+	}
+
+	if ($sizes) {
+
+		uasort($sizes, function($a, $b) {
+			if ($a['width'] == $b['width']) {
+				return 0;
+			} else {
+				return ($a['width'] < $b['width']) ? -1 : 1;
+			}
+		});
+
+		$result = $sizes;
+
+	}
+
+	tw_app_set($cache_key, $result);
+
+	return $result;
+
+}
+
+
+/**
  * Get an image size
  *
  * @param string|array $size
@@ -457,8 +738,6 @@ function tw_image_attribute($image, $size = 'full', $property = '--mask-image', 
 function tw_image_size($size, $image_id = 0) {
 
 	$sizes = tw_image_sizes();
-
-	$sizes = array_merge($sizes['registered'], $sizes['hidden']);
 
 	$result = [
 		'width' => 0,
@@ -535,7 +814,6 @@ function tw_image_resize($image_url, $size, $image_id = 0, $base_url = false) {
 			$data = tw_image_size($size, $image_id);
 
 			$sizes = tw_image_sizes();
-			$sizes = array_merge($sizes['registered'], $sizes['hidden']);
 
 			if (is_array($size)) {
 				$width = $size[0] ?? 0;
@@ -667,7 +945,7 @@ function tw_image_resize($image_url, $size, $image_id = 0, $base_url = false) {
 
 	if (empty($base_url)) {
 
-		$thumb_url =  str_replace(TW_HOME, '', $thumb_url);
+		$thumb_url = str_replace(TW_HOME, '', $thumb_url);
 
 		if (TW_FOLDER and strpos($thumb_url, TW_FOLDER) !== 0) {
 			$thumb_url = TW_FOLDER . $thumb_url;
@@ -771,114 +1049,6 @@ function tw_image_calculate($image_width, $image_height, $thumb_width, $thumb_he
 		'width' => $thumb_width,
 		'height' => $thumb_height
 	];
-
-}
-
-
-/**
- * Register and return thumbnail sizes
- *
- * @param array $sizes
- *
- * @return void
- */
-function tw_image_sizes($sizes = []) {
-
-	$cache_key = 'tw_image_sizes';
-
-	$data = tw_app_get($cache_key);
-
-	$default_sizes = ['thumbnail', 'medium', 'medium_large', 'large'];
-
-	if (!is_array($data)) {
-
-		$data = [];
-
-		foreach ($default_sizes as $size) {
-
-			$data[$size] = [
-				'width' => get_option($size . '_size_w'),
-				'height' => get_option($size . '_size_h'),
-				'crop' => get_option($size . '_crop')
-			];
-
-		}
-
-		$data = [
-			'hidden' => [],
-			'custom' => [],
-			'registered' => array_merge($data, wp_get_additional_image_sizes())
-		];
-
-	}
-
-	if (!empty($sizes) and is_array($sizes)) {
-
-		foreach ($sizes as $name => $size) {
-
-			if (empty($name) or !is_string($name) or !is_array($size)) {
-				continue;
-			}
-
-			$is_default = in_array($name, $default_sizes);
-
-			if (empty($size['hidden']) or $is_default) {
-
-				if (!isset($size['crop'])) {
-					$size['crop'] = true;
-				}
-
-				if (!isset($size['width'])) {
-					$size['width'] = 0;
-				}
-
-				if (!isset($size['height'])) {
-					$size['height'] = 0;
-				}
-
-				if ($is_default) {
-
-					if (get_option($name . '_size_w') != $size['width']) {
-						update_option($name . '_size_w', $size['width']);
-					}
-
-					if (get_option($name . '_size_h') != $size['height']) {
-						update_option($name . '_size_h', $size['height']);
-					}
-
-					if (isset($size['crop']) and get_option($name . '_crop') != $size['crop']) {
-						update_option($name . '_crop', $size['crop']);
-					}
-
-					$data['registered'][$name] = $size;
-
-				} else {
-
-					add_image_size($name, $size['width'], $size['height'], $size['crop']);
-
-				}
-
-				if (isset($size['thumb']) and $size['thumb']) {
-
-					set_post_thumbnail_size($size['width'], $size['height'], $size['crop']);
-
-				}
-
-			} else {
-
-				$data['hidden'][$name] = $size;
-
-			}
-
-			$data['custom'][$name] = $size;
-
-		}
-
-		tw_app_set($cache_key, $data);
-
-	}
-
-	return $data;
 
 }
 

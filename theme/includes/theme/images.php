@@ -185,31 +185,27 @@ add_filter('wp_generate_attachment_metadata', function($metadata, $attachment_id
  *
  * @return array
  */
-add_filter('image_size_names_choose', function($sizes) {
+add_filter('image_size_names_choose', function($labels) {
 
-	$data = tw_image_sizes();
+	$sizes = tw_image_sizes();
 
-	if (!empty($data['custom'])) {
+	foreach ($sizes as $name => $size) {
 
-		foreach ($data['custom'] as $name => $size) {
-
-			if (isset($sizes[$name])) {
-				continue;
-			}
-
-			if (!empty($size['label'])) {
-				$label = $size['label'];
-			} else {
-				$label = ucfirst($name);
-			}
-
-			$sizes[$name] = $label;
-
+		if (!empty($labels[$name])) {
+			continue;
 		}
+
+		if (!empty($size['label'])) {
+			$label = $size['label'];
+		} else {
+			$label = ucfirst($name);
+		}
+
+		$labels[$name] = $label;
 
 	}
 
-	return $sizes;
+	return $labels;
 
 });
 

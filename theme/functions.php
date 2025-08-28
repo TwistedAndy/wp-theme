@@ -1,5 +1,8 @@
 <?php
 
+define('TW_THEME_GAP', 20);
+define('TW_THEME_WIDTH', 1420);
+
 define('TW_ROOT', __DIR__ . '/');
 define('TW_INC', TW_ROOT . 'includes/');
 define('TW_URL', get_stylesheet_directory_uri() . '/');
