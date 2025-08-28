@@ -55,6 +55,10 @@
 .items {
 	@extend %items;
 
+	.item {
+		@extend %item;
+	}
+
 	&_1 {
 		--width-item: 100%;
 	}
