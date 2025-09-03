@@ -112,7 +112,7 @@
 				@include hover {
 
 					&:hover > a {
-						color: var(--color-primary);
+						color: var(--color-link);
 
 						&:before {
 							right: 0;
@@ -136,7 +136,7 @@
 						bottom: 0;
 						left: 0;
 						height: 2px;
-						background: var(--color-primary);
+						background: var(--color-link);
 						transition: 0.3s;
 					}
 
@@ -238,13 +238,13 @@
 
 				&.active > a {
 					background-color: var(--color-primary);
-					color: var(--color-base);
+					color: var(--color-primary-alt);
 				}
 
 				@include hover {
 					&:hover > a {
 						background-color: var(--color-primary);
-						color: var(--color-base);
+						color: var(--color-primary-alt);
 					}
 				}
 
@@ -271,7 +271,7 @@
 			right: 0;
 			bottom: 0;
 			left: 0;
-			background: var(--theme-black);
+			background: var(--color-shadow);
 			transition: 0.4s;
 			visibility: hidden;
 			opacity: 0;

@@ -22,7 +22,7 @@
 
 	}
 
-	p, & > table, ul:not([class]), ol:not([class]), .table {
+	p, & > table, ul, ol, .table {
 		margin-bottom: var(--gap-content);
 
 		&:last-child {
@@ -31,8 +31,8 @@
 
 	}
 
-	a:not([class]) {
-		color: var(--color-primary);
+	a:not(.button) {
+		color: var(--color-link);
 		text-decoration: underline;
 
 		@include hover() {
@@ -43,7 +43,7 @@
 
 	}
 
-	ul:not([class]), ol:not([class]) {
+	ul, ol {
 		display: block;
 
 		ul, ol {
@@ -65,7 +65,7 @@
 
 	}
 
-	ul:not([class]) {
+	ul {
 
 		& > li {
 
@@ -84,7 +84,7 @@
 
 	}
 
-	ol:not([class]) {
+	ol {
 		counter-reset: list;
 
 		& > li {

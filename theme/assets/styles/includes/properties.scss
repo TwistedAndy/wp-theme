@@ -51,8 +51,11 @@
 	--theme-shadow: #000000;
 
 	--theme-primary: #284FD0;
+	--theme-primary-alt: var(--theme-white);
 	--theme-secondary: #380057;
+	--theme-secondary-alt: var(--theme-white);
 	--theme-tertiary: #FFDD00;
+	--theme-tertiary-alt: var(--theme-black);
 
 	--theme-icon: var(--theme-heading);
 	--theme-link: var(--theme-primary);
@@ -78,17 +81,20 @@
 	--color-success: var(--theme-success);
 
 	--color-primary: var(--theme-primary);
+	--color-primary-alt: var(--theme-primary-alt);
 	--color-secondary: var(--theme-secondary);
+	--color-secondary-alt: var(--theme-secondary-alt);
 	--color-tertiary: var(--theme-tertiary);
+	--color-tertiary-alt: var(--theme-tertiary-alt);
 
 	/* Buttons */
 	--button-border: var(--theme-primary);
 	--button-base: var(--theme-primary);
-	--button-text: var(--theme-white);
+	--button-text: var(--theme-primary-alt);
 
 	--button-border-active: var(--theme-secondary);
 	--button-base-active: var(--theme-secondary);
-	--button-text-active: var(--theme-white);
+	--button-text-active: var(--theme-secondary-alt);
 
 	--button-border-disabled: var(--theme-border);
 	--button-base-disabled: var(--theme-background);

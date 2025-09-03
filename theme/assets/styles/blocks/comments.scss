@@ -151,9 +151,9 @@
 		align-items: baseline;
 		margin-bottom: 15px;
 
-		@include hover() {
+		@include hover {
 			a:hover {
-				color: var(--color-primary);
+				color: var(--color-link);
 			}
 		}
 
@@ -182,17 +182,19 @@
 	}
 
 	.login {
-		color: var(--color-primary);
+		color: var(--color-link);
 	}
 
 	.must-log-in {
 
 		a {
-			color: var(--color-primary);
+			color: var(--color-link);
 			text-decoration: underline;
 
-			&:hover {
-				text-decoration: none;
+			@include hover {
+				&:hover {
+					text-decoration: none;
+				}
 			}
 
 		}
