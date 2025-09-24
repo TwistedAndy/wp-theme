@@ -34,6 +34,10 @@
 .buttons {
 	@extend %buttons;
 
+	h1 + &, h2 + &, h3 + & {
+		padding-top: 5px;
+	}
+
 	.items + &, .contents + & {
 		text-align: center;
 	}
@@ -59,66 +63,42 @@
 		@extend %item;
 	}
 
-	&_1 {
-		--width-item: 100%;
-	}
-
-	&_2 {
-		--width-item: 50%;
-	}
-
-	&_3 {
-		--width-item: 33.33333%;
-	}
-
-	&_4 {
-		--width-item: 25%;
-	}
-
-	&_5 {
-		--width-item: 20%;
-	}
-
-	&_6 {
-		--width-item: 16.66666%;
-	}
-
-	.item {
-		@extend %item;
-	}
-
-	@include desktop_large {
-
-		&_5, &_6 {
-			--width-item: 25%;
-		}
-
-	}
-
-	@include tablet_large {
+	@include media_min($tablet_large) {
 
 		&_1, &_2 {
 			--width-item: 100%;
 		}
 
-		&_3, &_4 {
+	}
+
+	@include media_min($desktop_small) {
+
+		&_1 {
+			--width-item: 100%;
+		}
+
+		&_2 {
 			--width-item: 50%;
 		}
 
-		&_5, &_6 {
+		&_3 {
 			--width-item: 33.33333%;
+		}
+
+		&_4, &_5, &_6 {
+			--width-item: 25%;
 		}
 
 	}
 
-	@include phone_large {
+	@include media_min($desktop_large) {
 
-		&_3, &_4 {
-			--width-item: 100%;
+		&_5 {
+			--width-item: 20%;
 		}
 
-		&_5, &_6 {
-			--width-item: 50%;
+		&_6 {
+			--width-item: 16.66666%;
 		}
 
 	}

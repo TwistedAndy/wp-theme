@@ -467,16 +467,22 @@ function tw_term_children($term_id = 0, $taxonomy = '', $parents = []) {
 
 
 /**
- * Get WooCommerce attributes as Term ID => Label ordered array
+ * Get terms ordered by a meta key
  *
  * @param string $field
+ * @param string $taxonomy
+ * @param string $key
  *
  * @return array
  */
-function tw_term_order($field = 'term_id') {
+function tw_term_order($field = 'term_id', $taxonomy = '', $key = 'order') {
 
 	$cache_key = 'terms_order_' . $field;
 	$cache_group = 'twee_terms';
+
+	if ($taxonomy) {
+		$cache_key .= '_' . $taxonomy;
+	}
 
 	$order = wp_cache_get($cache_key, $cache_group);
 
@@ -488,7 +494,19 @@ function tw_term_order($field = 'term_id') {
 
 	$db = tw_app_database();
 
-	$result = $db->get_results("SELECT t.term_id, t.slug, t.name, tm.meta_value FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id LEFT JOIN {$db->termmeta} tm ON t.term_id = tm.term_id AND tm.meta_key = 'order' WHERE tt.taxonomy LIKE 'pa_%'", ARRAY_A);
+	if ($taxonomy and is_string($taxonomy)) {
+		$where = " WHERE tt.taxonomy = '" . esc_sql($taxonomy) . "'";
+	} else {
+		$where = '';
+	}
+
+	if ($key and is_string($key)) {
+		$key = esc_sql($key);
+	} else {
+		$key = 'order';
+	}
+
+	$result = $db->get_results("SELECT t.term_id, t.slug, t.name, tm.meta_value FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id LEFT JOIN {$db->termmeta} tm ON t.term_id = tm.term_id AND tm.meta_key = '{$key}'{$where}", ARRAY_A);
 
 	if ($result) {
 

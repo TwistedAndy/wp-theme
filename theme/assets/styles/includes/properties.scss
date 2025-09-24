@@ -121,7 +121,6 @@
 	/* Paddings & Margins */
 	--gap-card: 30px;
 	--gap-list: 12px;
-	--gap-field: 16px;
 	--gap-button: 25px;
 	--gap-heading: 15px;
 	--gap-content: 20px;
@@ -138,6 +137,10 @@
 	--gap-grid: 20px;
 	--gap-grid-x: var(--gap-grid);
 	--gap-grid-y: var(--gap-grid);
+
+	--gap-field: 16px;
+	--gap-field-x: 20px;
+	--gap-field-y: 20px;
 
 	--gap-section: 80px;
 	--gap-section-top: 0px;
@@ -229,6 +232,7 @@
 		--gap-section-small: 30px;
 		--gap-button: 15px;
 		--gap-grid-x: 10px;
+		--gap-field-x: 10px;
 
 		--width-item: 50%;
 
