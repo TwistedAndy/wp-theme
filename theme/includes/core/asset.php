@@ -528,6 +528,8 @@ function tw_asset_normalize($asset) {
 				$asset[$type] = [$asset[$type]];
 			}
 
+			$timestamp = 0;
+
 			foreach ($asset[$type] as $key => $link) {
 
 				if (strpos($link, 'http') !== 0 and strpos($link, '//') !== 0) {
@@ -546,13 +548,17 @@ function tw_asset_normalize($asset) {
 					}
 
 					if (empty($asset['version'])) {
-						$asset['version'] = substr(filemtime($filepath), 4);
+						$timestamp = max(filemtime($filepath), $timestamp);
 					}
 
 					$asset[$type][$key] = $base_url . $directory . $link;
 
 				}
 
+			}
+
+			if ($timestamp > 0) {
+				$asset['version'] = substr($timestamp, 4);
 			}
 
 		}
