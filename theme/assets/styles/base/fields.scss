@@ -19,6 +19,10 @@ input, select, textarea {
 	-webkit-appearance: none;
 	appearance: none;
 
+	@include placeholder {
+		color: var(--color-muted);
+	}
+
 	&:focus, &:active {
 		border-color: var(--field-border-active);
 		outline: none;
@@ -69,6 +73,10 @@ input[type="checkbox"], input[type="radio"] {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
+
+	&:focus, &:active {
+		border-color: var(--field-border-active);
+	}
 
 	&:checked {
 		border-color: var(--field-border-active);

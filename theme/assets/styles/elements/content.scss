@@ -202,8 +202,18 @@
 		margin-bottom: 5px;
 	}
 
-	.table {
+	& > table, .table {
+		margin: calc(var(--gap-content) + 5px) 0;
 		overflow: auto;
+
+		&:first-child {
+			margin-top: 0;
+		}
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
 	}
 
 	@include tablet_large {
@@ -214,7 +224,6 @@
 			margin: 0 0 var(--gap-content);
 			text-align: center;
 		}
-
 
 	}
 
