@@ -58,7 +58,7 @@ $classes = ['items'];
 
 if (in_array('slider', $options)) {
 	$classes[] = 'carousel';
-	tw_asset_enqueue('fancyapps');
+	tw_asset_enqueue('embla');
 }
 
 $buttons = [];

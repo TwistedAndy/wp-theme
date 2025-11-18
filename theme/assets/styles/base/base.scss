@@ -1,5 +1,4 @@
 @import '../elements/buttons';
-@import '../elements/carousel';
 @import '../elements/contents';
 @import '../elements/content';
 @import '../elements/hidden';
@@ -105,8 +104,212 @@
 
 }
 
-.carousel {
-	@extend %carousel;
+.embla {
+	display: block;
+	position: relative;
+	--height-button: #{rem(40)};
+
+	&_horizontal {
+
+		.embla_container {
+			overflow: visible;
+			--gap-grid-y: 0px;
+		}
+
+	}
+
+	&_vertical {
+
+		.embla_viewport {
+			height: 100%;
+		}
+
+		.embla_container {
+			overflow: visible;
+			height: calc(100% + var(--gap-grid-y));
+			margin-bottom: calc(-1 * var(--gap-grid-y));
+			--gap-grid-x: 0px;
+		}
+
+		.embla_button {
+			top: auto;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			width: auto;
+			height: 30px;
+			margin: 0;
+
+			&:before {
+				transform: rotate(90deg);
+			}
+
+		}
+
+		.embla_prev {
+			top: 0;
+			bottom: auto;
+
+			&:before {
+				transform: rotate(-90deg);
+			}
+
+		}
+
+		.embla_dots {
+			flex-direction: column;
+		}
+
+	}
+
+	&_viewport {
+		position: relative;
+		overflow: hidden;
+		width: 100%;
+		margin: 0;
+		z-index: 1;
+
+		&.is_right {
+			left: calc(-1 * var(--gap-grid-x));
+		}
+
+		&.is_center {
+			left: calc(-0.5 * var(--gap-grid-x));
+		}
+
+		&.is_bottom {
+			top: calc(-1 * var(--gap-grid-y));
+		}
+
+		&.is_middle {
+			top: calc(-0.5 * var(--gap-grid-y));
+		}
+
+	}
+
+	&_dynamic {
+
+		.embla_container {
+			justify-content: flex-start !important;
+		}
+
+	}
+
+	&_button {
+		display: block;
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		width: var(--height-button);
+		height: var(--height-button);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-regular);
+		background-color: var(--color-background);
+		color: var(--color-heading);
+		transition: 0.2s;
+		cursor: pointer;
+		z-index: 5;
+
+		&:before {
+			content: '';
+			display: block;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: rem(8);
+			height: rem(12);
+			margin: -#{rem(6)} 0 0 -#{rem(4)};
+			background-color: currentColor;
+			-webkit-mask: url(../images/ico_arrow.svg) 50% 50% no-repeat;
+		}
+
+		@include hover {
+			&:hover {
+				border-color: var(--button-border-active);
+				background-color: var(--button-base-active);
+				color: var(--button-text-active);
+			}
+		}
+
+		&:disabled {
+			border-color: var(--button-border-disabled);
+			background-color: var(--button-base-disabled);
+			color: var(--button-text-disabled);
+			cursor: default;
+		}
+
+	}
+
+	&_prev {
+		right: auto;
+		left: 0;
+
+		&:before {
+			transform: scaleX(-1);
+		}
+
+	}
+
+	&_dots {
+		display: flex;
+		position: relative;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		height: var(--height-button);
+		margin: var(--gap-grid-y) calc(var(--height-button) + 8px) 0;
+		z-index: 3;
+	}
+
+	&_dot {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 0;
+		height: 0;
+		color: var(--color-border);
+		transition: 0.2s;
+		cursor: pointer;
+
+		&[class*="is_"] {
+			width: rem(24);
+			height: rem(24);
+		}
+
+		&:before {
+			content: '';
+			display: block;
+			width: rem(14);
+			height: rem(14);
+			border-radius: 50%;
+			background: currentColor;
+			transition: 0.2s;
+			transform: scale(0);
+		}
+
+		&.is_last:before,
+		&.is_first:before {
+			transform: scale(0.333);
+		}
+
+		&.is_prev:before,
+		&.is_next:before {
+			transform: scale(0.666);
+		}
+
+		&.is_current:before {
+			background-color: var(--color-primary);
+			transform: scale(1);
+		}
+
+		@include hover {
+			&:hover {
+				color: var(--button-base-active);
+			}
+		}
+
+	}
+
 }
 
 .screen-reader-text, .sr-hidden {
