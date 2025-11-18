@@ -78,7 +78,12 @@ const Twee = {
 
 			module.deps.forEach((dep) => {
 
-				if (!status || !dep || typeof dep === 'function') {
+				if (!status || !dep) {
+					return;
+				} else if (typeof dep === 'function') {
+					if (!dep()) {
+						status = false;
+					}
 					return;
 				}
 

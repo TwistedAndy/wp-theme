@@ -617,7 +617,11 @@ function tw_asset_normalize($asset) {
 
 		foreach ($asset_deps as $dep) {
 
-			if ($assets and !empty($assets[$dep]) and !empty($assets[$dep][$type])) {
+			if (empty($assets[$dep]) or !is_array($assets[$dep])) {
+
+				$deps[$type][] = $dep;
+
+			} elseif (!empty($assets[$dep][$type])) {
 
 				if (isset($assets[$dep]['prefix']) and is_string($assets[$dep]['prefix'])) {
 					$prefix = $assets[$dep]['prefix'];
@@ -626,22 +630,6 @@ function tw_asset_normalize($asset) {
 				}
 
 				$deps[$type][] = $prefix . $dep;
-
-			} else {
-
-				if (!empty($assets[$dep])) {
-					$prefix = $assets[$dep]['prefix'] ?? 'tw_';
-				} else {
-					$prefix = '';
-				}
-
-				if ($type == 'script' and wp_script_is($prefix . $dep, 'registered')) {
-					$deps[$type][] = $dep;
-				}
-
-				if ($type == 'style' and wp_style_is($prefix . $dep, 'registered')) {
-					$deps[$type][] = $dep;
-				}
 
 			}
 
