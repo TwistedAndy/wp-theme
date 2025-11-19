@@ -238,13 +238,13 @@
 
 				&.active > a {
 					background-color: var(--color-primary);
-					color: var(--color-primary-alt);
+					color: var(--color-primary-text);
 				}
 
 				@include hover {
 					&:hover > a {
 						background-color: var(--color-primary);
-						color: var(--color-primary-alt);
+						color: var(--color-primary-text);
 					}
 				}
 
@@ -315,7 +315,7 @@
 		.navigation {
 			display: flex;
 			position: fixed;
-			top: calc(var(--height-header) + var(--height-bar) + var(--offset-header));
+			top: calc(var(--height-header) + var(--offset-header));
 			right: 0;
 			bottom: 0;
 			left: auto;

@@ -28,13 +28,13 @@
 	span {
 		border-color: var(--color-primary);
 		background-color: var(--color-primary);
-		color: var(--color-primary-alt);
+		color: var(--color-primary-text);
 	}
 
 	@include hover {
 		a:hover {
 			border-color: var(--color-primary);
-			background-color: var(--color-primary-alt);
+			background-color: var(--color-primary-text);
 			color: var(--color-primary);
 		}
 	}
