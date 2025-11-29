@@ -1,8 +1,9 @@
 <?php
 
-return array(
+return [
 	'script' => [
 		'embla-carousel.umd.js',
 		'carousel.js',
 	],
-);
+	'deps' => ['app']
+];

@@ -99,8 +99,6 @@ add_filter('post_gallery', function($output, $attr, $instance) {
 		return $output;
 	}
 
-	tw_asset_enqueue('thumbs');
-
 	if (!empty($attr['include']) and empty($attr['orderby'])) {
 		$attr['orderby'] = 'post__in';
 	}
@@ -169,7 +167,7 @@ add_filter('post_gallery', function($output, $attr, $instance) {
 						$class = 'gallery-item';
 						$after = '';
 					} else {
-						$class = 'gallery-item  gallery-video';
+						$class = 'gallery-item gallery-video';
 						$after = '<span class="play"></span>';
 					}
 

@@ -581,9 +581,11 @@ function tw_asset_normalize($asset) {
 
 	$assets = tw_app_get('registered', 'assets', []);
 
+	$separated = (isset($asset['deps']['script']) or isset($asset['deps']['style']));
+
 	foreach (['script', 'style'] as $type) {
 
-		if (isset($asset['deps'][$type]) and empty($asset['deps'][$type])) {
+		if ($separated and empty($asset['deps'][$type])) {
 			continue;
 		}
 

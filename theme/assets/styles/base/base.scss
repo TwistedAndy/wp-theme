@@ -58,6 +58,10 @@
 .items {
 	@extend %items;
 
+	&.carousel {
+		flex-wrap: nowrap;
+	}
+
 	.item {
 		@extend %item;
 	}

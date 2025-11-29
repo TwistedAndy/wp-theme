@@ -234,3 +234,37 @@ add_action('wp_link_query', function($results, $query) {
 	return $results;
 
 }, 10, 2);
+
+
+/**
+ * Remove the WP Rocket Insights scripts
+ */
+if (defined('WP_ROCKET_VERSION')) {
+	add_action('init', function() {
+		tw_app_remove_filter('manage_pages_columns', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'add_column_to_pages');
+		tw_app_remove_filter('manage_posts_columns', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'add_column_to_posts');
+		tw_app_remove_filter('manage_product_posts_columns', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'add_column_to_products', 22);
+		tw_app_remove_filter('manage_pages_custom_column', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'render_rocket_insights_column');
+		tw_app_remove_filter('manage_posts_custom_column', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'render_rocket_insights_column');
+	}, 20);
+}
+
+
+/**
+ * Cache the metadata section on the post edit screen
+ */
+add_filter('postmeta_form_keys', function($keys, $post) {
+
+	if (!($post instanceof WP_Post)) {
+		return $keys;
+	}
+
+	$raw = get_metadata_raw('post', $post->ID);
+
+	if (is_array($raw)) {
+		$keys = array_keys($raw);
+	}
+
+	return $keys;
+
+}, 20, 2);

@@ -1,6 +1,16 @@
 html {
 	scroll-behavior: smooth;
 	--wp-admin--admin-bar--height: 0px !important;
+
+	&.bp-lock {
+		overflow: auto;
+	}
+
+	&.bp-lock body {
+		overflow: unset;
+		touch-action: none;
+	}
+
 }
 
 body {
@@ -82,7 +92,7 @@ body {
 
 section {
 	position: relative;
-	padding: calc(var(--gap-section-top) + var(--offset-section)) var(--gap-section-side) var(--gap-section-bottom);
+	padding: calc(var(--gap-section-top) + var(--offset-section-top)) var(--gap-section-side) calc(var(--gap-section-bottom) + var(--offset-section-bottom));
 	background-color: var(--color-section);
 	color: var(--color-text);
 	scroll-margin-top: calc(var(--offset-scroll) + var(--gap-section) - var(--gap-section-top));

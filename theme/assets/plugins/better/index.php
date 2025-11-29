@@ -3,7 +3,8 @@
 return [
 	'script' => [
 		'better-picture.min.js',
-		'better.js'
+		'picture.js'
 	],
-	'style' => 'better-picture.css'
+	'style' => 'better-picture.css',
+	'deps' => ['app']
 ];
