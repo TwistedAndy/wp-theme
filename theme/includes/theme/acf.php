@@ -10,7 +10,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.1
+ * @version 4.2
  */
 
 /*
@@ -45,7 +45,7 @@ function tw_acf_load_value($result, $post_id, $field) {
 	if ($entity['type'] == 'option') {
 		$result = get_option($post_id . '_' . $field['name'], null);
 	} else {
-		$result = get_metadata_raw($entity['type'], $entity['id'], $field['name'], true);
+		$result = tw_metadata_get($entity['type'], $entity['id'], $field['name']);
 	}
 
 	if (is_null($result) and isset($field['default_value'])) {
@@ -140,7 +140,7 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 		if ($entity['type'] == 'option') {
 			$old_values = get_option($entity['id'] . $field['name'], null);
 		} else {
-			$old_values = get_metadata($entity['type'], $entity['id'], $field['name'], true);
+			$old_values = tw_metadata_get($entity['type'], $entity['id'], $field['name']);
 		}
 
 		if (!is_array($old_values)) {
@@ -209,7 +209,7 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 
 	} else {
 
-		$map = get_metadata($entity['type'], $entity['id'], $map_key, true);
+		$map = tw_metadata_get($entity['type'], $entity['id'], $map_key);
 
 		if (!is_array($map)) {
 			$map = [];
@@ -221,7 +221,7 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 				unset($map[$field['name']]);
 			}
 
-			delete_metadata($entity['type'], $entity['id'], $field['name']);
+			tw_metadata_delete($entity['type'], $entity['id'], $field['name']);
 
 		} else {
 
@@ -231,14 +231,14 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 				$map[$field['name']] = substr($field_key, 6);
 			}
 
-			update_metadata($entity['type'], $entity['id'], $field['name'], $value);
+			tw_metadata_update($entity['type'], $entity['id'], $field['name'], $value);
 
 		}
 
 		if ($map) {
-			update_metadata($entity['type'], $entity['id'], $map_key, $map);
+			tw_metadata_update($entity['type'], $entity['id'], $map_key, $map);
 		} else {
-			delete_metadata($entity['type'], $entity['id'], $map_key);
+			tw_metadata_delete($entity['type'], $entity['id'], $map_key);
 		}
 
 	}
@@ -263,31 +263,16 @@ function tw_acf_load_reference($result, $field, $post_id) {
 		return $result;
 	}
 
-	$cache_key = 'acf_map_cache';
-	$cache_group = 'twee_meta_' . $entity['type'];
+	$map_key = '_acf_map';
 
-	if ($entity['type'] != 'option' and $entity['id'] > 0) {
-		$cache_group .= '_' . $entity['id'];
+	if ($entity['type'] == 'option') {
+		$map = get_option($entity['id'] . $map_key, null);
+	} else {
+		$map = tw_metadata_get($entity['type'], $entity['id'], $map_key);
 	}
 
-	$map = wp_cache_get($cache_key, $cache_group);
-
 	if (!is_array($map)) {
-
-		$map_key = '_acf_map';
-
-		if ($entity['type'] == 'option') {
-			$map = get_option($entity['id'] . $map_key, null);
-		} else {
-			$map = get_metadata($entity['type'], $entity['id'], $map_key, true);
-		}
-
-		if (!is_array($map)) {
-			$map = [];
-		}
-
-		wp_cache_set($cache_key, $map, $cache_group);
-
+		$map = [];
 	}
 
 	if (!empty($map[$field]) and strpos($map[$field], 'field_') !== 0) {
@@ -334,7 +319,7 @@ function tw_acf_total_rows($value, $post_id, $name) {
 	if ($entity['type'] == 'option') {
 		$data = get_option($entity['id'] . $name, null);
 	} else {
-		$data = get_metadata($entity['type'], $entity['id'], $name, true);
+		$data = tw_metadata_get($entity['type'], $entity['id'], $name);
 	}
 
 	if (is_array($data)) {
@@ -688,7 +673,7 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 		return;
 	}
 
-	$metadata = get_metadata_raw($meta_type, $object_id, '', false);
+	$metadata = get_metadata_raw($meta_type, $object_id);
 
 	if (empty($metadata) or !is_array($metadata)) {
 		return;
@@ -736,7 +721,7 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 
 	if ($acf_remove) {
 		foreach ($acf_remove as $meta_key) {
-			delete_metadata($meta_type, $object_id, $meta_key);
+			tw_metadata_delete($meta_type, $object_id, $meta_key);
 		}
 	}
 
@@ -754,7 +739,7 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 
 		if ($meta_value === '') {
 			unset($acf_map[$meta_key]);
-			delete_metadata($meta_key, $object_id, $meta_key);
+			tw_metadata_delete($meta_key, $object_id, $meta_key);
 			continue;
 		}
 
@@ -765,15 +750,15 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 		$current_value = $metadata[$meta_key] ?? '';
 
 		if ($meta_value !== $current_value) {
-			update_metadata($meta_type, $object_id, $meta_key, $meta_value);
+			tw_metadata_update($meta_type, $object_id, $meta_key, $meta_value);
 		}
 
 	}
 
 	if ($acf_map) {
-		update_metadata($meta_type, $object_id, '_acf_map', $acf_map);
+		tw_metadata_update($meta_type, $object_id, '_acf_map', $acf_map);
 	} else {
-		delete_metadata($meta_type, $object_id, '_acf_map');
+		tw_metadata_delete($meta_type, $object_id, '_acf_map');
 	}
 
 }
@@ -954,11 +939,11 @@ function tw_acf_decompress_meta($meta_type = 'post', $object_id = 0) {
 	}
 
 	foreach ($fields as $key => $field) {
-		update_metadata($meta_type, $object_id, '_' . $key, $field['key']);
-		update_metadata($meta_type, $object_id, $key, $field['value']);
+		tw_metadata_update($meta_type, $object_id, '_' . $key, $field['key']);
+		tw_metadata_update($meta_type, $object_id, $key, $field['value']);
 	}
 
-	delete_metadata($meta_type, $object_id, '_acf_map');
+	tw_metadata_delete($meta_type, $object_id, '_acf_map');
 
 }
 
@@ -978,28 +963,11 @@ function tw_acf_decompress_fields($meta_type = 'post', $object_id = 0, $include_
 		return [];
 	}
 
-	$cache_key = 'unconvert_data';
-	$cache_group = 'twee_meta_' . $meta_type;
-
-	if ($meta_type != 'option' and $object_id > 0) {
-		$cache_group .= '_' . $object_id;
-	}
-
-	if ($include_layouts) {
-		$cache_key .= '_layouts';
-	}
-
-	$data = wp_cache_get($cache_key, $cache_group);
-
-	if (is_array($data)) {
-		return $data;
-	}
-
 	$data = [];
 
 	$object_id = (int) $object_id;
 
-	$map = get_metadata($meta_type, $object_id, '_acf_map', true);
+	$map = tw_metadata_get($meta_type, $object_id, '_acf_map');
 
 	if (!is_array($map)) {
 		return $data;
@@ -1015,7 +983,7 @@ function tw_acf_decompress_fields($meta_type = 'post', $object_id = 0, $include_
 			continue;
 		}
 
-		$data = get_metadata($meta_type, $object_id, $key, true);
+		$data = tw_metadata_get($meta_type, $object_id, $key);
 
 		if ($data) {
 			$result = tw_acf_decompress_walker($result, $data, $key, $field, $include_layouts);
@@ -1024,8 +992,6 @@ function tw_acf_decompress_fields($meta_type = 'post', $object_id = 0, $include_
 	}
 
 	ksort($result);
-
-	wp_cache_set($cache_key, $result, $cache_group);
 
 	return $result;
 
@@ -1188,34 +1154,8 @@ function tw_acf_revision_fields($result, $post) {
 		return $result;
 	}
 
-	$cache_key = 'acf_revision_fields';
-	$cache_group = 'twee_meta_post_' . $post['ID'];
-
-	$fields = wp_cache_get($cache_key, $cache_group, null);
-
-	if (is_array($fields)) {
-
-		if ($fields) {
-			if (is_array($result)) {
-				$result = array_merge($result, $fields);
-			} else {
-				$result = $fields;
-			}
-		}
-
-		return $result;
-
-	}
-
 	$fields = [];
-
-	$filters_key = 'acf_revision_filters';
-
-	$filters = wp_cache_get($filters_key, $cache_group);
-
-	if (!is_array($filters)) {
-		$filters = [];
-	}
+	$filters = [];
 
 	$data = tw_acf_decompress_fields('post', $post['ID'], true);
 
@@ -1281,9 +1221,6 @@ function tw_acf_revision_fields($result, $post) {
 
 	}
 
-	wp_cache_set($cache_key, $fields, $cache_group);
-	wp_cache_set($filters_key, $filters, $cache_group);
-
 	if ($fields) {
 		if (is_array($result)) {
 			$result = array_merge($result, $fields);
@@ -1304,7 +1241,7 @@ add_action('wp_restore_post_revision', 'tw_acf_revision_restore', 10, 2);
 
 function tw_acf_revision_restore($post_id, $revision_id) {
 
-	$map = get_post_meta($revision_id, '_acf_map', true);
+	$map = tw_metadata_get('post', $revision_id, '_acf_map');
 
 	$revision = get_post($revision_id);
 
@@ -1317,11 +1254,11 @@ function tw_acf_revision_restore($post_id, $revision_id) {
 	}
 
 	foreach ($map as $key => $field) {
-		$value = get_post_meta($revision_id, $key, true);
-		update_metadata('post', $post_id, $key, $value);
+		$value = tw_metadata_get('post', $revision_id, $key);
+		tw_metadata_update('post', $post_id, $key, $value);
 	}
 
-	update_metadata('post', $post_id, '_acf_map', $map);
+	tw_metadata_update('post', $post_id, '_acf_map', $map);
 
 }
 
@@ -1341,18 +1278,18 @@ function tw_acf_revision_create($revision_id) {
 
 	$post_id = $revision->post_parent;
 
-	$map = get_post_meta($post_id, '_acf_map', true);
+	$map = tw_metadata_get('post', $post_id, '_acf_map');
 
 	if (empty($map) or !is_array($map)) {
 		return;
 	}
 
 	foreach ($map as $key => $field) {
-		$value = get_post_meta($post_id, $key, true);
-		update_metadata('post', $revision->ID, $key, $value);
+		$value = tw_metadata_get('post', $post_id, $key);
+		tw_metadata_update('post', $revision->ID, $key, $value);
 	}
 
-	update_metadata('post', $revision->ID, '_acf_map', $map);
+	tw_metadata_update('post', $revision->ID, '_acf_map', $map);
 
 }
 
@@ -1375,13 +1312,3 @@ add_action('edit_term', function($object_id) {
 add_action('save_post', function($object_id) {
 	tw_acf_compress_meta('post', $object_id);
 }, 5, 1);
-
-
-/**
- * Refresh cache on the option page update
- */
-add_action('acf/save_post', function($post_id) {
-	if ($post_id == 'option' or $post_id == 'options') {
-		tw_app_clear('twee_meta_option');
-	}
-}, 10, 2);

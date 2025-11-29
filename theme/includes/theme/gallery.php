@@ -61,7 +61,7 @@ add_filter('attachment_fields_to_edit', function($fields, $post) {
 	$fields['video_link'] = [
 		'label' => __('Video URL', 'twee'),
 		'input' => 'text',
-		'value' => (string) get_post_meta($post->ID, 'video_link', true),
+		'value' => (string) tw_metadata_get('post', $post->ID, 'video_link'),
 		'helps' => __('A link on YouTube, Vimeo, or a MP4 file', 'twee')
 	];
 
@@ -80,9 +80,9 @@ add_filter('attachment_fields_to_save', function($post, $attachment) {
 	}
 
 	if (!empty($attachment['video_link'])) {
-		update_post_meta($post['ID'], 'video_link', sanitize_text_field($attachment['video_link']));
+		tw_metadata_update('post', $post['ID'], 'video_link', sanitize_text_field($attachment['video_link']));
 	} else {
-		delete_post_meta($post['ID'], 'video_link');
+		tw_metadata_delete('post', $post['ID'], 'video_link');
 	}
 
 	return $post;
@@ -160,7 +160,7 @@ add_filter('post_gallery', function($output, $attr, $instance) {
 
 				<?php foreach ($attachments as $attachment) {
 
-					$link = (string) get_post_meta($attachment->ID, 'video_link', true);
+					$link = (string) tw_metadata_get('post', $attachment->ID, 'video_link');
 
 					if (empty($link)) {
 						$link = tw_image_link($attachment->ID, 'full');

@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.1
+ * @version 4.2
  */
 
 /**
@@ -18,34 +18,49 @@
  */
 function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode = false) {
 
-	$cache_key = 'meta_' . $meta_key;
+	$chunk_size = 100;
+	$cache_key = $meta_key;
 	$cache_group = 'twee_meta_' . $meta_type;
 
-	if ($decode) {
-		$cache_key .= '_decoded';
-	}
+	$chunk_map = wp_cache_get($cache_key . '_chunks', $cache_group);
 
-	$meta = wp_cache_get($cache_key, $cache_group);
+	if (is_array($chunk_map) and $chunk_map) {
+
+		$meta = [];
+
+		foreach ($chunk_map as $index => $last_element) {
+
+			$chunk_data = wp_cache_get($cache_key . '_chunk_' . $index, $cache_group);;
+
+			if (is_array($chunk_data)) {
+				$meta += $chunk_data;
+			}
+
+		}
+
+	} else {
+
+		$meta = wp_cache_get($cache_key, $cache_group);
+
+	}
 
 	if (is_array($meta)) {
+		if ($decode) {
+			foreach ($meta as $object_id => $meta_value) {
+				$meta[$object_id] = maybe_unserialize($meta_value);
+			}
+		}
 		return $meta;
 	}
-
-	$cached_keys = wp_cache_get('meta_keys', $cache_group);
-
-	if (!is_array($cached_keys)) {
-		$cached_keys = [];
-	}
-
-	$cached_keys[] = $meta_key;
-
-	wp_cache_set('meta_keys', array_unique($cached_keys), $cache_group);
 
 	$meta = [];
 
 	$db = tw_app_database();
 
-	if ($meta_type == 'term') {
+	if ($meta_type == 'post') {
+		$table = $db->postmeta;
+		$key = 'post_id';
+	} elseif ($meta_type == 'term') {
 		$table = $db->termmeta;
 		$key = 'term_id';
 	} elseif ($meta_type == 'user') {
@@ -55,25 +70,58 @@ function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode =
 		$table = $db->commentmeta;
 		$key = 'comment_id';
 	} else {
-		$table = $db->postmeta;
-		$key = 'post_id';
+		return [];
 	}
 
-	$result = $db->get_results($db->prepare("SELECT meta.{$key}, meta.meta_value FROM {$table} AS meta WHERE meta.meta_key = %s", $meta_key), ARRAY_A);
+	$result = $db->get_results($db->prepare("SELECT meta.{$key}, meta.meta_value FROM {$table} AS meta WHERE meta.meta_key = %s ORDER BY meta.{$key} DESC", $meta_key), ARRAY_A);
 
-	if ($result) {
-		if ($decode) {
-			foreach ($result as $row) {
-				$meta[$row[$key]] = maybe_unserialize($row['meta_value']);
+	$chunks = [];
+	$chunk_map = [];
+
+	if (is_array($result)) {
+
+		foreach ($result as $line => $row) {
+
+			$index = intdiv($line, $chunk_size);
+			$object_id = (int) $row[$key];
+
+			if (!isset($chunks[$index])) {
+				$chunks[$index] = [];
+				$chunk_map[$index] = $object_id;
 			}
-		} else {
-			foreach ($result as $row) {
-				$meta[$row[$key]] = $row['meta_value'];
-			}
+
+			$chunks[$index][$object_id] = (string) $row['meta_value'];
+
 		}
+
+	}
+
+	if (count($chunks) > 1) {
+
+		wp_cache_set($cache_key . '_chunks', $chunk_map, $cache_group);
+
+		foreach ($chunks as $index => $chunk) {
+			wp_cache_set($cache_key . '_chunk_' . $index, $chunk, $cache_group);
+			$meta += $chunk;
+		}
+
+	} elseif (count($chunks) == 1) {
+
+		$meta = reset($chunks);
+
+		if ($chunk_map) {
+			wp_cache_delete($cache_key . '_chunks', $cache_group);
+		}
+
 	}
 
 	wp_cache_set($cache_key, $meta, $cache_group);
+
+	if ($decode) {
+		foreach ($meta as $object_id => $meta_value) {
+			$meta[$object_id] = maybe_unserialize($meta_value);
+		}
+	}
 
 	return $meta;
 
@@ -81,35 +129,265 @@ function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode =
 
 
 /**
- * Clean cached meta data
+ * Get metadata for a record
  *
  * @param string $meta_type
+ * @param int    $object_id
  * @param string $meta_key
- * @param string $object_id
+ *
+ * @return mixed
+ */
+function tw_metadata_get($meta_type, $object_id, $meta_key) {
+
+	if (!TW_CACHE) {
+		return get_metadata($meta_type, $object_id, $meta_key, true);
+	}
+
+	$object_id = (int) $object_id;
+
+	$cache_key = tw_metadata_cache_key($meta_type, $object_id, $meta_key);
+	$cache_group = 'twee_meta_' . $meta_type;
+
+	$meta_map = wp_cache_get($cache_key, $cache_group);;
+
+	if (!is_array($meta_map)) {
+		$meta_map = tw_metadata($meta_type, $meta_key, false);
+	}
+
+	if (is_array($meta_map) and isset($meta_map[$object_id])) {
+		if (is_serialized($meta_map[$object_id])) {
+			$value = unserialize($meta_map[$object_id]);
+		} else {
+			$value = $meta_map[$object_id];
+		}
+	} else {
+		$value = null;
+	}
+
+	return $value;
+
+}
+
+
+/**
+ * Update metadata or create a new record
+ *
+ * @param string $meta_type
+ * @param int    $object_id
+ * @param string $meta_key
+ * @param mixed  $meta_value
+ *
+ * @return bool
+ */
+function tw_metadata_update($meta_type, $object_id, $meta_key, $meta_value) {
+
+	if (!TW_CACHE) {
+		return update_metadata($meta_type, $object_id, $meta_key, $meta_value);
+	}
+
+	$db = tw_app_database();
+
+	$table = $meta_type . 'meta';
+	$column = sanitize_key($meta_type . '_id');
+
+	if (!property_exists($db, $table)) {
+		return false;
+	}
+
+	$current_value = tw_metadata_get($meta_type, $object_id, $meta_key);
+
+	if (is_array($meta_value) or is_object($meta_value)) {
+		$updated_value = serialize($meta_value);
+	} else {
+		$updated_value = stripslashes((string) $meta_value);
+	}
+
+	if ($current_value === null) {
+
+		$result = $db->insert($db->$table, [
+			$column => $object_id,
+			'meta_key' => $meta_key,
+			'meta_value' => $updated_value,
+		]);
+
+	} else {
+
+		if (is_array($current_value) or is_object($current_value)) {
+			$current_value = serialize($current_value);
+		} else {
+			$current_value = stripslashes((string) $current_value);
+		}
+
+		if ($current_value === $updated_value) {
+			return false;
+		}
+
+		$result = $db->update($db->$table, [
+			'meta_value' => $updated_value,
+		], [
+			$column => $object_id,
+			'meta_key' => $meta_key,
+		]);
+
+	}
+
+	if ($result) {
+		tw_metadata_cache_update($meta_type, $object_id, $meta_key, $updated_value);
+		wp_cache_delete($object_id, $meta_type . '_meta');
+	}
+
+	return (bool) $result;
+
+}
+
+
+/**
+ * Delete metadata
+ *
+ * @param string $meta_type
+ * @param int    $object_id
+ * @param string $meta_key
+ *
+ * @return bool
+ */
+function tw_metadata_delete($meta_type, $object_id, $meta_key) {
+
+	if (!TW_CACHE) {
+		return delete_metadata($meta_type, $object_id, $meta_key);
+	}
+
+	if (empty($meta_type) or empty($meta_key) or !is_numeric($object_id)) {
+		return false;
+	}
+
+	$current_value = tw_metadata_get($meta_type, $object_id, $meta_key);
+
+	if ($current_value === null) {
+		return false;
+	}
+
+	$db = tw_app_database();
+
+	$table = $meta_type . 'meta';
+	$column = sanitize_key($meta_type . '_id');
+
+	if (!property_exists($db, $table)) {
+		return false;
+	}
+
+	$result = $db->delete($db->$table, [
+		$column => $object_id,
+		'meta_key' => $meta_key,
+	]);
+
+	$meta_key = wp_unslash($meta_key);
+
+	if ($result) {
+		tw_metadata_cache_delete($meta_type, $object_id, $meta_key);
+		wp_cache_delete($object_id, $meta_type . '_meta');
+	}
+
+	return (bool) $result;
+
+}
+
+
+/**
+ * Get a cache key considering chunks
+ *
+ * @param string $meta_type
+ * @param int    $object_id
+ * @param string $meta_key
+ *
+ * @return string
+ */
+function tw_metadata_cache_key($meta_type, $object_id, $meta_key) {
+
+	$cache_key = $meta_key;
+	$cache_group = 'twee_meta_' . $meta_type;
+
+	$chunk_map = wp_cache_get($cache_key . '_chunks', $cache_group);
+
+	if (is_array($chunk_map) and $chunk_map) {
+
+		$chunk_index = 0;
+		$low_index = 0;
+		$high_index = count($chunk_map) - 1;
+
+		/**
+		 * Find the first key with a value less than or equal to $object_id
+		 */
+		while ($low_index <= $high_index) {
+
+			$middle_index = intdiv(($low_index + $high_index), 2);
+
+			if ($chunk_map[$middle_index] == $object_id) {
+				$chunk_index = $middle_index;
+				break;
+			}
+
+			if ($chunk_map[$middle_index] > $object_id) {
+				$chunk_index = $middle_index;
+				$low_index = $middle_index + 1;
+			} else {
+				$high_index = $middle_index - 1;
+			}
+
+		}
+
+		$cache_key .= '_chunk_' . $chunk_index;
+
+	}
+
+	return $cache_key;
+
+}
+
+
+/**
+ * Update metadata in caches
+ *
+ * @param string $meta_type
+ * @param int    $object_id
+ * @param string $meta_key
+ * @param mixed  $meta_value
  *
  * @return void
  */
-function tw_metadata_clean($meta_type, $meta_key, $object_id) {
+function tw_metadata_cache_update($meta_type, $object_id, $meta_key, $meta_value) {
 
+	$cache_key = tw_metadata_cache_key($meta_type, $object_id, $meta_key);
 	$cache_group = 'twee_meta_' . $meta_type;
 
-	$cached_keys = wp_cache_get('meta_keys', $cache_group);
+	$meta_map = wp_cache_get($cache_key, $cache_group);
 
-	if (!is_array($cached_keys)) {
-		$cached_keys = [];
+	if (is_array($meta_map)) {
+		$meta_map[$object_id] = (is_object($meta_value) or is_array($meta_value)) ? serialize($meta_value) : $meta_value;
+		wp_cache_set($cache_key, $meta_map, $cache_group);
 	}
 
-	if (in_array($meta_key, $cached_keys)) {
+}
 
-		$cache_key = 'meta_' . $meta_key;
 
-		tw_app_set($cache_key, null, $cache_group);
-		tw_app_set($cache_key . '_decoded', null, $cache_group);
-		tw_app_clear($cache_group . '_' . $object_id);
+/**
+ * Delete metadata in cache
+ *
+ * @param string $meta_type
+ * @param int    $object_id
+ * @param string $meta_key
+ *
+ * @return void
+ */
+function tw_metadata_cache_delete($meta_type, $object_id, $meta_key) {
 
-		wp_cache_delete($cache_key, $cache_group);
-		wp_cache_delete($cache_key . '_decoded', $cache_group);
+	$cache_key = tw_metadata_cache_key($meta_type, $object_id, $meta_key);
+	$cache_group = 'twee_meta_' . $meta_type;
 
+	$meta_map = wp_cache_get($cache_key, $cache_group);
+
+	if (is_array($meta_map)) {
+		unset($meta_map[$object_id]);
+		wp_cache_set($cache_key, $meta_map, $cache_group);
 	}
 
 }
@@ -120,16 +398,20 @@ function tw_metadata_clean($meta_type, $meta_key, $object_id) {
  */
 foreach (['post', 'term', 'user', 'comment'] as $meta_type) {
 
-	add_action('added_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key) use ($meta_type) {
-		tw_metadata_clean($meta_type, $meta_key, $object_id);
-	}, 10, 3);
+	add_action('added_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key, $meta_value) use ($meta_type) {
+		tw_metadata_cache_update($meta_type, $object_id, $meta_key, $meta_value);
+	}, 10, 4);
 
-	add_action('updated_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key) use ($meta_type) {
-		tw_metadata_clean($meta_type, $meta_key, $object_id);
-	}, 10, 3);
+	add_action('updated_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key, $meta_value) use ($meta_type) {
+		tw_metadata_cache_update($meta_type, $object_id, $meta_key, $meta_value);
+	}, 10, 4);
 
 	add_action('deleted_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key) use ($meta_type) {
-		tw_metadata_clean($meta_type, $meta_key, $object_id);
+		tw_metadata_cache_delete($meta_type, $object_id, $meta_key);
 	}, 10, 3);
+
+	add_action('deleted_' . $meta_type, function() use ($meta_type) {
+		tw_app_clear('twee_meta_' . $meta_type);
+	}, 20);
 
 }

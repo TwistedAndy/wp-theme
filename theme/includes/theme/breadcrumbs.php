@@ -142,10 +142,12 @@ function tw_breadcrumbs_list($query = null) {
 
 		if ($taxonomy) {
 
-			$current_term = get_post_meta($post_id, '_yoast_wpseo_primary_' . $taxonomy, true);
-
-			if (empty($current_term)) {
-				$current_term = get_post_meta($post_id, 'rank_math_primary_' . $taxonomy, true);
+			if (defined('RANK_MATH_VERSION')) {
+				$current_term = tw_metadata_get('post', $post_id, 'rank_math_primary_' . $taxonomy);
+			} elseif (defined('WPSEO_VERSION')) {
+				$current_term = tw_metadata_get('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy);
+			} else {
+				$current_term = 0;
 			}
 
 			if (empty($current_term)) {

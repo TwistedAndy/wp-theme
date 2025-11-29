@@ -134,7 +134,7 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 		if ($image->post_type === 'attachment') {
 			$image = $image->ID;
 		} else {
-			$image = get_post_meta($image->ID, '_thumbnail_id', true);
+			$image = tw_metadata_get('post', $image->ID, '_thumbnail_id');
 		}
 
 	} elseif (is_array($image) and !empty($image['id'])) {
@@ -145,7 +145,7 @@ function tw_image($image, $size = 'full', $before = '', $after = '', $attributes
 
 	if (is_numeric($image)) {
 
-		$alt = (string) get_post_meta($image, '_wp_attachment_image_alt', true);
+		$alt = (string) tw_metadata_get('post', $image, '_wp_attachment_image_alt');
 
 		if ($alt) {
 			$attributes['alt'] = $alt;
@@ -269,7 +269,7 @@ function tw_image_link($image, $size = 'full', $base_url = false) {
 		if ($image->post_type === 'attachment') {
 			$image = $image->ID;
 		} else {
-			$image = (int) get_post_meta($image->ID, '_thumbnail_id', true);
+			$image = (int) tw_metadata_get('post', $image->ID, '_thumbnail_id');
 		}
 	}
 
@@ -289,7 +289,7 @@ function tw_image_link($image, $size = 'full', $base_url = false) {
 
 	if (is_numeric($image)) {
 
-		$file = get_post_meta($image, '_wp_attached_file', true);
+		$file = tw_metadata_get('post', $image, '_wp_attached_file');
 
 		if ($file) {
 
@@ -315,7 +315,7 @@ function tw_image_link($image, $size = 'full', $base_url = false) {
 				return apply_filters('wp_get_attachment_url', $image_url, $image);
 			}
 
-			$meta = get_post_meta($image, '_wp_attachment_metadata', true);
+			$meta = tw_metadata_get('post', $image, '_wp_attachment_metadata');
 
 			if (!is_array($meta)) {
 				$meta = [];
@@ -780,7 +780,7 @@ function tw_image_size($size, $image_id = 0) {
 
 	if ($image_id > 0) {
 
-		$meta = get_post_meta($image_id, '_wp_attachment_metadata', true);
+		$meta = tw_metadata_get('post', $image_id, '_wp_attachment_metadata');
 
 		if (is_array($meta) and !empty($meta['width']) and !empty($meta['height'])) {
 

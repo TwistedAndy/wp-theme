@@ -11,9 +11,9 @@ if (!is_array($blocks)) {
 	$object = get_queried_object();
 
 	if ($object instanceof WP_Post) {
-		$blocks = get_post_meta($object->ID, 'blocks', true);
+		$blocks = tw_metadata_get('post', $object->ID, 'blocks');
 	} elseif ($object instanceof WP_Term) {
-		$blocks = get_term_meta($object->term_id, 'blocks', true);
+		$blocks = tw_metadata_get('term', $object->term_id, 'blocks');
 	} else {
 		$blocks = [];
 	}

@@ -69,7 +69,7 @@ function tw_content_text($object = false, $length = 250, $allowed_tags = false, 
 
 	} elseif ($object instanceof WP_User) {
 
-		$text = get_user_meta('description', $object->ID);
+		$text = tw_metadata_get('user', 'description', $object->ID);
 
 	} elseif (is_string($object)) {
 
