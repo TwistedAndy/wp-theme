@@ -18,6 +18,10 @@
  */
 function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode = false) {
 
+	if (!in_array($meta_type, ['post', 'term', 'user', 'comment'])) {
+		return [];
+	}
+
 	$chunk_size = 100;
 	$cache_key = $meta_key;
 	$cache_group = 'twee_meta_' . $meta_type;
@@ -57,22 +61,8 @@ function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode =
 
 	$db = tw_app_database();
 
-	if ($meta_type == 'post') {
-		$table = $db->postmeta;
-		$key = 'post_id';
-	} elseif ($meta_type == 'term') {
-		$table = $db->termmeta;
-		$key = 'term_id';
-	} elseif ($meta_type == 'user') {
-		$table = $db->usermeta;
-		$key = 'user_id';
-	} elseif ($meta_type == 'comment') {
-		$table = $db->commentmeta;
-		$key = 'comment_id';
-	} else {
-		return [];
-	}
-
+	$key = $meta_type . '_id';
+	$table = $db->prefix . $meta_type . 'meta';
 	$result = $db->get_results($db->prepare("SELECT meta.{$key}, meta.meta_value FROM {$table} AS meta WHERE meta.meta_key = %s ORDER BY meta.{$key} DESC", $meta_key), ARRAY_A);
 
 	$chunks = [];
@@ -140,10 +130,20 @@ function tw_metadata($meta_type = 'post', $meta_key = '_thumbnail_id', $decode =
 function tw_metadata_get($meta_type, $object_id, $meta_key) {
 
 	if (!TW_CACHE) {
-		return get_metadata($meta_type, $object_id, $meta_key, true);
+		return get_metadata_raw($meta_type, $object_id, $meta_key, true);
 	}
 
-	$object_id = (int) $object_id;
+	if (!in_array($meta_type, ['post', 'term', 'user', 'comment'])) {
+		return null;
+	}
+
+	$object_id = absint($object_id);
+
+	$cache = wp_cache_get($object_id, $meta_type . '_meta');
+
+	if (is_array($cache) and isset($cache[$meta_key]) and isset($cache[$meta_key][0])) {
+		return maybe_unserialize($cache[$meta_key][0]);
+	}
 
 	$cache_key = tw_metadata_cache_key($meta_type, $object_id, $meta_key);
 	$cache_group = 'twee_meta_' . $meta_type;
@@ -185,14 +185,16 @@ function tw_metadata_update($meta_type, $object_id, $meta_key, $meta_value) {
 		return update_metadata($meta_type, $object_id, $meta_key, $meta_value);
 	}
 
+	if (!in_array($meta_type, ['post', 'term', 'user', 'comment'])) {
+		return false;
+	}
+
 	$db = tw_app_database();
 
 	$table = $meta_type . 'meta';
-	$column = sanitize_key($meta_type . '_id');
-
-	if (!property_exists($db, $table)) {
-		return false;
-	}
+	$column = $meta_type . '_id';
+	$object_id = absint($object_id);
+	$meta_key = stripslashes((string) $meta_key);
 
 	$current_value = tw_metadata_get($meta_type, $object_id, $meta_key);
 
@@ -204,31 +206,57 @@ function tw_metadata_update($meta_type, $object_id, $meta_key, $meta_value) {
 
 	if ($current_value === null) {
 
+		$column_id = ('user' === $meta_type) ? 'umeta_id' : 'meta_id';
+		$existing_meta = [];
+
+		$rows = $db->get_results($db->prepare("SELECT {$column_id}, meta_value FROM {$db->prefix}{$table} WHERE meta_key = %s AND $column = %d ORDER BY {$column_id} ASC", $meta_key, $object_id), ARRAY_A);
+
+		if ($rows) {
+			foreach ($rows as $row) {
+				$existing_meta[(int) $row[$column_id]] = (string) $row['meta_value'];
+			}
+		}
+
+		if ($existing_meta) {
+
+			$meta_id = array_search($updated_value, $existing_meta);
+
+			if ($meta_id !== false) {
+				$current_value = $existing_meta[$meta_id];
+				unset($existing_meta[$meta_id]);
+			} else {
+				$current_value = array_shift($existing_meta);
+			}
+
+		}
+
+		if ($existing_meta) {
+			$db->query("DELETE FROM {$db->prefix}{$table} WHERE {$column_id} IN (" . implode(', ', array_keys($existing_meta)) . ")");
+		}
+
+	} elseif (is_array($current_value) or is_object($current_value)) {
+		$current_value = serialize($current_value);
+	} else {
+		$current_value = stripslashes((string) $current_value);
+	}
+
+	if ($current_value === $updated_value) {
+		return false;
+	}
+
+	if ($current_value === null) {
 		$result = $db->insert($db->$table, [
 			$column => $object_id,
 			'meta_key' => $meta_key,
 			'meta_value' => $updated_value,
 		]);
-
 	} else {
-
-		if (is_array($current_value) or is_object($current_value)) {
-			$current_value = serialize($current_value);
-		} else {
-			$current_value = stripslashes((string) $current_value);
-		}
-
-		if ($current_value === $updated_value) {
-			return false;
-		}
-
 		$result = $db->update($db->$table, [
 			'meta_value' => $updated_value,
 		], [
 			$column => $object_id,
 			'meta_key' => $meta_key,
 		]);
-
 	}
 
 	if ($result) {
@@ -260,6 +288,7 @@ function tw_metadata_delete($meta_type, $object_id, $meta_key) {
 		return false;
 	}
 
+	$meta_key = stripslashes((string) $meta_key);
 	$current_value = tw_metadata_get($meta_type, $object_id, $meta_key);
 
 	if ($current_value === null) {
@@ -270,6 +299,7 @@ function tw_metadata_delete($meta_type, $object_id, $meta_key) {
 
 	$table = $meta_type . 'meta';
 	$column = sanitize_key($meta_type . '_id');
+	$object_id = absint($object_id);
 
 	if (!property_exists($db, $table)) {
 		return false;
@@ -279,8 +309,6 @@ function tw_metadata_delete($meta_type, $object_id, $meta_key) {
 		$column => $object_id,
 		'meta_key' => $meta_key,
 	]);
-
-	$meta_key = wp_unslash($meta_key);
 
 	if ($result) {
 		tw_metadata_cache_delete($meta_type, $object_id, $meta_key);
