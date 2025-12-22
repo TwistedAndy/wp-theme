@@ -131,9 +131,10 @@ add_action('wp_ajax_twee_generate_preview', function() {
 		'message' => '',
 	];
 
-	$command = apply_filters('twee_preview_command', '"C:\Program Files\NodeJS\node.exe" "D:\Work\wp-content\themes\screens.js"');
+	$node = apply_filters('twee_preview_node', '"C:\Program Files\NodeJS\node.exe"');
+	$script = apply_filters('twee_preview_script', '"D:\Work\wp-content\themes\screens.js"');
 
-	$command = $command . $link . '?preview" #block_' . $_POST['id'] . ' 2>&1';
+	$command = $node . ' ' . $script . ' "' . $link . '?preview" #block_' . $_POST['id'] . ' 2>&1';
 
 	exec($command, $output, $result_code);
 
