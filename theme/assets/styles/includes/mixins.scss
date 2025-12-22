@@ -8,7 +8,7 @@ $phone_large: 480;
 $phone_small: 400;
 
 @function rem($size) {
-	@return ($size / 16) + rem;
+	@return ($size * 0.0625) + rem;
 }
 
 @function rgbo($property, $opacity) {

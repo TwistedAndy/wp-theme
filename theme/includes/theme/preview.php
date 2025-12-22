@@ -124,7 +124,7 @@ add_action('wp_ajax_twee_generate_preview', function() {
 		'message' => '',
 	];
 
-	$command = '"C:\Program Files\NodeJS\node.exe" "D:\Work\Theme\wp-content\themes\screens.js" "' . $link . '?preview" #block_' . $_POST['id'] . ' 2>&1';
+	$command = '"C:\Program Files\NodeJS\node.exe" "D:\Work\wp-content\themes\screens.js" "' . $link . '?preview" #block_' . $_POST['id'] . ' 2>&1';
 
 	exec($command, $output, $result_code);
 

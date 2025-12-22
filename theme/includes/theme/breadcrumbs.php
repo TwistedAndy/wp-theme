@@ -143,37 +143,48 @@ function tw_breadcrumbs_list($query = null) {
 		if ($taxonomy) {
 
 			if (defined('RANK_MATH_VERSION')) {
-				$current_term = tw_metadata_get('post', $post_id, 'rank_math_primary_' . $taxonomy);
+				$current_term = (int) get_metadata('post', $post_id, 'rank_math_primary_' . $taxonomy, true);
 			} elseif (defined('WPSEO_VERSION')) {
-				$current_term = tw_metadata_get('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy);
+				$current_term = (int) get_metadata('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy, true);
 			} else {
 				$current_term = 0;
 			}
 
-			if (empty($current_term)) {
+			$map = tw_post_terms($taxonomy);
 
-				$map = tw_post_terms($taxonomy);
+			if (!empty($map[$post_id]) and is_array($map[$post_id])) {
 
-				if (!empty($map[$post_id]) and is_array($map[$post_id])) {
-					$terms = $map[$post_id];
-				} else {
-					$terms = [];
+				$terms = $map[$post_id];
+
+				if ($current_term > 0 and !in_array($current_term, $terms)) {
+					$current_term = 0;
 				}
 
-			} else {
+				if (empty($current_term)) {
 
-				$terms = [$current_term];
+					$count = 0;
 
-			}
+					foreach ($terms as $term_id) {
+						$thread = tw_term_ancestors($term_id, $taxonomy);
+						if (count($thread) >= $count) {
+							$current_term = (int) $term_id;
+							$parent_terms = $thread;
+							$count = count($thread);
+						}
+					}
 
-			foreach ($terms as $term_id) {
+					if ($current_term > 0) {
+						if (defined('RANK_MATH_VERSION')) {
+							update_metadata('post', $post_id, 'rank_math_primary_' . $taxonomy, $current_term);
+						} elseif (defined('WPSEO_VERSION')) {
+							update_metadata('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy, $current_term);
+						}
+					}
 
-				$thread = tw_term_ancestors($term_id, $taxonomy);
+				} else {
 
-				if (count($thread) >= $count) {
-					$current_term = (int) $term_id;
-					$parent_terms = $thread;
-					$count = count($thread);
+					$parent_terms = tw_term_ancestors($current_term, $taxonomy);
+
 				}
 
 			}

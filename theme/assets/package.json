@@ -13,7 +13,10 @@
 		"plugins": "gulp plugins",
 		"scripts": "gulp scripts",
 		"imagemin": "imagemin images/* -o images",
-		"svgo": "svgo -f images -o images"
+		"svgo": "svgo --multipass --recursive -f images -o images"
+	},
+	"engines": {
+		"node": "<21.0.0"
 	},
 	"author": "Andrii Toniievych <toniyevych@gmail.com>",
 	"license": "MIT",

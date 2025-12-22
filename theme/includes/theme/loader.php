@@ -96,6 +96,12 @@ function tw_loader_handle() {
 				}
 			}
 
+			$children = tw_term_children(0, $term->taxonomy);
+
+			if (isset($children[$term_id])) {
+				$terms[$term->taxonomy] += $children[$term_id];
+			}
+
 		}
 
 		/**
@@ -116,7 +122,7 @@ function tw_loader_handle() {
 				$tax_query[] = [
 					'taxonomy' => $taxonomy,
 					'field' => 'term_id',
-					'terms' => $term_ids,
+					'terms' => array_values(array_unique($term_ids)),
 					'operator' => 'IN'
 				];
 
