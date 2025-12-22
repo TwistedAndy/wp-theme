@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.1
+ * @version 4.2
  */
 
 /**
@@ -21,9 +21,3 @@ add_action('wp_body_open', function() {
 add_action('wp_footer', function() {
 	echo get_option('options_code_body_2', '');
 });
-
-
-/**
- * Disable Gravity Forms styles
- */
-add_filter('gform_disable_css', '__return_true');

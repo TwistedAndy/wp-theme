@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.1
+ * @version 4.2
  */
 
 /**
@@ -18,7 +18,7 @@ function tw_session_get($key) {
 
 	$result = null;
 
-	if (class_exists('WooCommerce')) {
+	if (class_exists('WooCommerce') and class_exists('WC_Session')) {
 
 		$object = WooCommerce::instance();
 

@@ -4,14 +4,13 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.1
+ * @version 4.2
  */
 
 /**
  * Add a slider control to WP Gallery
  */
 add_action('print_media_templates', function() { ?>
-
 	<script type="text/html" id="tmpl-twee-gallery-setting">
 		<span class="setting">
 			<label for="gallery-settings-slider" class="name"><?php _e('Slider', 'twee'); ?></label>
@@ -21,25 +20,18 @@ add_action('print_media_templates', function() { ?>
 			</select>
 		</span>
 	</script>
-
 	<script>
-
 		jQuery(function() {
-
 			_.extend(wp.media.gallery.defaults, {
 				slider: '0'
 			});
-
 			wp.media.view.Settings.Gallery = wp.media.view.Settings.Gallery.extend({
 				template: function(view) {
 					return wp.media.template('gallery-settings')(view) + wp.media.template('twee-gallery-setting')(view);
 				}
 			});
-
 		});
-
 	</script>
-
 <?php });
 
 

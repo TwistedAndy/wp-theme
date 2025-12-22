@@ -4,14 +4,13 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.1
+ * @version 4.2
  */
 
 /*
 add_action('wp_ajax_nopriv_email_handler', 'tw_ajax_email_handler');
 add_action('wp_ajax_email_handler', 'tw_ajax_email_handler');
 */
-
 function tw_ajax_email_handler() {
 
 	$result = [
@@ -149,11 +148,11 @@ function tw_ajax_email_handler() {
 
 }
 
+
 /*
 add_action('wp_ajax_nopriv_email_attachment', 'tw_ajax_email_attachment');
 add_action('wp_ajax_email_attachment', 'tw_ajax_email_attachment');
 */
-
 function tw_ajax_email_attachment() {
 
 	$errors = [];
@@ -255,11 +254,11 @@ function tw_ajax_email_attachment() {
 
 }
 
+
 /*
 add_action('wp_ajax_nopriv_email_remove', 'tw_ajax_email_remove');
 add_action('wp_ajax_email_remove', 'tw_ajax_email_remove');
 */
-
 function tw_ajax_email_remove() {
 
 	$result = [

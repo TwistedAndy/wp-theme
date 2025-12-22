@@ -1,4 +1,11 @@
 <?php
+/**
+ * ACF Flexible Content Preview Library
+ *
+ * @author  Andrii Toniievych <toniyevych@gmail.com>
+ * @package Twee
+ * @version 4.2
+ */
 
 /**
  * Add a thumbnail for a layout
@@ -45,7 +52,7 @@ add_filter('acfe/flexible/layouts/icons', function($icons) {
 
 
 /**
- * Process AJAX requests
+ * Process AJAX requests to generate previews
  */
 add_action('wp_ajax_twee_generate_preview', function() {
 
@@ -124,7 +131,9 @@ add_action('wp_ajax_twee_generate_preview', function() {
 		'message' => '',
 	];
 
-	$command = '"C:\Program Files\NodeJS\node.exe" "D:\Work\wp-content\themes\screens.js" "' . $link . '?preview" #block_' . $_POST['id'] . ' 2>&1';
+	$command = apply_filters('twee_preview_command', '"C:\Program Files\NodeJS\node.exe" "D:\Work\wp-content\themes\screens.js"');
+
+	$command = $command . $link . '?preview" #block_' . $_POST['id'] . ' 2>&1';
 
 	exec($command, $output, $result_code);
 

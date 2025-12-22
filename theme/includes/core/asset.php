@@ -4,14 +4,27 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.1
+ * @version 4.2
  */
 
 /**
- * Register assets from the plugins and blocks folders
+ * Add an asset placeholder
  */
-add_action('init', function() {
+add_action('wp_head', 'tw_asset_placeholder', 6);
 
+
+/**
+ * Scan and register assets from the plugins and blocks folders
+ * It's important to do this before the 'wp_enqueue_scripts' call
+ */
+add_action('wp_head', 'tw_asset_init', 0);
+add_action('admin_enqueue_scripts', 'tw_asset_init', 0);
+
+function tw_asset_init() {
+
+	/**
+	 * Register assets from the plugins folder
+	 */
 	$base = TW_ROOT . 'assets/plugins/';
 
 	$files = scandir($base);
@@ -54,6 +67,9 @@ add_action('init', function() {
 
 	}
 
+	/**
+	 * Register styles from the blocks folder
+	 */
 	$base = TW_ROOT . 'assets/build/blocks/';
 
 	$files = scandir($base);
@@ -93,21 +109,55 @@ add_action('init', function() {
 		return;
 	}
 
-	tw_app_set('registered', $assets, 'assets');
+	/**
+	 * Normalize assets and collect dependencies
+	 */
+	$available = [
+		'style' => [],
+		'script' => [],
+	];
 
 	foreach ($assets as $name => $asset) {
 
 		if (!is_string($name) or empty($asset)) {
+			unset($assets[$name]);
 			continue;
 		}
 
 		$asset = tw_asset_normalize($asset);
 
 		if (!is_array($asset)) {
-			continue;
+			unset($assets[$name]);
+		}
+
+		if (!empty($asset['style'])) {
+			$available['style'][] = $name;
+		}
+
+		if (!empty($asset['script'])) {
+			$available['script'][] = $name;
 		}
 
 		$assets[$name] = $asset;
+
+	}
+
+	tw_app_set('registered', $assets, 'assets');
+
+	/**
+	 * Check dependencies and register assets in WordPress
+	 */
+	foreach ($assets as $name => $asset) {
+
+		/**
+		 * Remove unavailable internal dependencies
+		 */
+		foreach ($asset['deps'] as $type => $deps) {
+			if ($deps and array_diff($deps, $available[$type])) {
+				$asset['deps'][$type] = array_intersect($deps, $available[$type]);
+				$assets[$name] = $asset;
+			}
+		}
 
 		if (!empty($asset['prefix'])) {
 			$asset_name = $asset['prefix'] . $name;
@@ -173,13 +223,7 @@ add_action('init', function() {
 		ob_start('tw_asset_inject');
 	}
 
-}, 30);
-
-
-/**
- * Add an asset placeholder
- */
-add_action('wp_head', 'tw_asset_placeholder', 6);
+}
 
 
 /**

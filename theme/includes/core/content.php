@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.1
+ * @version 4.2
  */
 
 /**
@@ -39,17 +39,17 @@ function tw_content_title($object, $length = 0) {
 
 
 /**
- * Get the short description for a given post or text
+ * Get a short description for a given object or a string
  *
- * @param bool|string|WP_Post|WP_Term|WP_User $object       Post or text to find and strip the text
- * @param int                                 $length       Required length of the text
- * @param bool|string                         $allowed_tags List of tags separated by "|"
- * @param string                              $find         Symbol to find for proper strip
- * @param bool                                $force_cut    Strip the post excerpt
+ * @param string|WP_Post|WP_Term|WP_User $object       Post, Term, User, or a string
+ * @param int                            $length       Required length of the text
+ * @param bool|string                    $allowed_tags List of tags separated by "|"
+ * @param string                         $find         Symbol to find for proper strip
+ * @param bool                           $force_cut    Strip the post excerpt
  *
  * @return bool|string
  */
-function tw_content_text($object = false, $length = 250, $allowed_tags = false, $find = ' ', $force_cut = true) {
+function tw_content_text($object, $length = 250, $allowed_tags = false, $find = ' ', $force_cut = true) {
 
 	$excerpt = false;
 	$text = '';
@@ -131,29 +131,27 @@ function tw_content_link($link, $class = 'button', $hidden = '') {
 
 	$result = '';
 
-	if (is_array($link) and !empty($link['url']) and isset($link['title'])) {
-
-		if ($class) {
-			$class = ' class="' . $class . '"';
-		} else {
-			$class = '';
-		}
-
-		if (!empty($link['target'])) {
-			$target = ' target="' . $link['target'] . '"';
-		} else {
-			$target = '';
-		}
-
-		if ($hidden) {
-			$hidden = '<span class="sr-hidden">' . $hidden . '</span>';
-		}
-
-		$result = '<a href="' . esc_url($link['url']) . '"' . $class . $target . '>' . $link['title'] . $hidden . '</a>';
-
+	if (!is_array($link) or empty($link['url']) or !isset($link['title'])) {
+		return $result;
 	}
 
-	return $result;
+	if ($class) {
+		$class = ' class="' . $class . '"';
+	} else {
+		$class = '';
+	}
+
+	if (!empty($link['target'])) {
+		$target = ' target="' . $link['target'] . '"';
+	} else {
+		$target = '';
+	}
+
+	if ($hidden) {
+		$hidden = '<span class="sr-hidden">' . $hidden . '</span>';
+	}
+
+	return '<a href="' . esc_url($link['url']) . '"' . $class . $target . '>' . $link['title'] . $hidden . '</a>';
 
 }
 
