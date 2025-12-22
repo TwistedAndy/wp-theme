@@ -111,7 +111,6 @@ function tw_breadcrumbs_list($query = null) {
 
 		$post_id = $object->ID;
 		$post_type = $object->post_type;
-		$count = 0;
 
 		if ($post_type == 'post') {
 
@@ -143,9 +142,9 @@ function tw_breadcrumbs_list($query = null) {
 		if ($taxonomy) {
 
 			if (defined('RANK_MATH_VERSION')) {
-				$current_term = (int) get_metadata('post', $post_id, 'rank_math_primary_' . $taxonomy, true);
+				$current_term = tw_metadata_get('post', $post_id, 'rank_math_primary_' . $taxonomy);
 			} elseif (defined('WPSEO_VERSION')) {
-				$current_term = (int) get_metadata('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy, true);
+				$current_term = tw_metadata_get('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy);
 			} else {
 				$current_term = 0;
 			}
@@ -175,9 +174,9 @@ function tw_breadcrumbs_list($query = null) {
 
 					if ($current_term > 0) {
 						if (defined('RANK_MATH_VERSION')) {
-							update_metadata('post', $post_id, 'rank_math_primary_' . $taxonomy, $current_term);
+							tw_metadata_update('post', $post_id, 'rank_math_primary_' . $taxonomy, $current_term);
 						} elseif (defined('WPSEO_VERSION')) {
-							update_metadata('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy, $current_term);
+							tw_metadata_update('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy, $current_term);
 						}
 					}
 
