@@ -115,7 +115,7 @@
             "label": "Scripts in head",
             "name": "code_head",
             "type": "textarea",
-            "instructions": "",
+            "instructions": "All scripts that should be placed in <head> section of the page. Google Analytics, Facebook Pixel, Google Tag Manager, and so on.",
             "required": 0,
             "conditional_logic": 0,
             "wrapper": {
@@ -124,7 +124,7 @@
                 "id": ""
             },
             "hide_label": "",
-            "default_value": "All scripts that should be placed in <head> section of the page. Google Analytics, Facebook Pixel, Google Tag Manager, and so on.",
+            "default_value": "",
             "placeholder": "",
             "maxlength": "",
             "rows": 4,
