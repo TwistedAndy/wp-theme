@@ -131,18 +131,16 @@ function tw_asset_init() {
 		}
 
 		if (!empty($asset['style'])) {
-			$available['style'][] = $name;
+			$available['style'][$name] = true;
 		}
 
 		if (!empty($asset['script'])) {
-			$available['script'][] = $name;
+			$available['script'][$name] = true;
 		}
 
 		$assets[$name] = $asset;
 
 	}
-
-	tw_app_set('registered', $assets, 'assets');
 
 	/**
 	 * Check dependencies and register assets in WordPress
@@ -150,13 +148,26 @@ function tw_asset_init() {
 	foreach ($assets as $name => $asset) {
 
 		/**
-		 * Remove unavailable internal dependencies
+		 * Remove unavailable internal dependencies and prefix the internal ones
 		 */
 		foreach ($asset['deps'] as $type => $deps) {
-			if ($deps and array_diff($deps, $available[$type])) {
-				$asset['deps'][$type] = array_intersect($deps, $available[$type]);
-				$assets[$name] = $asset;
+
+			foreach ($deps as $index => $dep) {
+				if (!empty($assets[$dep])) {
+					if (empty($available[$type][$dep])) {
+						unset($asset['deps'][$type][$index]);
+					} else {
+						$asset['deps'][$type][$index] = $assets[$dep]['prefix'] . $dep;
+					}
+				}
 			}
+
+			if (empty($asset['deps'][$type])) {
+				unset($asset['deps'][$type]);
+			}
+
+			$assets[$name] = $asset;
+
 		}
 
 		if (!empty($asset['prefix'])) {
@@ -177,7 +188,7 @@ function tw_asset_init() {
 
 			$current_key = false;
 
-			if (!empty($asset['deps'][$type]) and is_array($asset['deps'][$type])) {
+			if (!empty($asset['deps'][$type])) {
 				$deps[$type] = $asset['deps'][$type];
 			} else {
 				$deps[$type] = [];
@@ -564,126 +575,75 @@ function tw_asset_normalize($asset) {
 
 	$asset = wp_parse_args($asset, $defaults);
 
-	foreach (['style', 'script'] as $type) {
-
-		if (!empty($asset[$type])) {
-
-			if (is_string($asset[$type])) {
-				$asset[$type] = [$asset[$type]];
-			}
-
-			$timestamp = 0;
-
-			foreach ($asset[$type] as $key => $link) {
-
-				if (strpos($link, 'http') !== 0 and strpos($link, '//') !== 0) {
-
-					if (!empty($asset['directory'])) {
-						$directory = $asset['directory'] . '/';
-					} else {
-						$directory = '';
-					}
-
-					$filepath = $base_path . $directory . $link;
-
-					if (!file_exists($filepath)) {
-						unset($asset[$type][$key]);
-						continue;
-					}
-
-					if (empty($asset['version'])) {
-						$timestamp = max(filemtime($filepath), $timestamp);
-					}
-
-					$asset[$type][$key] = $base_url . $directory . $link;
-
-				}
-
-			}
-
-			if ($timestamp > 0) {
-				$asset['version'] = substr($timestamp, 4);
-			}
-
-		}
-
-	}
-
-	if (empty($asset['deps'])) {
-		return $asset;
-	}
-
-	if (is_string($asset['deps'])) {
-		$asset['deps'] = [$asset['deps']];
-	}
-
-	if (!is_array($asset['deps'])) {
-		return $asset;
-	}
-
 	$deps = [];
 
-	$assets = tw_app_get('registered', 'assets', []);
-
-	$separated = (isset($asset['deps']['script']) or isset($asset['deps']['style']));
-
-	foreach (['script', 'style'] as $type) {
-
-		if ($separated and empty($asset['deps'][$type])) {
-			continue;
-		}
-
-		$asset_deps = [];
-
-		if (!empty($asset['deps'][$type])) {
-
-			if (!is_array($asset['deps'][$type])) {
-				$asset['deps'][$type] = [$asset['deps'][$type]];
-			}
-
-			if (!empty($asset['deps'][$type][0]) and is_string($asset['deps'][$type][0])) {
-				$asset_deps = $asset['deps'][$type];
-			}
-
-		} else {
-
-			if ($type !== 'script' and !empty($asset['deps']['script']) and is_string($asset['deps']['script'][0])) {
-				$asset_deps = array_merge($asset_deps, $asset['deps']['script']);
-			}
-
-			if ($type !== 'style' and !empty($asset['deps']['style']) and is_string($asset['deps']['style'][0])) {
-				$asset_deps = array_merge($asset_deps, $asset['deps']['style']);
-			}
-
-			if (isset($asset['deps'][0]) and is_string($asset['deps'][0])) {
-				$asset_deps = array_merge($asset_deps, $asset['deps']);
-			}
-
-		}
-
-		foreach ($asset_deps as $dep) {
-
-			if (empty($assets[$dep]) or !is_array($assets[$dep])) {
-
-				$deps[$type][] = $dep;
-
-			} elseif (!empty($assets[$dep][$type])) {
-
-				if (isset($assets[$dep]['prefix']) and is_string($assets[$dep]['prefix'])) {
-					$prefix = $assets[$dep]['prefix'];
-				} else {
-					$prefix = $defaults['prefix'];
+	if (!empty($asset['deps'])) {
+		if (is_string($asset['deps'])) {
+			$deps = [
+				'script' => $asset['deps'],
+				'style' => $asset['deps'],
+			];
+		} elseif (is_array($asset['deps'])) {
+			if (isset($asset['deps'][0])) {
+				$deps['style'] = $asset['deps'];
+				$deps['script'] = $asset['deps'];
+			} else {
+				if (!empty($asset['deps']['style'])) {
+					$deps['style'] = $asset['deps']['style'];
 				}
-
-				$deps[$type][] = $prefix . $dep;
-
+				if (!empty($asset['deps']['script'])) {
+					$deps['script'] = $asset['deps']['script'];
+				}
 			}
-
 		}
-
 	}
 
 	$asset['deps'] = $deps;
+
+	foreach (['style', 'script'] as $type) {
+
+		if (empty($asset[$type])) {
+			continue;
+		}
+
+		if (is_string($asset[$type])) {
+			$asset[$type] = [$asset[$type]];
+		}
+
+		$timestamp = 0;
+
+		foreach ($asset[$type] as $key => $link) {
+
+			if (strpos($link, 'http') !== 0 and strpos($link, '//') !== 0) {
+
+				if (!empty($asset['directory'])) {
+					$directory = $asset['directory'] . '/';
+				} else {
+					$directory = '';
+				}
+
+				$filepath = $base_path . $directory . $link;
+
+				if (!file_exists($filepath)) {
+					unset($asset[$type][$key]);
+					continue;
+				}
+
+				if (empty($asset['version'])) {
+					$timestamp = max(filemtime($filepath), $timestamp);
+				}
+
+				$asset[$type][$key] = $base_url . $directory . $link;
+
+			}
+
+		}
+
+		if ($timestamp > 0) {
+			$asset['version'] = substr($timestamp, 4);
+		}
+
+	}
 
 	return $asset;
 
