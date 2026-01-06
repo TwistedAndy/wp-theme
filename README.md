@@ -67,6 +67,151 @@ alternative metadata storage API, and leverages object caching to minimize datab
 - Uses the Bigger Picture library for popup images and videos: [Bigger Picture](https://github.com/TwistedAndy/bigger-picture). This library is optimized for
   maximum browser performance and a smooth user experience
 
+## Installation
+
+- Install a theme framework as a regular theme by copying the theme folder.
+- Rename the theme folder as needed and add a **screenshot.jpg** file to the root.
+- Install the [Advanced Custom Fields Pro](https://www.advancedcustomfields.com/pro/) plugin
+- If you plan to use section previews in WP Admin, also install [Advanced Custom Fields: Extended](https://wordpress.org/plugins/acf-extended/)
+- Open WP Admin -> ACF -> Field Groups -> Sync available -> Sync ([read more](https://www.advancedcustomfields.com/resources/synchronized-json/))
+
+## Configuration
+
+All configurations are located in functions.php.
+
+### Scripts and Styles
+
+Theme scripts and styles can be registered using the ```tw_asset_register()``` function.
+
+It supports registering multiple assets at once:
+
+```php
+tw_asset_register([
+	'base' => [
+		'style' => 'base.css',
+		'inline' => '',
+		'footer' => false,
+		'display' => true,
+		'directory' => 'build'
+	],
+	'other' => [
+		'style' => 'other.css',
+		'footer' => true,
+		'display' => true,
+		'directory' => 'build'
+	],
+	'scripts' => [
+		'footer' => true,
+		'display' => true,
+		'deps' => ['jquery', 'app'],
+		'script' => 'scripts.js',
+		'object' => 'tw_template',
+		'directory' => 'build',
+		'localize' => function() {
+			return [
+				'ajaxurl' => admin_url('admin-ajax.php'),
+				'nonce' => wp_create_nonce('ajax-nonce')
+			];
+		}
+	]
+]);
+```
+
+Note that the script and style properties support both file names in the specified directory and arrays of file names.
+
+The directory is specified using the ```'directory'``` parameter.
+
+Assets marked with ```'display' => true``` will be enqueued automatically.
+
+The others can be enqueued using the ```tw_asset_enqueue(...)``` call.
+
+If you need to include additional JavaScript data, specify it for the ```'localize'``` property as an array or as a function returning an array.
+
+The data will be available under the object specified in the ```'object'``` property.
+
+If you need to inject some inline styles added when the main asset is enqueued, use the ```'inline'``` property. It supports both the styles and a callback returning styles.
+
+Additionally, the script automatically registers all the assets located in the ```assets/plugins``` folder. The data is pulled from the ```index.php``` files.
+
+### Image Sizes
+
+Use the ```tw_image_sizes()``` function to register a new thumbnail size or redefine an existing one.
+
+Some thumbnail sizes can be marked as hidden with the ```'hidden' => true``` flag. In this case, they will not be registered in WordPress but will be generated and cached on the first call in ```tw_image()```, ```tw_image_link()```, ```tw_image_attribute()``` and similar functions.
+
+This feature is extremely useful when you need an image in a special size for a few sections on the site and do not want to bloat the uploads folder with additional image sizes.
+
+### Post Types and Taxonomies
+
+Custom post types can be registered using ```tw_app_type()``` and ```tw_app_taxonomy()``` functions.
+
+Their arguments are almost identical to [register_post_type()](https://developer.wordpress.org/reference/functions/register_post_type/) and [register_taxonomy()](https://developer.wordpress.org/reference/functions/register_taxonomy/). They are registered at the correct time automatically.
+
+### Sidebars, Menus, and Widgets
+
+They can be registered using ```tw_app_sidebar()```, ```tw_app_menus()```, and ```tw_app_widget()``` functions.
+
+In the case of widgets, the function expects to have a class name of the custom widget class. See ```includes/widgets/posts.php``` as an example.
+
+## Usage
+
+This theme framework includes a huge library of helper functions grouped by the context. You may find them in the ```includes/core``` and ```includes/theme``` folders.
+
+Here are some most useful libraries:
+
+### Asset
+
+It includes functions to work with assets (a set of script, styles, and related data). It resolves the dependencies, support lazy loading, and styles injecting. The most useful function is ```tw_asset_enqueue()```, which includes the specified asset to the page.
+
+### Content
+
+This library contains a set of functions to work with title, text, link, dates, etc.
+
+### Image
+
+It includes functions to work with images. The most used ones are:
+- ```tw_image()```. Return the image tag with optional wrappers, source sets, etc. It supports usage of hidden image sizes and optimized for maximum speed and compatibility. It is much faster than the built-in WordPress functions.
+- ```tw_image_link()```. It's useful when you need to have only an image link.
+- ```tw_image_attribute()```. This function is used mostly to inject the background images or mask images.
+
+### ACF
+
+This library includes optimizations for Advanced Custom Fields (ACF) data. It allows complex fields like Repeater, Group, or Flexible Content fields to be stored in a single metadata row instead of multiple rows. This approach makes ACF fields compatible with the WordPress Metadata API.
+
+For example, if you have a repeater field, you can simply get its value as an array using the ```get_post_meta()``` call.
+
+Another important feature is optimized field key storage. By default, ACF stores each field key in a separate row. So, if you have 20 ACF fields, there will be at least 40 metadata rows. This library optimizes the process by storing all field keys in one field as an array.
+
+All these optimizations use ACF filters, ensuring full compatibility with the ACF plugin and related plugins. Revisions are also supported.
+
+### ACFE
+
+This library includes a host of ACF customizations and manages integration with the ACF Extended plugin.
+
+### Block
+
+It offers functions to handle page builders based on the Flexible Content field, along with helper functions to process common fields like Content or Buttons.
+
+### Metadata
+
+This library provides a set of functions to speed up metadata processing:
+
+- Optimized functions to get, update, or remove metadata, which rely on caching and operate much faster than default WordPress implementations.
+- Metadata mapping functions, useful when you need metadata for a large number of records. Instead of making a separate database query for each record, it
+  retrieves the metadata for all records, splits it into partitions, and uses a B-tree index for faster searching.
+- Cache processing logic to ensure all optimizations remain reliable.
+
+### Post
+
+This library provides tools to work with post data. It includes post data mapping functions, a post terms library, a term thread builder, and other functionality essential for performance optimization.
+
+### Term
+
+This library includes functions for working with terms, such as building and flattening a term tree, retrieving parent and child terms, accessing posts associated with specific terms, getting term links, and more. It's crucial for achieving optimal performance.
+
+### Others
+
+In addition to the previously mentioned libraries, there is a wide range of other essential functionalities designed to accelerate development and significantly enhance site performance.
 
 ## About
 
