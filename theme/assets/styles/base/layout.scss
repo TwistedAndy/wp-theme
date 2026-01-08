@@ -92,6 +92,7 @@ body {
 
 section {
 	position: relative;
+	overflow-x: clip;
 	padding: calc(var(--gap-section-top) + var(--offset-section-top)) var(--gap-section-side) calc(var(--gap-section-bottom) + var(--offset-section-bottom));
 	background-color: var(--color-section);
 	color: var(--color-text);
