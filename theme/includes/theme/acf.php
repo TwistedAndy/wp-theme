@@ -45,7 +45,7 @@ function tw_acf_load_value($result, $post_id, $field) {
 	if ($entity['type'] == 'option') {
 		$result = get_option($post_id . '_' . $field['name'], null);
 	} else {
-		$result = tw_metadata_get($entity['type'], $entity['id'], $field['name']);
+		$result = tw_meta_get($entity['type'], $entity['id'], $field['name']);
 	}
 
 	if (is_null($result) and isset($field['default_value'])) {
@@ -140,7 +140,7 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 		if ($entity['type'] == 'option') {
 			$old_values = get_option($entity['id'] . $field['name'], null);
 		} else {
-			$old_values = tw_metadata_get($entity['type'], $entity['id'], $field['name']);
+			$old_values = tw_meta_get($entity['type'], $entity['id'], $field['name']);
 		}
 
 		if (!is_array($old_values)) {
@@ -209,7 +209,7 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 
 	} else {
 
-		$map = tw_metadata_get($entity['type'], $entity['id'], $map_key);
+		$map = tw_meta_get($entity['type'], $entity['id'], $map_key);
 
 		if (!is_array($map)) {
 			$map = [];
@@ -221,7 +221,7 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 				unset($map[$field['name']]);
 			}
 
-			tw_metadata_delete($entity['type'], $entity['id'], $field['name']);
+			tw_meta_delete($entity['type'], $entity['id'], $field['name']);
 
 		} else {
 
@@ -231,14 +231,14 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 				$map[$field['name']] = substr($field_key, 6);
 			}
 
-			tw_metadata_update($entity['type'], $entity['id'], $field['name'], $value);
+			tw_meta_update($entity['type'], $entity['id'], $field['name'], $value);
 
 		}
 
 		if ($map) {
-			tw_metadata_update($entity['type'], $entity['id'], $map_key, $map);
+			tw_meta_update($entity['type'], $entity['id'], $map_key, $map);
 		} else {
-			tw_metadata_delete($entity['type'], $entity['id'], $map_key);
+			tw_meta_delete($entity['type'], $entity['id'], $map_key);
 		}
 
 	}
@@ -268,7 +268,7 @@ function tw_acf_load_reference($result, $field, $post_id) {
 	if ($entity['type'] == 'option') {
 		$map = get_option($entity['id'] . $map_key, null);
 	} else {
-		$map = tw_metadata_get($entity['type'], $entity['id'], $map_key);
+		$map = tw_meta_get($entity['type'], $entity['id'], $map_key);
 	}
 
 	if (!is_array($map)) {
@@ -319,7 +319,7 @@ function tw_acf_total_rows($value, $post_id, $name) {
 	if ($entity['type'] == 'option') {
 		$data = get_option($entity['id'] . $name, null);
 	} else {
-		$data = tw_metadata_get($entity['type'], $entity['id'], $name);
+		$data = tw_meta_get($entity['type'], $entity['id'], $name);
 	}
 
 	if (is_array($data)) {
@@ -721,7 +721,7 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 
 	if ($acf_remove) {
 		foreach ($acf_remove as $meta_key) {
-			tw_metadata_delete($meta_type, $object_id, $meta_key);
+			tw_meta_delete($meta_type, $object_id, $meta_key);
 		}
 	}
 
@@ -739,7 +739,7 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 
 		if ($meta_value === '') {
 			unset($acf_map[$meta_key]);
-			tw_metadata_delete($meta_key, $object_id, $meta_key);
+			tw_meta_delete($meta_key, $object_id, $meta_key);
 			continue;
 		}
 
@@ -750,15 +750,15 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 		$current_value = $metadata[$meta_key] ?? '';
 
 		if ($meta_value !== $current_value) {
-			tw_metadata_update($meta_type, $object_id, $meta_key, $meta_value);
+			tw_meta_update($meta_type, $object_id, $meta_key, $meta_value);
 		}
 
 	}
 
 	if ($acf_map) {
-		tw_metadata_update($meta_type, $object_id, '_acf_map', $acf_map);
+		tw_meta_update($meta_type, $object_id, '_acf_map', $acf_map);
 	} else {
-		tw_metadata_delete($meta_type, $object_id, '_acf_map');
+		tw_meta_delete($meta_type, $object_id, '_acf_map');
 	}
 
 }
@@ -939,11 +939,11 @@ function tw_acf_decompress_meta($meta_type = 'post', $object_id = 0) {
 	}
 
 	foreach ($fields as $key => $field) {
-		tw_metadata_update($meta_type, $object_id, '_' . $key, $field['key']);
-		tw_metadata_update($meta_type, $object_id, $key, $field['value']);
+		tw_meta_update($meta_type, $object_id, '_' . $key, $field['key']);
+		tw_meta_update($meta_type, $object_id, $key, $field['value']);
 	}
 
-	tw_metadata_delete($meta_type, $object_id, '_acf_map');
+	tw_meta_delete($meta_type, $object_id, '_acf_map');
 
 }
 
@@ -967,7 +967,7 @@ function tw_acf_decompress_fields($meta_type = 'post', $object_id = 0, $include_
 
 	$object_id = (int) $object_id;
 
-	$map = tw_metadata_get($meta_type, $object_id, '_acf_map');
+	$map = tw_meta_get($meta_type, $object_id, '_acf_map');
 
 	if (!is_array($map)) {
 		return $data;
@@ -983,7 +983,7 @@ function tw_acf_decompress_fields($meta_type = 'post', $object_id = 0, $include_
 			continue;
 		}
 
-		$data = tw_metadata_get($meta_type, $object_id, $key);
+		$data = tw_meta_get($meta_type, $object_id, $key);
 
 		if ($data) {
 			$result = tw_acf_decompress_walker($result, $data, $key, $field, $include_layouts);
@@ -1241,7 +1241,7 @@ add_action('wp_restore_post_revision', 'tw_acf_revision_restore', 10, 2);
 
 function tw_acf_revision_restore($post_id, $revision_id) {
 
-	$map = tw_metadata_get('post', $revision_id, '_acf_map');
+	$map = tw_meta_get('post', $revision_id, '_acf_map');
 
 	$revision = get_post($revision_id);
 
@@ -1254,11 +1254,11 @@ function tw_acf_revision_restore($post_id, $revision_id) {
 	}
 
 	foreach ($map as $key => $field) {
-		$value = tw_metadata_get('post', $revision_id, $key);
-		tw_metadata_update('post', $post_id, $key, $value);
+		$value = tw_meta_get('post', $revision_id, $key);
+		tw_meta_update('post', $post_id, $key, $value);
 	}
 
-	tw_metadata_update('post', $post_id, '_acf_map', $map);
+	tw_meta_update('post', $post_id, '_acf_map', $map);
 
 }
 
@@ -1278,18 +1278,18 @@ function tw_acf_revision_create($revision_id) {
 
 	$post_id = $revision->post_parent;
 
-	$map = tw_metadata_get('post', $post_id, '_acf_map');
+	$map = tw_meta_get('post', $post_id, '_acf_map');
 
 	if (empty($map) or !is_array($map)) {
 		return;
 	}
 
 	foreach ($map as $key => $field) {
-		$value = tw_metadata_get('post', $post_id, $key);
-		tw_metadata_update('post', $revision->ID, $key, $value);
+		$value = tw_meta_get('post', $post_id, $key);
+		tw_meta_update('post', $revision->ID, $key, $value);
 	}
 
-	tw_metadata_update('post', $revision->ID, '_acf_map', $map);
+	tw_meta_update('post', $revision->ID, '_acf_map', $map);
 
 }
 

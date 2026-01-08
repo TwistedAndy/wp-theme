@@ -40,11 +40,11 @@ function tw_content_title(object $object, int $length = 0): string
 /**
  * Get a short description for a given object or a string
  *
- * @param string|WP_Post|WP_Term|WP_User $object       Post, Term, User, or a string
- * @param int                            $length       Required length of the text
- * @param bool|string                    $allowed_tags List of tags separated by "|"
- * @param string                         $find         Symbol to find for proper strip
- * @param bool                           $force_cut    Strip the post excerpt
+ * @param string|WP_Post|WP_Term $object       Post, Term, User, or a string
+ * @param int                    $length       Required length of the text
+ * @param bool|string            $allowed_tags List of tags separated by "|"
+ * @param string                 $find         Symbol to find for proper strip
+ * @param bool                   $force_cut    Strip the post excerpt
  *
  * @return string
  */
@@ -57,9 +57,7 @@ function tw_content_text($object, int $length = 250, $allowed_tags = false, stri
 		$text = $object->post_content;
 		$excerpt = $object->post_excerpt;
 	} elseif ($object instanceof WP_Term) {
-		$text = get_term_field('description', $object->term_id);
-	} elseif ($object instanceof WP_User) {
-		$text = tw_metadata_get('user', 'description', $object->ID);
+		$text = $object->description;
 	} elseif (is_string($object)) {
 		$text = $object;
 	}
@@ -71,11 +69,7 @@ function tw_content_text($object, int $length = 250, $allowed_tags = false, stri
 			$result = $excerpt;
 		}
 	} elseif ($excerpt and mb_strlen($excerpt) > 10) {
-		if ($force_cut) {
-			$result = tw_content_strip($excerpt, $length, $allowed_tags, $find);
-		} else {
-			$result = $excerpt;
-		}
+		$result = $force_cut ? tw_content_strip($excerpt, $length, $allowed_tags, $find) : $excerpt;
 	} elseif (mb_strpos($text, '<!--more') !== false) {
 		$position = mb_strpos($text, '<!--more');
 
@@ -244,7 +238,7 @@ function tw_content_strip(string $text, int $length = 200, $allowed_tags = false
 
 		$text = mb_substr($text, 0, $pos);
 
-		preg_match('#(.+)</[^>]+$#is', $text, $matches);
+		preg_match('#(.+)</[^>]+$#s', $text, $matches);
 
 		if (!empty($matches[1])) {
 			$text = $matches[1];
@@ -296,7 +290,9 @@ function tw_content_strip(string $text, int $length = 200, $allowed_tags = false
  */
 function tw_content_phone(string $string): string
 {
-	return 'tel:' . str_replace([' ', '(', ')', '-', '.'], '', esc_attr($string));
+	$phone = preg_replace('/(?<!^)\+|[^\d+]/', '', $string);
+
+	return strlen($phone) > 4 ? 'tel:' . $phone : '#';
 }
 
 

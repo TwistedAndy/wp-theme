@@ -23,20 +23,43 @@ require_once $wp_tests_dir . '/includes/functions.php';
  */
 function _manually_load_theme()
 {
+	// Theme Configuration Constants
+	if (!defined('TW_THEME_GAP')) {
+		define('TW_THEME_GAP', 20);
+	}
+	if (!defined('TW_THEME_WIDTH')) {
+		define('TW_THEME_WIDTH', 1420);
+	}
+
+	// Path Constants
 	if (!defined('TW_ROOT')) {
 		define('TW_ROOT', dirname(__DIR__) . '/theme/');
 	}
-
 	if (!defined('TW_INC')) {
 		define('TW_INC', TW_ROOT . 'includes/');
 	}
 
-	// Define URL constants to prevent PCOV crashes during scanning
+	// URL Constants
+	// We use WP functions if available, mimicking functions.php behavior
 	if (!defined('TW_HOME')) {
-		define('TW_HOME', 'http://example.test');
+		define('TW_HOME', rtrim(get_site_url(), '/\\'));
 	}
+
 	if (!defined('TW_URL')) {
-		define('TW_URL', 'http://example.test/wp-content/themes/theme');
+		// In tests, get_stylesheet_directory_uri() might behave differently if the theme isn't active,
+		// but usually it works if WP is loaded. We provide a safe fallback just in case.
+		$theme_url = function_exists('get_stylesheet_directory_uri') ? get_stylesheet_directory_uri() : TW_HOME . '/wp-content/themes/theme';
+		define('TW_URL', $theme_url . '/');
+	}
+
+	// Utility Constants
+	if (!defined('TW_CACHE')) {
+		define('TW_CACHE', true);
+	}
+
+	if (!defined('TW_FOLDER')) {
+		$url = parse_url(TW_HOME);
+		define('TW_FOLDER', (is_array($url) && !empty($url['path'])) ? $url['path'] : '');
 	}
 
 	// Load the main app file first (required for tw_app_include)

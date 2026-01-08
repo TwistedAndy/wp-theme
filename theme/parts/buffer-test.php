@@ -1,0 +1,1 @@
+<?php ob_start(); echo "Buffered Content";

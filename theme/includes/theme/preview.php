@@ -74,7 +74,7 @@ add_action('wp_ajax_twee_generate_preview', function() {
 
 		if ($post instanceof WP_Post and $post->post_type === 'block_set') {
 
-			$blocks_map = tw_metadata('post', 'blocks', true);
+			$blocks_map = tw_meta('post', 'blocks', true);
 
 			foreach ($blocks_map as $post_id => $blocks) {
 

@@ -10,16 +10,16 @@
 /**
  * Get an array with post data
  *
- * @param string $type
- * @param string $key
- * @param string $fields
- * @param string $status
- * @param string $order
+ * @param string                                      $type
+ * @param 'ID'|'post_author'|'post_name'|'post_title' $key
+ * @param string|string[]                             $fields
+ * @param string                                      $status
+ * @param string                                      $order
  *
  * @return array
  */
-function tw_post_data($type, $key = 'ID', $fields = 'post_title', $status = '', $order = 'p.ID ASC') {
-
+function tw_post_data(string $type, string $key = 'ID', $fields = 'post_title', string $status = '', string $order = 'p.ID ASC'): array
+{
 	$cache_key = 'posts_' . $key;
 	$cache_group = 'twee_posts_' . $type;
 
@@ -68,20 +68,14 @@ function tw_post_data($type, $key = 'ID', $fields = 'post_title', $status = '', 
 	$select = esc_sql($select);
 
 	if ($status) {
-
-		$status = esc_sql($status);
-
 		if (strpos($status, ',') > 0) {
-			$parts = array_map('trim', explode(',', $status));
+			$parts = array_map('trim', explode(',', esc_sql($status)));
 			$where = " AND p.post_status IN ('" . implode("','", $parts) . "')";
 		} else {
-			$where = " AND p.post_status = '{$status}'";
+			$where = " AND p.post_status = '" . esc_sql($status) . "'";
 		}
-
 	} else {
-
 		$where = '';
-
 	}
 
 	$rows = $db->get_results($db->prepare("SELECT {$select} FROM {$db->posts} p WHERE p.post_type = %s" . $where . " ORDER BY %s", $type, $order), ARRAY_A);
@@ -112,7 +106,6 @@ function tw_post_data($type, $key = 'ID', $fields = 'post_title', $status = '', 
 	wp_cache_set($cache_key, $data, $cache_group);
 
 	return $data;
-
 }
 
 
@@ -123,8 +116,8 @@ function tw_post_data($type, $key = 'ID', $fields = 'post_title', $status = '', 
  *
  * @return array
  */
-function tw_post_terms($taxonomy) {
-
+function tw_post_terms(string $taxonomy): array
+{
 	$cache_key = 'post_terms';
 	$cache_group = 'twee_post_terms_' . $taxonomy;
 
@@ -145,27 +138,20 @@ function tw_post_terms($taxonomy) {
 		WHERE tt.taxonomy = %s", $taxonomy), ARRAY_A);
 
 	if ($rows) {
-
 		foreach ($rows as $row) {
-
 			if (empty($row['object_id']) or empty($row['term_id'])) {
 				continue;
 			}
-
 			if (!isset($terms[$row['object_id']])) {
-				$terms[$row['object_id']] = [];
+				$terms[(int) $row['object_id']] = [];
 			}
-
-			$terms[$row['object_id']][] = (int) $row['term_id'];
-
+			$terms[(int) $row['object_id']][] = (int) $row['term_id'];
 		}
-
 	}
 
 	wp_cache_set($cache_key, $terms, $cache_group);
 
 	return $terms;
-
 }
 
 
@@ -178,8 +164,8 @@ function tw_post_terms($taxonomy) {
  *
  * @return array
  */
-function tw_post_term_thread($post_id, $taxonomy, $single = true) {
-
+function tw_post_term_thread(int $post_id, string $taxonomy, $single = true): array
+{
 	$cache_key = 'post_term_thread';
 	$cache_group = 'twee_post_terms_' . $taxonomy;
 
@@ -200,6 +186,7 @@ function tw_post_term_thread($post_id, $taxonomy, $single = true) {
 
 	if (empty($terms_map[$post_id]) or !is_array($terms_map[$post_id])) {
 		wp_cache_set($cache_key, $thread, $cache_group);
+
 		return $thread;
 	}
 
@@ -276,21 +263,17 @@ function tw_post_term_thread($post_id, $taxonomy, $single = true) {
  *
  * @return array
  */
-function tw_post_query($type, $block) {
-
-	if (!is_array($block)) {
-		$block = [];
-	}
-
+function tw_post_query(string $type, array $block = []): array
+{
 	$taxonomies = get_object_taxonomies($type);
 
 	$args = [
-		'post_type' => $type,
-		'post_status' => 'publish',
+		'post_type'      => $type,
+		'post_status'    => 'publish',
 		'posts_per_page' => 6,
-		'orderby' => 'date',
-		'order' => 'DESC',
-		'offset' => 0
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+		'offset'         => 0
 	];
 
 	if (!empty($block['exclude'])) {
@@ -313,8 +296,8 @@ function tw_post_query($type, $block) {
 			if (!empty($block[$taxonomy]) and is_array($block[$taxonomy])) {
 				$tax_query[] = [
 					'taxonomy' => $taxonomy,
-					'field' => 'term_id',
-					'terms' => $block[$taxonomy],
+					'field'    => 'term_id',
+					'terms'    => $block[$taxonomy],
 				];
 			}
 		}
@@ -327,11 +310,9 @@ function tw_post_query($type, $block) {
 	}
 
 	if ($order == 'custom' and !empty($block['items'])) {
-
 		$args['post__in'] = $block['items'];
 		$args['orderby'] = 'post__in';
 		$args['order'] = 'ASC';
-
 	} elseif ($order == 'related') {
 
 		$object = get_queried_object();
@@ -353,8 +334,8 @@ function tw_post_query($type, $block) {
 				if (!empty($terms[$object->ID])) {
 					$tax_query[] = [
 						'taxonomy' => $taxonomy,
-						'field' => 'term_id',
-						'terms' => $terms[$object->ID],
+						'field'    => 'term_id',
+						'terms'    => $terms[$object->ID],
 					];
 				}
 
@@ -373,18 +354,16 @@ function tw_post_query($type, $block) {
 		}
 
 		if ($order == 'views') {
-
 			$meta_query['views'] = [
-				'key' => 'views_total',
+				'key'     => 'views_total',
 				'compare' => 'EXISTS',
-				'type' => 'NUMERIC'
+				'type'    => 'NUMERIC'
 			];
 
 			$args['orderby'] = [
 				'views' => 'DESC',
-				'date' => 'DESC'
+				'date'  => 'DESC'
 			];
-
 		}
 
 	}
@@ -399,7 +378,6 @@ function tw_post_query($type, $block) {
 	}
 
 	return $args;
-
 }
 
 
@@ -411,11 +389,9 @@ function tw_post_query($type, $block) {
  *
  * @return void
  */
-function tw_post_clear_cache($post_id, $post) {
-	if ($post instanceof WP_Post) {
-		$cache_group = 'twee_posts_' . $post->post_type;
-		tw_app_clear($cache_group);
-	}
+function tw_post_clear_cache(int $post_id, WP_Post $post): void
+{
+	tw_app_clear('twee_posts_' . $post->post_type);
 }
 
 add_action('save_post', 'tw_post_clear_cache', 10, 2);
@@ -425,7 +401,9 @@ add_action('delete_post', 'tw_post_clear_cache', 10, 2);
 /**
  * Clear post terms cache
  */
-add_action('set_object_terms', function($object_id, $terms, $ids, $taxonomy) {
-	$cache_group = 'twee_post_terms_' . $taxonomy;
-	tw_app_clear($cache_group);
-}, 10, 4);
+function tw_post_clear_terms(int $object_id, array $terms, array $ids, string $taxonomy): void
+{
+	tw_app_clear('twee_post_terms_' . $taxonomy);
+}
+
+add_action('set_object_terms', 'tw_post_clear_terms', 10, 4);

@@ -647,7 +647,7 @@ if (!is_admin() and !function_exists('get_field')) {
 		if ($entity['type'] === 'option') {
 			$value = get_option($entity['id'] . '_' . $field, null);
 		} else {
-			$value = tw_metadata_get($entity['type'], $entity['id'], $field);
+			$value = tw_meta_get($entity['type'], $entity['id'], $field);
 		}
 
 		return $value;

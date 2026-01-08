@@ -85,7 +85,7 @@ function tw_app_action_init(): void
 	}
 
 	if (file_exists(TW_ROOT . 'editor-style.css')) {
-		add_editor_style('editor-style.css');
+		add_editor_style();
 	}
 }
 
@@ -99,7 +99,7 @@ function tw_app_action_init(): void
  *
  * @return void
  */
-function tw_app_set($key, $value, $group = 'default'): void
+function tw_app_set(string $key, $value, string $group = 'default'): void
 {
 	global $twee_cache;
 
@@ -120,11 +120,11 @@ function tw_app_set($key, $value, $group = 'default'): void
  *
  * @param string $key
  * @param string $group
- * @param null   $default
+ * @param mixed  $default
  *
  * @return mixed
  */
-function tw_app_get($key, $group = 'default', $default = null)
+function tw_app_get(string $key, string $group = 'default', $default = null)
 {
 	global $twee_cache;
 
@@ -143,7 +143,7 @@ function tw_app_get($key, $group = 'default', $default = null)
  *
  * @return void
  */
-function tw_app_clear($group): void
+function tw_app_clear(string $group): void
 {
 	global $twee_cache;
 
@@ -151,7 +151,7 @@ function tw_app_clear($group): void
 		unset($twee_cache[$group]);
 	}
 
-	if (function_exists('wp_cache_supports') && wp_cache_supports('flush_group')) {
+	if (function_exists('wp_cache_supports') and wp_cache_supports('flush_group')) {
 		wp_cache_flush_group($group);
 	} elseif (function_exists('wp_cache_flush')) {
 		wp_cache_flush();
@@ -167,7 +167,7 @@ function tw_app_clear($group): void
  *
  * @return array|array[]|false|mixed
  */
-function tw_app_settings($group = false, $value = false)
+function tw_app_settings(string $group = '', $value = false)
 {
 	$cache_key = 'tw_app_settings';
 
@@ -184,7 +184,7 @@ function tw_app_settings($group = false, $value = false)
 		];
 	}
 
-	if (!empty($group)) {
+	if ($group !== '') {
 		if (is_array($value)) {
 			$settings[$group] = $value;
 			tw_app_set($cache_key, $settings);
@@ -208,7 +208,7 @@ function tw_app_database(): wpdb
 {
 	global $wpdb;
 
-	if ($wpdb instanceof \wpdb) {
+	if ($wpdb instanceof wpdb) {
 		return $wpdb;
 	}
 
@@ -217,7 +217,7 @@ function tw_app_database(): wpdb
 	$db_name = defined('DB_NAME') ? DB_NAME : '';
 	$db_host = defined('DB_HOST') ? DB_HOST : '';
 
-	return new \wpdb($db_user, $db_password, $db_name, $db_host);
+	return new wpdb($db_user, $db_password, $db_name, $db_host);
 }
 
 
@@ -242,7 +242,7 @@ function tw_app_include($folder, $files = [])
 			$list = [];
 
 			foreach ($files as $file) {
-				if (strpos($file, '.php') !== false) {
+				if (str_ends_with($file, '.php')) {
 					$list[] = str_replace('.php', '', $file);
 				}
 			}
@@ -252,13 +252,11 @@ function tw_app_include($folder, $files = [])
 	}
 
 	foreach ($files as $file) {
-
 		$filename = $folder . DIRECTORY_SEPARATOR . $file . '.php';
 
 		if (is_readable($filename)) {
 			include_once($filename);
 		}
-
 	}
 }
 
@@ -266,9 +264,9 @@ function tw_app_include($folder, $files = [])
 /**
  * Render a template with specified data
  *
- * @param string                  $template Template part name
- * @param array|\WP_Post|\WP_Term $item     Array with data
- * @param string                  $folder   Folder with template part
+ * @param string                $template Template part name
+ * @param array|WP_Post|WP_Term $item     Array with data
+ * @param string                $folder   Folder with template part
  *
  * @return string
  */
@@ -278,11 +276,7 @@ function tw_app_template($template, $item = [], $folder = 'parts')
 
 	ob_start();
 
-	if ($folder) {
-		$folder = rtrim($folder, '/\\') . DIRECTORY_SEPARATOR;
-	} else {
-		$folder = '';
-	}
+	$folder = $folder ? rtrim($folder, '/\\') . DIRECTORY_SEPARATOR : '';
 
 	$filename = TW_ROOT . $folder . $template . '.php';
 
@@ -314,7 +308,7 @@ function tw_app_template($template, $item = [], $folder = 'parts')
  *
  * @return bool
  */
-function tw_app_remove_filter($tag, $class_name = '', $method_name = '', $priority = 10)
+function tw_app_remove_filter(string $tag, string $class_name = '', string $method_name = '', int $priority = 10): bool
 {
 	global $wp_filter;
 
@@ -356,13 +350,15 @@ function tw_app_remove_filter($tag, $class_name = '', $method_name = '', $priori
  * @param string|string[] $feature
  * @param array           $args
  */
-function tw_app_features($feature, $args = [])
+function tw_app_features($feature, array $args = []): void
 {
 	$settings = tw_app_settings('support');
 
 	if (is_string($feature) and !isset($settings[$feature])) {
 
 		$settings[$feature] = $args;
+
+		tw_app_settings('support', $settings);
 
 	} elseif (is_array($feature) and empty($args)) {
 
@@ -389,12 +385,8 @@ function tw_app_features($feature, $args = [])
  *
  * @param array $menus
  */
-function tw_app_menus($menus)
+function tw_app_menus(array $menus): void
 {
-	if (!is_array($menus)) {
-		return;
-	}
-
 	$settings = tw_app_settings('menus');
 
 	foreach ($menus as $location => $description) {
@@ -413,13 +405,11 @@ function tw_app_menus($menus)
  * @param string $type
  * @param array  $args
  */
-function tw_app_type($type, $args)
+function tw_app_type(string $type, array $args): void
 {
-	if (is_string($type) and is_array($args)) {
-		$types = tw_app_settings('types');
-		$types[$type] = $args;
-		tw_app_settings('types', $types);
-	}
+	$types = tw_app_settings('types');
+	$types[$type] = $args;
+	tw_app_settings('types', $types);
 }
 
 
@@ -430,14 +420,12 @@ function tw_app_type($type, $args)
  * @param string|string[] $types
  * @param array           $args
  */
-function tw_app_taxonomy($name, $types, $args)
+function tw_app_taxonomy(string $name, $types, array $args): void
 {
-	if (is_string($name) and is_array($args)) {
-		$taxonomies = tw_app_settings('taxonomies');
-		$args['types'] = $types;
-		$taxonomies[$name] = $args;
-		tw_app_settings('taxonomies', $taxonomies);
-	}
+	$taxonomies = tw_app_settings('taxonomies');
+	$args['types'] = $types;
+	$taxonomies[$name] = $args;
+	tw_app_settings('taxonomies', $taxonomies);
 }
 
 
@@ -446,13 +434,11 @@ function tw_app_taxonomy($name, $types, $args)
  *
  * @param array $sidebar
  */
-function tw_app_sidebar($sidebar)
+function tw_app_sidebar(array $sidebar): void
 {
-	if (is_array($sidebar)) {
-		$sidebars = tw_app_settings('sidebars');
-		$sidebars[] = $sidebar;
-		tw_app_settings('sidebars', $sidebars);
-	}
+	$sidebars = tw_app_settings('sidebars');
+	$sidebars[] = $sidebar;
+	tw_app_settings('sidebars', $sidebars);
 }
 
 
@@ -461,11 +447,9 @@ function tw_app_sidebar($sidebar)
  *
  * @param string $widget
  */
-function tw_app_widget($widget)
+function tw_app_widget(string $widget): void
 {
-	if (is_string($widget)) {
-		$widgets = tw_app_settings('widgets');
-		$widgets[] = $widget;
-		tw_app_settings('widgets', $widgets);
-	}
+	$widgets = tw_app_settings('widgets');
+	$widgets[] = $widget;
+	tw_app_settings('widgets', $widgets);
 }

@@ -1,0 +1,293 @@
+.widget_box {
+	display: block;
+	position: relative;
+	padding: 0 0 20px;
+	margin: 0 0 16px;
+	border-bottom: 1px solid var(--color-border);
+	font-size: rem(15);
+	font-weight: 500;
+	line-height: rem(20);
+	--gap-heading: 10px;
+
+	&:last-child {
+		padding-bottom: 0;
+		margin-bottom: 0;
+		border-bottom-width: 0;
+	}
+
+	&.hidden {
+		display: none;
+	}
+
+	&.is_collapsable {
+
+		.heading {
+			padding-right: 15px;
+			cursor: pointer;
+
+			&:hover {
+				color: var(--color-heading);
+			}
+
+			&:after {
+				content: '';
+				position: absolute;
+				top: 6px;
+				right: 0;
+				width: 12px;
+				height: 8px;
+				background-color: currentColor;
+				transition: 0.2s;
+				transform: scaleY(-1);
+				-webkit-mask: url(../images/ico_select.svg) 50% 50% / contain no-repeat;
+			}
+
+		}
+
+	}
+
+	&.is_collapsed {
+
+		.heading {
+
+			&:after {
+				transform: scaleY(1);
+			}
+
+		}
+
+		& > :not(.heading) {
+			display: none;
+		}
+
+	}
+
+	&.widget_archive,
+	&.widget_categories {
+
+		li {
+			display: block;
+			padding: 0 0 12px;
+			margin: 0 0 12px;
+			border-bottom: 1px solid var(--color-border);
+			color: var(--color-muted);
+			font-size: 16px;
+			font-weight: 600;
+
+			&:last-child {
+				padding-bottom: 0;
+				margin-bottom: 0;
+				border-bottom-width: 0;
+			}
+
+		}
+
+	}
+
+	.heading {
+		display: flex;
+		position: relative;
+		align-items: flex-start;
+		margin: 0;
+		color: var(--color-heading);
+		font-size: rem(16);
+		font-weight: 700;
+		line-height: rem(20);
+		transition: 0.3s;
+
+		& + * {
+			padding-top: 12px;
+		}
+
+	}
+
+	ul {
+		position: relative;
+		list-style: none;
+
+		@include hover {
+			&:hover {
+				&::-webkit-scrollbar-thumb {
+					background-color: var(--color-muted);
+				}
+			}
+		}
+
+		&::-webkit-scrollbar {
+			width: 6px;
+		}
+
+		&::-webkit-scrollbar-track {
+			border-radius: 0;
+			background-color: var(--color-background);
+			transition: 0.2s;
+		}
+
+		&::-webkit-scrollbar-thumb {
+			border-radius: 0;
+			background-color: var(--color-field);
+			transition: 0.2s;
+		}
+
+	}
+
+	.toggles {
+		display: block;
+		overflow: hidden;
+		padding: 14px 0 0;
+	}
+
+	.toggle {
+		@extend %toggle;
+	}
+
+	.search {
+		display: block;
+		position: relative;
+
+		input {
+			display: block;
+			position: relative;
+			width: 100%;
+			padding-right: 30px;
+			z-index: 1;
+		}
+
+		button {
+			display: block;
+			position: absolute;
+			top: 50%;
+			right: 10px;
+			width: 20px;
+			height: 20px;
+			margin-top: -10px;
+			border: none;
+			border-radius: 0;
+			outline: none;
+			background-color: currentColor;
+			z-index: 2;
+			-webkit-mask: url(../images/ico_search.svg) 50% 50% / contain no-repeat;
+
+			&:hover {
+				color: var(--color-link);
+			}
+
+		}
+
+	}
+
+	.posts {
+
+		.post {
+			display: flex;
+			align-items: stretch;
+			margin: 0 0 15px;
+			border-radius: var(--radius-regular);
+			--height-image: 75%;
+
+			&:last-child {
+				margin-bottom: 0;
+			}
+
+		}
+
+		.image {
+			@extend %image;
+			overflow: hidden;
+			flex-basis: 150px;
+			border-radius: var(--radius-regular) 0 0 var(--radius-regular);
+
+			& + .details {
+				border-left-width: 0;
+				border-radius: 0 var(--radius-regular) var(--radius-regular) 0;
+			}
+
+		}
+
+		.details {
+			display: flex;
+			flex-direction: column;
+			flex-grow: 1;
+			align-items: flex-start;
+			min-width: 0;
+			padding: 12px 15px;
+			border: 1px solid var(--color-border);
+			border-radius: var(--radius-regular);
+			font-size: rem(14);
+			font-weight: 400;
+			line-height: rem(21);
+			gap: 10px;
+		}
+
+		.title {
+			display: block;
+			flex-basis: auto;
+			flex-grow: 1;
+			min-width: 0;
+			color: var(--color-heading);
+			font-size: rem(15);
+			font-weight: 700;
+
+			@include hover {
+				&:hover {
+					color: var(--color-link);
+				}
+			}
+
+		}
+
+		.info {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: flex-start;
+			margin: auto 0 0;
+			color: var(--color-muted);
+			gap: 4px 7px;
+		}
+
+		.category {
+			display: inline-block;
+			position: relative;
+			padding: 0 12px 0 0;
+			text-decoration: none;
+
+			&:after {
+				content: '';
+				position: absolute;
+				top: 50%;
+				right: 0;
+				width: 4px;
+				height: 4px;
+				margin: -1px 0 0;
+				border-radius: 50%;
+				background-color: var(--color-muted);
+			}
+
+			&:last-child {
+				padding-right: 0;
+
+				&:after {
+					display: none;
+				}
+
+			}
+
+			@include hover {
+				&:hover {
+					color: var(--color-link);
+				}
+			}
+
+		}
+
+		@include phone_small {
+
+			.image {
+				flex-basis: 120px;
+			}
+
+		}
+
+	}
+
+}

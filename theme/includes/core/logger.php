@@ -123,7 +123,7 @@ function tw_logger_filename(string $type = 'info', string $scope = 'theme', int 
 	$filename = $folder . 'twee_log_' . $scope;
 
 	if ($time > 0) {
-		$filename .= '_' . date('Y_m_d', (int) $time);
+		$filename .= '_' . date('Y_m_d', $time);
 	}
 
 	if ($type) {

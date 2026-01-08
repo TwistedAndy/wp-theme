@@ -1,0 +1,41 @@
+%toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding: 8px 12px;
+	margin: 0;
+	border-radius: var(--radius-small);
+	background: var(--color-background);
+	color: var(--color-heading);
+	font-family: var(--font-main);
+	font-size: rem(14);
+	font-weight: 600;
+	line-height: rem(20);
+	text-align: center;
+
+	@include hover {
+		&:hover {
+			background-color: var(--color-primary);
+			color: var(--color-primary-text);
+		}
+	}
+
+	&.is_active:after {
+		transform: scaleY(-1);
+	}
+
+	&:after {
+		content: '';
+		display: block;
+		position: relative;
+		flex-grow: 0;
+		flex-shrink: 0;
+		width: 10px;
+		height: 6px;
+		margin-left: 6px;
+		background-color: currentColor;
+		-webkit-mask: url(../images/ico_select.svg) 50% 50% / contain no-repeat;
+	}
+
+}

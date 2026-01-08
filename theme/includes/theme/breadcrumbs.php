@@ -142,9 +142,9 @@ function tw_breadcrumbs_list($query = null) {
 		if ($taxonomy) {
 
 			if (defined('RANK_MATH_VERSION')) {
-				$current_term = tw_metadata_get('post', $post_id, 'rank_math_primary_' . $taxonomy);
+				$current_term = tw_meta_get('post', $post_id, 'rank_math_primary_' . $taxonomy);
 			} elseif (defined('WPSEO_VERSION')) {
-				$current_term = tw_metadata_get('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy);
+				$current_term = tw_meta_get('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy);
 			} else {
 				$current_term = 0;
 			}
@@ -174,9 +174,9 @@ function tw_breadcrumbs_list($query = null) {
 
 					if ($current_term > 0) {
 						if (defined('RANK_MATH_VERSION')) {
-							tw_metadata_update('post', $post_id, 'rank_math_primary_' . $taxonomy, $current_term);
+							tw_meta_update('post', $post_id, 'rank_math_primary_' . $taxonomy, $current_term);
 						} elseif (defined('WPSEO_VERSION')) {
-							tw_metadata_update('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy, $current_term);
+							tw_meta_update('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy, $current_term);
 						}
 					}
 
