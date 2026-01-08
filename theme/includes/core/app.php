@@ -14,8 +14,10 @@ $twee_cache = [];
 /**
  * Declare theme support and load translations
  */
-add_action('after_setup_theme', function() {
+add_action('after_setup_theme', 'tw_app_action_setup_theme');
 
+function tw_app_action_setup_theme(): void
+{
 	$settings = tw_app_settings();
 
 	load_theme_textdomain('twee', TW_ROOT . 'languages');
@@ -33,15 +35,16 @@ add_action('after_setup_theme', function() {
 	if (!empty($settings['menus'])) {
 		register_nav_menus($settings['menus']);
 	}
-
-});
+}
 
 
 /**
  * Initialize sidebars and widgets
  */
-add_action('widgets_init', function() {
+add_action('widgets_init', 'tw_app_action_widgets_init');
 
+function tw_app_action_widgets_init(): void
+{
 	$settings = tw_app_settings();
 
 	if (!empty($settings['sidebars'])) {
@@ -58,15 +61,15 @@ add_action('widgets_init', function() {
 			}
 		}
 	}
-
-});
-
+}
 
 /**
  * Initialize post types, taxonomies, etc.
  */
-add_action('init', function() {
+add_action('init', 'tw_app_action_init', 9);
 
+function tw_app_action_init(): void
+{
 	$settings = tw_app_settings();
 
 	if (!empty($settings['types'])) {
@@ -84,35 +87,31 @@ add_action('init', function() {
 	if (file_exists(TW_ROOT . 'editor-style.css')) {
 		add_editor_style('editor-style.css');
 	}
-
-});
+}
 
 
 /**
- *  Set a value to the runtime cache
+ * Set a value to the runtime cache
  *
  * @param string $key
  * @param mixed  $value
  * @param string $group
+ *
+ * @return void
  */
-function tw_app_set($key, $value, $group = 'default') {
-
+function tw_app_set($key, $value, $group = 'default'): void
+{
 	global $twee_cache;
 
 	if ($value === null and isset($twee_cache[$group]) and isset($twee_cache[$group][$key])) {
-
 		unset($twee_cache[$group][$key]);
-
 	} else {
-
 		if (!isset($twee_cache[$group])) {
 			$twee_cache[$group] = [];
 		}
 
 		$twee_cache[$group][$key] = $value;
-
 	}
-
 }
 
 
@@ -125,16 +124,15 @@ function tw_app_set($key, $value, $group = 'default') {
  *
  * @return mixed
  */
-function tw_app_get($key, $group = 'default', $default = null) {
-
+function tw_app_get($key, $group = 'default', $default = null)
+{
 	global $twee_cache;
 
 	if (isset($twee_cache[$group]) and isset($twee_cache[$group][$key])) {
 		return $twee_cache[$group][$key];
-	} else {
-		return $default;
 	}
 
+	return $default;
 }
 
 
@@ -145,20 +143,19 @@ function tw_app_get($key, $group = 'default', $default = null) {
  *
  * @return void
  */
-function tw_app_clear($group) {
-
+function tw_app_clear($group): void
+{
 	global $twee_cache;
 
 	if (isset($twee_cache[$group])) {
 		unset($twee_cache[$group]);
 	}
 
-	if (wp_cache_supports('flush_group')) {
+	if (function_exists('wp_cache_supports') && wp_cache_supports('flush_group')) {
 		wp_cache_flush_group($group);
-	} else {
+	} elseif (function_exists('wp_cache_flush')) {
 		wp_cache_flush();
 	}
-
 }
 
 
@@ -170,25 +167,24 @@ function tw_app_clear($group) {
  *
  * @return array|array[]|false|mixed
  */
-function tw_app_settings($group = false, $value = false) {
-
+function tw_app_settings($group = false, $value = false)
+{
 	$cache_key = 'tw_app_settings';
 
 	$settings = tw_app_get($cache_key);
 
 	if (!is_array($settings)) {
 		$settings = [
-			'support' => [],
-			'menus' => [],
-			'types' => [],
-			'widgets' => [],
-			'sidebars' => [],
+			'support'    => [],
+			'menus'      => [],
+			'types'      => [],
+			'widgets'    => [],
+			'sidebars'   => [],
 			'taxonomies' => []
 		];
 	}
 
 	if (!empty($group)) {
-
 		if (is_array($value)) {
 			$settings[$group] = $value;
 			tw_app_set($cache_key, $settings);
@@ -197,11 +193,9 @@ function tw_app_settings($group = false, $value = false) {
 		} else {
 			$settings = [];
 		}
-
 	}
 
 	return $settings;
-
 }
 
 
@@ -210,25 +204,20 @@ function tw_app_settings($group = false, $value = false) {
  *
  * @return wpdb
  */
-function tw_app_database() {
-
+function tw_app_database(): wpdb
+{
 	global $wpdb;
 
 	if ($wpdb instanceof \wpdb) {
-
 		return $wpdb;
-
-	} else {
-
-		$db_user = defined('DB_USER') ? DB_USER : '';
-		$db_password = defined('DB_PASSWORD') ? DB_PASSWORD : '';
-		$db_name = defined('DB_NAME') ? DB_NAME : '';
-		$db_host = defined('DB_HOST') ? DB_HOST : '';
-
-		return new \wpdb($db_user, $db_password, $db_name, $db_host);
-
 	}
 
+	$db_user = defined('DB_USER') ? DB_USER : '';
+	$db_password = defined('DB_PASSWORD') ? DB_PASSWORD : '';
+	$db_name = defined('DB_NAME') ? DB_NAME : '';
+	$db_host = defined('DB_HOST') ? DB_HOST : '';
+
+	return new \wpdb($db_user, $db_password, $db_name, $db_host);
 }
 
 
@@ -240,34 +229,26 @@ function tw_app_database() {
  *
  * @return void
  */
-function tw_app_include($folder, $files = []) {
-
+function tw_app_include($folder, $files = [])
+{
 	if (!is_dir($folder)) {
 		return;
 	}
 
 	if (empty($files)) {
-
 		$files = scandir($folder);
 
 		if (is_array($files)) {
-
 			$list = [];
 
 			foreach ($files as $file) {
-
 				if (strpos($file, '.php') !== false) {
-
 					$list[] = str_replace('.php', '', $file);
-
 				}
-
 			}
 
 			$files = $list;
-
 		}
-
 	}
 
 	foreach ($files as $file) {
@@ -279,7 +260,6 @@ function tw_app_include($folder, $files = []) {
 		}
 
 	}
-
 }
 
 
@@ -292,12 +272,14 @@ function tw_app_include($folder, $files = []) {
  *
  * @return string
  */
-function tw_app_template($template, $item = [], $folder = 'parts') {
+function tw_app_template($template, $item = [], $folder = 'parts')
+{
+	$start_level = ob_get_level();
 
 	ob_start();
 
 	if ($folder) {
-		$folder = untrailingslashit($folder) . DIRECTORY_SEPARATOR;
+		$folder = rtrim($folder, '/\\') . DIRECTORY_SEPARATOR;
 	} else {
 		$folder = '';
 	}
@@ -312,8 +294,13 @@ function tw_app_template($template, $item = [], $folder = 'parts') {
 		include $filename;
 	}
 
-	return ob_get_clean();
+	$content = ob_get_clean();
 
+	while (ob_get_level() > $start_level) {
+		ob_end_clean();
+	}
+
+	return $content;
 }
 
 
@@ -327,8 +314,8 @@ function tw_app_template($template, $item = [], $folder = 'parts') {
  *
  * @return bool
  */
-function tw_app_remove_filter($tag, $class_name = '', $method_name = '', $priority = 10) {
-
+function tw_app_remove_filter($tag, $class_name = '', $method_name = '', $priority = 10)
+{
 	global $wp_filter;
 
 	if (!is_array($wp_filter) or empty($wp_filter[$tag]) or empty($wp_filter[$tag]->callbacks)) {
@@ -338,11 +325,9 @@ function tw_app_remove_filter($tag, $class_name = '', $method_name = '', $priori
 	$is_filter_removed = false;
 
 	if (!empty($wp_filter[$tag]->callbacks[$priority])) {
-
 		$filters = $wp_filter[$tag]->callbacks[$priority];
 
 		foreach ($filters as $filter) {
-
 			if (empty($filter['function']) or !is_array($filter['function']) or empty($filter['function'][0]) or empty($filter['function'][1])) {
 				continue;
 			}
@@ -358,13 +343,10 @@ function tw_app_remove_filter($tag, $class_name = '', $method_name = '', $priori
 			$wp_filter[$tag]->remove_filter($tag, $filter['function'], $priority);
 
 			$is_filter_removed = true;
-
 		}
-
 	}
 
 	return $is_filter_removed;
-
 }
 
 
@@ -374,8 +356,8 @@ function tw_app_remove_filter($tag, $class_name = '', $method_name = '', $priori
  * @param string|string[] $feature
  * @param array           $args
  */
-function tw_app_features($feature, $args = []) {
-
+function tw_app_features($feature, $args = [])
+{
 	$settings = tw_app_settings('support');
 
 	if (is_string($feature) and !isset($settings[$feature])) {
@@ -387,13 +369,11 @@ function tw_app_features($feature, $args = []) {
 		$features = [];
 
 		foreach ($feature as $key => $value) {
-
 			if (is_numeric($key) and is_string($value)) {
 				$features[$value] = [];
 			} elseif (is_string($key) and is_array($value)) {
 				$features[$key] = $value;
 			}
-
 		}
 
 		$settings = array_merge($features, $settings);
@@ -401,8 +381,6 @@ function tw_app_features($feature, $args = []) {
 		tw_app_settings('support', $settings);
 
 	}
-
-
 }
 
 
@@ -411,8 +389,8 @@ function tw_app_features($feature, $args = []) {
  *
  * @param array $menus
  */
-function tw_app_menus($menus) {
-
+function tw_app_menus($menus)
+{
 	if (!is_array($menus)) {
 		return;
 	}
@@ -426,7 +404,6 @@ function tw_app_menus($menus) {
 	}
 
 	tw_app_settings('menus', $settings);
-
 }
 
 
@@ -436,7 +413,8 @@ function tw_app_menus($menus) {
  * @param string $type
  * @param array  $args
  */
-function tw_app_type($type, $args) {
+function tw_app_type($type, $args)
+{
 	if (is_string($type) and is_array($args)) {
 		$types = tw_app_settings('types');
 		$types[$type] = $args;
@@ -452,7 +430,8 @@ function tw_app_type($type, $args) {
  * @param string|string[] $types
  * @param array           $args
  */
-function tw_app_taxonomy($name, $types, $args) {
+function tw_app_taxonomy($name, $types, $args)
+{
 	if (is_string($name) and is_array($args)) {
 		$taxonomies = tw_app_settings('taxonomies');
 		$args['types'] = $types;
@@ -467,7 +446,8 @@ function tw_app_taxonomy($name, $types, $args) {
  *
  * @param array $sidebar
  */
-function tw_app_sidebar($sidebar) {
+function tw_app_sidebar($sidebar)
+{
 	if (is_array($sidebar)) {
 		$sidebars = tw_app_settings('sidebars');
 		$sidebars[] = $sidebar;
@@ -481,7 +461,8 @@ function tw_app_sidebar($sidebar) {
  *
  * @param string $widget
  */
-function tw_app_widget($widget) {
+function tw_app_widget($widget)
+{
 	if (is_string($widget)) {
 		$widgets = tw_app_settings('widgets');
 		$widgets[] = $widget;

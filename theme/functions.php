@@ -6,7 +6,7 @@ define('TW_THEME_WIDTH', 1420);
 define('TW_ROOT', __DIR__ . '/');
 define('TW_INC', TW_ROOT . 'includes/');
 define('TW_URL', get_stylesheet_directory_uri() . '/');
-define('TW_HOME', untrailingslashit(get_site_url()));
+define('TW_HOME', rtrim(get_site_url(), '/\\'));
 define('TW_CACHE', wp_using_ext_object_cache());
 
 $url = parse_url(TW_HOME);

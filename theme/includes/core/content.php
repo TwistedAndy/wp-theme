@@ -10,23 +10,23 @@
 /**
  * Get a title of a post or term
  *
- * @param WP_Post|WP_Term $object Post object with a title
- * @param int             $length Maximum length of the title
+ * @param object $object
+ * @param int    $length
  *
  * @return string
  */
-function tw_content_title($object, $length = 0) {
-
+function tw_content_title(object $object, int $length = 0): string
+{
 	$title = '';
 
 	if ($object instanceof WP_Post) {
-
 		$title = apply_filters('the_title', $object->post_title, $object->ID);
-
 	} elseif ($object instanceof WP_Term) {
-
 		$title = $object->name;
-
+	} elseif ($object instanceof WP_Post_Type) {
+		$title = $object->label;
+	} elseif ($object instanceof WP_User) {
+		$title = $object->display_name;
 	}
 
 	if ($title and $length > 0) {
@@ -34,7 +34,6 @@ function tw_content_title($object, $length = 0) {
 	}
 
 	return $title;
-
 }
 
 
@@ -47,74 +46,49 @@ function tw_content_title($object, $length = 0) {
  * @param string                         $find         Symbol to find for proper strip
  * @param bool                           $force_cut    Strip the post excerpt
  *
- * @return bool|string
+ * @return string
  */
-function tw_content_text($object, $length = 250, $allowed_tags = false, $find = ' ', $force_cut = true) {
-
+function tw_content_text($object, int $length = 250, $allowed_tags = false, string $find = ' ', bool $force_cut = true): string
+{
 	$excerpt = false;
 	$text = '';
 
-	if ($object === false) {
-		$object = get_queried_object();
-	}
-
 	if ($object instanceof WP_Post) {
-
 		$text = $object->post_content;
 		$excerpt = $object->post_excerpt;
-
 	} elseif ($object instanceof WP_Term) {
-
 		$text = get_term_field('description', $object->term_id);
-
 	} elseif ($object instanceof WP_User) {
-
 		$text = tw_metadata_get('user', 'description', $object->ID);
-
 	} elseif (is_string($object)) {
-
 		$text = $object;
-
 	}
 
 	if (empty($length)) {
-
 		$result = $text;
 
 		if (!empty($excerpt)) {
 			$result = $excerpt;
 		}
-
-	} else {
-
-		if ($excerpt and mb_strlen($excerpt) > 10) {
-
-			if ($force_cut) {
-				$result = tw_content_strip($excerpt, $length, $allowed_tags, $find);
-			} else {
-				$result = $excerpt;
-			}
-
-		} elseif (mb_strpos($text, '<!--more') !== false) {
-
-			$pos = mb_strpos($text, '<!--more');
-
-			if ($force_cut) {
-				$result = tw_content_strip(mb_substr($text, 0, $pos), $length, $allowed_tags, $find);
-			} else {
-				$result = tw_content_strip(mb_substr($text, 0, $pos), $pos, $allowed_tags, $find);
-			}
-
+	} elseif ($excerpt and mb_strlen($excerpt) > 10) {
+		if ($force_cut) {
+			$result = tw_content_strip($excerpt, $length, $allowed_tags, $find);
 		} else {
-
-			$result = tw_content_strip($text, $length, $allowed_tags, $find);
-
+			$result = $excerpt;
 		}
+	} elseif (mb_strpos($text, '<!--more') !== false) {
+		$position = mb_strpos($text, '<!--more');
 
+		if ($force_cut) {
+			$result = tw_content_strip(mb_substr($text, 0, $position), $length, $allowed_tags, $find);
+		} else {
+			$result = tw_content_strip(mb_substr($text, 0, $position), $position, $allowed_tags, $find);
+		}
+	} else {
+		$result = tw_content_strip($text, $length, $allowed_tags, $find);
 	}
 
 	return $result;
-
 }
 
 
@@ -127,11 +101,11 @@ function tw_content_text($object, $length = 250, $allowed_tags = false, $find = 
  *
  * @return string
  */
-function tw_content_link($link, $class = 'button', $hidden = '') {
-
+function tw_content_link(array $link, string $class = 'button', string $hidden = ''): string
+{
 	$result = '';
 
-	if (!is_array($link) or empty($link['url']) or !isset($link['title'])) {
+	if (empty($link['url']) or !isset($link['title'])) {
 		return $result;
 	}
 
@@ -152,25 +126,24 @@ function tw_content_link($link, $class = 'button', $hidden = '') {
 	}
 
 	return '<a href="' . esc_url($link['url']) . '"' . $class . $target . '>' . $link['title'] . $hidden . '</a>';
-
 }
 
 
 /**
  * Get the title for the current page
  *
- * @param WP_Query|null $query
- * @param string        $before          Code to prepend to the title
- * @param string        $after           Code to append to the title
- * @param bool          $add_page_number Add a page number to the title
+ * @param WP_Query|false $query
+ * @param string         $before          Code to prepend to the title
+ * @param string         $after           Code to append to the title
+ * @param bool           $add_page_number Add a page number to the title
  *
  * @return string
  */
-function tw_content_heading($query = null, $before = '', $after = '', $add_page_number = false) {
-
+function tw_content_heading($query = false, string $before = '', string $after = '', bool $add_page_number = false)
+{
 	$title = '';
 
-	if (empty($query)) {
+	if ($query === false) {
 		global $wp_query;
 		$query = $wp_query;
 	}
@@ -182,45 +155,25 @@ function tw_content_heading($query = null, $before = '', $after = '', $add_page_
 	$object = $query->get_queried_object();
 
 	if ($query->is_front_page()) {
-
 		$title = get_bloginfo('name', 'display');
-
 	} elseif ($query->is_404()) {
-
 		$title = __('Page not found', 'twee');
-
 	} elseif ($query->is_search()) {
-
 		$title = sprintf(__('Search results for %s', 'twee'), get_search_query());
-
 	} elseif ($object instanceof WP_Term) {
-
 		$title = $object->name;
-
 	} elseif ($object instanceof WP_Post) {
-
 		$title = $object->post_title;
-
 	} elseif ($object instanceof WP_Post_Type) {
-
 		$title = $object->label;
-
 	} elseif ($object instanceof WP_User) {
-
 		$title = sprintf(__('Posts of <i>%s</i>', 'twee'), $object->display_name);
-
 	} elseif ($query->is_day() and $query->post instanceof WP_Post) {
-
 		$title = sprintf(__('Posts for <i>%s</i>', 'twee'), mysql2date('F j, Y', $query->post->post_date));
-
 	} elseif ($query->is_month() and $query->post instanceof WP_Post) {
-
 		$title = sprintf(__('Posts for <i>%s</i>', 'twee'), mysql2date('F Y', $query->post->post_date));
-
 	} elseif ($query->is_year() and $query->post instanceof WP_Post) {
-
 		$title = sprintf(__('Posts for <i>%s</i> year', 'twee'), mysql2date('Y', $query->post->post_date));
-
 	}
 
 	if ($add_page_number and !empty($title)) {
@@ -238,7 +191,6 @@ function tw_content_heading($query = null, $before = '', $after = '', $add_page_
 	}
 
 	return $title;
-
 }
 
 
@@ -253,33 +205,25 @@ function tw_content_heading($query = null, $before = '', $after = '', $add_page_
  *
  * @return string
  */
-function tw_content_strip($text, $length = 200, $allowed_tags = false, $find = ' ', $dots = '...') {
-
+function tw_content_strip(string $text, int $length = 200, $allowed_tags = false, string $find = ' ', string $dots = '...')
+{
 	if ($allowed_tags) {
 
 		$allowed_tags_list = 'i|em|b|strong|s|del';
 
 		if ($allowed_tags != '+' and mb_strpos($allowed_tags, '+') === 0) {
-
 			$allowed_tags = str_replace('+', '', $allowed_tags);
-			$allowed_tags_list = $allowed_tags_list . '|' . $allowed_tags;
-
+			$allowed_tags_list .= '|' . $allowed_tags;
 		} else {
-
 			$allowed_tags_list = $allowed_tags;
-
 		}
 
 		$allowed_tags_list = '<' . implode('><', explode('|', $allowed_tags_list)) . '>';
 
 	} elseif ($allowed_tags === false) {
-
 		$allowed_tags_list = '<i><em><b><strong><s><del>';
-
 	} else {
-
 		$allowed_tags_list = '';
-
 	}
 
 	$tags = ['style', 'script', 'h1', 'h2', 'h3'];
@@ -306,7 +250,7 @@ function tw_content_strip($text, $length = 200, $allowed_tags = false, $find = '
 			$text = $matches[1];
 		}
 
-		$text = $text . $dots;
+		$text .= $dots;
 
 	} else {
 
@@ -331,7 +275,7 @@ function tw_content_strip($text, $length = 200, $allowed_tags = false, $find = '
 
 			}
 
-			$text = preg_replace('#<a[^>]*?></a>#is', '', $text);
+			$text = preg_replace('#<a[^>]*?></a>#i', '', $text);
 
 		}
 
@@ -340,7 +284,6 @@ function tw_content_strip($text, $length = 200, $allowed_tags = false, $find = '
 	}
 
 	return $text;
-
 }
 
 
@@ -351,8 +294,9 @@ function tw_content_strip($text, $length = 200, $allowed_tags = false, $find = '
  *
  * @return string
  */
-function tw_content_phone($string) {
-	return 'tel:' . str_replace([' ', '(', ')', '-', '.'], '', $string);
+function tw_content_phone(string $string): string
+{
+	return 'tel:' . str_replace([' ', '(', ')', '-', '.'], '', esc_attr($string));
 }
 
 
@@ -364,24 +308,15 @@ function tw_content_phone($string) {
  *
  * @return string
  */
-function tw_content_date($post, $format) {
-
-	$result = '';
-
-	if ($post instanceof WP_Post) {
-
-		if (!$format) {
-			$format = get_option('date_format');
-		}
-
-		$date = mysql2date($format, $post->post_date);
-
-		$result = apply_filters('get_the_date', $date, $format);
-
+function tw_content_date(WP_Post $post, string $format = ''): string
+{
+	if (!$format) {
+		$format = (string) get_option('date_format', 'Y-m-d H:i:s');
 	}
 
-	return $result;
+	$date = mysql2date($format, $post->post_date);
 
+	return apply_filters('get_the_date', $date, $format);
 }
 
 
@@ -393,24 +328,15 @@ function tw_content_date($post, $format) {
  *
  * @return string
  */
-function tw_content_time($post, $label = ' min read') {
+function tw_content_time(WP_Post $post, string $label = ' min read'): string
+{
+	$word_count = str_word_count(strip_tags($post->post_content));
 
-	$result = '';
+	$time = ceil($word_count / 200);
 
-	if ($post instanceof WP_Post) {
-
-		$word_count = str_word_count(strip_tags($post->post_content));
-
-		$time = ceil($word_count / 200);
-
-		if ($time < 3) {
-			$time = 3;
-		}
-
-		$result = $time . $label;
-
+	if ($time < 3) {
+		$time = 3;
 	}
 
-	return $result;
-
+	return $time . $label;
 }

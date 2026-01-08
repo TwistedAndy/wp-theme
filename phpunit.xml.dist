@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheResultFile="tests/build/.phpunit.result.cache"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true">
+	<coverage processUncoveredFiles="true">
+		<include>
+			<directory suffix=".php">theme/includes/core</directory>
+			<directory suffix=".php">theme/includes/theme</directory>
+		</include>
+		<report>
+			<clover outputFile="tests/build/clover.xml"/>
+			<text outputFile="php://stdout" showUncoveredFiles="false"/>
+		</report>
+	</coverage>
+	<testsuites>
+		<testsuite name="Core">
+			<directory suffix="Test.php">tests/core</directory>
+		</testsuite>
+	</testsuites>
+	<php>
+		<env name="DB_NAME" value="wordpress_test"/>
+		<env name="DB_USER" value="root"/>
+		<env name="DB_PASSWORD" value="0000"/>
+		<env name="DB_HOST" value="127.0.0.1"/>
+	</php>
+</phpunit>

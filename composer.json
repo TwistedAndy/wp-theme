@@ -1,0 +1,17 @@
+{
+	"name": "twistedandy/wp-theme",
+	"description": "Twee Theme Framework",
+	"license": "MIT",
+	"type": "project",
+	"require-dev": {
+		"phpunit/phpunit": "9.6",
+		"wp-phpunit/wp-phpunit": "^6.9",
+		"yoast/phpunit-polyfills": "^4.0"
+	},
+	"scripts": {
+		"test": "@php -d extension=pcov -d pcov.enabled=1 -d pcov.directory=. -d opcache.jit=disable -d opcache.enable_cli=1 vendor/phpunit/phpunit/phpunit"
+	},
+	"psr-4": {
+		"PluginTests\\": "tests/"
+	}
+}
