@@ -288,6 +288,6 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 	});
 
-	$('.items.carousel', container).trigger('embla.init');
+	$('.items.carousel, .gallery.carousel', container).trigger('embla.init');
 
 }, ['EmblaCarousel']);

@@ -15,56 +15,50 @@
 /**
  * Load additional comments using AJAX
  */
-add_action('wp_ajax_nopriv_comment_list', 'tw_ajax_comment_list');
-add_action('wp_ajax_comment_list', 'tw_ajax_comment_list');
-
-function tw_ajax_comment_list() {
-
-	if (isset($_POST['noncer']) and wp_verify_nonce($_POST['noncer'], 'ajax-nonce')) {
-
-		$fields = ['post', 'page'];
-
-		$params = [];
-
-		foreach ($fields as $field) {
-			if (isset($_REQUEST[$field])) {
-				$params[$field] = intval($_REQUEST[$field]);
-			} else {
-				$params[$field] = 0;
-			}
-		}
-
-		if ($params['page'] > 0 and $params['post'] > 0) {
-
-			query_posts([
-				'p' => $params['post'],
-				'post_type' => 'product'
-			]);
-
-			the_post();
-
-			set_query_var('cpage', $params['page']);
-
-			comments_template();
-
-		}
-
+function tw_ajax_comment_list(): void
+{
+	if (empty($_POST['noncer']) or !wp_verify_nonce($_POST['noncer'], 'ajax-nonce')) {
+		return;
 	}
 
+	$fields = ['post', 'page'];
+
+	$params = [];
+
+	foreach ($fields as $field) {
+		if (isset($_REQUEST[$field])) {
+			$params[$field] = (int) $_REQUEST[$field];
+		} else {
+			$params[$field] = 0;
+		}
+	}
+
+	if ($params['page'] > 0 and $params['post'] > 0) {
+		query_posts([
+			'p'         => $params['post'],
+			'post_type' => 'product'
+		]);
+
+		the_post();
+
+		set_query_var('cpage', $params['page']);
+
+		comments_template();
+	}
 }
+
+add_action('wp_ajax_nopriv_comment_list', 'tw_ajax_comment_list');
+add_action('wp_ajax_comment_list', 'tw_ajax_comment_list');
 
 
 /**
  * Post comment using AJAX
  */
-add_action('wp_ajax_nopriv_comment_add', 'wp_ajax_comment_create');
-add_action('wp_ajax_comment_add', 'wp_ajax_comment_create');
-
-function wp_ajax_comment_create() {
-
+function wp_ajax_comment_create(): void
+{
 	$result = [
-		'text' => '',
-		'link' => '',
+		'text'   => '',
+		'link'   => '',
 		'errors' => []
 	];
 
@@ -79,33 +73,31 @@ function wp_ajax_comment_create() {
 		$user = wp_get_current_user();
 
 		$data = [
-			'url' => '',
-			'author' => '',
-			'email' => '',
-			'comment' => '',
-			'comment_parent' => 0,
+			'url'             => '',
+			'author'          => '',
+			'email'           => '',
+			'comment'         => '',
+			'comment_parent'  => 0,
 			'comment_post_ID' => $post->ID
 		];
 
 		$fields = [
 			'comment' => [
-				'error' => 'Please enter a comment',
+				'error'   => 'Please enter a comment',
 				'pattern' => '#.{10,}#ui'
 			]
 		];
 
 		if (empty($user->ID)) {
-
 			$fields['author'] = [
-				'error' => 'Enter your name',
+				'error'   => 'Enter your name',
 				'pattern' => '#^[a-zA-Z0-9 -.]{2,}$#ui'
 			];
 
 			$fields['email'] = [
-				'error' => 'Enter your email',
+				'error'   => 'Enter your email',
 				'pattern' => '#^[^\@]+@.*\.[a-z]{2,6}$#i'
 			];
-
 		}
 
 		foreach ($fields as $k => $v) {
@@ -125,14 +117,10 @@ function wp_ajax_comment_create() {
 			$comment = wp_handle_comment_submission($data);
 
 			if ($comment instanceof WP_Error) {
-
 				$result['errors']['comment'] = $comment->get_error_message();
-
 			} elseif ($comment instanceof WP_Comment) {
-
 				$result['text'] = __('Thank you! You review will be published shortly!', 'twee');
 				$result['link'] = get_permalink($post) . '#comment-' . $comment->comment_ID;
-
 			}
 
 		}
@@ -144,10 +132,10 @@ function wp_ajax_comment_create() {
 	}
 
 	wp_send_json($result);
-
-	exit();
-
 }
+
+add_action('wp_ajax_nopriv_comment_add', 'wp_ajax_comment_create');
+add_action('wp_ajax_comment_add', 'wp_ajax_comment_create');
 
 
 /**
@@ -157,7 +145,8 @@ function wp_ajax_comment_create() {
  *
  * @return void
  */
-function tw_comment_list($type = 'post') {
+function tw_comment_list($type = 'post')
+{
 
 	if (!have_comments()) {
 		return;
@@ -190,8 +179,8 @@ function tw_comment_list($type = 'post') {
 			}
 
 		},
-		'style' => 'div',
-		'format' => 'xhtml'
+		'style'    => 'div',
+		'format'   => 'xhtml'
 	];
 
 	echo '<div class="comments" id="comments">';
@@ -199,9 +188,9 @@ function tw_comment_list($type = 'post') {
 	wp_list_comments($args);
 
 	$data = [
-		'type' => $type,
-		'post' => get_the_ID(),
-		'page' => $page,
+		'type'  => $type,
+		'post'  => get_the_ID(),
+		'page'  => $page,
 		'pages' => $pages
 	];
 
@@ -226,8 +215,8 @@ function tw_comment_list($type = 'post') {
  * @global WP_Comment $comment
  *
  */
-function tw_comment_item($comment, $args, $depth) {
-
+function tw_comment_item(WP_Comment $comment, array $args, int $depth): void
+{
 	$GLOBALS['comment'] = $comment;
 
 	echo '<div id="comment-' . get_comment_ID() . '" class="' . join(' ', get_comment_class()) . '">';
@@ -241,7 +230,6 @@ function tw_comment_item($comment, $args, $depth) {
 	if ('div' != $args['style']) {
 		echo '</div>';
 	}
-
 }
 
 
@@ -249,10 +237,9 @@ function tw_comment_item($comment, $args, $depth) {
  * Move the comment message field to the bottom and
  * add a class to the cookies consent field
  */
-add_filter('comment_form_fields', function($fields) {
-
+function tw_comment_fields(array $fields): array
+{
 	if (!empty($fields['comment'])) {
-
 		$field = $fields['comment'];
 		unset($fields['comment']);
 		$fields['comment'] = $field;
@@ -269,17 +256,23 @@ add_filter('comment_form_fields', function($fields) {
 	}
 
 	return $fields;
+}
 
-});
+add_filter('comment_form_fields', 'tw_comment_fields');
 
 
 /*
  * Add a wrapper for comment fields
  */
-add_action('comment_form_before_fields', function() {
+function tw_comment_before_fields(): void
+{
 	echo '<div class="fields">';
-});
+}
 
-add_action('comment_form_after_fields', function() {
+function tw_comment_after_fields(): void
+{
 	echo '</div>';
-});
+}
+
+add_action('comment_form_before_fields', 'tw_comment_before_fields');
+add_action('comment_form_after_fields', 'tw_comment_after_fields');

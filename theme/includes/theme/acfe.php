@@ -16,8 +16,8 @@
 /**
  * Save the ACF field groups to JSON files
  */
-add_filter('acf/settings/save_json', function() {
-
+function tw_acfe_save_json(): string
+{
 	$path = TW_INC . 'acf';
 
 	if (!is_dir($path)) {
@@ -25,15 +25,16 @@ add_filter('acf/settings/save_json', function() {
 	}
 
 	return $path;
+}
 
-});
+add_filter('acf/settings/save_json', 'tw_acfe_save_json');
 
 
 /**
  * Load the ACF field groups from JSON files
  */
-add_filter('acf/settings/load_json', function($paths) {
-
+function tw_acfe_load_json(array $paths): array
+{
 	unset($paths[0]);
 
 	$path = TW_INC . 'acf';
@@ -45,15 +46,16 @@ add_filter('acf/settings/load_json', function($paths) {
 	$paths[] = $path;
 
 	return $paths;
+}
 
-});
+add_filter('acf/settings/load_json', 'tw_acfe_load_json');
 
 
 /**
  * A few early ACF tweaks
  */
-add_action('acf/init', function() {
-
+function tw_acfe_init(): void
+{
 	/**
 	 * Disable some ACF Extended fields and modules
 	 */
@@ -117,72 +119,78 @@ add_action('acf/init', function() {
 	 * Add a new options page for the theme settings
 	 */
 	acf_add_options_page([
-		'page_title' => __('Theme Settings', 'twee'),
-		'menu_title' => __('Theme Settings', 'twee'),
-		'menu_slug' => 'theme-settings',
-		'capability' => 'manage_options',
-		'redirect' => false,
-		'position' => 90,
-		'icon_url' => 'dashicons-star-filled',
+		'page_title'    => __('Theme Settings', 'twee'),
+		'menu_title'    => __('Theme Settings', 'twee'),
+		'menu_slug'     => 'theme-settings',
+		'capability'    => 'manage_options',
+		'redirect'      => false,
+		'position'      => 90,
+		'icon_url'      => 'dashicons-star-filled',
 		'update_button' => __('Refresh', 'twee'),
-		'autoload' => true
+		'autoload'      => true
 	]);
+}
 
-}, 5);
+add_action('acf/init', 'tw_acfe_init', 5);
 
 
 /**
  * Disable a few layout settings
  */
-add_action('acf/init', function() {
+function tw_acfe_postinit(): void
+{
 	remove_all_actions('acfe/flexible/render_layout_settings', 15);
 	remove_all_actions('acfe/flexible/render_layout_settings', 19);
-}, 100);
+}
+
+add_action('acf/init', 'tw_acfe_postinit', 100);
 
 
 /**
  * Specify the API key for the Google Maps field
  */
-add_filter('acf/settings/google_api_key', function() {
+function tw_acfe_google_key(): string
+{
 	return get_option('options_google_api_key', base64_decode('QUl6YVN5QUo1UVRzajRhcFNuVkstNlQ3SE1RZlVXNS1SbGpKVFE0'));
-});
+}
+
+add_filter('acf/settings/google_api_key', 'tw_acfe_google_key');
 
 
 /**
  * Add a field visibility setting
  */
-add_action('acf/render_field_settings', function($field) {
-
+function tw_acfe_render_visibility_field(array $field): void
+{
 	acf_render_field_setting($field, [
-		'label' => __('Visibility', 'twee'),
-		'instructions' => '',
-		'name' => 'hide_label',
-		'prepend' => '',
-		'append' => '',
-		'type' => 'select',
+		'label'         => __('Visibility', 'twee'),
+		'instructions'  => '',
+		'name'          => 'hide_label',
+		'prepend'       => '',
+		'append'        => '',
+		'type'          => 'select',
 		'default_value' => '',
-		'allow_null' => false,
-		'choices' => [
-			'' => 'Visible',
-			'all' => 'Hidden',
+		'allow_null'    => false,
+		'choices'       => [
+			''      => 'Visible',
+			'all'   => 'Hidden',
 			'admin' => 'Hidden in WP Admin',
 			'front' => 'Hidden on Front',
 		],
-		'_append' => 'label'
+		'_append'       => 'label'
 	], true);
+}
 
-});
+add_action('acf/render_field_settings', 'tw_acfe_render_visibility_field');
 
 
 /**
  * Include scripts to render blocks in separate
  * iframes with the automatic height adjustment
  */
-add_action('acf/input/admin_enqueue_scripts', 'tw_acfe_render_scripts', 20);
-
-function tw_acfe_render_scripts() { ?>
+function tw_acfe_render_scripts(): void
+{ ?>
 	<script>
-
 		function tweePreviewBlock(frame) {
 
 			if (typeof frame !== 'object' || !frame.contentWindow || !frame.contentWindow.document) {
@@ -254,7 +262,6 @@ function tw_acfe_render_scripts() { ?>
 			}, 100);
 
 		});
-
 	</script>
 	<style>
 		.acf-render-label {
@@ -283,15 +290,14 @@ function tw_acfe_render_scripts() { ?>
 	</style>
 <?php }
 
+add_action('acf/input/admin_enqueue_scripts', 'tw_acfe_render_scripts', 20);
 
 /**
  * Render an ACF layout preview with required scripts
  */
-add_action('acfe/flexible/render/before_template', 'tw_acfe_render_layout', 10, 2);
-
-function tw_acfe_render_layout($field, $layout) {
-
-	if (!is_array($layout) or empty($layout['name'])) {
+function tw_acfe_render_layout(array $field, array $layout): void
+{
+	if (empty($layout['name'])) {
 		return;
 	}
 
@@ -344,8 +350,9 @@ function tw_acfe_render_layout($field, $layout) {
 
 	echo '<div style="display: none;">' . htmlspecialchars($content) . '</div>';
 	echo '<iframe style="display: block; width: 100%; position: relative; z-index: 1;" id="' . $preview_id . '" onload="tweePreviewBlock(this);"></iframe>' . $block_message;
-
 }
+
+add_action('acfe/flexible/render/before_template', 'tw_acfe_render_layout', 10, 2);
 
 
 /**
@@ -353,8 +360,8 @@ function tw_acfe_render_layout($field, $layout) {
  *
  * @return void
  */
-function tw_acfe_render_setup() {
-
+function tw_acfe_render_setup(): void
+{
 	global $wp_query, $wp_the_query, $post;
 
 	if (is_admin() and function_exists('WC') and $wc_query = WC()->query) {
@@ -380,12 +387,12 @@ function tw_acfe_render_setup() {
 			$entity = tw_acf_decode_post_id($_REQUEST['post_id']);
 		} elseif (!empty($_REQUEST['post']) and is_numeric($_REQUEST['post'])) {
 			$entity = [
-				'id' => (int) $_REQUEST['post'],
+				'id'   => (int) $_REQUEST['post'],
 				'type' => 'post'
 			];
 		} elseif (!empty($_REQUEST['tag_ID']) and is_numeric($_REQUEST['tag_ID'])) {
 			$entity = [
-				'id' => (int) $_REQUEST['tag_ID'],
+				'id'   => (int) $_REQUEST['tag_ID'],
 				'type' => 'term'
 			];
 		} else {
@@ -410,7 +417,7 @@ function tw_acfe_render_setup() {
 
 				} else {
 					$query_args = [
-						'p' => $item->ID,
+						'p'         => $item->ID,
 						'post_type' => $item->post_type
 					];
 				}
@@ -421,8 +428,8 @@ function tw_acfe_render_setup() {
 					'tax_query' => [
 						[
 							'taxonomy' => $term->taxonomy,
-							'terms' => [$term->slug],
-							'field' => 'slug'
+							'terms'    => [$term->slug],
+							'field'    => 'slug'
 						]
 					]
 				];
@@ -473,7 +480,6 @@ function tw_acfe_render_setup() {
 	tw_app_set('assets_enqueued', $assets_enqueued, 'layouts');
 	tw_app_set('done_scripts', $done_scripts, 'layouts');
 	tw_app_set('done_styles', $done_styles, 'layouts');
-
 }
 
 
@@ -482,8 +488,8 @@ function tw_acfe_render_setup() {
  *
  * @return void
  */
-function tw_acfe_render_reset() {
-
+function tw_acfe_render_reset(): void
+{
 	global $wp_query, $wp_the_query, $post;
 
 	if (is_admin() and function_exists('WC') and $wc_query = WC()->query) {
@@ -517,7 +523,6 @@ function tw_acfe_render_reset() {
 		$post = tw_app_get('old_post', 'layouts');
 		wp_reset_postdata();
 	}
-
 }
 
 
@@ -529,8 +534,8 @@ if (class_exists('WooCommerce')) {
 	/**
 	 * Include a few UI components for variable products
 	 */
-	add_action('admin_head', function() {
-
+	function tw_acfe_variation_scripts(): void
+	{
 		global $post_type;
 
 		if ($post_type == 'product') {
@@ -554,22 +559,16 @@ if (class_exists('WooCommerce')) {
 			});
 		</script>
 		<?php
-	});
+	}
 
-	/**
-	 * Add a new rule for product variations
-	 */
-	add_filter('acf/location/rule_values/post_type', function($choices) {
-		$choices['product_variation'] = __('Product Variation', 'twee');
-		return $choices;
-	});
+	add_action('admin_head', 'tw_acfe_variation_scripts');
 
 
 	/**
 	 * Save custom fields for a variation
 	 */
-	add_action('woocommerce_save_product_variation', function($variation_id, $i = -1) {
-
+	function tw_acfe_variation_save(int $variation_id, int $i = -1): void
+	{
 		if (!function_exists('update_field') or empty($_POST['acf_variations']) or !is_array($_POST['acf_variations']) or !isset($_POST['acf_variations'][$i])) {
 			return;
 		}
@@ -579,15 +578,16 @@ if (class_exists('WooCommerce')) {
 		foreach ($fields as $key => $value) {
 			update_field($key, $value, $variation_id);
 		}
+	}
 
-	}, 10, 2);
+	add_action('woocommerce_save_product_variation', 'tw_acfe_variation_save', 10, 2);
 
 
 	/**
 	 * Render fields on the variation section
 	 */
-	add_action('woocommerce_variation_options', function($loop, $variation_data, $variation) {
-
+	function tw_acfe_variation_options(int $loop, array $variation_data, WP_Post $variation): void
+	{
 		if (!function_exists('acf_get_field_groups')) {
 			return;
 		}
@@ -603,7 +603,7 @@ if (class_exists('WooCommerce')) {
 				foreach ($group_locations as $rule) {
 					if ($rule['param'] == 'post_type' and $rule['operator'] == '==' and $rule['value'] == 'product_variation') {
 						echo '<div class="acf-fields acf-variable-fields">';
-						acf_render_fields($variation->ID, acf_get_fields($acf_field_group));
+						acf_render_fields(acf_get_fields($acf_field_group), $variation->ID);
 						echo '</div>';
 						break 2;
 					}
@@ -612,8 +612,22 @@ if (class_exists('WooCommerce')) {
 		}
 
 		remove_filter('acf/prepare_field', 'tw_acf_variation_field_name');
+	}
 
-	}, 5, 3);
+	add_action('woocommerce_variation_options', 'tw_acfe_variation_options', 5, 3);
+
+
+	/**
+	 * Add a new rule for product variations
+	 */
+	function tw_acfe_variation_field_rule(array $choices): array
+	{
+		$choices['product_variation'] = __('Product Variation', 'twee');
+
+		return $choices;
+	}
+
+	add_filter('acf/location/rule_values/post_type', 'tw_acfe_variation_field_rule');
 
 
 	/**
@@ -623,8 +637,10 @@ if (class_exists('WooCommerce')) {
 	 *
 	 * @return array
 	 */
-	function tw_acf_variation_field_name($field) {
+	function tw_acf_variation_field_name(array $field): array
+	{
 		$field['name'] = str_replace('acf[field_', 'acf_variations[' . tw_app_get('tw_acf_index') . '][field_', $field['name']);
+
 		return $field;
 	}
 
@@ -635,9 +651,8 @@ if (class_exists('WooCommerce')) {
  * A fallback for the get field function
  */
 if (!is_admin() and !function_exists('get_field')) {
-
-	function get_field($field, $post_id = false, $format = true) {
-
+	function get_field(string $field, $post_id = false, bool $format = true)
+	{
 		$entity = tw_acf_decode_post_id($post_id);
 
 		if (empty($entity['id']) or empty($entity['type'])) {
@@ -651,7 +666,5 @@ if (!is_admin() and !function_exists('get_field')) {
 		}
 
 		return $value;
-
 	}
-
 }

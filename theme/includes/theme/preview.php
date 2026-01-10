@@ -10,29 +10,25 @@
 /**
  * Add a thumbnail for a layout
  */
-add_filter('acfe/flexible/thumbnail', function($thumbnail, $field, $layout) {
-
-	if (!is_array($layout) or empty($layout['name'])) {
-		return $thumbnail;
-	}
-
+function tw_preview_filter_thumbnail(string $thumbnail, array $field, array $layout): string
+{
 	$file = 'assets/preview/' . $layout['name'] . '.webp';
 
 	$preview = TW_ROOT . $file;
 
 	if (is_readable($preview)) {
 		return TW_URL . $file;
-	} else {
-		return $thumbnail;
 	}
 
-}, 10, 3);
+	return $thumbnail;
+}
 
+add_filter('acfe/flexible/thumbnail', 'tw_preview_filter_thumbnail', 10, 3);
 
 /**
  * Run the code below only on the local server
  */
-if (strpos(TW_HOME, '.test') === false) {
+if (!str_contains(TW_HOME, '.test')) {
 	return;
 }
 
@@ -40,22 +36,23 @@ if (strpos(TW_HOME, '.test') === false) {
 /**
  * Add an icon to generate a preview
  */
-add_filter('acfe/flexible/layouts/icons', function($icons) {
-
+function tw_preview_filter_icons(array $icons): array
+{
 	$new = [
 		'thumbnail' => '<a class="acf-icon small light acfe-flexible-icon acf-js-tooltip dashicons dashicons-camera-alt" href="#" data-name="generate-preview" title="' . __('Generate a preview', 'acf') . '"></a>'
 	];
 
 	return array_merge($new, $icons);
+}
 
-}, 50);
+add_filter('acfe/flexible/layouts/icons', 'tw_preview_filter_icons', 50);
 
 
 /**
  * Process AJAX requests to generate previews
  */
-add_action('wp_ajax_twee_generate_preview', function() {
-
+function tw_preview_action_preview(): void
+{
 	$result = [
 		'success' => 0,
 		'message' => '',
@@ -148,19 +145,19 @@ add_action('wp_ajax_twee_generate_preview', function() {
 
 	wp_send_json($result);
 
-});
+}
+
+add_action('wp_ajax_twee_generate_preview', 'tw_preview_action_preview');
 
 
 /**
  * Include admin scripts
  */
-add_action('acf/input/admin_enqueue_scripts', function() { ?>
+function tw_preview_action_scripts(): void
+{ ?>
 	<script>
-
 		document.addEventListener('DOMContentLoaded', function() {
-
 			const $ = jQuery;
-
 			$(document.body).on('click', '[data-name="generate-preview"]', function() {
 
 				var button = $(this),
@@ -186,9 +183,7 @@ add_action('acf/input/admin_enqueue_scripts', function() { ?>
 				});
 
 			});
-
 		});
-
 	</script>
 	<style>
 		div.acfe-flexible-layout-thumbnail {
@@ -203,6 +198,7 @@ add_action('acf/input/admin_enqueue_scripts', function() { ?>
 			position: relative;
 			padding-bottom: 62.5%;
 		}
-
 	</style>
-<?php }, 20);
+<?php }
+
+add_action('acf/input/admin_enqueue_scripts', 'tw_preview_action_scripts', 20);

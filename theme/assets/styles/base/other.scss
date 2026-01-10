@@ -3,6 +3,15 @@
 
 .content {
 
+	.embla {
+		margin-top: calc(var(--gap-content) + 5px);
+
+		&:first-child {
+			margin-top: 0;
+		}
+
+	}
+
 	.gallery {
 		display: flex;
 		flex-wrap: wrap;
@@ -22,14 +31,7 @@
 		}
 
 		&.carousel {
-			display: block;
 			flex-wrap: nowrap;
-			margin-bottom: 0;
-
-			.gallery-item {
-				margin-bottom: 0;
-			}
-
 		}
 
 		&-columns-1 {

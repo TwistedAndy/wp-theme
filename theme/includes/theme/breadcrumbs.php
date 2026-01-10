@@ -18,7 +18,8 @@
  *
  * @return string
  */
-function tw_breadcrumbs($separator = '', $before = '<nav class="breadcrumbs_box"><div class="fixed">', $after = '</div></nav>', $query = null, $current = true) {
+function tw_breadcrumbs(string $separator = '', string $before = '<nav class="breadcrumbs_box"><div class="fixed">', string $after = '</div></nav>', $query = null, bool $current = true): string
+{
 
 	$result = '';
 
@@ -63,10 +64,9 @@ function tw_breadcrumbs($separator = '', $before = '<nav class="breadcrumbs_box"
 
 	if ($current) {
 		return $before . implode($separator, $result) . $separator . '<span class="last">' . tw_content_heading($query) . '</span>' . $after;
-	} else {
-		return $before . implode($separator, $result) . $after;
 	}
 
+	return $before . implode($separator, $result) . $after;
 }
 
 
@@ -77,8 +77,8 @@ function tw_breadcrumbs($separator = '', $before = '<nav class="breadcrumbs_box"
  *
  * @return array
  */
-function tw_breadcrumbs_list($query = null) {
-
+function tw_breadcrumbs_list($query = null): array
+{
 	$breadcrumbs = [];
 
 	if (empty($query)) {
@@ -95,7 +95,7 @@ function tw_breadcrumbs_list($query = null) {
 	}
 
 	$breadcrumbs['home'] = [
-		'link' => get_site_url(),
+		'link'  => get_site_url(),
 		'class' => 'home',
 		'title' => __('Home', 'twee')
 	];
@@ -217,9 +217,9 @@ function tw_breadcrumbs_list($query = null) {
 
 		if (is_array($link) and !empty($link['url'])) {
 			$breadcrumbs['archive'] = [
-				'link' => $link['url'],
+				'link'  => $link['url'],
 				'title' => $link['title'],
-				'type' => $post_type
+				'type'  => $post_type
 			];
 		}
 
@@ -235,10 +235,10 @@ function tw_breadcrumbs_list($query = null) {
 
 			if ($link and !empty($labels[$term_id])) {
 				$breadcrumbs['term_' . $term_id] = [
-					'link' => $link,
-					'title' => $labels[$term_id],
+					'link'     => $link,
+					'title'    => $labels[$term_id],
 					'taxonomy' => $taxonomy,
-					'term' => $term_id
+					'term'     => $term_id
 				];
 			}
 
@@ -259,10 +259,10 @@ function tw_breadcrumbs_list($query = null) {
 				foreach ($ancestors as $ancestor) {
 					if ($post = get_post($ancestor)) {
 						$breadcrumbs['post_' . $ancestor] = [
-							'link' => get_permalink($post),
+							'link'  => get_permalink($post),
 							'title' => $post->post_title,
-							'type' => $post_type,
-							'post' => $ancestor
+							'type'  => $post_type,
+							'post'  => $ancestor
 						];
 					}
 				}
@@ -274,7 +274,6 @@ function tw_breadcrumbs_list($query = null) {
 	}
 
 	return apply_filters('twee_breadcrumbs', $breadcrumbs, $query);
-
 }
 
 
@@ -283,37 +282,34 @@ function tw_breadcrumbs_list($query = null) {
  */
 add_action('wp_head', 'tw_breadcrumbs_json', 20);
 
-function tw_breadcrumbs_json() {
-
+function tw_breadcrumbs_json(): void
+{
 	$breadcrumbs = tw_breadcrumbs_list();
 
-	if (is_array($breadcrumbs) and count($breadcrumbs) > 1) {
-
-		$schema = [
-			'@context' => 'http://schema.org',
-			'@type' => 'BreadcrumbList',
-			'itemListElement' => []
-		];
-
-		$position = 1;
-
-		foreach ($breadcrumbs as $breadcrumb) {
-
-			$schema['itemListElement'][] = [
-				'@type' => 'ListItem',
-				'position' => $position,
-				'item' => [
-					'@id' => $breadcrumb['link'],
-					'name' => $breadcrumb['title']
-				]
-			];
-
-			$position++;
-
-		}
-
-		echo "<script type=\"application/ld+json\">\n" . json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n</script>\n";
-
+	if (count($breadcrumbs) < 2) {
+		return;
 	}
 
+	$schema = [
+		'@context'        => 'http://schema.org',
+		'@type'           => 'BreadcrumbList',
+		'itemListElement' => []
+	];
+
+	$position = 1;
+
+	foreach ($breadcrumbs as $breadcrumb) {
+		$schema['itemListElement'][] = [
+			'@type'    => 'ListItem',
+			'position' => $position,
+			'item'     => [
+				'@id'  => $breadcrumb['link'],
+				'name' => $breadcrumb['title']
+			]
+		];
+
+		$position++;
+	}
+
+	echo "<script type=\"application/ld+json\">\n" . json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n</script>\n";
 }

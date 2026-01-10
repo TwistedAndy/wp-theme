@@ -13,19 +13,23 @@
 /**
  * Register additional TinyMCE plugins
  */
-add_action('mce_external_plugins', function($plugins) {
+function tw_tinymce_plugins(array $plugins): array
+{
 	$plugins['table'] = TW_URL . 'assets/plugins/tinymce/table.js';
 	$plugins['paste'] = TW_URL . 'assets/plugins/tinymce/paste.js';
 	$plugins['code'] = TW_URL . 'assets/plugins/tinymce/code.js';
+
 	return $plugins;
-});
+}
+
+add_action('mce_external_plugins', 'tw_tinymce_plugins');
 
 
 /**
  * Include additional buttons to the ACF WYSIWYG field
  */
-add_action('acf/fields/wysiwyg/toolbars', function($toolbars) {
-
+function tw_tinymce_toolbars(array $toolbars): array
+{
 	$toolbars['Basic'] = [
 		1 => [
 			'formatselect',
@@ -49,37 +53,42 @@ add_action('acf/fields/wysiwyg/toolbars', function($toolbars) {
 	];
 
 	return $toolbars;
+}
 
-});
+add_action('acf/fields/wysiwyg/toolbars', 'tw_tinymce_toolbars');
 
 
 /**
  * Add buttons to the default WordPress editor
  */
-add_action('mce_buttons', function($buttons) {
+function tw_tinymce_buttons(array $buttons): array
+{
 	array_push($buttons, 'table', 'code', 'paste', 'pastetext', 'wp_add_media');
+
 	return $buttons;
-});
+}
+add_action('mce_buttons', 'tw_tinymce_buttons');
 
 
 /**
  * Replace the default ACF WYSIWYG field with the updated one
  */
-add_action('acf/init', function() {
-
+function tw_tinymce_init(): void
+{
 	if (!class_exists('acfe_field_extend')) {
 		return;
 	}
 
 	class twee_field_wysiwyg extends acfe_field_extend {
 
-		public function initialize() {
+		public function initialize()
+		{
 
 			$this->name = 'wysiwyg';
 
 			$this->defaults = [
-				'wysiwyg_auto_init' => 1,
-				'wysiwyg_height' => 150,
+				'wysiwyg_auto_init'  => 1,
+				'wysiwyg_height'     => 150,
 				'wysiwyg_min_height' => 150,
 				'wysiwyg_max_height' => '',
 				'wysiwyg_valid_tags' => '',
@@ -95,101 +104,102 @@ add_action('acf/init', function() {
 		 *
 		 * @return void
 		 */
-		public function render_field_settings($field) {
+		public function render_field_settings($field)
+		{
 
 			acf_render_field_setting($field, [
-				'label' => __('Auto Initialization', 'twee'),
-				'name' => 'wysiwyg_auto_init',
-				'type' => 'true_false',
-				'default_value' => false,
-				'ui' => true,
+				'label'             => __('Auto Initialization', 'twee'),
+				'name'              => 'wysiwyg_auto_init',
+				'type'              => 'true_false',
+				'default_value'     => false,
+				'ui'                => true,
 				'conditional_logic' => [
 					[
 						[
-							'field' => 'delay',
+							'field'    => 'delay',
 							'operator' => '==',
-							'value' => '1',
+							'value'    => '1',
 						],
 					],
 				]
 			]);
 
 			acf_render_field_setting($field, [
-				'label' => __('Autoresize', 'twee'),
-				'name' => 'wysiwyg_autoresize',
-				'key' => 'wysiwyg_autoresize',
-				'type' => 'true_false',
+				'label'         => __('Autoresize', 'twee'),
+				'name'          => 'wysiwyg_autoresize',
+				'key'           => 'wysiwyg_autoresize',
+				'type'          => 'true_false',
 				'default_value' => true,
-				'ui' => true,
+				'ui'            => true,
 			]);
 
 			acf_render_field_setting($field, [
-				'label' => __('Height', 'twee'),
-				'name' => 'wysiwyg_height',
-				'key' => 'wysiwyg_height',
-				'type' => 'number',
-				'default_value' => 100,
-				'min' => 80,
+				'label'             => __('Height', 'twee'),
+				'name'              => 'wysiwyg_height',
+				'key'               => 'wysiwyg_height',
+				'type'              => 'number',
+				'default_value'     => 100,
+				'min'               => 80,
 				'conditional_logic' => [
 					[
 						[
-							'field' => 'wysiwyg_autoresize',
+							'field'    => 'wysiwyg_autoresize',
 							'operator' => '!=',
-							'value' => '1',
+							'value'    => '1',
 						],
 					]
 				]
 			]);
 
 			acf_render_field_setting($field, [
-				'label' => __('Height', 'twee'),
-				'name' => 'wysiwyg_min_height',
-				'key' => 'wysiwyg_min_height',
-				'type' => 'number',
-				'default_value' => 150,
-				'min' => 80,
-				'prepend' => 'min',
-				'append' => 'px',
+				'label'             => __('Height', 'twee'),
+				'name'              => 'wysiwyg_min_height',
+				'key'               => 'wysiwyg_min_height',
+				'type'              => 'number',
+				'default_value'     => 150,
+				'min'               => 80,
+				'prepend'           => 'min',
+				'append'            => 'px',
 				'conditional_logic' => [
 					[
 						[
-							'field' => 'wysiwyg_autoresize',
+							'field'    => 'wysiwyg_autoresize',
 							'operator' => '==',
-							'value' => '1',
+							'value'    => '1',
 						],
 					]
 				]
 			]);
 
 			acf_render_field_setting($field, [
-				'label' => __('Height', 'twee'),
-				'name' => 'wysiwyg_max_height',
-				'key' => 'wysiwyg_max_height',
-				'instructions' => '',
-				'type' => 'number',
-				'default_value' => '',
-				'min' => 0,
-				'prepend' => 'max',
-				'append' => 'px',
-				'_append' => 'wysiwyg_min_height',
+				'label'             => __('Height', 'twee'),
+				'name'              => 'wysiwyg_max_height',
+				'key'               => 'wysiwyg_max_height',
+				'instructions'      => '',
+				'type'              => 'number',
+				'default_value'     => '',
+				'min'               => 0,
+				'prepend'           => 'max',
+				'append'            => 'px',
+				'_append'           => 'wysiwyg_min_height',
 				'conditional_logic' => [
 					[
 						[
-							'field' => 'wysiwyg_autoresize',
+							'field'    => 'wysiwyg_autoresize',
 							'operator' => '==',
-							'value' => '1',
+							'value'    => '1',
 						],
 					]
 				]
 			]);
 
 			acf_render_field_setting($field, [
-				'label' => __('Valid Tags', 'twee'),
-				'name' => 'wysiwyg_valid_tags',
-				'key' => 'wysiwyg_valid_tags',
-				'type' => 'text',
+				'label'       => __('Valid Tags', 'twee'),
+				'name'        => 'wysiwyg_valid_tags',
+				'key'         => 'wysiwyg_valid_tags',
+				'type'        => 'text',
 				'placeholder' => __('A comma-separated list of tags', 'twee'),
-				'wrapper' => [
+				'wrapper'     => [
 					'data-enable-switch' => true
 				]
 			]);
@@ -204,7 +214,8 @@ add_action('acf/init', function() {
 		 *
 		 * @return array
 		 */
-		public function field_wrapper_attributes($wrapper, $field) {
+		public function field_wrapper_attributes($wrapper, $field)
+		{
 
 			if (!empty($field['wysiwyg_autoresize'])) {
 
@@ -236,14 +247,16 @@ add_action('acf/init', function() {
 
 	acf_new_instance('twee_field_wysiwyg');
 
-});
+}
+
+add_action('acf/init', 'tw_tinymce_init');
 
 
 /**
  * Process popup source code editor
  */
-add_action('wp_ajax_wysiwyg_code_editor', function() {
-
+function tw_tinymce_editor(): void
+{
 	$settings = wp_get_code_editor_settings(['type' => 'text/html']);
 
 	$settings['codemirror']['indentUnit'] = 4;
@@ -312,17 +325,17 @@ add_action('wp_ajax_wysiwyg_code_editor', function() {
 	<body>
 	<textarea></textarea>
 	</body>
-	</html><?php
+	</html>
+<?php }
 
-	exit();
-
-});
+add_action('wp_ajax_wysiwyg_code_editor', 'tw_tinymce_editor');
 
 
 /**
  * Include additional scripts and styles
  */
-add_action('acf/input/admin_enqueue_scripts', function() { ?>
+function tw_tinymce_scripts()
+{ ?>
 	<script>
 		document.addEventListener('DOMContentLoaded', function() {
 
@@ -434,4 +447,6 @@ add_action('acf/input/admin_enqueue_scripts', function() { ?>
 			padding-left: 1px;
 		}
 	</style>
-<?php });
+<?php }
+
+add_action('acf/input/admin_enqueue_scripts', 'tw_tinymce_scripts');

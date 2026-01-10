@@ -16,11 +16,16 @@
 /*
  * Load a compressed field value and return it in the ACF format
  */
-add_filter('acf/pre_load_value', 'tw_acf_load_value', 20, 3);
-
-function tw_acf_load_value($result, $post_id, $field) {
-
-	if ($result !== null or (is_string($post_id) and strpos($post_id, 'field_') === 0)) {
+/**
+ * @param null|mixed $result
+ * @param int|string $post_id
+ * @param array      $field
+ *
+ * @return mixed
+ */
+function tw_acf_load_value($result, $post_id, array $field)
+{
+	if ($result !== null or (is_string($post_id) and str_starts_with($post_id, 'field_'))) {
 		return $result;
 	}
 
@@ -85,10 +90,9 @@ function tw_acf_load_value($result, $post_id, $field) {
 
 			if (!empty($chunks[$index])) {
 				return $chunks[$index];
-			} else {
-				return [];
 			}
 
+			return [];
 		}
 
 	} elseif ($field['type'] == 'google_map' and is_string($result)) {
@@ -101,15 +105,22 @@ function tw_acf_load_value($result, $post_id, $field) {
 
 }
 
+add_filter('acf/pre_load_value', 'tw_acf_load_value', 20, 3);
 
-/*
+
+/**
  * Convert a field value in the ACF format and save it
+ *
+ * @param null|mixed $check
+ * @param array      $values
+ * @param int|string $post_id
+ * @param array      $field
+ *
+ * @return mixed|true|null
  */
-add_filter('acf/pre_update_value', 'tw_acf_save_value', 20, 4);
-
-function tw_acf_save_value($check, $values, $post_id, $field) {
-
-	if ($check !== null or !is_array($field) or empty($field['type']) or (is_string($post_id) and strpos($post_id, 'field_') === 0)) {
+function tw_acf_save_value($check, $values, $post_id, array $field)
+{
+	if ($check !== null or empty($field['type']) or (is_string($post_id) and str_starts_with($post_id, 'field_'))) {
 		return $check;
 	}
 
@@ -120,7 +131,6 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 	}
 
 	if ($field['type'] === 'clone' and !empty($field['sub_fields']) and is_array($values)) {
-
 		foreach ($field['sub_fields'] as $sub_field) {
 			if (isset($values[$sub_field['key']])) {
 				tw_acf_save_value(null, $values[$sub_field['key']], $post_id, $sub_field);
@@ -128,7 +138,6 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 		}
 
 		return true;
-
 	}
 
 	$value = tw_acf_encode_data($values, $field);
@@ -152,7 +161,7 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 		$index = isset($_POST['paged']) ? (int) $_POST['paged'] : 0;
 
 		if ($index > 0) {
-			$index = $index - 1;
+			--$index;
 		}
 
 		$chunks = array_chunk($old_values, $per_page);
@@ -166,7 +175,7 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 		$value = [];
 
 		foreach ($chunks as $chunk) {
-			$value = array_merge($value, $chunk);
+			array_push($value, ...$chunk);
 		}
 
 	}
@@ -193,7 +202,7 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 
 			$field_key = $field['key'];
 
-			if (strpos($field_key, 'field_') === 0) {
+			if (str_starts_with($field_key, 'field_')) {
 				$map[$field['name']] = substr($field_key, 6);
 			}
 
@@ -227,7 +236,7 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 
 			$field_key = $field['key'];
 
-			if (strpos($field_key, 'field_') === 0) {
+			if (str_starts_with($field_key, 'field_')) {
 				$map[$field['name']] = substr($field_key, 6);
 			}
 
@@ -246,17 +255,22 @@ function tw_acf_save_value($check, $values, $post_id, $field) {
 	acf_flush_value_cache($post_id, $field['name']);
 
 	return true;
-
 }
+
+add_filter('acf/pre_update_value', 'tw_acf_save_value', 20, 4);
 
 
 /**
  * Load a field key from the map field
+ *
+ * @param null|mixed $result
+ * @param string     $field
+ * @param            $post_id
+ *
+ * @return mixed|string
  */
-add_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10, 3);
-
-function tw_acf_load_reference($result, $field, $post_id) {
-
+function tw_acf_load_reference($result, string $field, $post_id)
+{
 	$entity = tw_acf_decode_post_id($post_id);
 
 	if (empty($entity['id']) or empty($entity['type'])) {
@@ -275,28 +289,30 @@ function tw_acf_load_reference($result, $field, $post_id) {
 		$map = [];
 	}
 
-	if (!empty($map[$field]) and strpos($map[$field], 'field_') !== 0) {
+	if (!empty($map[$field]) and !str_starts_with($map[$field], 'field_')) {
 		$result = 'field_' . $map[$field];
 	}
 
 	return $result;
-
 }
+
+add_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10, 3);
 
 
 /**
  * Adjust the total number of rows for repeaters
  */
-add_action('acf/pre_render_field', function($field) {
-
+function tw_acf_pre_render_field(array $field): array
+{
 	if ($field['type'] == 'repeater') {
 		add_filter('acf/pre_load_metadata', 'tw_acf_total_rows', 10, 3);
 		acf_set_data('acf_is_rendering', true);
 	}
 
 	return $field;
+}
 
-}, 5);
+add_action('acf/pre_render_field', 'tw_acf_pre_render_field', 5);
 
 
 /**
@@ -308,8 +324,8 @@ add_action('acf/pre_render_field', function($field) {
  *
  * @return int|null
  */
-function tw_acf_total_rows($value, $post_id, $name) {
-
+function tw_acf_total_rows($value, $post_id, string $name)
+{
 	$entity = tw_acf_decode_post_id($post_id);
 
 	if (empty($entity['id']) or empty($entity['type'])) {
@@ -339,16 +355,14 @@ function tw_acf_total_rows($value, $post_id, $name) {
 /*
  * Convert a field value in the compact format
  */
-function tw_acf_encode_data($values, $field) {
-
-	if (!is_array($values) or !is_array($field)) {
-
+function tw_acf_encode_data($values, array $field)
+{
+	if (!is_array($values)) {
 		if (is_string($values)) {
 			$values = stripslashes($values);
 		}
 
 		return $values;
-
 	}
 
 	$data = [];
@@ -396,7 +410,7 @@ function tw_acf_encode_data($values, $field) {
 		 * Repeaters arrays are using the numeric keys or keys like row-0.
 		 * It is very important difference comparing to how we decode data
 		 */
-		if (!empty($values['acf_fc_layout']) or strpos($key, 'field_') === 0) {
+		if (!empty($values['acf_fc_layout']) or str_starts_with($key, 'field_')) {
 
 			foreach ($values as $field_key => $value) {
 
@@ -455,16 +469,15 @@ function tw_acf_encode_data($values, $field) {
 	}
 
 	return $values;
-
 }
 
 
 /*
  * Convert a field value in the ACF format
  */
-function tw_acf_decode_data($values, $field) {
-
-	if (!is_array($values) or !is_array($field)) {
+function tw_acf_decode_data($values, array $field)
+{
+	if (!is_array($values)) {
 		return $values;
 	}
 
@@ -553,7 +566,6 @@ function tw_acf_decode_data($values, $field) {
 	}
 
 	return $values;
-
 }
 
 
@@ -564,27 +576,25 @@ function tw_acf_decode_data($values, $field) {
  *
  * @return array
  */
-function tw_acf_decode_post_id($post_id) {
-
+function tw_acf_decode_post_id($post_id): array
+{
 	$entity = [
 		'type' => '',
-		'id' => 0
+		'id'   => 0
 	];
 
 	if (is_numeric($post_id)) {
-
 		$entity = [
 			'type' => 'post',
-			'id' => (int) $post_id
+			'id'   => (int) $post_id
 		];
-
 	} elseif (is_string($post_id)) {
 
-		$post_id = trim(strtolower($post_id));
+		$post_id = strtolower(trim($post_id));
 
 		$entity = [
 			'type' => 'option',
-			'id' => $post_id
+			'id'   => $post_id
 		];
 
 		$position = strpos($post_id, '_');
@@ -597,32 +607,27 @@ function tw_acf_decode_post_id($post_id) {
 			if (in_array($type, ['post', 'attachment', 'menu_item'])) {
 				$entity = [
 					'type' => 'post',
-					'id' => $id
+					'id'   => $id
 				];
 			} elseif (in_array($type, ['term', 'menu']) or taxonomy_exists($type)) {
 				$entity = [
 					'type' => 'term',
-					'id' => $id
+					'id'   => $id
 				];
 			} elseif ($type === 'user') {
 				$entity = [
 					'type' => 'user',
-					'id' => $id
-				];
-			} elseif ($type === 'widget') {
-				$entity = [
-					'type' => 'option',
-					'id' => $post_id
+					'id'   => $id
 				];
 			} elseif (in_array($type, ['blog', 'site'])) {
 				$entity = [
 					'type' => 'blog',
-					'id' => $id
+					'id'   => $id
 				];
 			} elseif ($type == 'block') {
 				$entity = [
 					'type' => 'block',
-					'id' => $post_id
+					'id'   => $post_id
 				];
 			}
 
@@ -635,27 +640,26 @@ function tw_acf_decode_post_id($post_id) {
 	} elseif ($post_id instanceof WP_Post) {
 		$entity = [
 			'type' => 'post',
-			'id' => $post_id->ID
+			'id'   => $post_id->ID
 		];
 	} elseif ($post_id instanceof WP_Term) {
 		$entity = [
 			'type' => 'term',
-			'id' => $post_id->term_id
+			'id'   => $post_id->term_id
 		];
 	} elseif ($post_id instanceof WP_User) {
 		$entity = [
 			'type' => 'user',
-			'id' => $post_id->ID
+			'id'   => $post_id->ID
 		];
 	} elseif ($post_id instanceof WP_Comment) {
 		$entity = [
 			'type' => 'comment',
-			'id' => (int) $post_id->comment_ID
+			'id'   => (int) $post_id->comment_ID
 		];
 	}
 
 	return $entity;
-
 }
 
 
@@ -667,8 +671,8 @@ function tw_acf_decode_post_id($post_id) {
  *
  * @return void
  */
-function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
-
+function tw_acf_compress_meta(string $meta_type = 'post', int $object_id = 0): void
+{
 	if (!empty($_GET['action']) and $_GET['action'] == 'restore') {
 		return;
 	}
@@ -689,7 +693,7 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 
 	foreach ($metadata as $meta_key => $meta_value) {
 
-		if (empty($meta_value) or strpos($meta_key, '_') !== 0 or strpos($meta_value, 'field_') !== 0) {
+		if (empty($meta_value) or !str_starts_with($meta_key, '_') or !str_starts_with($meta_value, 'field_')) {
 			continue;
 		}
 
@@ -743,7 +747,7 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
 			continue;
 		}
 
-		if (isset($acf_fields[$meta_key]) and strpos($acf_fields[$meta_key], 'field_') === 0) {
+		if (isset($acf_fields[$meta_key]) and str_starts_with($acf_fields[$meta_key], 'field_')) {
 			$acf_map[$meta_key] = substr($acf_fields[$meta_key], 6);
 		}
 
@@ -772,9 +776,9 @@ function tw_acf_compress_meta($meta_type = 'post', $object_id = 0) {
  *
  * @return array
  */
-function tw_acf_compress_walker($values, $fields) {
-
-	if (!is_array($values) or empty($values)) {
+function tw_acf_compress_walker(array $values, array $fields)
+{
+	if (empty($values)) {
 		return $values;
 	}
 
@@ -811,9 +815,7 @@ function tw_acf_compress_walker($values, $fields) {
 				$sub_fields = [];
 
 				foreach ($values as $sub_key => $sub_value) {
-
-					if (strpos($sub_key, $needle) === 0) {
-
+					if (str_starts_with($sub_key, $needle)) {
 						$trimmed_key = substr($sub_key, $length);
 						$sub_values[$trimmed_key] = $sub_value;
 
@@ -821,11 +823,8 @@ function tw_acf_compress_walker($values, $fields) {
 							$sub_fields[$trimmed_key] = $fields[$sub_key];
 						}
 
-						unset($values[$sub_key]);
-						unset($fields[$sub_key]);
-
+						unset($values[$sub_key], $fields[$sub_key]);
 					}
-
 				}
 
 				$values[$key] = tw_acf_compress_walker($sub_values, $sub_fields);
@@ -861,9 +860,7 @@ function tw_acf_compress_walker($values, $fields) {
 					$sub_fields = [];
 
 					foreach ($values as $sub_key => $sub_value) {
-
-						if (strpos($sub_key, $needle) === 0) {
-
+						if (str_starts_with($sub_key, $needle)) {
 							$trimmed_key = substr($sub_key, $length);
 							$sub_values[$trimmed_key] = $sub_value;
 
@@ -871,11 +868,8 @@ function tw_acf_compress_walker($values, $fields) {
 								$sub_fields[$trimmed_key] = $fields[$sub_key];
 							}
 
-							unset($values[$sub_key]);
-							unset($fields[$sub_key]);
-
+							unset($values[$sub_key], $fields[$sub_key]);
 						}
-
 					}
 
 					$values[$key][$index] = tw_acf_compress_walker($sub_values, $sub_fields);
@@ -905,16 +899,15 @@ function tw_acf_compress_walker($values, $fields) {
  *
  * @return bool
  */
-function tw_acf_compress_match($array, $needle) {
-
+function tw_acf_compress_match(array $array, string $needle): bool
+{
 	foreach ($array as $key => $value) {
-		if (strpos($key, $needle) === 0) {
+		if (str_starts_with($key, $needle)) {
 			return true;
 		}
 	}
 
 	return false;
-
 }
 
 
@@ -926,8 +919,8 @@ function tw_acf_compress_match($array, $needle) {
  *
  * @return void
  */
-function tw_acf_decompress_meta($meta_type = 'post', $object_id = 0) {
-
+function tw_acf_decompress_meta(string $meta_type = 'post', int $object_id = 0): void
+{
 	remove_filter('acf/pre_update_value', 'tw_acf_save_value', 20);
 	remove_filter('acf/pre_load_value', 'tw_acf_load_value', 20);
 	remove_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10);
@@ -944,28 +937,25 @@ function tw_acf_decompress_meta($meta_type = 'post', $object_id = 0) {
 	}
 
 	tw_meta_delete($meta_type, $object_id, '_acf_map');
-
 }
 
 
 /**
  * Decompress ACF metadata in a fields array
  *
- * @param string $meta_type
- * @param int    $object_id
- * @param bool   $include_layouts
+ * @param 'post'|'term'|'user'|'comment' $meta_type
+ * @param int                            $object_id
+ * @param bool                           $include_layouts
  *
  * @return array
  */
-function tw_acf_decompress_fields($meta_type = 'post', $object_id = 0, $include_layouts = false) {
-
+function tw_acf_decompress_fields(string $meta_type = 'post', int $object_id = 0, bool $include_layouts = false): array
+{
 	if (!function_exists('acf_get_field')) {
 		return [];
 	}
 
 	$data = [];
-
-	$object_id = (int) $object_id;
 
 	$map = tw_meta_get($meta_type, $object_id, '_acf_map');
 
@@ -994,7 +984,6 @@ function tw_acf_decompress_fields($meta_type = 'post', $object_id = 0, $include_
 	ksort($result);
 
 	return $result;
-
 }
 
 
@@ -1010,9 +999,9 @@ function tw_acf_decompress_fields($meta_type = 'post', $object_id = 0, $include_
  *
  * @return array
  */
-function tw_acf_decompress_walker($result, $data, $base_key, $field, $include_layouts = false) {
-
-	if (!is_array($field) or empty($field['name'])) {
+function tw_acf_decompress_walker(array $result, $data, string $base_key, array $field, bool $include_layouts = false): array
+{
+	if (empty($field['name'])) {
 		return $result;
 	}
 
@@ -1066,9 +1055,9 @@ function tw_acf_decompress_walker($result, $data, $base_key, $field, $include_la
 
 			if ($include_layouts) {
 				$result[$key] = [
-					'key' => $layout['key'],
-					'name' => $layout['name'],
-					'type' => 'layout',
+					'key'   => $layout['key'],
+					'name'  => $layout['name'],
+					'type'  => 'layout',
 					'label' => $layout['label'],
 					'value' => $layout['name']
 				];
@@ -1131,25 +1120,22 @@ function tw_acf_decompress_walker($result, $data, $base_key, $field, $include_la
 	}
 
 	$result[$field_key] = [
-		'key' => $field['key'],
-		'name' => $field['name'],
-		'type' => $field['type'],
+		'key'   => $field['key'],
+		'name'  => $field['name'],
+		'type'  => $field['type'],
 		'label' => $field['label'],
 		'value' => $field_value
 	];
 
 	return $result;
-
 }
 
 
 /**
  * Include compressed ACF data to the revision fields
  */
-add_filter('_wp_post_revision_fields', 'tw_acf_revision_fields', 15, 2);
-
-function tw_acf_revision_fields($result, $post) {
-
+function tw_acf_revision_fields($result, $post)
+{
 	if (!is_array($post) or empty($post['ID']) or !function_exists('acf_get_field')) {
 		return $result;
 	}
@@ -1233,13 +1219,14 @@ function tw_acf_revision_fields($result, $post) {
 
 }
 
+add_filter('_wp_post_revision_fields', 'tw_acf_revision_fields', 15, 2);
+
 
 /**
  * Restore the ACF data when a revision is restored
  */
-add_action('wp_restore_post_revision', 'tw_acf_revision_restore', 10, 2);
-
-function tw_acf_revision_restore($post_id, $revision_id) {
+function tw_acf_revision_restore($post_id, $revision_id)
+{
 
 	$map = tw_meta_get('post', $revision_id, '_acf_map');
 
@@ -1262,13 +1249,14 @@ function tw_acf_revision_restore($post_id, $revision_id) {
 
 }
 
+add_action('wp_restore_post_revision', 'tw_acf_revision_restore', 10, 2);
+
 
 /**
  * Copy the compressed ACF data to a new revision
  */
-add_action('_wp_put_post_revision', 'tw_acf_revision_create', 20, 2);
-
-function tw_acf_revision_create($revision_id) {
+function tw_acf_revision_create($revision_id)
+{
 
 	$revision = get_post($revision_id);
 
@@ -1292,6 +1280,8 @@ function tw_acf_revision_create($revision_id) {
 	tw_meta_update('post', $revision->ID, '_acf_map', $map);
 
 }
+
+add_action('_wp_put_post_revision', 'tw_acf_revision_create', 20, 2);
 
 
 /**

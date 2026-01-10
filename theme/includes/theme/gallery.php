@@ -10,7 +10,8 @@
 /**
  * Add a slider control to WP Gallery
  */
-add_action('print_media_templates', function() { ?>
+function tw_gallery_controls(): void
+{ ?>
 	<script type="text/html" id="tmpl-twee-gallery-setting">
 		<span class="setting">
 			<label for="gallery-settings-slider" class="name"><?php _e('Slider', 'twee'); ?></label>
@@ -32,24 +33,30 @@ add_action('print_media_templates', function() { ?>
 			});
 		});
 	</script>
-<?php });
+<?php }
+
+add_action('print_media_templates', 'tw_gallery_controls');
 
 
 /**
  * Change the default link type to file
  */
-add_filter('media_view_settings', function($settings) {
+function tw_gallery_link_type(array $settings): array
+{
 	$settings['galleryDefaults']['link'] = 'file';
 	$settings['defaultProps']['link'] = 'file';
+
 	return $settings;
-});
+}
+
+add_filter('media_view_settings', 'tw_gallery_link_type');
 
 
 /**
  * Add a video field
  */
-add_filter('attachment_fields_to_edit', function($fields, $post) {
-
+function tw_gallery_fields(array $fields, WP_Post $post): array
+{
 	$fields['video_link'] = [
 		'label' => __('Video URL', 'twee'),
 		'input' => 'text',
@@ -58,8 +65,9 @@ add_filter('attachment_fields_to_edit', function($fields, $post) {
 	];
 
 	return $fields;
+}
 
-}, 10, 2);
+add_filter('attachment_fields_to_edit', 'tw_gallery_fields', 10, 2);
 
 
 /**
@@ -85,8 +93,8 @@ add_filter('attachment_fields_to_save', function($post, $attachment) {
 /**
  * Replace the gallery shortcode
  */
-add_filter('post_gallery', function($output, $attr, $instance) {
-
+function tw_gallery_shortcode(string $output, array $attr): string
+{
 	if (empty($attr['slider'])) {
 		return $output;
 	}
@@ -96,12 +104,12 @@ add_filter('post_gallery', function($output, $attr, $instance) {
 	}
 
 	$attr = shortcode_atts([
-		'order' => 'ASC',
+		'order'   => 'ASC',
 		'orderby' => 'menu_order ID',
-		'id' => get_queried_object_id(),
+		'id'      => get_queried_object_id(),
 		'include' => '',
 		'exclude' => '',
-		'link' => '',
+		'link'    => '',
 	], $attr, 'gallery');
 
 	if (empty($attr['size'])) {
@@ -109,15 +117,15 @@ add_filter('post_gallery', function($output, $attr, $instance) {
 	}
 
 	if (empty($attr['columns'])) {
-		$attr['columns'] = 1;
+		$attr['columns'] = 3;
 	}
 
 	$args = [
-		'post_status' => 'inherit',
-		'post_type' => 'attachment',
+		'post_status'    => 'inherit',
+		'post_type'      => 'attachment',
 		'post_mime_type' => 'image',
-		'order' => $attr['order'],
-		'orderby' => $attr['orderby'],
+		'order'          => $attr['order'],
+		'orderby'        => $attr['orderby'],
 	];
 
 	if (!empty($attr['include'])) {
@@ -142,51 +150,53 @@ add_filter('post_gallery', function($output, $attr, $instance) {
 
 	}
 
-	if ($attachments) {
-
-		ob_start(); ?>
-
-		<div class="gallery gallery-columns-<?php echo $attr['columns']; ?> carousel">
-
-			<?php if (!empty($attr['link']) and $attr['link'] == 'file') { ?>
-
-				<?php foreach ($attachments as $attachment) {
-
-					$link = (string) tw_meta_get('post', $attachment->ID, 'video_link');
-
-					if (empty($link)) {
-						$link = tw_image_link($attachment->ID, 'full');
-						$class = 'gallery-item';
-						$after = '';
-					} else {
-						$class = 'gallery-item gallery-video';
-						$after = '<span class="play"></span>';
-					}
-
-					?>
-					<a href="<?php echo esc_url($link); ?>" class="<?php echo $class; ?>" data-thumb-src="<?php echo tw_image_link($attachment->ID, 'thumbnail'); ?>">
-						<?php echo tw_image($attachment->ID, $attr['size']) . $after; ?>
-					</a>
-				<?php } ?>
-
-			<?php } else { ?>
-
-				<?php foreach ($attachments as $attachment) { ?>
-					<div class="gallery-item" data-thumb-src="<?php echo tw_image_link($attachment->ID, 'thumbnail'); ?>">
-						<?php echo tw_image($attachment->ID, $attr['size']); ?>
-					</div>
-				<?php } ?>
-
-			<?php } ?>
-
-		</div>
-
-		<?php
-
-		$output = ob_get_clean();
-
+	if (empty($attachments)) {
+		return $output;
 	}
 
-	return $output;
+	tw_asset_enqueue('embla');
 
-}, 10, 3);
+	ob_start(); ?>
+
+	<div class="gallery gallery-columns-<?php echo $attr['columns']; ?> carousel">
+
+		<?php if (!empty($attr['link']) and $attr['link'] == 'file') { ?>
+
+			<?php foreach ($attachments as $attachment) {
+
+				$link = (string) tw_meta_get('post', $attachment->ID, 'video_link');
+
+				if (empty($link)) {
+					$link = tw_image_link($attachment->ID, 'full');
+					$class = 'gallery-item';
+					$after = '';
+				} else {
+					$class = 'gallery-item gallery-video';
+					$after = '<span class="play"></span>';
+				}
+
+				?>
+				<a href="<?php echo esc_url($link); ?>" class="<?php echo $class; ?>" data-thumb-src="<?php echo tw_image_link($attachment->ID, 'thumbnail'); ?>">
+					<?php echo tw_image($attachment->ID, $attr['size']) . $after; ?>
+				</a>
+			<?php } ?>
+
+		<?php } else { ?>
+
+			<?php foreach ($attachments as $attachment) { ?>
+				<div class="gallery-item" data-thumb-src="<?php echo tw_image_link($attachment->ID, 'thumbnail'); ?>">
+					<?php echo tw_image($attachment->ID, $attr['size']); ?>
+				</div>
+			<?php } ?>
+
+		<?php } ?>
+
+	</div>
+
+	<?php
+
+	return ob_get_clean();
+
+}
+
+add_filter('post_gallery', 'tw_gallery_shortcode', 10, 2);

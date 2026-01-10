@@ -16,9 +16,9 @@
  *
  * @return string
  */
-function tw_block_render($blocks) {
-
-	if (!is_array($blocks) or empty($blocks)) {
+function tw_block_render(array $blocks): string
+{
+	if (empty($blocks)) {
 		return '';
 	}
 
@@ -51,19 +51,14 @@ function tw_block_render($blocks) {
 		$filename = TW_ROOT . 'blocks/' . $block['acf_fc_layout'] . '.php';
 
 		if (is_readable($filename)) {
-
 			tw_app_set('block_id', $block_id, 'default');
-
 			include $filename;
-
 			$block_id++;
-
 		}
 
 	}
 
 	return ob_get_clean();
-
 }
 
 
@@ -75,8 +70,8 @@ function tw_block_render($blocks) {
  *
  * @return string
  */
-function tw_block_attributes($class, $block) {
-
+function tw_block_attributes($class, array $block): string
+{
 	$classes = [];
 
 	if (is_string($class)) {
@@ -135,7 +130,6 @@ function tw_block_attributes($class, $block) {
 	}
 
 	return $result;
-
 }
 
 
@@ -147,16 +141,15 @@ function tw_block_attributes($class, $block) {
  *
  * @return string
  */
-function tw_block_contents($block, $wrapper = 'contents') {
-
-	if (is_array($block) and !empty($block['contents']) and is_array($block['contents'])) {
+function tw_block_contents(array $block, string $wrapper = 'contents'): string
+{
+	if (!empty($block['contents']) and is_array($block['contents'])) {
 		$result = tw_app_template('contents', ['block' => $block['contents'], 'wrapper' => $wrapper]);
 	} else {
 		$result = '';
 	}
 
 	return $result;
-
 }
 
 
@@ -169,14 +162,13 @@ function tw_block_contents($block, $wrapper = 'contents') {
  *
  * @return string
  */
-function tw_block_buttons($buttons, $wrapper = 'buttons', $size = '') {
-
-	$result = '';
-
-	if (is_array($buttons) and !empty($buttons)) {
+function tw_block_buttons(array $buttons, string $wrapper = 'buttons', string $size = '')
+{
+	if (!empty($buttons)) {
 		$result = tw_app_template('buttons', ['buttons' => $buttons, 'wrapper' => $wrapper, 'size' => $size]);
+	} else {
+		$result = '';
 	}
 
 	return $result;
-
 }

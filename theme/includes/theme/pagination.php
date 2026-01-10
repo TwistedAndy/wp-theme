@@ -15,29 +15,29 @@
  *
  * @return string
  */
-function tw_pagination($args = [], $query = false) {
-
+function tw_pagination(array $args = [], $query = false): string
+{
 	$defaults = [
-		'before' => '<div role="navigation" aria-label="' . esc_attr__('Pages', 'twee') . '" class="pagination_box">',
-		'after' => '</div>',
-		'prev' => '',
-		'next' => '',
-		'first' => false,
-		'last' => false,
+		'before'     => '<div role="navigation" aria-label="' . esc_attr__('Pages', 'twee') . '" class="pagination_box">',
+		'after'      => '</div>',
+		'prev'       => '',
+		'next'       => '',
+		'first'      => false,
+		'last'       => false,
 		'pages_text' => '',
-		'number' => 10,
-		'step' => 10,
-		'inactive' => false,
-		'dots_left' => '...',
+		'number'     => 10,
+		'step'       => 10,
+		'inactive'   => false,
+		'dots_left'  => '...',
 		'dots_right' => '...',
-		'type' => 'posts',
-		'format' => '',
-		'base' => '',
-		'add_args' => [],
-		'add_frag' => '',
-		'url' => false,
-		'page' => false,
-		'max_page' => false
+		'type'       => 'posts',
+		'format'     => '',
+		'base'       => '',
+		'add_args'   => [],
+		'add_frag'   => '',
+		'url'        => false,
+		'page'       => false,
+		'max_page'   => false
 	];
 
 	$args = wp_parse_args($args, $defaults);
@@ -189,7 +189,6 @@ function tw_pagination($args = [], $query = false) {
 	$result .= $args['after'];
 
 	return $result;
-
 }
 
 
@@ -201,49 +200,33 @@ function tw_pagination($args = [], $query = false) {
  *
  * @return string
  */
-function tw_page_link($page_number, $args = []) {
-
+function tw_page_link($page_number, $args = []): string
+{
 	if (is_array($args) and isset($args['type'])) {
 		$type = $args['type'];
-	} elseif (is_string($args)) {
-		$type = $args;
 	} else {
 		$type = false;
 	}
 
 	if ($type == 'comments') {
-
 		$link = get_comments_pagenum_link($page_number);
-
 	} elseif ($type == 'page') {
-
 		$link = str_replace(['<a href="', '">'], '', _wp_link_page($page_number));
 		$link = apply_filters('wp_link_pages_link', $link, $page_number);
+	} elseif (is_array($args) and !empty($args['base']) and !empty($args['format'])) {
+		$link = str_replace(['%_%', '%#%'], [($page_number == 1 ? '' : $args['format']), $page_number], $args['base']);
 
-	} else {
-
-		if (is_array($args) and !empty($args['base']) and !empty($args['format'])) {
-
-			$link = str_replace('%_%', ($page_number == 1 ? '' : $args['format']), $args['base']);
-			$link = str_replace('%#%', $page_number, $link);
-
-			if (!empty($args['add_args'])) {
-				$link = add_query_arg($args['add_args'], $link);
-			}
-
-			$link .= $args['add_frag'];
-			$link = apply_filters('paginate_links', $link);
-
-		} else {
-
-			$link = get_pagenum_link($page_number);
-
+		if (!empty($args['add_args'])) {
+			$link = add_query_arg($args['add_args'], $link);
 		}
 
+		$link .= $args['add_frag'];
+		$link = apply_filters('paginate_links', $link);
+	} else {
+		$link = get_pagenum_link($page_number);
 	}
 
 	return $link;
-
 }
 
 
@@ -255,41 +238,31 @@ function tw_page_link($page_number, $args = []) {
  *
  * @return int
  */
-function tw_page_number($args = [], $query = false) {
-
+function tw_page_number($args = [], $query = false): int
+{
 	if (!empty($args['page'])) {
-
 		$page_number = $args['page'];
-
 	} elseif (!empty($args['type']) and $args['type'] == 'comments') {
-
 		$page_number = get_query_var('cpage');
-
 	} elseif (!empty($args['type']) and $args['type'] == 'page') {
-
 		global $page;
-
 		$page_number = $page;
-
 	} else {
-
 		if (!$query or !($query instanceof WP_Query)) {
 			global $wp_query;
 			$query = $wp_query;
 		}
 
 		$page_number = $query->get('paged', 1);
-
 	}
 
-	$page_number = intval($page_number);
+	$page_number = (int) $page_number;
 
 	if ($page_number < 1) {
 		$page_number = 1;
 	}
 
 	return $page_number;
-
 }
 
 
@@ -301,37 +274,23 @@ function tw_page_number($args = [], $query = false) {
  *
  * @return int
  */
-function tw_page_total($args = [], $query = false) {
-
+function tw_page_total($args = [], $query = false): int
+{
 	if (!empty($args['max_page'])) {
-
 		$max_page = $args['max_page'];
-
 	} elseif (!empty($args['type']) and $args['type'] == 'comments') {
-
 		$max_page = get_comment_pages_count();
-
 	} elseif (!empty($args['type']) and $args['type'] == 'page') {
-
 		global $numpages;
-
 		$max_page = $numpages;
-
 	} else {
-
 		if (!$query or !($query instanceof WP_Query)) {
 			global $wp_query;
 			$query = $wp_query;
 		}
 
-		$max_page = 1;
-
-		if (isset($query->max_num_pages)) {
-			$max_page = $query->max_num_pages;
-		}
-
+		$max_page = $query->max_num_pages ?? 1;
 	}
 
-	return intval($max_page);
-
+	return (int) $max_page;
 }

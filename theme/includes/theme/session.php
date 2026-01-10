@@ -14,8 +14,8 @@
  *
  * @return array|bool|number|string
  */
-function tw_session_get($key) {
-
+function tw_session_get(string $key)
+{
 	$result = null;
 
 	if (class_exists('WooCommerce') and class_exists('WC_Session')) {
@@ -43,7 +43,6 @@ function tw_session_get($key) {
 	}
 
 	return $result;
-
 }
 
 
@@ -53,8 +52,8 @@ function tw_session_get($key) {
  * @param string                   $key
  * @param array|bool|number|string $data
  */
-function tw_session_set($key, $data) {
-
+function tw_session_set(string $key, $data)
+{
 	if (class_exists('WooCommerce')) {
 
 		$object = WooCommerce::instance();
@@ -92,8 +91,8 @@ function tw_session_set($key, $data) {
  *
  * @return array
  */
-function tw_session_get_file($name = false) {
-
+function tw_session_get_file($name = false): array
+{
 	$files = tw_session_get('uploads');
 
 	if (!is_array($files)) {
@@ -119,8 +118,8 @@ function tw_session_get_file($name = false) {
  * @param string     $name Name of the session group
  * @param bool|array $file Array with file information
  */
-function tw_session_set_file($name, $file) {
-
+function tw_session_set_file(string $name, $file): void
+{
 	$files = tw_session_get('uploads');
 
 	if (!is_array($files)) {
