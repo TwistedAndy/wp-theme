@@ -161,6 +161,10 @@ function tw_asset_init(): void
 					} else {
 						$asset['deps'][$type][$index] = $assets[$dep]['prefix'] . $dep;
 					}
+				} elseif ($type == 'script' and !wp_script_is($dep, 'registered') and !wp_script_is($dep, 'enqueued')) {
+					unset($asset['deps'][$type][$index]);
+				} elseif ($type == 'style' and !wp_style_is($dep, 'registered') and !wp_style_is($dep, 'enqueued')) {
+					unset($asset['deps'][$type][$index]);
 				}
 			}
 
@@ -598,7 +602,7 @@ function tw_asset_normalize(array $asset): array
 
 		foreach ($asset[$type] as $key => $link) {
 
-			if (strpos($link, 'http') !== 0 and strpos($link, '//') !== 0) {
+			if (!str_starts_with($link, 'http') and !str_starts_with($link, '//')) {
 
 				if (!empty($asset['directory'])) {
 					$directory = $asset['directory'] . '/';
