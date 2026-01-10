@@ -16,7 +16,7 @@
  *
  * @return string
  */
-function tw_block_render(array $blocks): string
+function tw_block_render($blocks): string
 {
 	if (empty($blocks)) {
 		return '';

@@ -16,8 +16,8 @@ add_filter('nav_menu_item_id', '__return_empty_string');
 /**
  * Add an 'active' class for the selected item in menu and clean the menu
  */
-add_filter('nav_menu_css_class', function($classes) {
-
+function tw_filters_menu_class(array $classes, WP_Post $item, object $args, int $depth): array
+{
 	$active_classes = [
 		'current_page_parent',
 		'current-menu-item',
@@ -41,51 +41,66 @@ add_filter('nav_menu_css_class', function($classes) {
 	}
 
 	foreach ($classes as $key => $class) {
-		if (strpos($class, 'menu-item') === 0 or strpos($class, 'current-') === 0) {
+		if (str_starts_with($class, 'menu-item') or str_starts_with($class, 'current-')) {
 			unset($classes[$key]);
 		}
 	}
 
 	return $classes;
+}
 
-}, 20);
+add_filter('nav_menu_css_class', 'tw_filters_menu_class', 20, 4);
 
 
 /**
  * Add accessibility attributes to menu wrappers
  */
-add_filter('wp_nav_menu_args', function($args) {
-
-	if (!empty($args['items_wrap']) and strpos($args['items_wrap'], 'role=') === false) {
+function tw_filters_menu_arguments(array $args): array
+{
+	if (!empty($args['items_wrap']) and !str_contains($args['items_wrap'], 'role=')) {
 		$args['items_wrap'] = str_replace('<ul', '<ul role="menubar"', $args['items_wrap']);
 	}
 
 	return $args;
+}
 
-}, 10, 1);
+add_filter('wp_nav_menu_args', 'tw_filters_menu_arguments', 10, 1);
 
 
 /**
  * Add accessibility attributes to menu items
  */
-add_filter('wp_nav_menu_items', function($items, $args) {
-
+function tw_filters_menu_items(string $items): string
+{
 	$replace = [
-		'<a' => '<a role="menuitem"',
+		'<a'  => '<a role="menuitem"',
 		'<li' => '<li role="none"',
 		'<ul' => '<ul role="menu"',
 	];
 
 	return str_replace(array_keys($replace), array_values($replace), $items);
+}
 
-}, 10, 2);
+add_filter('wp_nav_menu_items', 'tw_filters_menu_items', 10, 1);
+
+
+/**
+ * Disable jQuery Migrate
+ */
+function tw_filters_clean_jquery($scripts): void
+{
+	$scripts->remove('jquery');
+	$scripts->add('jquery', false, ['jquery-core'], '3.7.1');
+}
+
+add_action('wp_default_scripts', 'tw_filters_clean_jquery', 20);
 
 
 /**
  * Clean the header and preload block assets
  */
-add_action('template_redirect', function() {
-
+function tw_filters_clean_header(): void
+{
 	if (is_admin()) {
 		return;
 	}
@@ -114,29 +129,16 @@ add_action('template_redirect', function() {
 		wp_enqueue_script('comment-reply');
 	}
 
-});
+}
 
-
-/**
- * Disable pings
- */
-add_filter('pings_open', '__return_false');
-
-
-/**
- * Disable jQuery Migrate
- */
-add_action('wp_default_scripts', function($scripts) {
-	$scripts->remove('jquery');
-	$scripts->add('jquery', false, ['jquery-core'], '3.7.1');
-}, 20);
+add_action('template_redirect', 'tw_filters_clean_header');
 
 
 /**
  * Disable the Gutenberg assets
  */
-add_action('init', function() {
-
+function tw_filters_clean_scripts(): void
+{
 	if (is_admin()) {
 		return;
 	}
@@ -153,19 +155,35 @@ add_action('init', function() {
 	remove_action('wp_enqueue_scripts', 'wp_enqueue_emoji_styles');
 	remove_action('wp_print_styles', 'print_emoji_styles');
 
-}, 200);
+	/**
+	 * Remove the WP Rocket Insights scripts
+	 */
+	if (defined('WP_ROCKET_VERSION')) {
+		tw_app_remove_filter('manage_pages_columns', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'add_column_to_pages');
+		tw_app_remove_filter('manage_posts_columns', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'add_column_to_posts');
+		tw_app_remove_filter('manage_product_posts_columns', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'add_column_to_products', 22);
+		tw_app_remove_filter('manage_pages_custom_column', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'render_rocket_insights_column');
+		tw_app_remove_filter('manage_posts_custom_column', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'render_rocket_insights_column');
+	}
+
+}
+
+add_action('init', 'tw_filters_clean_scripts', 200);
 
 
 /**
  * Remove the block inline styles
  */
-add_action('wp_footer', function() {
+function tw_filters_clean_styles(): void
+{
 	wp_dequeue_style('wp-block-categories');
 	wp_dequeue_style('wp-block-library');
 	wp_dequeue_style('wp-block-heading');
 	wp_dequeue_style('wp-block-archives');
 	wp_dequeue_style('wp-block-group');
-}, 1);
+}
+
+add_action('wp_footer', 'tw_filters_clean_styles', 1);
 
 
 /**
@@ -188,6 +206,12 @@ add_filter('use_widgets_block_editor', '__return_false');
 
 
 /**
+ * Disable pings
+ */
+add_filter('pings_open', '__return_false');
+
+
+/**
  * Fix the pagination links
  */
 add_filter('paginate_links_output', function($links) {
@@ -200,83 +224,58 @@ add_filter('paginate_links_output', function($links) {
 /**
  * Add all public terms to the link field
  */
-add_action('wp_link_query', function($results, $query) {
+function tw_filters_link_field(array $results, array $query): array
+{
+	if (empty($query['s'])) {
+		return $results;
+	}
 
-	if (is_array($query) and !empty($query['s'])) {
+	$taxonomies = get_taxonomies(['public' => true], 'objects');
 
-		if (!is_array($results)) {
-			$results = [];
+	if (empty($taxonomies)) {
+		return $results;
+	}
+
+	$map = [];
+
+	foreach ($taxonomies as $taxonomy) {
+		$map[$taxonomy->name] = $taxonomy->label;
+	}
+
+	if (empty($map)) {
+		return $results;
+	}
+
+	$db = tw_app_database();
+
+	$rows = $db->get_results("SELECT t.*, tt.taxonomy FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id WHERE t.name LIKE '%" . $db->esc_like($query['s']) . "%' AND tt.taxonomy IN ('" . implode("','", array_keys($map)) . "')", OBJECT);
+
+	if (empty($rows)) {
+		return $results;
+	}
+
+	foreach ($rows as $row) {
+		if (!empty($row->taxonomy) and !empty($map[$row->taxonomy])) {
+			array_unshift($results, [
+				'ID'        => $row->term_id,
+				'title'     => $row->name,
+				'permalink' => get_term_link($row, $row->taxonomy),
+				'info'      => $map[$row->taxonomy]
+			]);
 		}
-
-		$taxonomies = get_taxonomies(['public' => true], 'objects');
-
-		if (empty($taxonomies)) {
-			return $results;
-		}
-
-		$map = [];
-
-		foreach ($taxonomies as $taxonomy) {
-			$map[$taxonomy->name] = $taxonomy->label;
-		}
-
-		if (empty($map)) {
-			return $results;
-		}
-
-		$db = tw_app_database();
-
-		$rows = $db->get_results("SELECT t.*, tt.taxonomy FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id WHERE t.name LIKE '%" . $db->esc_like($query['s']) . "%' AND tt.taxonomy IN ('" . implode("','", array_keys($map)) . "')", OBJECT);
-
-		if (empty($rows)) {
-			return $results;
-		}
-
-		foreach ($rows as $row) {
-
-			if (!empty($row->taxonomy) and !empty($map[$row->taxonomy])) {
-
-				array_unshift($results, [
-					'ID' => $row->term_id,
-					'title' => $row->name,
-					'permalink' => get_term_link($row, $row->taxonomy),
-					'info' => $map[$row->taxonomy]
-				]);
-
-			}
-
-		}
-
 	}
 
 	return $results;
-
-}, 10, 2);
-
-
-/**
- * Remove the WP Rocket Insights scripts
- */
-if (defined('WP_ROCKET_VERSION')) {
-	add_action('init', function() {
-		tw_app_remove_filter('manage_pages_columns', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'add_column_to_pages');
-		tw_app_remove_filter('manage_posts_columns', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'add_column_to_posts');
-		tw_app_remove_filter('manage_product_posts_columns', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'add_column_to_products', 22);
-		tw_app_remove_filter('manage_pages_custom_column', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'render_rocket_insights_column');
-		tw_app_remove_filter('manage_posts_custom_column', '\WP_Rocket\Engine\Admin\RocketInsights\PostListing\Subscriber', 'render_rocket_insights_column');
-	}, 20);
 }
+
+add_action('wp_link_query', 'tw_filters_link_field', 10, 2);
 
 
 /**
  * Cache the metadata section on the post edit screen
  */
-add_filter('postmeta_form_keys', function($keys, $post) {
-
-	if (!($post instanceof WP_Post)) {
-		return $keys;
-	}
-
+function tw_filters_form_keys(array $keys, WP_Post $post): array
+{
 	$raw = get_metadata_raw('post', $post->ID);
 
 	if (is_array($raw)) {
@@ -284,5 +283,6 @@ add_filter('postmeta_form_keys', function($keys, $post) {
 	}
 
 	return $keys;
+}
 
-}, 20, 2);
+add_filter('postmeta_form_keys', 'tw_filters_form_keys', 20, 2);

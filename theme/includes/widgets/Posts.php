@@ -7,7 +7,7 @@
  * @version 4.2
  */
 
-namespace Twee\Widgets;
+namespace Twee\widgets;
 
 class Posts extends \Twee\Widget {
 
@@ -48,7 +48,7 @@ class Posts extends \Twee\Widget {
 	{
 		$instance = $this->fields_load($instance, false);
 
-		echo $args['before_widget'];
+		echo $args['before_widget'] ?? '';
 
 		if ($instance['title']) {
 			echo $args['before_title'] . $instance['title'] . $args['after_title'];
@@ -84,7 +84,7 @@ class Posts extends \Twee\Widget {
 								<?php if ($links = tw_term_links($item->ID, 'category')) { ?>
 									<?php echo reset($links); ?>
 								<?php } ?>
-								<span class="date"><?php echo tw_content_date($item, 'F j, Y'); ?></span>
+								<span class="date"><?php echo tw_content_date($item, 'm/d/Y'); ?></span>
 							</div>
 						</div>
 					</div>
@@ -92,7 +92,7 @@ class Posts extends \Twee\Widget {
 			</div>
 		<?php }
 
-		echo $args['after_widget'];
+		echo $args['after_widget'] ?? '';
 
 	}
 

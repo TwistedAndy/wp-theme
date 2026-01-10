@@ -81,9 +81,8 @@ function tw_tinymce_init(): void
 
 	class twee_field_wysiwyg extends acfe_field_extend {
 
-		public function initialize()
+		public function initialize(): void
 		{
-
 			$this->name = 'wysiwyg';
 
 			$this->defaults = [
@@ -94,7 +93,6 @@ function tw_tinymce_init(): void
 				'wysiwyg_valid_tags' => '',
 				'wysiwyg_autoresize' => 0
 			];
-
 		}
 
 		/**
@@ -104,9 +102,8 @@ function tw_tinymce_init(): void
 		 *
 		 * @return void
 		 */
-		public function render_field_settings($field)
+		public function render_field_settings(array $field): void
 		{
-
 			acf_render_field_setting($field, [
 				'label'             => __('Auto Initialization', 'twee'),
 				'name'              => 'wysiwyg_auto_init',
@@ -203,7 +200,6 @@ function tw_tinymce_init(): void
 					'data-enable-switch' => true
 				]
 			]);
-
 		}
 
 		/**
@@ -214,7 +210,7 @@ function tw_tinymce_init(): void
 		 *
 		 * @return array
 		 */
-		public function field_wrapper_attributes($wrapper, $field)
+		public function field_wrapper_attributes(array $wrapper, array $field): array
 		{
 
 			if (!empty($field['wysiwyg_autoresize'])) {
@@ -338,7 +334,6 @@ function tw_tinymce_scripts()
 { ?>
 	<script>
 		document.addEventListener('DOMContentLoaded', function() {
-
 			if (typeof acf === 'undefined') {
 				return;
 			}
@@ -417,7 +412,6 @@ function tw_tinymce_scripts()
 				}
 
 			});
-
 		});
 	</script>
 	<style>
@@ -425,17 +419,21 @@ function tw_tinymce_scripts()
 		.mce-toolbar .mce-ico.mce-i-paste {
 			line-height: 20px;
 		}
+
 		.acfe-modal-content > .acf-fields {
 			padding: 8px;
 		}
+
 		.acfe-modal.-open {
 			margin: 0 !important;
 		}
+
 		.layout > .acfe-fc-placeholder.acfe-fc-preview > a {
 			width: 50px;
 			height: 50px;
 			z-index: 5;
 		}
+
 		.layout > .acfe-fc-placeholder.acfe-fc-preview > a span {
 			display: flex;
 			align-items: center;
