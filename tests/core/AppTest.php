@@ -87,7 +87,9 @@ class AppTest extends WP_UnitTestCase {
 
 		$found = false;
 		foreach ($wp_widget_factory->widgets as $w) {
-			if ($w instanceof $class) $found = true;
+			if ($w instanceof $class) {
+				$found = true;
+			}
 		}
 		$this->assertTrue($found);
 	}

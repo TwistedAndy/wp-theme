@@ -187,6 +187,88 @@ class AssetTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test merging logic during scanning: boolean/callable display and array overrides.
+	 * Covers logic where pre-registered configuration (via tw_asset_register or direct setting)
+	 * merges with discovered assets from plugins and blocks.
+	 */
+	public function test_init_merging_strategies(): void
+	{
+		$plugin_path = TW_ROOT . 'assets/plugins';
+		$block_path = TW_ROOT . 'assets/build/blocks';
+
+		// 1. Setup Plugin Fixtures
+		$plugin_bool_dir = $plugin_path . '/merge-bool';
+		$plugin_arr_dir = $plugin_path . '/merge-arr';
+
+		if (!is_dir($plugin_bool_dir)) {
+			mkdir($plugin_bool_dir, 0777, true);
+		}
+
+		if (!is_dir($plugin_arr_dir)) {
+			mkdir($plugin_arr_dir, 0777, true);
+		}
+
+		// Plugin 1: Returns basic config
+		file_put_contents($plugin_bool_dir . '/index.php', "<?php return ['script' => 'bool.js'];");
+
+		// Plugin 2: Returns config with version 1.0
+		file_put_contents($plugin_arr_dir . '/index.php', "<?php return ['script' => 'arr.js', 'version' => '1.0'];");
+
+		// 2. Setup Block Fixtures
+		if (!is_dir($block_path)) {
+			mkdir($block_path, 0777, true);
+		}
+
+		file_put_contents($block_path . '/merge-block-call.css', '/* CSS */');
+		file_put_contents($block_path . '/merge-block-arr.css', '/* CSS */');
+
+		// 3. Pre-register Overrides
+		$overrides = [
+			'merge-bool'           => true,
+			'merge-arr'            => ['version' => '2.0'],
+			'merge-block-call_box' => function() {
+				return true;
+			},
+			'merge-block-arr_box'  => ['footer' => true]
+		];
+
+		tw_app_set('registered', $overrides, 'assets');
+
+		// 4. Run Initialization
+		$this->init_twee();
+
+		$registered = tw_app_get('registered', 'assets', []);
+
+		// 5. Assertions
+
+		// Assert Plugin Boolean Merge
+		$this->assertArrayHasKey('merge-bool', $registered);
+		$this->assertTrue($registered['merge-bool']['display']);
+
+		// Assert Plugin Array Merge
+		$this->assertArrayHasKey('merge-arr', $registered);
+		$this->assertEquals('2.0', $registered['merge-arr']['version']);
+
+		// Assert Block Callable Merge
+		$this->assertArrayHasKey('merge-block-call_box', $registered);
+		$this->assertIsCallable($registered['merge-block-call_box']['display']);
+
+		// Assert Block Array Merge
+		$this->assertArrayHasKey('merge-block-arr_box', $registered);
+		$this->assertTrue($registered['merge-block-arr_box']['footer']);
+
+		// Cleanup
+		unlink($plugin_bool_dir . '/index.php');
+		rmdir($plugin_bool_dir);
+
+		unlink($plugin_arr_dir . '/index.php');
+		rmdir($plugin_arr_dir);
+
+		unlink($block_path . '/merge-block-call.css');
+		unlink($block_path . '/merge-block-arr.css');
+	}
+
+	/**
 	 * Test manual asset registration.
 	 */
 	public function test_register_manual(): void

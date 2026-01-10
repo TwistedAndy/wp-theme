@@ -84,11 +84,7 @@ function tw_post_data(string $type, string $key = 'ID', $fields = 'post_title', 
 		foreach ($rows as $row) {
 			$array = [];
 			foreach ($fields as $field) {
-				if (isset($row[$field])) {
-					$array[$field] = $row[$field];
-				} else {
-					$array[$field] = '';
-				}
+				$array[$field] = $row[$field] ?? '';
 			}
 			$data[$row[$key]] = $array;
 
@@ -319,7 +315,7 @@ function tw_post_query(string $type, array $block = []): array
 
 		if ($object instanceof WP_Post) {
 
-			if (empty($args['post__not_in'])) {
+			if (!isset($args['post__not_in'])) {
 				$args['post__not_in'] = [$object->ID];
 			} else {
 				$args['post__not_in'][] = $object->ID;
