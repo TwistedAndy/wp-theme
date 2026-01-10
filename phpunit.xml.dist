@@ -20,6 +20,9 @@
 		<testsuite name="Core">
 			<directory suffix="Test.php">tests/core</directory>
 		</testsuite>
+		<testsuite name="Theme">
+			<directory suffix="Test.php">tests/theme</directory>
+		</testsuite>
 	</testsuites>
 	<php>
 		<env name="DB_NAME" value="wordpress_test"/>

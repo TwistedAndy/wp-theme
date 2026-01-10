@@ -69,7 +69,7 @@ add_filter('upload_mimes', 'tw_images_svg_mimes', 20);
 /**
  * Adjust the SVG type check
  */
-function tw_images_svg_type_filter(array $checked, string $file, string $proper_filename, array $mimes): array
+function tw_images_svg_type_filter(array $checked, string $file, string $proper_filename, $mimes): array
 {
 	if (!empty($checked['type'])) {
 		return $checked;

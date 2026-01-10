@@ -13,10 +13,54 @@
  * @version 4.2
  */
 
-/*
- * Load a compressed field value and return it in the ACF format
- */
 /**
+ * Init actions and filters
+ *
+ * @return void
+ */
+function tw_acf_init_filters(): void
+{
+	/**
+	 * Hook into ACF filters
+	 */
+	add_filter('acf/pre_load_value', 'tw_acf_load_value', 20, 3);
+	add_filter('acf/pre_update_value', 'tw_acf_save_value', 20, 4);
+	add_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10, 3);
+	add_action('acf/pre_render_field', 'tw_acf_pre_render_field', 5);
+
+	/**
+	 * Process Revisions
+	 */
+	add_action('wp_restore_post_revision', 'tw_acf_revision_restore', 10, 2);
+	add_action('_wp_put_post_revision', 'tw_acf_revision_create', 20, 2);
+	add_filter('_wp_post_revision_fields', 'tw_acf_revision_fields', 15, 2);
+
+	/**
+	 * Compress and clean metadata before ACF processing
+	 */
+	add_action('edit_comment', function($object_id) {
+		tw_acf_compress_meta('comment', $object_id);
+	}, 5, 1);
+
+	add_action('profile_update', function($object_id) {
+		tw_acf_compress_meta('user', $object_id);
+	}, 5, 1);
+
+	add_action('edit_term', function($object_id) {
+		tw_acf_compress_meta('term', $object_id);
+	}, 5, 1);
+
+	add_action('save_post', function($object_id) {
+		tw_acf_compress_meta('post', $object_id);
+	}, 5, 1);
+
+}
+
+add_action('init', 'tw_acf_init_filters', 5);
+
+/**
+ * Load a compressed field value and return it in the ACF format
+ *
  * @param null|mixed $result
  * @param int|string $post_id
  * @param array      $field
@@ -36,15 +80,12 @@ function tw_acf_load_value($result, $post_id, array $field)
 	}
 
 	if ($field['type'] === 'clone' and !empty($field['sub_fields'])) {
-
 		$values = [];
-
 		foreach ($field['sub_fields'] as $sub_field) {
 			$values[$sub_field['key']] = tw_acf_load_value(null, $post_id, $sub_field);
 		}
 
 		return $values;
-
 	}
 
 	if ($entity['type'] == 'option') {
@@ -96,16 +137,11 @@ function tw_acf_load_value($result, $post_id, array $field)
 		}
 
 	} elseif ($field['type'] == 'google_map' and is_string($result)) {
-
 		$result = json_decode($result, true);
-
 	}
 
 	return $result;
-
 }
-
-add_filter('acf/pre_load_value', 'tw_acf_load_value', 20, 3);
 
 
 /**
@@ -257,8 +293,6 @@ function tw_acf_save_value($check, $values, $post_id, array $field)
 	return true;
 }
 
-add_filter('acf/pre_update_value', 'tw_acf_save_value', 20, 4);
-
 
 /**
  * Load a field key from the map field
@@ -296,8 +330,6 @@ function tw_acf_load_reference($result, string $field, $post_id)
 	return $result;
 }
 
-add_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10, 3);
-
 
 /**
  * Adjust the total number of rows for repeaters
@@ -311,8 +343,6 @@ function tw_acf_pre_render_field(array $field): array
 
 	return $field;
 }
-
-add_action('acf/pre_render_field', 'tw_acf_pre_render_field', 5);
 
 
 /**
@@ -348,7 +378,6 @@ function tw_acf_total_rows($value, $post_id, string $name)
 	remove_filter('acf/pre_load_metadata', 'tw_acf_total_rows', 10);
 
 	return $value;
-
 }
 
 
@@ -490,9 +519,7 @@ function tw_acf_decode_data($values, array $field)
 		 * We need to process it first before we can move forward and
 		 * process it as a regular field groups
 		 */
-
 		$index = 0;
-
 		$layouts = [];
 
 		foreach ($field['layouts'] as $layout) {
@@ -500,14 +527,12 @@ function tw_acf_decode_data($values, array $field)
 		}
 
 		foreach ($values as $value) {
-
 			if (!empty($value['acf_fc_layout']) and !empty($layouts[$value['acf_fc_layout']])) {
 				$data[$index] = tw_acf_decode_data($value, $layouts[$value['acf_fc_layout']]);
 				$data[$index]['acf_fc_layout'] = $value['acf_fc_layout'];
 			}
 
 			$index++;
-
 		}
 
 		$values = $data;
@@ -524,11 +549,8 @@ function tw_acf_decode_data($values, array $field)
 		}
 
 		if ($is_repeater) {
-
 			foreach ($values as $i => $metadata) {
-
 				foreach ($field['sub_fields'] as $sub_field) {
-
 					$name = $sub_field['name'];
 
 					if (isset($metadata[$name])) {
@@ -538,15 +560,10 @@ function tw_acf_decode_data($values, array $field)
 					}
 
 					$data[$i][$sub_field['key']] = $value;
-
 				}
-
 			}
-
 		} else {
-
 			foreach ($field['sub_fields'] as $sub_field) {
-
 				$name = $sub_field['name'];
 
 				if (isset($values[$name])) {
@@ -556,13 +573,10 @@ function tw_acf_decode_data($values, array $field)
 				}
 
 				$data[$sub_field['key']] = $value;
-
 			}
-
 		}
 
 		$values = $data;
-
 	}
 
 	return $values;
@@ -600,7 +614,6 @@ function tw_acf_decode_post_id($post_id): array
 		$position = strpos($post_id, '_');
 
 		if ($position > 0) {
-
 			$type = substr($post_id, 0, $position);
 			$id = (int) substr($post_id, $position + 1);
 
@@ -632,9 +645,7 @@ function tw_acf_decode_post_id($post_id): array
 			}
 
 		} elseif ($post_id == 'option') {
-
 			$entity['id'] = 'options';
-
 		}
 
 	} elseif ($post_id instanceof WP_Post) {
@@ -887,7 +898,6 @@ function tw_acf_compress_walker(array $values, array $fields)
 	}
 
 	return $values;
-
 }
 
 
@@ -1219,15 +1229,12 @@ function tw_acf_revision_fields($result, $post)
 
 }
 
-add_filter('_wp_post_revision_fields', 'tw_acf_revision_fields', 15, 2);
-
 
 /**
  * Restore the ACF data when a revision is restored
  */
 function tw_acf_revision_restore($post_id, $revision_id)
 {
-
 	$map = tw_meta_get('post', $revision_id, '_acf_map');
 
 	$revision = get_post($revision_id);
@@ -1246,10 +1253,7 @@ function tw_acf_revision_restore($post_id, $revision_id)
 	}
 
 	tw_meta_update('post', $post_id, '_acf_map', $map);
-
 }
-
-add_action('wp_restore_post_revision', 'tw_acf_revision_restore', 10, 2);
 
 
 /**
@@ -1257,7 +1261,6 @@ add_action('wp_restore_post_revision', 'tw_acf_revision_restore', 10, 2);
  */
 function tw_acf_revision_create($revision_id)
 {
-
 	$revision = get_post($revision_id);
 
 	if (!($revision instanceof WP_Post) or empty($revision->post_parent) or $revision->post_type !== 'revision') {
@@ -1265,40 +1268,16 @@ function tw_acf_revision_create($revision_id)
 	}
 
 	$post_id = $revision->post_parent;
+	$post_map = tw_meta_get('post', $post_id, '_acf_map');
 
-	$map = tw_meta_get('post', $post_id, '_acf_map');
-
-	if (empty($map) or !is_array($map)) {
+	if (empty($post_map) or !is_array($post_map)) {
 		return;
 	}
 
-	foreach ($map as $key => $field) {
+	foreach ($post_map as $key => $field) {
 		$value = tw_meta_get('post', $post_id, $key);
 		tw_meta_update('post', $revision->ID, $key, $value);
 	}
 
-	tw_meta_update('post', $revision->ID, '_acf_map', $map);
-
+	tw_meta_update('post', $revision->ID, '_acf_map', $post_map);
 }
-
-add_action('_wp_put_post_revision', 'tw_acf_revision_create', 20, 2);
-
-
-/**
- * Compress and clean metadata before ACF processing
- */
-add_action('edit_comment', function($object_id) {
-	tw_acf_compress_meta('comment', $object_id);
-}, 5, 1);
-
-add_action('profile_update', function($object_id) {
-	tw_acf_compress_meta('user', $object_id);
-}, 5, 1);
-
-add_action('edit_term', function($object_id) {
-	tw_acf_compress_meta('term', $object_id);
-}, 5, 1);
-
-add_action('save_post', function($object_id) {
-	tw_acf_compress_meta('post', $object_id);
-}, 5, 1);
