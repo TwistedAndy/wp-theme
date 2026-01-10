@@ -828,7 +828,7 @@ add_action('clean_taxonomy_cache', 'tw_term_clear_taxonomy', 10, 1);
 /**
  * Clean term caches
  */
-function tw_term_clear_ids(array $ids, string $taxonomy): void
+function tw_term_clear_ids($ids, string $taxonomy): void
 {
 	tw_app_clear('twee_terms');
 	tw_app_clear('twee_terms_' . $taxonomy);
