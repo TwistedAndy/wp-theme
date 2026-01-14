@@ -787,7 +787,7 @@ function tw_acf_compress_meta(string $meta_type = 'post', int $object_id = 0): v
  *
  * @return array
  */
-function tw_acf_compress_walker(array $values, array $fields)
+function tw_acf_compress_walker(array $values, array $fields): array
 {
 	if (empty($values)) {
 		return $values;
@@ -1144,9 +1144,9 @@ function tw_acf_decompress_walker(array $result, $data, string $base_key, array 
 /**
  * Include compressed ACF data to the revision fields
  */
-function tw_acf_revision_fields($result, $post)
+function tw_acf_revision_fields(array $result, array $post): array
 {
-	if (!is_array($post) or empty($post['ID']) or !function_exists('acf_get_field')) {
+	if (empty($post['ID']) or !function_exists('acf_get_field')) {
 		return $result;
 	}
 
@@ -1233,7 +1233,7 @@ function tw_acf_revision_fields($result, $post)
 /**
  * Restore the ACF data when a revision is restored
  */
-function tw_acf_revision_restore($post_id, $revision_id)
+function tw_acf_revision_restore(int $post_id, int $revision_id): void
 {
 	$map = tw_meta_get('post', $revision_id, '_acf_map');
 
@@ -1259,7 +1259,7 @@ function tw_acf_revision_restore($post_id, $revision_id)
 /**
  * Copy the compressed ACF data to a new revision
  */
-function tw_acf_revision_create($revision_id)
+function tw_acf_revision_create(int $revision_id): void
 {
 	$revision = get_post($revision_id);
 

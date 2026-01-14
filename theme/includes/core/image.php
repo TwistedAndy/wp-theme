@@ -191,7 +191,7 @@ function tw_image($image, string $size = 'full', string $before = '', string $af
 	}
 
 	if (empty($attributes['width']) or empty($attributes['height'])) {
-		$data = tw_image_size($size, $image);
+		$data = tw_image_size($size, (int) $image);
 
 		if ($data['width'] > 0 and $data['height'] > 0) {
 			$attributes['width'] = round($data['width']);
@@ -200,7 +200,7 @@ function tw_image($image, string $size = 'full', string $before = '', string $af
 	}
 
 	if (stripos($thumb, '.svg') === false) {
-		$attributes = tw_image_srcset($image, $attributes);
+		$attributes = tw_image_srcset((int) $image, $attributes);
 	}
 
 	if (empty($attributes['srcset']) or is_array($attributes['srcset'])) {
@@ -271,6 +271,8 @@ function tw_image_link($image, $size = 'full', bool $base_url = false): string
 	}
 
 	if (is_numeric($image)) {
+
+		$image = (int) $image;
 
 		$file = tw_meta_get('post', $image, '_wp_attached_file');
 
@@ -398,7 +400,7 @@ function tw_image_attribute($image, $size = 'full', string $property = '--mask-i
  *
  * @return array
  */
-function tw_image_srcset($image, array $attributes): array
+function tw_image_srcset(int $image, array $attributes): array
 {
 	if (empty($attributes) or empty($attributes['sizes']) or !is_array($attributes['sizes'])) {
 		return $attributes;
@@ -683,7 +685,7 @@ function tw_image_sizes($sizes = false): array
  *
  * @return array
  */
-function tw_image_size($size, $image_id = 0): array
+function tw_image_size($size, int $image_id = 0): array
 {
 	$sizes = tw_image_sizes();
 
@@ -754,7 +756,7 @@ function tw_image_resize(string $image_url, $size, $image_id = 0, bool $base_url
 		$filename = strtolower(substr($image_url, $position + 1));
 
 		if (preg_match('#(.*?)\.(gif|jpg|jpeg|png|bmp|webp)$#is', $filename, $matches)) {
-			$data = tw_image_size($size, $image_id);
+			$data = tw_image_size($size, (int) $image_id);
 
 			$sizes = tw_image_sizes();
 
@@ -963,6 +965,8 @@ function tw_image_clear($image_id): void
 	if (!is_dir($base)) {
 		return;
 	}
+
+	$image_id = (int) $image_id;
 
 	$folders = array_diff(scandir($base), ['..', '.', 'logs']);
 
