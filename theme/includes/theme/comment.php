@@ -8,9 +8,8 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.2
+ * @version 4.3
  */
-
 
 /**
  * Load additional comments using AJAX

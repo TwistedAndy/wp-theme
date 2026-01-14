@@ -7,7 +7,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.2
+ * @version 4.3
  */
 
 /**
@@ -265,7 +265,8 @@ function tw_tinymce_editor(): void
 
 	wp_add_inline_script('code-editor', sprintf('jQuery.extend( wp.codeEditor.defaultSettings, %s );', wp_json_encode($settings)));
 
-	?><!DOCTYPE html>
+	?>
+	<!DOCTYPE html>
 	<html <?php echo get_language_attributes('html'); ?>>
 	<head>
 		<meta charset="<?php bloginfo('charset'); ?>">
@@ -319,7 +320,7 @@ function tw_tinymce_editor(): void
 		</script>
 	</head>
 	<body>
-	<textarea></textarea>
+		<textarea></textarea>
 	</body>
 	</html>
 <?php }

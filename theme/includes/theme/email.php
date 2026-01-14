@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.2
+ * @version 4.3
  */
 
 /*
@@ -190,14 +190,12 @@ function tw_ajax_email_attachment() {
 			$file_id = md5($_FILES[$key]['name'] . $_FILES[$key]['size']);
 
 			if (!empty($file) and file_exists($file['file'])) {
-
 				if ($file['id'] === $file_id) {
 					continue;
-				} else {
-					unlink($file['file']);
-					tw_session_set_file($key, false);
 				}
 
+				unlink($file['file']);
+				tw_session_set_file($key, false);
 			}
 
 			$args = [
@@ -248,7 +246,9 @@ function tw_ajax_email_attachment() {
 
 	}
 
-	$result['errors'] = $errors;
+	if ($errors) {
+		$result['errors'] = $errors;
+	}
 
 	wp_send_json($result);
 

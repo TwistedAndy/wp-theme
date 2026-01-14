@@ -4,7 +4,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.2
+ * @version 4.3
  */
 
 function tw_loader_handle(): void

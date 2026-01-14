@@ -10,7 +10,7 @@
  *
  * @author  Andrii Toniievych <toniyevych@gmail.com>
  * @package Twee
- * @version 4.2
+ * @version 4.3
  */
 
 /**
@@ -553,7 +553,7 @@ if (class_exists('WooCommerce')) {
 				$('#woocommerce-product-data').on('woocommerce_variations_loaded', function() {
 					acf.doAction('ready');
 				});
-				$('.acf-fields').on('mousewheel', 'input[type="number"]', function(e) {
+				$('.acf-fields').on('mousewheel', 'input[type="number"]', function() {
 					$(this).blur();
 				});
 			});
