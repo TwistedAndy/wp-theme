@@ -1,4 +1,4 @@
-# Twee 4.2
+# Twee 4.3
 
 **Twee** is a powerful WordPress theme framework built for high-performance, large-scale projects. It is finely tuned for Advanced Custom Fields, features an
 alternative metadata storage API, and leverages object caching to minimize database load and maximize speed.
@@ -66,6 +66,7 @@ alternative metadata storage API, and leverages object caching to minimize datab
 - The HTML/CSS starter kit is available in a separate repository: [CSS_BOX Starter Kit](https://github.com/TwistedAndy/starter-kit)
 - Uses the Bigger Picture library for popup images and videos: [Bigger Picture](https://github.com/TwistedAndy/bigger-picture). This library is optimized for
   maximum browser performance and a smooth user experience
+- The core libraries are fully covered by unit tests
 
 ## Installation
 
