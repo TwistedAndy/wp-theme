@@ -540,30 +540,38 @@ class ImageTest extends WP_UnitTestCase {
 	/**
 	 * Test cropping upscale protection.
 	 */
-	public function test_calculate_crop_upscale_protection(): void
+	public function test_calculate_crop_upscale_logic(): void
 	{
-		// Target > Source: Cap at source
-		$result = tw_image_calculate(100, 100, 200, 200, true);
-		$this->assertEquals(100, $result['width']);
-		$this->assertEquals(100, $result['height']);
+		// 1. Cover = True (Default): Should Upscale
+		$result_upscale = tw_image_calculate(100, 100, 200, 200, true, false, true);
+		$this->assertEquals(200, $result_upscale['width']);
+		$this->assertEquals(200, $result_upscale['height']);
 
-		// One dimension > Source: Cap height, keep width
-		$result_mixed = tw_image_calculate(100, 100, 50, 200, true);
+		// 2. Cover = False: Should Cap at source
+		$result_capped = tw_image_calculate(100, 100, 200, 200, true, false, false);
+		$this->assertEquals(100, $result_capped['width']);
+		$this->assertEquals(100, $result_capped['height']);
+
+		// 3. Mixed with Cover = False: One dimension > Source: Cap height, keep width
+		$result_mixed = tw_image_calculate(100, 100, 50, 200, true, false, false);
 		$this->assertEquals(50, $result_mixed['width']);
 		$this->assertEquals(100, $result_mixed['height']);
 	}
 
 	/**
 	 * Test cropping with aspect ratio maintenance.
+	 *
+	 * Note: aspect ratio maintenance only applies when NOT upscaling (cover = false)
 	 */
 	public function test_calculate_crop_with_aspect_maintenance(): void
 	{
 		// Width clips to 100. Height becomes 50 to maintain 2:1 ratio.
-		$result = tw_image_calculate(100, 100, 200, 100, true, true);
+		$result = tw_image_calculate(100, 100, 200, 100, true, true, false);
 		$this->assertEquals(100, $result['width']);
 		$this->assertEquals(50, $result['height']);
 
-		$result = tw_image_calculate(100, 100, 100, 200, true, true);
+		// Height clips to 100. Width becomes 50 to maintain 1:2 ratio
+		$result = tw_image_calculate(100, 100, 100, 200, true, true, false);
 		$this->assertEquals(50, $result['width']);
 		$this->assertEquals(100, $result['height']);
 	}
@@ -573,8 +581,9 @@ class ImageTest extends WP_UnitTestCase {
 	 */
 	public function test_calculate_soft_resize_landscape(): void
 	{
+		// Cover = False (Standard Fit)
 		// 2:1 > 1:1. Fits by width.
-		$result = tw_image_calculate(1000, 500, 200, 200, false);
+		$result = tw_image_calculate(1000, 500, 200, 200, false, false, false);
 		$this->assertEquals(200, $result['width']);
 		$this->assertEquals(100, $result['height']);
 	}
@@ -584,8 +593,9 @@ class ImageTest extends WP_UnitTestCase {
 	 */
 	public function test_calculate_soft_resize_portrait(): void
 	{
+		// Cover = False (Standard Fit)
 		// 0.5 < 1:1. Fits by height.
-		$result = tw_image_calculate(500, 1000, 200, 200, false);
+		$result = tw_image_calculate(500, 1000, 200, 200, false, false, false);
 		$this->assertEquals(100, $result['width']);
 		$this->assertEquals(200, $result['height']);
 	}
@@ -596,7 +606,8 @@ class ImageTest extends WP_UnitTestCase {
 	public function test_calculate_soft_resize_no_upscale(): void
 	{
 		// Source fits in target. Return source.
-		$result = tw_image_calculate(100, 50, 200, 200, false);
+		// Must set cover=false to test this limiting behavior
+		$result = tw_image_calculate(100, 50, 200, 200, false, false, false);
 		$this->assertEquals(100, $result['width']);
 		$this->assertEquals(50, $result['height']);
 	}
@@ -633,13 +644,24 @@ class ImageTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test soft resizing: Boundary checks.
+	 * Test soft resizing: Boundary checks and Cover logic.
 	 */
-	public function test_calculate_soft_resize_upscale_protection(): void
+	public function test_calculate_soft_resize_cover_logic(): void
 	{
-		$result = tw_image_calculate(1000, 500, 1200, 800, false);
-		$this->assertEquals(500, $result['height']);
-		$this->assertEquals(1000, $result['width']);
+		// Case 1: Cover = False (Contain/Cap at source)
+		// Source: 1000x500. Target: 1200x800.
+		// Source fits inside target, but is smaller. Capped at source.
+		$result_contain = tw_image_calculate(1000, 500, 1200, 800, false, false, false);
+		$this->assertEquals(1000, $result_contain['width']);
+		$this->assertEquals(500, $result_contain['height']);
+
+		// Case 2: Cover = True (Upscale/Fill)
+		// Source: 1000x500 (2:1). Target: 1200x800 (1.5:1).
+		// Image is "wider" than target. Must match height (800) and extend width to cover.
+		// Width = 800 * 2 = 1600.
+		$result_cover = tw_image_calculate(1000, 500, 1200, 800, false, false, true);
+		$this->assertEquals(1600, $result_cover['width']);
+		$this->assertEquals(800, $result_cover['height']);
 	}
 
 	/**

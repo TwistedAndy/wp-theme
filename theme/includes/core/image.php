@@ -24,7 +24,7 @@ add_action('delete_attachment', 'tw_image_clear');
  *
  * @return string
  */
-function tw_image($image, string $size = 'full', string $before = '', string $after = '', array $attributes = []): string
+function tw_image($image, string | array $size = 'full', string $before = '', string $after = '', array $attributes = []): string
 {
 	if ($image instanceof WP_Post) {
 		if (empty($attributes['alt'])) {
@@ -168,7 +168,7 @@ function tw_image($image, string $size = 'full', string $before = '', string $af
 			$link_attributes .= ' target="' . esc_attr($attributes['link_target']) . '"';
 		}
 
-		$before .= '<a href="' . esc_url($link_href) . '"' . $link_class . $link_attributes . '">';
+		$before .= '<a href="' . esc_url($link_href) . '"' . $link_class . $link_attributes . '>';
 		$after = '</a>' . $after;
 	}
 
@@ -278,9 +278,9 @@ function tw_image_link($image, $size = 'full', bool $base_url = false): string
 
 		if ($file) {
 
-			if (0 === strpos($file, $upload_dir)) {
+			if (str_starts_with($file, $upload_dir)) {
 				$image_url = str_replace($upload_dir, $upload_url, $file);
-			} elseif (strpos($file, 'http') === 0 or strpos($file, '//') === 0) {
+			} elseif (str_starts_with($file, 'http') or str_starts_with($file, '//')) {
 				$image_url = $file;
 			} else {
 				$image_url = $upload_url . '/' . $file;
@@ -288,7 +288,7 @@ function tw_image_link($image, $size = 'full', bool $base_url = false): string
 
 			if (empty($base_url)) {
 				$image_url = str_replace(TW_HOME, '', $image_url);
-				$image_url = (TW_FOLDER and strpos($image_url, TW_FOLDER) !== 0) ? TW_FOLDER . $image_url : $image_url;
+				$image_url = (TW_FOLDER and !str_starts_with($image_url, TW_FOLDER)) ? TW_FOLDER . $image_url : $image_url;
 			}
 
 			if ($size === 'full' or stripos($image_url, '.svg') > 0) {
@@ -693,18 +693,19 @@ function tw_image_size($size, int $image_id = 0): array
 		'width'  => 0,
 		'height' => 0,
 		'crop'   => true,
-		'aspect' => false
+		'aspect' => false,
+		'cover'  => true
 	];
 
 	if (is_array($size)) {
 		$result['width'] = $size[0] ?? 0;
 		$result['height'] = $size[1] ?? 0;
 		$result['crop'] = $size[2] ?? true;
-		$result['keep'] = $size[3] ?? true;
 	} elseif (is_string($size) and isset($sizes[$size]) and $size != 'full') {
 		$result['width'] = $sizes[$size]['width'] ?? 0;
 		$result['height'] = $sizes[$size]['height'] ?? 0;
 		$result['crop'] = $sizes[$size]['crop'] ?? true;
+		$result['cover'] = $sizes[$size]['cover'] ?? true;
 		$result['aspect'] = $sizes[$size]['aspect'] ?? false;
 	}
 
@@ -806,13 +807,13 @@ function tw_image_resize(string $image_url, $size, $image_id = 0, bool $base_url
 				}
 
 				if (!is_file($upload_dir . $filename)) {
-					if (strpos($image_url, TW_HOME) === 0) {
+					if (str_starts_with($image_url, TW_HOME)) {
 						$image_path = str_replace(TW_HOME, '', $image_url);
 					} else {
 						$image_path = $image_url;
 					}
 
-					if (strpos($image_path, '/') === 0 and strpos($image_path, '//') !== 0) {
+					if (str_starts_with($image_path, '/') and !str_starts_with($image_path, '//')) {
 						$image_path = untrailingslashit(ABSPATH) . $image_path;
 
 						if (!is_file($image_path)) {
@@ -864,7 +865,7 @@ function tw_image_resize(string $image_url, $size, $image_id = 0, bool $base_url
 
 	if (empty($base_url)) {
 		$thumb_url = str_replace(TW_HOME, '', $thumb_url);
-		$thumb_url = (TW_FOLDER and strpos($thumb_url, TW_FOLDER) !== 0) ? TW_FOLDER . $thumb_url : $thumb_url;
+		$thumb_url = (TW_FOLDER and !str_starts_with($thumb_url, TW_FOLDER)) ? TW_FOLDER . $thumb_url : $thumb_url;
 	}
 
 	return $thumb_url;
@@ -881,12 +882,13 @@ function tw_image_resize(string $image_url, $size, $image_id = 0, bool $base_url
  * @param int|float  $image_height
  * @param int|float  $thumb_width
  * @param int|float  $thumb_height
- * @param bool|array $crop
- * @param bool       $aspect
+ * @param bool|array $crop   // Crop the image to the specified size
+ * @param bool       $aspect // Maintain aspect ratio if source is smaller (only if !upscale)
+ * @param bool       $cover  // Force the image to cover the requested dimensions fully
  *
  * @return array
  */
-function tw_image_calculate(int $image_width, int $image_height, int $thumb_width, int $thumb_height, $crop = true, bool $aspect = false): array
+function tw_image_calculate(int | float $image_width, int | float $image_height, int | float $thumb_width, int | float $thumb_height, $crop = true, bool $aspect = false, bool $cover = true): array
 {
 	if ($image_width < 1 or $image_height < 1) {
 		return [
@@ -904,7 +906,7 @@ function tw_image_calculate(int $image_width, int $image_height, int $thumb_widt
 	}
 
 	if ($crop) {
-		if ($thumb_width > $image_width) {
+		if (!$cover and $thumb_width > $image_width) {
 			$thumb_width = $image_width;
 
 			if ($aspect) {
@@ -912,7 +914,7 @@ function tw_image_calculate(int $image_width, int $image_height, int $thumb_widt
 			}
 		}
 
-		if ($thumb_height > $image_height) {
+		if (!$cover and $thumb_height > $image_height) {
 			$thumb_height = $image_height;
 
 			if ($aspect) {
@@ -930,15 +932,27 @@ function tw_image_calculate(int $image_width, int $image_height, int $thumb_widt
 			$thumb_width = $thumb_height * $thumb_ratio;
 		}
 
-		if ($image_ratio < $thumb_ratio) {
-			$thumb_width = $thumb_width * $image_ratio / $thumb_ratio;
-		} else {
-			$thumb_height = $thumb_height * $thumb_ratio / $image_ratio;
-		}
+		// Force the image to cover the requested dimensions fully
+		if ($cover) {
+			if ($image_ratio < $thumb_ratio) {
+				// Image is narrower than target
+				$thumb_height = $thumb_width / $image_ratio;
+			} else {
+				// Image is wider than target
+				$thumb_width = $thumb_height * $image_ratio;
+			}
 
-		if ($image_width < $thumb_width) {
-			$thumb_width = $image_width;
-			$thumb_height = $thumb_width / $image_ratio;
+		} else {
+			if ($image_ratio < $thumb_ratio) {
+				$thumb_width = $thumb_width * $image_ratio / $thumb_ratio;
+			} else {
+				$thumb_height = $thumb_height * $thumb_ratio / $image_ratio;
+			}
+
+			if ($image_width < $thumb_width) {
+				$thumb_width = $image_width;
+				$thumb_height = $thumb_width / $image_ratio;
+			}
 		}
 	}
 
@@ -971,14 +985,14 @@ function tw_image_clear($image_id): void
 	$folders = array_diff(scandir($base), ['..', '.', 'logs']);
 
 	foreach ($folders as $folder) {
-		if (strpos($folder, 'thumbs_') === false or !(is_dir($base . $folder))) {
+		if (!str_contains($folder, 'thumbs_') or !(is_dir($base . $folder))) {
 			continue;
 		}
 
 		$files = scandir($base . $folder);
 
 		foreach ($files as $file) {
-			if (strpos($file, $image_id . '_') === 0 and is_readable($base . $folder . '/' . $file)) {
+			if (str_starts_with($file, $image_id . '_') and is_readable($base . $folder . '/' . $file)) {
 				unlink($base . $folder . '/' . $file);
 			}
 		}
