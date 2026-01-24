@@ -21,6 +21,10 @@ function tw_asset_actions(): void
 
 	add_action('wp_head', 'tw_asset_print', 5);
 	add_action('wp_footer', 'tw_asset_print', 100);
+
+	if (!is_admin() and !wp_doing_ajax()) {
+		ob_start('tw_asset_inject');
+	}
 }
 
 add_action('init', 'tw_asset_actions', 20);
@@ -232,13 +236,6 @@ function tw_asset_init(): void
 	}
 
 	tw_app_set('registered', $assets, 'assets');
-
-	/**
-	 * Automatically inject block styles
-	 */
-	if (!is_admin() and !wp_doing_ajax() and (!defined('WP_TESTS_CONFIG_FILE_PATH') or defined('TW_TEST_BUFFER_OVERRIDE'))) {
-		ob_start('tw_asset_inject');
-	}
 }
 
 

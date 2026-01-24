@@ -29,7 +29,6 @@ class AssetTest extends WP_UnitTestCase {
 		$level = ob_get_level();
 		tw_asset_init();
 
-		// If init started a buffer (due to TW_TEST_BUFFER_OVERRIDE), close it immediately.
 		if (ob_get_level() > $level) {
 			ob_end_clean();
 		}
@@ -40,7 +39,12 @@ class AssetTest extends WP_UnitTestCase {
 	 */
 	public function test_actions_hooks(): void
 	{
+		$level = ob_get_level();
 		tw_asset_actions();
+
+		if (ob_get_level() > $level) {
+			ob_end_clean();
+		}
 
 		$this->assertEquals(0, has_action('wp_head', 'tw_asset_init'));
 		$this->assertEquals(5, has_action('wp_head', 'tw_asset_print'));
@@ -172,18 +176,14 @@ class AssetTest extends WP_UnitTestCase {
 	 */
 	public function test_init_buffer(): void
 	{
-		if (!defined('TW_TEST_BUFFER_OVERRIDE')) {
-			define('TW_TEST_BUFFER_OVERRIDE', true);
-		}
-
 		tw_asset_register(['dummy' => ['style' => 'dummy.css']]);
 		set_current_screen('front');
 
 		$level = ob_get_level();
-		tw_asset_init();
+		tw_asset_actions();
 
 		$this->assertGreaterThan($level, ob_get_level());
-		ob_end_clean(); // Cleanup manually
+		ob_end_clean();
 	}
 
 	/**
