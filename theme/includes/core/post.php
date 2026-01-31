@@ -252,6 +252,42 @@ function tw_post_term_thread(int $post_id, string $taxonomy, $single = true): ar
 
 
 /**
+ * Sync the post terms
+ *
+ * @param int    $post_id
+ * @param int[]  $terms
+ * @param string $taxonomy
+ * @param bool   $append
+ *
+ * @return bool
+ */
+function tw_post_set_terms(int $post_id, array $terms, string $taxonomy, bool $append = false): bool
+{
+	$term_map = tw_post_terms($taxonomy);
+
+	if (!empty($term_map[$post_id])) {
+		$old_terms = $term_map[$post_id];
+	} else {
+		$old_terms = [];
+	}
+
+	if ($append and $old_terms) {
+		$terms = array_merge($terms, $old_terms);
+	}
+
+	$terms = array_values(array_unique($terms));
+
+	if (array_diff($old_terms, $terms) or array_diff($terms, $old_terms)) {
+		wp_set_object_terms($post_id, $terms, $taxonomy, false);
+
+		return true;
+	}
+
+	return false;
+}
+
+
+/**
  * Build the post query
  *
  * @param string $type

@@ -301,6 +301,57 @@ class PostTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test setting post terms (update detection, persistence, and append logic).
+	 */
+	public function test_post_set_terms_logic(): void
+	{
+		$post_id = self::factory()->post->create();
+		$taxonomy = 'category';
+
+		$term_id_1 = self::factory()->term->create(['taxonomy' => $taxonomy]);
+		$term_id_2 = self::factory()->term->create(['taxonomy' => $taxonomy]);
+		$term_id_3 = self::factory()->term->create(['taxonomy' => $taxonomy]);
+
+		// 0. Pre-condition: Ensure the post has NO terms.
+		wp_set_object_terms($post_id, [], $taxonomy);
+
+		// 1. Initial Set (Change from empty to [term_1])
+		$is_initial_update_successful = tw_post_set_terms($post_id, [$term_id_1], $taxonomy);
+
+		$this->assertTrue($is_initial_update_successful, 'Should return true when terms are initially set.');
+		$this->assertEquals([$term_id_1], wp_get_object_terms($post_id, $taxonomy, ['fields' => 'ids']));
+
+		// 2. Append Logic (Existing [term_1] + New [term_2]) -> Should result in [term_1, term_2]
+		$is_append_successful = tw_post_set_terms($post_id, [$term_id_2], $taxonomy, true);
+
+		$this->assertTrue($is_append_successful, 'Should return true when a new term is appended.');
+
+		$current_db_terms = wp_get_object_terms($post_id, $taxonomy, ['fields' => 'ids']);
+		sort($current_db_terms);
+		$expected_terms = [$term_id_1, $term_id_2];
+		sort($expected_terms);
+
+		$this->assertEquals($expected_terms, $current_db_terms);
+
+		// 3. Append Duplicate (Existing [term_1, term_2] + Appending [term_2]) -> Should return false
+		$is_append_duplicate = tw_post_set_terms($post_id, [$term_id_2], $taxonomy, true);
+		$this->assertFalse($is_append_duplicate, 'Should return false when appending an existing term (no change).');
+
+		// 4. Replace Logic (Existing [term_1, term_2] -> New [term_3])
+		$is_replace_successful = tw_post_set_terms($post_id, [$term_id_3], $taxonomy);
+
+		$this->assertTrue($is_replace_successful, 'Should return true when terms are completely replaced.');
+		$this->assertEquals([$term_id_3], wp_get_object_terms($post_id, $taxonomy, ['fields' => 'ids']));
+
+		// 5. Append to Empty (Empty -> [term_1]) with append=true
+		wp_set_object_terms($post_id, [], $taxonomy);
+		$is_append_to_empty = tw_post_set_terms($post_id, [$term_id_1], $taxonomy, true);
+
+		$this->assertTrue($is_append_to_empty);
+		$this->assertEquals([$term_id_1], wp_get_object_terms($post_id, $taxonomy, ['fields' => 'ids']));
+	}
+
+	/**
 	 * Test advanced query logic: Excludes, Offsets, Sorting, Meta Query.
 	 */
 	public function test_post_query_coverage(): void
