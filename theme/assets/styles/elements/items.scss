@@ -15,5 +15,4 @@
 	flex-shrink: 0;
 	width: calc(var(--width-item) - var(--gap-grid-x));
 	margin: 0 var(--gap-grid-x) var(--gap-grid-y) 0;
-	overscroll-behavior: contain;
 }

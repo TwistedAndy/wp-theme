@@ -270,4 +270,120 @@ class ContentTest extends WP_UnitTestCase {
 		$this->assertSame('#', tw_content_phone('abc'));
 	}
 
+	/**
+	 * Test video embed generation for native types and WP attachment fallback.
+	 * Runs before ACF mocks to cover the native attachment resolution branch.
+	 */
+	public function test_video(): void
+	{
+		// Handle empty input
+		$this->assertEmpty(tw_content_video(''));
+
+		// YouTube (Standard & Shorts)
+		$youtube_url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+		$youtube_html = tw_content_video($youtube_url);
+
+		$this->assertStringContainsString('<iframe', $youtube_html);
+		$this->assertStringContainsString('youtube-nocookie.com/embed/dQw4w9WgXcQ', $youtube_html);
+		$this->assertStringContainsString('autoplay=1', $youtube_html);
+		$this->assertStringContainsString('pointer-events: none', $youtube_html);
+
+		$shorts_url = 'https://www.youtube.com/shorts/abcdefghijk';
+		$shorts_html = tw_content_video($shorts_url, ['controls' => true, 'loop' => false]);
+
+		$this->assertStringContainsString('embed/abcdefghijk', $shorts_html);
+		$this->assertStringContainsString('controls=1', $shorts_html);
+
+		// Vimeo (Standard & Groups/Channels)
+		$vimeo_url = 'https://vimeo.com/123456789';
+		$vimeo_html = tw_content_video($vimeo_url);
+
+		$this->assertStringContainsString('player.vimeo.com/video/123456789', $vimeo_html);
+
+		$vimeo_group_url = 'https://vimeo.com/groups/animation/videos/987654321';
+		$vimeo_group_html = tw_content_video($vimeo_group_url, ['controls' => true, 'autoplay' => false]);
+
+		$this->assertStringContainsString('player.vimeo.com/video/987654321', $vimeo_group_html);
+		$this->assertStringContainsString('autoplay=0', $vimeo_group_html);
+
+		// Native HTML5 (webm)
+		$webm_url = 'https://example.com/movie.webm';
+		$webm_html = tw_content_video($webm_url, ['poster' => 'https://example.com/poster.jpg']);
+
+		$this->assertStringContainsString('type="video/webm"', $webm_html);
+
+		// Native WP Attachment Fallback
+		$attachment_id = self::factory()->attachment->create_object([
+			'file'           => 'test-video.mp4',
+			'post_mime_type' => 'video/mp4',
+			'post_type'      => 'attachment'
+		]);
+		$attachment_html = tw_content_video($attachment_id);
+
+		$this->assertStringContainsString('test-video.mp4', $attachment_html);
+		$this->assertStringContainsString('type="video/mp4"', $attachment_html);
+	}
+
+	/**
+	 * Test ACF attachment logic and empty URL fallbacks.
+	 * * @depends test_video
+	 */
+	public function test_video_acf_and_empty_returns(): void
+	{
+		// Mock ACF function to hit the function_exists() branch
+		if (!function_exists('acf_get_attachment')) {
+			function acf_get_attachment($id)
+			{
+				if ($id === 888) {
+					return [
+						'url'       => 'https://example.com/acf-mock.mp4',
+						'mime_type' => 'video/mp4',
+						'width'     => 1920,
+						'height'    => 1080
+					];
+				}
+
+				return false;
+			}
+		}
+
+		// ACF logic path
+		$acf_html = tw_content_video(888);
+
+		$this->assertStringContainsString('acf-mock.mp4', $acf_html);
+		$this->assertStringContainsString('width="1920"', $acf_html);
+
+		// Empty returns
+		$this->assertEmpty(tw_content_video(999999)); // ACF returns false
+		$this->assertEmpty(tw_content_video(['mime_type' => 'video/mp4'])); // Missing 'url' array key
+		$this->assertEmpty(tw_content_video((object) ['url' => 'https://example.com/test.mp4'])); // Unhandled object type
+	}
+
+	/**
+	 * Test specific HTML5 video attributes: controls and poster ID resolution.
+	 */
+	public function test_video_html5_attributes(): void
+	{
+		// Mock image link function for poster resolution
+		if (!function_exists('tw_image_link')) {
+			function tw_image_link($id, $size)
+			{
+				return 'https://example.com/resolved-poster-' . $id . '.jpg';
+			}
+		}
+
+		$video_url = 'https://example.com/test-video.mp4';
+
+		// Controls attribute
+		$controls_html = tw_content_video($video_url, ['controls' => true]);
+
+		$this->assertStringContainsString('controls', $controls_html);
+		$this->assertStringContainsString('<video', $controls_html);
+
+		// Numeric poster resolution
+		$poster_html = tw_content_video($video_url, ['poster' => 777]);
+
+		$this->assertStringContainsString('poster="https://example.com/resolved-poster-777.jpg"', $poster_html);
+	}
+
 }

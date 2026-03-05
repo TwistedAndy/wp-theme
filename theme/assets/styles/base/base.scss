@@ -66,14 +66,6 @@
 		@extend %item;
 	}
 
-	@include media_min($tablet_large) {
-
-		&_1, &_2 {
-			--width-item: 100%;
-		}
-
-	}
-
 	@include media_min($desktop_small) {
 
 		&_1 {
@@ -111,7 +103,6 @@
 .embla {
 	display: block;
 	position: relative;
-	--height-button: #{rem(40)};
 
 	&_horizontal {
 
@@ -213,6 +204,7 @@
 		transition: 0.2s;
 		cursor: pointer;
 		z-index: 5;
+		--height-button: #{rem(40)};
 
 		&:before {
 			content: '';
@@ -263,6 +255,7 @@
 		height: var(--height-button);
 		margin: var(--gap-grid-y) calc(var(--height-button) + 8px) 0;
 		z-index: 3;
+		--height-button: #{rem(40)};
 	}
 
 	&_dot {

@@ -1,0 +1,18 @@
+%video_iframe {
+	position: relative;
+	overflow: hidden;
+	container-type: size;
+
+	iframe {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: Max(100cqw, 177.78cqh);
+		height: Max(100cqh, 56.25cqw);
+		padding: 0;
+		margin: 0;
+		border: none;
+		transform: translate(-50%, -50%);
+	}
+
+}

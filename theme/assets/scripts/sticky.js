@@ -57,7 +57,8 @@ Twee.addModule('sticky', 'html', function($) {
 				element: element,
 				rect: rect,
 				top: false,
-				bottom: false
+				bottom: false,
+				position: position
 			};
 
 			if (top.indexOf('px') !== -1) {
@@ -134,6 +135,8 @@ Twee.addModule('sticky', 'html', function($) {
 				if (Math.abs(window.innerHeight - rect.height - rect.top - item.bottom) < 1) {
 					offsetBottom += rect.height;
 					isFixed = true;
+				} else if (item.position === 'sticky') {
+					offsetTop += rect.height;
 				}
 
 			}

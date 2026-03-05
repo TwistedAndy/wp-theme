@@ -336,3 +336,166 @@ function tw_content_time(WP_Post $post, string $label = ' min read'): string
 
 	return $time . $label;
 }
+
+
+/**
+ * Generate an embed code for YouTube, Vimeo, or native HTML5 video
+ *
+ * @param int|string|array $video Video URL, Attachment ID, or ACF File Array.
+ * @param array            $args  Configuration options for the video playback.
+ *
+ * @return string                 The generated iframe or video HTML.
+ */
+function tw_content_video(int|string|array $video, array $args = []): string
+{
+	if (empty($video)) {
+		return '';
+	}
+
+	$url = '';
+	$mime = '';
+
+	// Normalize an Attachment ID into an ACF File Array
+	if (is_numeric($video)) {
+		if (function_exists('acf_get_attachment')) {
+			$video = acf_get_attachment($video);
+		} else {
+			$url = wp_get_attachment_url($video);
+			$mime = get_post_mime_type($video) ? : '';
+		}
+	}
+
+	// Extract data from the ACF File Array (or custom array)
+	if (is_array($video) and !empty($video['url'])) {
+		$url = $video['url'];
+		$mime = $video['mime_type'] ?? '';
+
+		// Automatically use native attachment dimensions if not overridden in $args
+		if (empty($args['width']) and !empty($video['width'])) {
+			$args['width'] = $video['width'];
+		}
+		if (empty($args['height']) and !empty($video['height'])) {
+			$args['height'] = $video['height'];
+		}
+	} elseif (is_string($video) and !is_numeric($video)) {
+		$url = $video;
+	}
+
+	if (empty($url)) {
+		return '';
+	}
+
+	$defaults = [
+		'autoplay'    => true,
+		'muted'       => true,
+		'loop'        => true,
+		'controls'    => false,
+		'playsinline' => true,
+		'class'       => 'video',
+		'width'       => '',
+		'height'      => '',
+		'poster'      => '',
+	];
+
+	$args = array_merge($defaults, $args);
+
+	$width = !empty($args['width']) ? ' width="' . htmlspecialchars((string) $args['width'], ENT_QUOTES) . '"' : '';
+	$height = !empty($args['height']) ? ' height="' . htmlspecialchars((string) $args['height'], ENT_QUOTES) . '"' : '';
+
+	if (preg_match('#(?:youtube(?:-nocookie)?\.com/(?:watch\?(?:.*?&)?v=|embed/|shorts/|v/)|youtu\.be/)([A-Za-z0-9_-]{11})#i', $url, $match)) {
+		$video_id = $match[1];
+
+		$params = [
+			'autoplay'       => $args['autoplay'] ? 1 : 0,
+			'mute'           => $args['muted'] ? 1 : 0,
+			'controls'       => $args['controls'] ? 1 : 0,
+			'playsinline'    => $args['playsinline'] ? 1 : 0,
+			'rel'            => 0,
+			'iv_load_policy' => 3,
+		];
+
+		// YouTube requires the 'playlist' parameter to loop a single video
+		if ($args['loop']) {
+			$params['loop'] = 1;
+			$params['playlist'] = $video_id;
+		}
+
+		$iframe_url = 'https://www.youtube-nocookie.com/embed/' . $video_id . '?' . http_build_query($params);
+		$video_type = 'youtube';
+
+	} elseif (preg_match('#(?:(?:www\.)?player\.)?(?:www\.)?vimeo\.com/(?:video/|channels/[^/]+/|groups/[^/]+/videos/)?([0-9]+)#i', $url, $match)) {
+		$video_id = $match[1];
+
+		$params = [
+			'autoplay'    => $args['autoplay'] ? 1 : 0,
+			'muted'       => $args['muted'] ? 1 : 0,
+			'loop'        => $args['loop'] ? 1 : 0,
+			'playsinline' => $args['playsinline'] ? 1 : 0,
+			'title'       => 0,
+			'byline'      => 0,
+			'portrait'    => 0,
+		];
+
+		if (!$args['controls']) {
+			$params['background'] = 1;
+		}
+
+		$iframe_url = "https://player.vimeo.com/video/{$video_id}?" . http_build_query($params);
+		$video_type = 'vimeo';
+
+	} else {
+		$attrs = [];
+
+		if ($args['autoplay']) {
+			$attrs[] = 'autoplay';
+		}
+
+		if ($args['muted']) {
+			$attrs[] = 'muted';
+		}
+
+		if ($args['loop']) {
+			$attrs[] = 'loop';
+		}
+
+		if ($args['controls']) {
+			$attrs[] = 'controls';
+		}
+
+		if ($args['playsinline']) {
+			$attrs[] = 'playsinline';
+		}
+
+		$poster = '';
+
+		if (!empty($args['poster'])) {
+			if (is_numeric($args['poster']) && function_exists('tw_image_link')) {
+				$poster_url = tw_image_link($args['poster'], 'full');
+			} else {
+				$poster_url = $args['poster'];
+			}
+
+			if (!empty($poster_url)) {
+				$poster = ' poster="' . htmlspecialchars((string) $poster_url, ENT_QUOTES) . '"';
+			}
+		}
+
+		if (empty($mime)) {
+			$ext = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+
+			$mime_map = [
+				'webm' => 'video/webm',
+				'ogv'  => 'video/ogg',
+				'ogg'  => 'video/ogg',
+			];
+
+			$mime = $mime_map[$ext] ?? 'video/mp4';
+		}
+
+		return sprintf('<video class="%s"%s%s%s %s><source src="%s" type="%s"></video>', htmlspecialchars($args['class'], ENT_QUOTES), $width, $height, $poster, implode(' ', $attrs), htmlspecialchars($url, ENT_QUOTES), htmlspecialchars($mime, ENT_QUOTES));
+	}
+
+	$iframe_style = !$args['controls'] ? ' style="pointer-events: none;"' : '';
+
+	return sprintf('<iframe class="%s %s" src="%s"%s%s%s frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>', htmlspecialchars($args['class'], ENT_QUOTES), htmlspecialchars($video_type, ENT_QUOTES), htmlspecialchars($iframe_url, ENT_QUOTES), $width, $height, $iframe_style);
+}
