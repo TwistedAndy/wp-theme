@@ -109,41 +109,32 @@ section {
 		padding-left: 0;
 	}
 
-}
+	&:where(.box_dark, .box_light) {
+		--gap-section-top: var(--gap-section);
 
-.box {
-
-	&_light, &_dark {
-
-		& + section {
+		& + section:where(:not(.box_top_half, .box_no_top)) {
 			--gap-section-top: var(--gap-section);
-		}
-
-		& + .box_top_half {
-			--gap-section-top: calc(0.5 * var(--gap-section));
-		}
-
-		& + .box_no_top {
-			--gap-section-top: 0px;
 		}
 
 	}
 
+}
+
+.box {
+
 	&_light {
-		--gap-section-top: var(--gap-section);
 		--color-section: var(--theme-background);
 		--color-background: var(--theme-white);
 	}
 
 	&_dark {
 		color: var(--theme-white);
-		--gap-section-top: var(--gap-section);
 		--color-base: var(--theme-black);
 		--color-section: #1a003e;
 		--color-background: var(--theme-text);
 		--color-text: #{rgbo(--theme-white, 90%)};
 		--color-muted: #{rgbo(--theme-white, 80%)};
-		--color-heading: #{--theme-white};
+		--color-heading: var(--theme-white);
 		--color-border: #{rgbo(--theme-white, 10%)};
 		--color-field: #{rgbo(--theme-white, 10%)};
 		--color-icon: var(--theme-white);
@@ -178,6 +169,64 @@ section {
 
 		& + section {
 			--gap-section-top: var(--gap-section);
+		}
+
+	}
+
+	&_heading {
+
+		@include media_min($desktop_small) {
+
+			& > .fixed > .contents {
+				display: grid;
+				align-items: end;
+				justify-content: space-between;
+				max-width: none;
+				margin-right: 0;
+				margin-left: 0;
+				text-align: left;
+				grid-template-columns: 1fr max-content;
+				gap: 0 20px;
+
+				& > :not(.buttons) {
+					max-width: var(--width-contents);
+					grid-column-start: 1;
+				}
+
+				& > .buttons {
+					grid-column-start: 2;
+				}
+
+				& > :has(+ .buttons) {
+					margin-bottom: 0;
+				}
+
+			}
+
+		}
+
+		@include desktop_small {
+
+			& > .fixed {
+				display: flex;
+				flex-direction: column;
+				align-items: stretch;
+
+				& > .contents {
+					display: contents;
+
+					& > :has(+ .buttons) {
+						margin-bottom: var(--gap-contents);
+					}
+
+					& > .buttons {
+						order: 10;
+						margin: var(--gap-contents) 0 0;
+					}
+
+				}
+			}
+
 		}
 
 	}

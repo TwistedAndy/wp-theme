@@ -27,11 +27,11 @@
                     "instructions": "",
                     "required": 0,
                     "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "80",
-                        "class": "",
-                        "id": ""
-                    },
+	                "wrapper": {
+		                "width": "60",
+		                "class": "",
+		                "id": ""
+	                },
                     "hide_label": "",
                     "default_value": "",
                     "placeholder": "",
@@ -47,11 +47,11 @@
                     "instructions": "",
                     "required": 0,
                     "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "20",
-                        "class": "",
-                        "id": ""
-                    },
+	                "wrapper": {
+		                "width": "20",
+		                "class": "",
+		                "id": ""
+	                },
                     "choices": {
                         "h1": "H1",
                         "h2": "H2",
@@ -62,6 +62,29 @@
                     "layout": "horizontal",
                     "return_format": "value"
                 },
+	            {
+		            "key": "field_69dba3557bc1e",
+		            "label": "Layout",
+		            "name": "layout",
+		            "type": "button_group",
+		            "instructions": "",
+		            "required": 0,
+		            "conditional_logic": 0,
+		            "wrapper": {
+			            "width": "20",
+			            "class": "",
+			            "id": ""
+		            },
+		            "hide_label": "",
+		            "choices": {
+			            "default": "Centered",
+			            "heading": "Balanced"
+		            },
+		            "allow_null": 0,
+		            "default_value": "default",
+		            "layout": "horizontal",
+		            "return_format": "value"
+	            },
                 {
                     "key": "field_61f6656bec940",
                     "label": "Text",

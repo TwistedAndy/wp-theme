@@ -137,14 +137,15 @@ function tw_block_attributes($class, array $block): string
  * Render the block contents
  *
  * @param array  $block
+ * @param bool   $split
  * @param string $wrapper
  *
  * @return string
  */
-function tw_block_contents(array $block, string $wrapper = 'contents'): string
+function tw_block_contents(array $block, bool $split = false, string $wrapper = 'contents'): string
 {
 	if (!empty($block['contents']) and is_array($block['contents'])) {
-		$result = tw_app_template('contents', ['block' => $block['contents'], 'wrapper' => $wrapper]);
+		$result = tw_app_template('contents', ['block' => $block['contents'], 'split' => $split, 'wrapper' => $wrapper]);
 	} else {
 		$result = '';
 	}

@@ -110,7 +110,6 @@
 	.gfield {
 		@extend %gfield_item;
 		width: calc(var(--width-item) - var(--gap-field-x));
-		--width-choice: 25%;
 		--width-item: 100%;
 
 		&.spacer {
@@ -205,27 +204,21 @@
 		}
 
 		&_checkbox, &_radio {
-			display: flex;
-			flex-wrap: wrap;
-			align-items: flex-start;
+			display: grid;
+			align-items: stretch;
 			margin: 0 calc(-1 * var(--gap-field-x)) 0 0;
+			grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+			gap: var(--gap-field-y) 0;
 
 			.gchoice {
 				display: flex;
-				flex-basis: calc(var(--width-choice) - var(--gap-field-x));
-				flex-grow: 1;
 				align-items: flex-start;
-				margin: 12px var(--gap-field-x) 0 0;
+				margin: 0 var(--gap-field-x) 0 0;
+				gap: 8px;
 			}
 
 			input, label {
-				min-width: 0;
-				margin: 0 8px 0 0;
-
-				&:last-child {
-					margin-right: 0;
-				}
-
+				margin: 0;
 			}
 
 		}
@@ -502,8 +495,8 @@
 		height: 16px;
 		margin: 0 0 0 8px;
 		background: currentColor;
+		-webkit-mask: url(../../images/ico_gravity_remove.svg) 50% 50% / contain no-repeat;
 		color: inherit;
-		-webkit-mask: url(../../images/ico_action_delete.svg) 50% 50% / contain no-repeat;
 
 		&.is_loading {
 			-webkit-mask-image: url(../../images/ico_loading.svg);
@@ -641,8 +634,8 @@
 		width: 20px;
 		height: 20px;
 		background-color: currentColor;
-		color: inherit;
 		-webkit-mask: url(../../images/ico_gravity_add.svg) 50% 50% / contain no-repeat;
+		color: inherit;
 
 		@include hover {
 			&:hover {
@@ -852,6 +845,106 @@
 		background-color: var(--color-white);
 	}
 
+	/* Image Choice */
+
+	.gfield--type-image_choice {
+
+		.gfield_radio,
+		.gfield_checkbox {
+			display: grid;
+			align-items: stretch;
+			margin: 0;
+			grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+			gap: 10px;
+		}
+
+		.gchoice {
+			display: flex;
+			position: relative;
+			flex-direction: column;
+			width: auto;
+			padding: 8px;
+			margin: 0;
+			border: 2px solid var(--color-field);
+			border-radius: var(--radius-regular);
+			background-color: var(--color-background);
+			text-align: center;
+			transition: 0.2s;
+			cursor: pointer;
+
+			@include hover {
+				&:hover {
+					border-color: var(--color-muted);
+				}
+			}
+
+			&:has(input:checked) {
+				border-color: var(--color-primary);
+			}
+
+		}
+
+		.gfield-image-choice-wrapper-outer {
+			display: flex;
+			flex-direction: column;
+			flex-grow: 1;
+			width: 100%;
+			min-height: 0;
+		}
+
+		.gfield-choice-image-wrapper {
+			display: block;
+			position: relative;
+			flex-grow: 0;
+			flex-shrink: 0;
+			width: 100%;
+			margin: 0 0 8px;
+
+			&:last-child {
+				margin-bottom: 0;
+			}
+
+			&:before {
+				content: '';
+				display: block;
+				padding-top: 100%;
+			}
+
+			img {
+				display: block;
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				inset: 0;
+			}
+
+		}
+
+		.gfield-image-choice-wrapper-inner {
+			display: flex;
+			flex-grow: 1;
+			align-items: center;
+			justify-content: center;
+			min-height: 0;
+			text-align: center;
+		}
+
+		.gfield-choice-input {
+			@extend %hidden;
+		}
+
+		.gform-field-label {
+			display: block;
+			flex-grow: 1;
+			min-width: 0;
+			font-size: 12px;
+			font-weight: 600;
+			line-height: 16px;
+			text-transform: uppercase;
+		}
+
+	}
 
 	/* Custom Classes */
 
@@ -865,6 +958,55 @@
 			& > :last-child, &:last-child {
 				margin-bottom: 0;
 			}
+		}
+
+		&_buttons {
+
+			.ginput_container {
+				--width-item: 33.333%;
+				--gap-field-y: var(--gap-field-x);
+			}
+
+			.gchoice {
+				display: flex;
+				flex-direction: column;
+				flex-grow: 1;
+				margin-top: 0;
+			}
+
+			label {
+				display: flex;
+				position: relative;
+				flex-direction: column;
+				flex-grow: 1;
+				align-items: center;
+				justify-content: center;
+				width: 100%;
+				min-height: var(--height-field);
+				padding: 0 15px;
+				border: 1px solid var(--field-border);
+				border-radius: var(--radius-small);
+				background: var(--field-base);
+				color: var(--field-text);
+				font-size: var(--size-field);
+				font-weight: 600;
+				line-height: var(--line-field);
+				text-align: center;
+				text-transform: none;
+				transition: 0.2s;
+				cursor: pointer;
+			}
+
+			input {
+				@extend %hidden;
+			}
+
+			input:checked + label {
+				border-color: var(--color-primary);
+				background-color: var(--color-primary);
+				color: var(--color-primary-text);
+			}
+
 		}
 
 		&_hidden {
@@ -882,19 +1024,6 @@
 
 		}
 
-		&_double {
-			--width-choice: 50%;
-		}
-
-		&_full {
-			--width-choice: 100%;
-		}
-
-		&_compact .gchoice {
-			flex-basis: auto;
-			flex-grow: unset;
-		}
-
 	}
 
 	@include desktop_small {
@@ -904,21 +1033,12 @@
 			bottom: 11px;
 		}
 
-		.gfield_buttons {
-
-			label {
-				height: 46px;
-			}
-
-		}
-
 	}
 
 	@include tablet_large {
 
 		.gfield {
 			--width-item: 100%;
-			--width-choice: 50%;
 		}
 
 		.ginput_cardextras {

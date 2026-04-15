@@ -1,23 +1,10 @@
-<?php
-
-$questions = [];
-
-if (!empty($block['contents']) and !empty($block['contents']['buttons'])) {
-	$buttons = $block['contents']['buttons'];
-	unset($block['contents']['buttons']);
-} else {
-	$buttons = [];
-}
-
-$contents = tw_block_contents($block);
-$buttons = tw_block_buttons($buttons);
-
-?>
 <section <?php echo tw_block_attributes('faq_box', $block); ?>>
+
+	<?php $questions = []; ?>
 
 	<div class="fixed">
 
-		<?php echo $contents; ?>
+		<?php echo tw_block_contents($block, true); ?>
 
 		<?php if (!empty($block['items'])) { ?>
 			<div class="items">
@@ -44,8 +31,6 @@ $buttons = tw_block_buttons($buttons);
 				<?php } ?>
 			</div>
 		<?php } ?>
-
-		<?php echo $buttons; ?>
 
 	</div>
 

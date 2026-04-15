@@ -9,8 +9,24 @@
 
 	@extend %button;
 
-	&.outline {
+	&_outline {
 		@extend %button_outline;
+	}
+
+	&_secondary {
+		@extend %button_secondary;
+	}
+
+	&_tertiary {
+		@extend %button_tertiary;
+	}
+
+	&_white {
+		@extend %button_white;
+	}
+
+	&_black {
+		@extend %button_black;
 	}
 
 	&:disabled {
@@ -49,6 +65,92 @@
 
 .contents {
 	@extend %contents;
+
+	.fixed:has(> &.is_split) {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	&.is_split {
+		display: contents;
+
+		& > :has(+ .buttons) {
+			margin-bottom: var(--gap-contents);
+		}
+
+		& > :not(.buttons) {
+			margin-right: inherit;
+			margin-left: inherit;
+			text-align: inherit;
+		}
+
+		& > .buttons {
+			order: 10;
+			margin-top: var(--gap-contents);
+		}
+
+	}
+
+	&.is_heading {
+		display: grid;
+		align-items: end;
+		justify-content: space-between;
+		max-width: none;
+		margin-right: 0;
+		margin-left: 0;
+		text-align: left;
+		grid-template-columns: 1fr max-content;
+		gap: 0 20px;
+
+		& > :not(.buttons) {
+			max-width: var(--width-contents);
+			grid-column-start: 1;
+		}
+
+		& > .buttons {
+			grid-column-start: 2;
+		}
+
+		& > :has(+ .buttons) {
+			margin-bottom: 0;
+		}
+
+	}
+
+	@include desktop_small {
+
+		.fixed:has(> &.is_heading) {
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		&.is_heading {
+			display: contents;
+			text-align: center;
+			gap: 0;
+
+			& > :has(+ .buttons) {
+				max-width: none;
+				margin-bottom: var(--gap-contents);
+			}
+
+			& > :not(.buttons) {
+				margin-right: inherit;
+				margin-left: inherit;
+				text-align: inherit;
+			}
+
+			& > .buttons {
+				order: 10;
+				margin-top: var(--gap-contents);
+			}
+
+		}
+
+	}
+
 }
 
 .content {
@@ -164,11 +266,11 @@
 		margin: 0;
 		z-index: 1;
 
-		&.is_right {
+		&.is_right .embla_container {
 			left: calc(-1 * var(--gap-grid-x));
 		}
 
-		&.is_center {
+		&.is_center .embla_container {
 			left: calc(-0.5 * var(--gap-grid-x));
 		}
 

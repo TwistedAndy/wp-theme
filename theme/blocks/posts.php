@@ -61,20 +61,13 @@ if (in_array('slider', $options)) {
 	tw_asset_enqueue('embla');
 }
 
-$buttons = [];
-
-if (!empty($block['contents']) and !empty($block['contents']['buttons'])) {
-	$buttons = $block['contents']['buttons'];
-	unset($block['contents']['buttons']);
-}
-
 ?>
 
 <section <?php echo tw_block_attributes($wrapper, $block); ?>>
 
 	<div class="fixed">
 
-		<?php echo tw_block_contents($block); ?>
+		<?php echo tw_block_contents($block, true); ?>
 
 		<div class="<?php echo implode(' ', $classes); ?>">
 			<?php foreach ($items as $item) { ?>
@@ -86,8 +79,6 @@ if (!empty($block['contents']) and !empty($block['contents']['buttons'])) {
 			<?php echo tw_pagination(); ?>
 		<?php } elseif (in_array('loader', $options)) { ?>
 			<?php tw_loader_button('.' . $wrapper, $template, $query); ?>
-		<?php } elseif ($buttons) { ?>
-			<?php echo tw_block_buttons($buttons); ?>
 		<?php } ?>
 
 	</div>

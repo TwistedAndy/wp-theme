@@ -8,6 +8,14 @@ if (empty($block['tag'])) {
 	$block['tag'] = 'h2';
 }
 
+if (!empty($wrapper)) {
+	if (!empty($block['layout']) and $block['layout'] !== 'default') {
+		$wrapper .= ' is_' . $block['layout'];
+	} elseif (!empty($split) and !empty($block['buttons'])) {
+		$wrapper .= ' is_split';
+	}
+}
+
 if (!empty($block['title']) or !empty($block['caption']) or !empty($block['text']) or !empty($block['buttons']) or !empty($block['before']) or !empty($block['after'])) { ?>
 
 	<?php echo !empty($wrapper) ? '<div class="' . $wrapper . '">' : ''; ?>
@@ -16,9 +24,9 @@ if (!empty($block['title']) or !empty($block['caption']) or !empty($block['text'
 		<?php echo $block['before']; ?>
 	<?php } ?>
 
-	<?php if (!empty($block['subtitle'])) { ?>
-		<div class="subtitle">
-			<?php echo $block['subtitle']; ?>
+	<?php if (!empty($block['caption'])) { ?>
+		<div class="caption">
+			<?php echo $block['caption']; ?>
 		</div>
 	<?php } ?>
 

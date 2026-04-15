@@ -38,6 +38,42 @@
 
 }
 
+%button_white {
+	--button-border: var(--theme-border);
+	--button-base: var(--theme-white);
+	--button-text: var(--theme-heading);
+	--button-border-active: var(--color-primary);
+	--button-base-active: var(--color-primary);
+	--button-text-active: var(--color-primary-text);
+}
+
+%button_black {
+	--button-border: var(--theme-black);
+	--button-base: var(--theme-black);
+	--button-text: var(--theme-white);
+	--button-border-active: var(--color-primary);
+	--button-base-active: var(--color-primary);
+	--button-text-active: var(--color-primary-text);
+}
+
+%button_secondary {
+	--button-border: var(--color-secondary);
+	--button-base: var(--color-secondary);
+	--button-text: var(--color-secondary-text);
+	--button-border-active: var(--color-primary);
+	--button-base-active: var(--color-primary);
+	--button-text-active: var(--color-primary-text);
+}
+
+%button_tertiary {
+	--button-border: var(--color-tertiary);
+	--button-base: var(--color-tertiary);
+	--button-text: var(--color-tertiary-text);
+	--button-border-active: var(--color-primary);
+	--button-base-active: var(--color-primary);
+	--button-text-active: var(--color-primary-text);
+}
+
 %button_outline {
 	--button-border: var(--color-heading);
 	--button-base: var(--color-base);

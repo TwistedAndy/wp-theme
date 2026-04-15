@@ -3,6 +3,7 @@ Twee.addModule('sticky', 'html', function($) {
 	let isAdmin = document.body.classList.contains('admin-bar'),
 		elements = document.querySelectorAll('.header_box.is_sticky'),
 		header = $('.header_box').get(0),
+		updateScreenOffset = true,
 		ticking = false;
 
 	const handleScroll = Twee.throttle(function() {
@@ -11,6 +12,8 @@ Twee.addModule('sticky', 'html', function($) {
 			ticking = true;
 		}
 	}, 16);
+
+	let offsetScreen = 0;
 
 	function updateStickyState() {
 
@@ -24,6 +27,14 @@ Twee.addModule('sticky', 'html', function($) {
 			itemsTop = [],
 			itemsBottom = [];
 
+		if (window.scrollY === 0) {
+			updateScreenOffset = true;
+		}
+
+		if (updateScreenOffset) {
+			offsetScreen = 0;
+		}
+
 		if (isAdmin) {
 
 			if (window.innerWidth <= 782 && window.innerWidth >= 600) {
@@ -33,6 +44,10 @@ Twee.addModule('sticky', 'html', function($) {
 			}
 
 			offsetScroll = offsetTop;
+
+			if (updateScreenOffset) {
+				offsetScreen = offsetTop;
+			}
 
 		}
 
@@ -50,6 +65,10 @@ Twee.addModule('sticky', 'html', function($) {
 				rect = element.getBoundingClientRect();
 
 			if (rect.height > 0 && top.indexOf('px') !== -1) {
+				if (updateScreenOffset && element !== header && position === 'sticky') {
+					offsetScreen += rect.height;
+				}
+
 				offsetScroll += rect.height;
 			}
 
@@ -91,7 +110,8 @@ Twee.addModule('sticky', 'html', function($) {
 
 		}
 
-		let propertyChanges = [],
+		let headerRect = false,
+			propertyChanges = [],
 			classChanges = [];
 
 		items.forEach(function(item) {
@@ -155,14 +175,40 @@ Twee.addModule('sticky', 'html', function($) {
 				});
 			}
 
+			if (element === header) {
+				headerRect = rect;
+			}
+
 		});
 
 		if (header) {
 
-			let rect = header.getBoundingClientRect();
+			if (headerRect === false) {
+				headerRect = header.getBoundingClientRect();
+			}
 
-			if (rect.y > 0) {
-				offsetHeader = rect.y;
+			if (headerRect.y > 0) {
+				offsetHeader = headerRect.y;
+			}
+
+			if (headerRect.height > 0) {
+
+				if (window.scrollY === 0) {
+					offsetScreen += headerRect.y;
+					offsetScreen += headerRect.height;
+					updateScreenOffset = false;
+				} else if (updateScreenOffset) {
+					header.style.setProperty('position', 'static', 'important');
+
+					let realOffset = header.getBoundingClientRect().y + window.scrollY;
+
+					header.style.removeProperty('position');
+
+					offsetScreen += realOffset;
+					offsetScreen += headerRect.height;
+					updateScreenOffset = false;
+				}
+
 			}
 
 		}
@@ -170,9 +216,21 @@ Twee.addModule('sticky', 'html', function($) {
 		/**
 		 * Split property get and set operations to avoid forced reflows
 		 */
-		let properties = ['--offset-top', '--offset-bottom', '--offset-scroll', '--offset-header'];
+		let properties = [
+			'--offset-top',
+			'--offset-bottom',
+			'--offset-scroll',
+			'--offset-header',
+			'--offset-screen'
+		];
 
-		let values = [offsetTop + 'px', offsetBottom + 'px', offsetScroll + 'px', offsetHeader + 'px'];
+		let values = [
+			offsetTop + 'px',
+			offsetBottom + 'px',
+			offsetScroll + 'px',
+			offsetHeader + 'px',
+			offsetScreen + 'px'
+		];
 
 		properties.forEach(function(property, index) {
 			if (document.body.style.getPropertyValue(property) !== values[index]) {
@@ -202,9 +260,9 @@ Twee.addModule('sticky', 'html', function($) {
 
 	}
 
-	window.addEventListener('scroll', handleScroll, { passive: true });
-	window.addEventListener('scrollend', handleScroll, { passive: true });
-	window.addEventListener('resize', handleScroll, { passive: true });
-	window.addEventListener('load', handleScroll, { passive: true });
+	window.addEventListener('scroll', handleScroll, {passive: true});
+	window.addEventListener('scrollend', handleScroll, {passive: true});
+	window.addEventListener('resize', handleScroll, {passive: true});
+	window.addEventListener('load', handleScroll, {passive: true});
 
 });
