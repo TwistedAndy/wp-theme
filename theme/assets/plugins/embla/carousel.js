@@ -11,7 +11,7 @@ Twee.addModule('carousel', 'html', function($, container) {
 			return;
 		}
 
-		let section = items.closest('section, header');
+		let section = items.closest('section, header, aside');
 
 		let args = {
 			axis: 'x',
@@ -61,8 +61,8 @@ Twee.addModule('carousel', 'html', function($, container) {
 			embla.on('select', () => {
 
 				let slides = embla.slideNodes(),
-					selected = embla.selectedScrollSnap(),
-					previous = embla.previousScrollSnap();
+					selected = embla.selectedSnap(),
+					previous = embla.previousSnap();
 
 				$('video', slides[selected]).each(function() {
 					this.play();
@@ -82,14 +82,19 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 		items.data('embla', embla);
 
-		['init', 'reInit', 'resize', 'select'].forEach((event) => {
+		[
+			'init',
+			'reInit',
+			'resize',
+			'select'
+		].forEach((event) => {
 			embla.on(event, () => {
 
 				let slides = embla.slideNodes(),
-					snaps = embla.scrollSnapList(),
-					selected = embla.selectedScrollSnap(),
-					scrollNext = embla.canScrollNext(),
-					scrollPrev = embla.canScrollPrev();
+					snaps = embla.snapList(),
+					selected = embla.selectedSnap(),
+					scrollNext = embla.canGoToNext(),
+					scrollPrev = embla.canGoToPrev();
 
 				if (isNaN(selected)) {
 					selected = 0;
@@ -106,13 +111,13 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 						if (prevButton.length === 0) {
 							prevButton = $('<button type="button" class="embla_button embla_prev" aria-label="Previous Slide"></button>');
-							prevButton.on('click', () => embla.scrollPrev());
+							prevButton.on('click', () => embla.goToPrev());
 							target.append(prevButton);
 						}
 
 						if (nextButton.length === 0) {
 							nextButton = $('<button type="button" class="embla_button embla_next" aria-label="Next Slide"></button>');
-							nextButton.on('click', () => embla.scrollNext());
+							nextButton.on('click', () => embla.goToNext());
 							target.append(nextButton);
 						}
 
@@ -139,7 +144,7 @@ Twee.addModule('carousel', 'html', function($, container) {
 							dots = $('<div class="embla_dots"></div>');
 							snaps.forEach((snap, index) => {
 								let dot = $('<button type="button" class="embla_dot" aria-label="Go to slide #' + (index + 1) + '"></button>');
-								dot.on('click', () => embla.scrollTo(index));
+								dot.on('click', () => embla.goTo(index));
 								dots.append(dot);
 							});
 							target.append(dots);
@@ -240,13 +245,13 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 			slides.forEach((slide, index) => {
 				slide.addEventListener('click', () => {
-					emblaTarget.scrollTo(index);
+					emblaTarget.goTo(index);
 				});
 			});
 
 			emblaTarget.on('select', () => {
 
-				let target = emblaTarget.selectedScrollSnap();
+				let target = emblaTarget.selectedSnap();
 
 				if (isNaN(target)) {
 					return;
@@ -262,24 +267,24 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 				if (unlock) {
 					unlock = false;
-					emblaSource.scrollTo(target);
+					emblaSource.goTo(target);
 					unlock = true;
 				}
 
 			});
 
 			emblaSource.on('init', () => {
-				let target = emblaTarget.selectedScrollSnap();
+				let target = emblaTarget.selectedSnap();
 				if (isNaN(target)) {
-					emblaSource.scrollTo(target);
+					emblaSource.goTo(target);
 				}
 			});
 
 			emblaSource.on('select', () => {
-				let target = emblaSource.selectedScrollSnap();
+				let target = emblaSource.selectedSnap();
 				if (unlock && !isNaN(target)) {
 					unlock = false;
-					emblaTarget.scrollTo(target);
+					emblaTarget.goTo(target);
 					unlock = true;
 				}
 			});
@@ -288,6 +293,6 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 	});
 
-	$('.items.carousel, .gallery.carousel', container).trigger('embla.init');
+	$('.items.carousel', container).trigger('embla.init');
 
 }, ['EmblaCarousel']);

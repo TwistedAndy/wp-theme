@@ -7,7 +7,7 @@
 		<?php if (!empty($block['text'])) { ?>
 			<div class="content">
 				<?php echo $block['text']; ?>
-				<?php tw_asset_enqueue('better'); ?>
+				<?php tw_asset_enqueue('bigger'); ?>
 			</div>
 		<?php } ?>
 

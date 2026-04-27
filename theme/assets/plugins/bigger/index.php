@@ -2,9 +2,9 @@
 
 return [
 	'script' => [
-		'better-picture.min.js',
+		'bigger-picture.min.js',
 		'picture.js'
 	],
-	'style' => 'better-picture.css',
+	'style' => 'bigger-picture.css',
 	'deps' => ['app']
 ];

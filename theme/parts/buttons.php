@@ -26,7 +26,7 @@ foreach ($buttons as $button) {
 	}
 
 	if (!empty($button['type']) and $button['type'] !== 'default') {
-		$classes[] = $button['type'];
+		$classes[] = 'button_' . $button['type'];
 	}
 
 	if (!empty($button['icon']) and $button['icon'] !== 'none') {

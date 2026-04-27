@@ -120,7 +120,7 @@ function tw_block_attributes($class, array $block): string
 		$classes[] = 'box_' . $settings['background'];
 	}
 
-	$result = ' class="' . implode(' ', $classes) . '"';
+	$result = 'class="' . implode(' ', $classes) . '"';
 
 	if (isset($_GET['preview']) and empty($_GET['preview'])) {
 		$result .= ' id="block_' . tw_app_get('block_id', 'default', 0) . '"';

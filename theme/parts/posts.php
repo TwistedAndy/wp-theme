@@ -1,0 +1,106 @@
+<?php
+
+if (empty($wrapper)) {
+	$wrapper = 'posts_box';
+}
+
+if (empty($type)) {
+	if (empty($block['type'])) {
+		$type = 'post';
+	} else {
+		$type = $block['type'];
+	}
+}
+
+if (empty($template)) {
+	if (empty($block['template'])) {
+		$template = 'post';
+	} else {
+		$template = $block['template'];
+	}
+}
+
+if (!empty($block['options']) and is_array($block['options'])) {
+	$options = $block['options'];
+} else {
+	$options = [];
+}
+
+if (in_array('current', $options)) {
+
+	global $wp_query;
+
+	$query = $wp_query;
+
+} else {
+
+	if (in_array('exclude', $options)) {
+
+		$object = get_queried_object();
+
+		if ($object instanceof WP_Post) {
+
+			if (empty($block['exclude'])) {
+				$block['exclude'] = [];
+			}
+
+			$block['exclude'][] = $object->ID;
+
+		}
+
+	}
+
+	$args = tw_post_query($type, $block);
+
+	$query = new WP_Query($args);
+
+}
+
+if (empty($query->posts)) {
+	return;
+}
+
+$items = $query->posts;
+
+$classes = ['items'];
+
+if (in_array('slider', $options)) {
+	$classes[] = 'carousel';
+	tw_asset_enqueue('embla');
+}
+
+if (!empty($block['columns']) and is_numeric($block['columns'])) {
+	$classes[] = 'items_' . $block['columns'];
+}
+
+if (!empty($block['contents']) and !empty($block['contents']['buttons'])) {
+	$buttons = $block['contents']['buttons'];
+	unset($block['contents']['buttons']);
+} else {
+	$buttons = [];
+}
+
+?>
+<section <?php echo tw_block_attributes($wrapper, $block); ?>>
+
+	<div class="fixed">
+
+		<?php echo tw_block_contents($block); ?>
+
+		<div class="<?php echo implode(' ', $classes); ?>">
+			<?php foreach ($items as $item) { ?>
+				<?php echo tw_app_template($template, ['item' => $item]); ?>
+			<?php } ?>
+		</div>
+
+		<?php if (in_array('current', $options)) { ?>
+			<?php echo tw_pagination(); ?>
+		<?php } elseif (in_array('loader', $options)) { ?>
+			<?php tw_loader_button('.' . $wrapper, $template, $query); ?>
+		<?php } elseif ($buttons) { ?>
+			<?php echo tw_block_buttons($buttons); ?>
+		<?php } ?>
+
+	</div>
+
+</section>

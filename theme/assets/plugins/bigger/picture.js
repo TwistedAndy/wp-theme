@@ -20,8 +20,8 @@ Twee.addModule('better', 'section', function($, wrapper) {
 				let slides = embla.slideNodes(),
 					index = slides.indexOf(activeItem.element);
 
-				if (index > -1 && embla.slidesNotInView().indexOf(index) > -1) {
-					embla.scrollTo(index);
+				if (index > -1 && embla.slidesInView().indexOf(index) === -1) {
+					embla.goTo(index);
 				}
 
 			}

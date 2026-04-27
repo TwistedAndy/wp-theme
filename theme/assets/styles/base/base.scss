@@ -66,23 +66,24 @@
 .contents {
 	@extend %contents;
 
-	.fixed:has(> &.is_split) {
+	.fixed:has(> &.is_split),
+	.fixed:has(> &.is_heading) {
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;
 	}
 
 	&.is_split {
-		display: contents;
 
-		& > :has(+ .buttons) {
-			margin-bottom: var(--gap-contents);
-		}
+		&:has(.buttons) {
+			display: contents;
 
-		& > :not(.buttons) {
-			margin-right: inherit;
-			margin-left: inherit;
-			text-align: inherit;
+			& > :not(.buttons) {
+				margin-right: inherit;
+				margin-left: inherit;
+				text-align: inherit;
+			}
+
 		}
 
 		& > .buttons {
@@ -90,22 +91,30 @@
 			margin-top: var(--gap-contents);
 		}
 
+		& > :has(+ .buttons) {
+			margin-bottom: var(--gap-contents);
+		}
+
 	}
 
 	&.is_heading {
-		display: grid;
-		align-items: end;
-		justify-content: space-between;
-		max-width: none;
 		margin-right: 0;
 		margin-left: 0;
 		text-align: left;
-		grid-template-columns: 1fr max-content;
-		gap: 0 20px;
 
-		& > :not(.buttons) {
-			max-width: var(--width-contents);
-			grid-column-start: 1;
+		&:has(.buttons) {
+			display: grid;
+			align-items: end;
+			justify-content: space-between;
+			max-width: none;
+			grid-template-columns: 1fr max-content;
+			gap: 0 20px;
+
+			& > :not(.buttons) {
+				max-width: var(--width-contents);
+				grid-column-start: 1;
+			}
+
 		}
 
 		& > .buttons {
@@ -120,31 +129,32 @@
 
 	@include desktop_small {
 
-		.fixed:has(> &.is_heading) {
-			display: flex;
-			flex-direction: column;
-			align-items: stretch;
-		}
-
 		&.is_heading {
-			display: contents;
+			margin-right: auto;
+			margin-left: auto;
 			text-align: center;
-			gap: 0;
 
-			& > :has(+ .buttons) {
-				max-width: none;
-				margin-bottom: var(--gap-contents);
-			}
+			&:has(.buttons) {
+				display: contents;
+				gap: 0;
 
-			& > :not(.buttons) {
-				margin-right: inherit;
-				margin-left: inherit;
-				text-align: inherit;
+				& > :not(.buttons) {
+					max-width: none;
+					margin-right: inherit;
+					margin-left: inherit;
+					text-align: inherit;
+				}
+
 			}
 
 			& > .buttons {
 				order: 10;
 				margin-top: var(--gap-contents);
+			}
+
+			& > :has(+ .buttons) {
+				max-width: none;
+				margin-bottom: var(--gap-contents);
 			}
 
 		}

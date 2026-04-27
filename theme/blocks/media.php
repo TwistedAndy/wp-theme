@@ -35,7 +35,7 @@ if (in_array('card', $options)) {
 
 			if (!empty($block['video'])) {
 
-				tw_asset_enqueue('better');
+				tw_asset_enqueue('bigger');
 
 				echo tw_image($block['image'], $size, '', '', [
 					'link' => $block['video'],
