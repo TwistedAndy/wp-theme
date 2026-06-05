@@ -185,13 +185,31 @@
 
 	.alignnone {
 		height: auto;
-		margin: 0 0 var(--gap-content);
+		margin: calc(10px + var(--gap-content)) 0;
+
+		&:first-child {
+			margin-top: 0;
+		}
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
 	}
 
 	.aligncenter {
 		display: block;
 		max-width: 100%;
-		margin: 0 auto var(--gap-content);
+		margin: calc(10px + var(--gap-content)) auto;
+
+		&:first-child {
+			margin-top: 0;
+		}
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
 	}
 
 	p:not(:first-child) img {
@@ -203,8 +221,8 @@
 	}
 
 	& > table, .table {
-		margin: calc(var(--gap-content) + 5px) 0;
 		overflow: auto;
+		margin: calc(var(--gap-content) + 5px) 0;
 
 		&:first-child {
 			margin-top: 0;

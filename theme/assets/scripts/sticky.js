@@ -1,19 +1,40 @@
 Twee.addModule('sticky', 'html', function($) {
 
-	let isAdmin = document.body.classList.contains('admin-bar'),
+	const global = window;
+
+	let screenOffset = 0,
+		updateScreenOffset = true,
+		isAdmin = document.body.classList.contains('admin-bar'),
 		elements = document.querySelectorAll('.header_box.is_sticky'),
 		header = $('.header_box').get(0),
-		updateScreenOffset = true,
 		ticking = false;
 
-	const handleScroll = Twee.throttle(function() {
-		if (!ticking) {
-			requestAnimationFrame(updateStickyState);
-			ticking = true;
-		}
-	}, 16);
+	initStickyState();
 
-	let offsetScreen = 0;
+	function initStickyState() {
+
+		global.StickySidebar = StickySidebar;
+
+		const handleScroll = Twee.throttle(function() {
+			if (!ticking) {
+				requestAnimationFrame(updateStickyState);
+				ticking = true;
+			}
+		}, 16);
+
+		['resize', 'scroll', 'scrollend', 'orientationchange', 'load'].forEach((property) => {
+			global.addEventListener(property, handleScroll, { passive: true });
+		});
+
+		updateStickyState();
+
+		$('.wrapper_box [data-sidebar]').each(function() {
+			StickySidebar(this, {
+				bottomSpacing: -50
+			});
+		});
+
+	}
 
 	function updateStickyState() {
 
@@ -27,33 +48,33 @@ Twee.addModule('sticky', 'html', function($) {
 			itemsTop = [],
 			itemsBottom = [];
 
-		if (window.scrollY === 0) {
+		if (global.scrollY === 0) {
 			updateScreenOffset = true;
 		}
 
 		if (updateScreenOffset) {
-			offsetScreen = 0;
+			screenOffset = 0;
 		}
 
 		if (isAdmin) {
 
-			if (window.innerWidth <= 782 && window.innerWidth >= 600) {
+			if (global.innerWidth <= 782 && global.innerWidth >= 600) {
 				offsetTop += 46;
-			} else if (window.innerWidth > 782) {
+			} else if (global.innerWidth > 782) {
 				offsetTop += 32;
 			}
 
 			offsetScroll = offsetTop;
 
 			if (updateScreenOffset) {
-				offsetScreen = offsetTop;
+				screenOffset = offsetTop;
 			}
 
 		}
 
 		elements.forEach(function(element) {
 
-			let styles = window.getComputedStyle(element, null),
+			let styles = global.getComputedStyle(element, null),
 				position = styles.getPropertyValue('position');
 
 			if (position !== 'fixed' && position !== 'sticky') {
@@ -66,10 +87,12 @@ Twee.addModule('sticky', 'html', function($) {
 
 			if (rect.height > 0 && top.indexOf('px') !== -1) {
 				if (updateScreenOffset && element !== header && position === 'sticky') {
-					offsetScreen += rect.height;
+					screenOffset += rect.height;
 				}
 
-				offsetScroll += rect.height;
+				if (position === 'sticky' || (position === 'fixed' && bottom.indexOf('px') !== -1)) {
+					offsetScroll += rect.height;
+				}
 			}
 
 			let item = {
@@ -123,19 +146,22 @@ Twee.addModule('sticky', 'html', function($) {
 
 			if (item.top !== false) {
 
+				value = Math.max(rect.y, -rect.height, offsetTop) + 'px';
+
 				if (element.style.getPropertyValue('--offset-top') !== value) {
 					propertyChanges.push({
 						'element': element,
 						'property': '--offset-top',
 						'value': value
 					});
-					item.top = parseInt(window.getComputedStyle(element, null).getPropertyValue('top').replace('px', '')) || 0;
+					item.top = parseInt(global.getComputedStyle(element, null).getPropertyValue('top').replace('px', '')) || 0;
 					rect = element.getBoundingClientRect();
+					item.rect = rect;
 				}
 
 				if (Math.abs(item.top - rect.top) < 10) {
 					offsetTop += rect.height;
-					isFixed = window.scrollY > 0;
+					isFixed = global.scrollY > 0;
 				}
 
 			} else if (item.bottom !== false) {
@@ -148,11 +174,12 @@ Twee.addModule('sticky', 'html', function($) {
 						'property': '--offset-bottom',
 						'value': value
 					});
-					item.bottom = parseInt(window.getComputedStyle(element, null).getPropertyValue('bottom').replace('px', '')) || 0;
+					item.bottom = parseInt(global.getComputedStyle(element, null).getPropertyValue('bottom').replace('px', '')) || 0;
 					rect = element.getBoundingClientRect();
+					item.rect = rect;
 				}
 
-				if (Math.abs(window.innerHeight - rect.height - rect.top - item.bottom) < 1) {
+				if (Math.abs(global.innerHeight - rect.height - rect.top - item.bottom) < 1) {
 					offsetBottom += rect.height;
 					isFixed = true;
 				} else if (item.position === 'sticky') {
@@ -193,19 +220,19 @@ Twee.addModule('sticky', 'html', function($) {
 
 			if (headerRect.height > 0) {
 
-				if (window.scrollY === 0) {
-					offsetScreen += headerRect.y;
-					offsetScreen += headerRect.height;
+				if (global.scrollY === 0) {
+					screenOffset += headerRect.y;
+					screenOffset += headerRect.height;
 					updateScreenOffset = false;
 				} else if (updateScreenOffset) {
 					header.style.setProperty('position', 'static', 'important');
 
-					let realOffset = header.getBoundingClientRect().y + window.scrollY;
+					let realOffset = header.getBoundingClientRect().y + global.scrollY;
 
 					header.style.removeProperty('position');
 
-					offsetScreen += realOffset;
-					offsetScreen += headerRect.height;
+					screenOffset += realOffset;
+					screenOffset += headerRect.height;
 					updateScreenOffset = false;
 				}
 
@@ -216,21 +243,9 @@ Twee.addModule('sticky', 'html', function($) {
 		/**
 		 * Split property get and set operations to avoid forced reflows
 		 */
-		let properties = [
-			'--offset-top',
-			'--offset-bottom',
-			'--offset-scroll',
-			'--offset-header',
-			'--offset-screen'
-		];
+		let properties = ['--offset-top', '--offset-bottom', '--offset-scroll', '--offset-header', '--offset-screen'];
 
-		let values = [
-			offsetTop + 'px',
-			offsetBottom + 'px',
-			offsetScroll + 'px',
-			offsetHeader + 'px',
-			offsetScreen + 'px'
-		];
+		let values = [offsetTop + 'px', offsetBottom + 'px', offsetScroll + 'px', offsetHeader + 'px', screenOffset + 'px'];
 
 		properties.forEach(function(property, index) {
 			if (document.body.style.getPropertyValue(property) !== values[index]) {
@@ -260,9 +275,167 @@ Twee.addModule('sticky', 'html', function($) {
 
 	}
 
-	window.addEventListener('scroll', handleScroll, {passive: true});
-	window.addEventListener('scrollend', handleScroll, {passive: true});
-	window.addEventListener('resize', handleScroll, {passive: true});
-	window.addEventListener('load', handleScroll, {passive: true});
+	function StickySidebar(sidebarElement, userOptions = {}) {
+
+		const sidebar = typeof sidebarElement === 'string' ? document.querySelector(sidebarElement) : sidebarElement;
+
+		if (!sidebar) {
+			console.warn('Sticky element not specified');
+		}
+
+		const options = Object.assign({
+			topSpacing: 0,
+			bottomSpacing: 20,
+			stickyClass: 'is-sticky'
+		}, userOptions);
+
+		// Internal State
+		let currentTop = 0,
+			lastScrollY = global.scrollY,
+			isApplied = false,
+			isDestroyed = false,
+			isActive = false,
+			baseTop = 0;
+
+		let resizeObserver = null;
+
+		// Private Methods
+		const getTopSpacing = () => {
+			const extraSpacing = typeof options.topSpacing === 'function' ? options.topSpacing(sidebar) : options.topSpacing;
+			return baseTop + (parseInt(extraSpacing) || 0);
+		};
+
+		const getBottomSpacing = () => {
+			return typeof options.bottomSpacing === 'function' ? parseInt(options.bottomSpacing(sidebar)) || 0 : parseInt(options.bottomSpacing) || 0;
+		};
+
+		const removeStyles = () => {
+			if (isApplied) {
+				sidebar.style.top = '';
+				sidebar.classList.remove(options.stickyClass);
+				isApplied = false;
+			}
+		};
+
+		const updateSticky = (deltaY = 0) => {
+			if (isDestroyed || !isActive) {
+				return;
+			}
+
+			let sidebarHeight = sidebar.offsetHeight,
+				viewportHeight = global.innerHeight,
+				topSpacing = getTopSpacing(),
+				bottomSpacing = getBottomSpacing();
+
+			if (sidebarHeight + topSpacing + bottomSpacing <= viewportHeight) {
+				currentTop = topSpacing;
+			} else {
+				let minTop = viewportHeight - sidebarHeight - bottomSpacing,
+					newTop = currentTop - deltaY;
+
+				currentTop = Math.max(minTop, Math.min(topSpacing, newTop));
+			}
+
+			sidebar.style.top = currentTop + 'px';
+		};
+
+		const handleScroll = () => {
+			if (isDestroyed || !isActive) {
+				return;
+			}
+
+			let maxScroll = document.documentElement.scrollHeight - global.innerHeight,
+				currentScrollY = Math.max(0, Math.min(maxScroll, global.scrollY)),
+				deltaY = currentScrollY - lastScrollY;
+
+			lastScrollY = currentScrollY;
+
+			updateSticky(deltaY);
+		};
+
+		const handleResize = () => {
+			if (isDestroyed) {
+				return;
+			}
+
+			updateStickyState();
+
+			// Temporarily remove inline top style to accurately read CSS stylesheet values
+			sidebar.style.top = '';
+
+			let styles = global.getComputedStyle(sidebar, null),
+				top = styles.getPropertyValue('top');
+
+			if (top.indexOf('px') !== -1) {
+				baseTop = Number(top.replace('px', ''));
+			} else {
+				baseTop = 0;
+			}
+
+			// The sidebar is active if it has the computed style with position: sticky
+			isActive = (styles.getPropertyValue('position') === 'sticky');
+
+			if (!isActive) {
+				removeStyles();
+				return;
+			}
+
+			if (!isApplied) {
+				sidebar.classList.add(options.stickyClass);
+				isApplied = true;
+			}
+
+			updateSticky(0);
+		};
+
+		const destroy = () => {
+			isDestroyed = true;
+
+			['scroll', 'scrollend'].forEach((property) => {
+				global.removeEventListener(property, handleScroll);
+			});
+
+			['resize', 'orientationchange'].forEach((property) => {
+				global.removeEventListener(property, handleResize);
+			});
+
+			if (resizeObserver) {
+				resizeObserver.disconnect();
+			}
+
+			removeStyles();
+		};
+
+		const init = () => {
+			if (typeof ResizeObserver !== 'undefined') {
+				resizeObserver = new ResizeObserver(handleResize);
+				resizeObserver.observe(sidebar);
+
+				if (sidebar.parentElement) {
+					resizeObserver.observe(sidebar.parentElement);
+				}
+			}
+
+			['scroll', 'scrollend'].forEach((property) => {
+				global.addEventListener(property, handleScroll, { passive: true });
+			});
+
+			['resize', 'orientationchange'].forEach((property) => {
+				global.addEventListener(property, handleResize, { passive: true });
+			});
+
+			handleResize();
+
+			currentTop = getTopSpacing();
+		};
+
+		init();
+
+		// Public API
+		return {
+			destroy,
+			updateSticky
+		};
+	}
 
 });

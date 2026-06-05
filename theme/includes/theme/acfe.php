@@ -287,6 +287,10 @@ function tw_acfe_render_scripts(): void
 		.acf-render-label-green {
 			background-color: #009600
 		}
+
+		body:not(.acf-admin-6) .acf-field .select2-container.-acf .select2-selection--multiple .select2-search--inline {
+			margin-top: 0;
+		}
 	</style>
 <?php }
 
@@ -415,6 +419,10 @@ function tw_acfe_render_setup(): void
 						'post_type' => 'product'
 					];
 
+				} elseif ($entity['id'] == get_option('page_for_posts')) {
+					$query_args = [
+						'post_type' => 'post'
+					];
 				} else {
 					$query_args = [
 						'p'         => $item->ID,

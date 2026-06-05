@@ -130,7 +130,7 @@ tw_app_type('review', [
 		'add_new' => 'Add Review',
 		'add_new_item' => 'Add New',
 		'edit_item' => 'Edit Review',
-		'view_item' => 'VIew Review',
+		'view_item' => 'View Review',
 		'all_items' => 'All Reviews',
 		'search_items' => 'Search Reviews',
 		'not_found' => 'Review not found',

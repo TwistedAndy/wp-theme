@@ -15,7 +15,7 @@
  *
  * @return string
  */
-function tw_content_title(object $object, int $length = 0): string
+function tw_content_title($object, int $length = 0): string
 {
 	$title = '';
 
@@ -385,6 +385,10 @@ function tw_content_video(int|string|array $video, array $args = []): string
 		return '';
 	}
 
+	if (empty($args['poster'])) {
+		$args['poster'] = tw_image_preview($url);
+	}
+
 	$defaults = [
 		'autoplay'    => true,
 		'muted'       => true,
@@ -421,7 +425,7 @@ function tw_content_video(int|string|array $video, array $args = []): string
 		}
 
 		$iframe_url = 'https://www.youtube-nocookie.com/embed/' . $video_id . '?' . http_build_query($params);
-		$video_type = 'youtube';
+		$args['class'] .= ' video_youtube';
 
 	} elseif (preg_match('#(?:(?:www\.)?player\.)?(?:www\.)?vimeo\.com/(?:video/|channels/[^/]+/|groups/[^/]+/videos/)?([0-9]+)#i', $url, $match)) {
 		$video_id = $match[1];
@@ -441,7 +445,7 @@ function tw_content_video(int|string|array $video, array $args = []): string
 		}
 
 		$iframe_url = "https://player.vimeo.com/video/{$video_id}?" . http_build_query($params);
-		$video_type = 'vimeo';
+		$args['class'] .= ' video_vimeo';
 
 	} else {
 		$attrs = [];
@@ -469,14 +473,14 @@ function tw_content_video(int|string|array $video, array $args = []): string
 		$poster = '';
 
 		if (!empty($args['poster'])) {
-			if (is_numeric($args['poster']) && function_exists('tw_image_link')) {
+			if (is_numeric($args['poster']) and function_exists('tw_image_link')) {
 				$poster_url = tw_image_link($args['poster'], 'full');
 			} else {
 				$poster_url = $args['poster'];
 			}
 
 			if (!empty($poster_url)) {
-				$poster = ' poster="' . htmlspecialchars((string) $poster_url, ENT_QUOTES) . '"';
+				$poster = ' poster="' . esc_url($poster_url) . '"';
 			}
 		}
 
@@ -492,10 +496,10 @@ function tw_content_video(int|string|array $video, array $args = []): string
 			$mime = $mime_map[$ext] ?? 'video/mp4';
 		}
 
-		return sprintf('<video class="%s"%s%s%s %s><source src="%s" type="%s"></video>', htmlspecialchars($args['class'], ENT_QUOTES), $width, $height, $poster, implode(' ', $attrs), htmlspecialchars($url, ENT_QUOTES), htmlspecialchars($mime, ENT_QUOTES));
+		return sprintf('<video class="%s"%s%s%s %s><source src="%s" type="%s"></video>', esc_attr($args['class']), $width, $height, $poster, implode(' ', $attrs), esc_url($url), esc_attr($mime));
 	}
 
 	$iframe_style = !$args['controls'] ? ' style="pointer-events: none;"' : '';
 
-	return sprintf('<iframe class="%s %s" src="%s"%s%s%s frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>', htmlspecialchars($args['class'], ENT_QUOTES), htmlspecialchars($video_type, ENT_QUOTES), htmlspecialchars($iframe_url, ENT_QUOTES), $width, $height, $iframe_style);
+	return sprintf('<iframe class="%s" src="%s"%s%s%s frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>', esc_attr($args['class']), esc_url($iframe_url), $width, $height, $iframe_style);
 }

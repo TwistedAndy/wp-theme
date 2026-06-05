@@ -53,11 +53,14 @@
 		padding-top: 5px;
 	}
 
-	.items + &, .contents + & {
+	.items + &,
+	.embla + &,
+	.contents + & {
 		text-align: center;
 	}
 
-	.items + &:has(.button:not(.is_hidden)) {
+	.items + &:has(.button:not(.is_hidden)),
+	.embla + &:has(.button:not(.is_hidden)) {
 		margin-top: var(--gap-contents);
 	}
 

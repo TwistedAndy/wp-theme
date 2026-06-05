@@ -2,7 +2,6 @@
 @import '../../styles/elements/label.scss';
 @import '../../styles/elements/hidden.scss';
 
-
 %gfield_items {
 	display: flex;
 	flex-wrap: wrap;
@@ -206,9 +205,9 @@
 		&_checkbox, &_radio {
 			display: grid;
 			align-items: stretch;
-			margin: 0 calc(-1 * var(--gap-field-x)) 0 0;
-			grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-			gap: var(--gap-field-y) 0;
+			margin: 4px calc(-1 * var(--gap-field-x)) 0 0;
+			grid-template-columns: repeat(auto-fit, minmax(33.333%, 1fr));
+			gap: 12px 0;
 
 			.gchoice {
 				display: flex;

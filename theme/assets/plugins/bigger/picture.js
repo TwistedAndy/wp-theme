@@ -1,6 +1,6 @@
-Twee.addModule('better', 'section', function($, wrapper) {
+Twee.addModule('bigger', 'section', function($, wrapper) {
 
-	let better = BetterPicture(),
+	let bigger = BiggerPicture(),
 		selectors = 'a[href*=".png"], a[href*=".jpg"], a[href*=".jpeg"], a[href*=".gif"], a[href*=".webp"], a[href*="youtube.com"], a[href*="youtu.be"], a[href*="vimeo.com"], a[href*=".mp4"]';
 
 	wrapper.on('click', selectors, function(e) {
@@ -27,11 +27,11 @@ Twee.addModule('better', 'section', function($, wrapper) {
 			}
 		};
 
-		better.open(args);
+		bigger.open(args);
 
 		e.preventDefault();
 		e.stopPropagation();
 
 	});
 
-}, ['BetterPicture']);
+}, ['BiggerPicture']);

@@ -268,6 +268,7 @@ function tw_asset_print(): void
 
 	$assets_enqueued = apply_filters('twee_asset_enqueue', $assets_enqueued, $assets_registered);
 
+	$modules = [];
 	$print_styles = [];
 	$print_scripts = [];
 
@@ -305,6 +306,10 @@ function tw_asset_print(): void
 				tw_asset_localize($name);
 			}
 
+			if (!empty($asset['module'])) {
+				$modules[$asset_name] = true;
+			}
+
 			if (!empty($deps['script']) and empty($asset['script'])) {
 				$print_scripts = array_merge($print_scripts, $deps['script']);
 			}
@@ -332,6 +337,16 @@ function tw_asset_print(): void
 	}
 
 	tw_app_set('printed', $assets_printed, 'assets');
+
+	if ($modules) {
+		add_filter('script_loader_tag', function($tag, $handle) use ($modules) {
+			if (isset($modules[$handle])) {
+				return str_replace('<script ', '<script type="module"', $tag);
+			} else {
+				return $tag;
+			}
+		}, 10, 2);
+	}
 
 	if ($print_scripts) {
 		wp_scripts()->do_items($print_scripts);
@@ -406,6 +421,16 @@ function tw_asset_enqueue($name, bool $instant = false): void
 
 		if (wp_script_is($asset_name, 'registered')) {
 			wp_enqueue_script($asset_name);
+
+			if (!empty($asset['module'])) {
+				add_filter('script_loader_tag', function($tag, $handle) use ($asset_name) {
+					if ($handle === $asset_name) {
+						return str_replace(' type="script"', ' type="module"', $tag);
+					} else {
+						return $tag;
+					}
+				}, 10, 2);
+			}
 		}
 
 		if (wp_style_is($asset_name, 'registered')) {
@@ -549,6 +574,7 @@ function tw_asset_normalize(array $asset): array
 		'style'     => '',
 		'script'    => '',
 		'footer'    => true,
+		'module'    => false,
 		'prefix'    => 'tw_',
 		'version'   => null,
 		'display'   => false,

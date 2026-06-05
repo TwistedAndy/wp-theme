@@ -82,12 +82,7 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 		items.data('embla', embla);
 
-		[
-			'init',
-			'reInit',
-			'resize',
-			'select'
-		].forEach((event) => {
+		['init', 'reInit', 'resize', 'select'].forEach((event) => {
 			embla.on(event, () => {
 
 				let slides = embla.slideNodes(),
@@ -204,6 +199,12 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 		embla.on('resize', () => {
 
+			let hasClass = carousel.classList.contains('embla_container');
+
+			if (hasClass) {
+				carousel.classList.remove('embla_container');
+			}
+
 			let style = window.getComputedStyle(carousel),
 				lastAxis = args.axis,
 				lastAlign = args.align;
@@ -224,6 +225,10 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 			if (lastAxis !== args.axis || lastAlign !== args.align) {
 				embla.reInit(args);
+			}
+
+			if (hasClass) {
+				carousel.classList.add('embla_container');
 			}
 
 		});
