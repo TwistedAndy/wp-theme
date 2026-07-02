@@ -443,7 +443,7 @@ function tw_acf_encode_data($values, array $field)
 
 			foreach ($values as $field_key => $value) {
 
-				if (!isset($fields[$field_key]) or empty($fields[$field_key]['name'])) {
+				if (!isset($fields[$field_key]) or !isset($fields[$field_key]['name'])) {
 					continue;
 				}
 
@@ -475,7 +475,7 @@ function tw_acf_encode_data($values, array $field)
 
 					$sub_field = $fields[$field_key];
 
-					if (!empty($sub_field['name'])) {
+					if (isset($sub_field['name'])) {
 
 						$processed = tw_acf_encode_data($value, $sub_field);
 

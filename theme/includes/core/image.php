@@ -204,8 +204,10 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 		$after = $attributes['after'] . $after;
 	}
 
+	$empty_dimensions = (empty($attributes['width']) or empty($attributes['height']));
+
 	if (stripos($image_url, '.svg') === false) {
-		if (is_numeric($image) and $image > 0 and (empty($attributes['width']) or empty($attributes['height']))) {
+		if (is_numeric($image) and $image > 0 and $empty_dimensions) {
 			$data = tw_image_size($size, (int) $image);
 
 			if ($data['width'] > 0 and $data['height'] > 0) {
@@ -214,7 +216,7 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 			}
 		}
 
-		if (empty($attributes['width']) or empty($attributes['height'])) {
+		if ($empty_dimensions) {
 			$dir = tw_image_folders();
 
 			$upload_dir = $dir['basedir'];
@@ -237,6 +239,13 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 		}
 
 		$attributes = tw_image_srcset((int) $image, $attributes);
+	} elseif ($image > 0 and $empty_dimensions) {
+		$data = tw_image_size($size, (int) $image);
+
+		if ($data['width'] > 0 and $data['height'] > 0) {
+			$attributes['width'] = round($data['width']);
+			$attributes['height'] = round($data['height']);
+		}
 	}
 
 	if (empty($attributes['srcset']) or is_array($attributes['srcset'])) {

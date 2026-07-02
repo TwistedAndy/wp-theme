@@ -288,6 +288,10 @@ function tw_acfe_render_scripts(): void
 			background-color: #009600
 		}
 
+		.select2-search__field {
+			min-width: auto !important;
+		}
+
 		body:not(.acf-admin-6) .acf-field .select2-container.-acf .select2-selection--multiple .select2-search--inline {
 			margin-top: 0;
 		}
