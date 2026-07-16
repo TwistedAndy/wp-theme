@@ -125,6 +125,15 @@ const fs = require('fs');
 				console.log(`Created: ${fileName}`);
 			}
 
+			// Scroll the element into view to trigger lazy loading
+			await elements[i].evaluate(el => el.scrollIntoView({
+				behavior: 'instant',
+				block: 'start'
+			}));
+
+			// Wait for 2 seconds for images to download and render
+			await new Promise(resolve => setTimeout(resolve, 2000));
+
 			const bounding = await elements[i].boundingBox();
 			const options = {
 				path: filePath,

@@ -121,7 +121,7 @@ function tw_meta(string $meta_type = 'post', string $meta_key = '_thumbnail_id',
  *
  * @return mixed
  */
-function tw_meta_get(string $meta_type, int $object_id, string $meta_key)
+function tw_meta_get(string $meta_type, int $object_id, string $meta_key): mixed
 {
 	if (!TW_CACHE) {
 		return get_metadata_raw($meta_type, $object_id, $meta_key, true);
@@ -131,8 +131,12 @@ function tw_meta_get(string $meta_type, int $object_id, string $meta_key)
 
 	$cache = wp_cache_get($object_id, $meta_type . '_meta');
 
-	if (is_array($cache) and isset($cache[$meta_key]) and isset($cache[$meta_key][0])) {
-		return maybe_unserialize($cache[$meta_key][0]);
+	if (is_array($cache)) {
+		if (isset($cache[$meta_key]) and isset($cache[$meta_key][0])) {
+			return maybe_unserialize($cache[$meta_key][0]);
+		}
+
+		return null;
 	}
 
 	$cache_key = tw_meta_cache_key($meta_type, $object_id, $meta_key);
@@ -174,10 +178,6 @@ function tw_meta_update(string $meta_type, int $object_id, string $meta_key, $me
 		return update_metadata($meta_type, $object_id, $meta_key, $meta_value);
 	}
 
-	$db = tw_app_database();
-
-	$table = $meta_type . 'meta';
-	$column = $meta_type . '_id';
 	$object_id = absint($object_id);
 	$meta_key = stripslashes($meta_key);
 
@@ -200,6 +200,10 @@ function tw_meta_update(string $meta_type, int $object_id, string $meta_key, $me
 	if ($current_value === $updated_value) {
 		return false;
 	}
+
+	$db = tw_app_database();
+	$table = $meta_type . 'meta';
+	$column = $meta_type . '_id';
 
 	if ($current_value === null) {
 		$result = $db->insert($db->$table, [

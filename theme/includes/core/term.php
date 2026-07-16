@@ -173,9 +173,9 @@ function tw_term_links($post_id, string $taxonomy = 'category', string $class = 
 		return $result;
 	}
 
-	$map = tw_post_terms($taxonomy);
+	$term_ids = tw_post_get_terms($post_id, $taxonomy);
 
-	if (!empty($map[$post_id]) and is_array($map[$post_id])) {
+	if ($term_ids) {
 
 		if ($class) {
 			$class = ' class="' . esc_attr($class) . '"';
@@ -183,7 +183,7 @@ function tw_term_links($post_id, string $taxonomy = 'category', string $class = 
 
 		$labels = tw_term_data('term_id', 'name', $taxonomy);
 
-		foreach ($map[$post_id] as $term_id) {
+		foreach ($term_ids as $term_id) {
 
 			if (empty($labels[$term_id])) {
 				continue;
@@ -696,7 +696,6 @@ function tw_term_tree(string $taxonomy, bool $flatten = false): array
 						'id'       => $term_id,
 						'name'     => $label,
 						'parent'   => $parent,
-						'children' => [],
 						'depth'    => 0
 					];
 				}
@@ -714,7 +713,6 @@ function tw_term_tree(string $taxonomy, bool $flatten = false): array
 						'id'       => (int) $term_id,
 						'name'     => $label,
 						'parent'   => 0,
-						'children' => [],
 						'depth'    => 0
 					];
 				}
@@ -731,11 +729,11 @@ function tw_term_tree(string $taxonomy, bool $flatten = false): array
 
 	if ($flatten) {
 		$cache_key .= '_flatten';
-		$data = wp_cache_get($cache_key, $cache_group);
+		$data = tw_app_get($cache_key, $cache_group);
 
 		if (!is_array($data)) {
 			$elements = tw_term_flatten_tree($elements);
-			wp_cache_set($cache_key, $elements, $cache_group);
+			tw_app_set($cache_key, $elements, $cache_group);
 		} else {
 			$elements = $data;
 		}

@@ -632,6 +632,11 @@ function tw_acf_decode_post_id($post_id): array
 					'type' => 'user',
 					'id'   => $id
 				];
+			} elseif ($type === 'comment') {
+				$entity = [
+					'type' => 'comment',
+					'id'   => $id
+				];
 			} elseif (in_array($type, ['blog', 'site'])) {
 				$entity = [
 					'type' => 'blog',

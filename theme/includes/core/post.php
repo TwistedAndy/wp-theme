@@ -21,26 +21,32 @@
 function tw_post_data(string $type, string $key = 'ID', $fields = 'post_title', string $status = '', string $order = 'p.ID ASC'): array
 {
 	$cache_key = 'posts_' . $key;
-	$cache_group = 'twee_posts_' . $type;
+	$cache_group = 'twee_posts';
+
+	if ($type) {
+		$cache_group .= '_' . $type;
+	}
 
 	$select = 'p.*';
 
-	if ($fields) {
+	if (is_string($fields) and strpos($fields, ',') > 0) {
+		$fields = explode(',', $fields);
+	}
 
-		if (is_string($fields) and strpos($fields, ',') > 0) {
-			$fields = explode(',', $fields);
-		}
-
-		if (is_string($fields)) {
+	if (is_string($fields)) {
+		if ($fields === '') {
+			$select = 'p.' . $key;
+		} else {
 			$cache_key .= '_' . $fields;
 			$select = 'p.' . $key . ', p.' . $fields;
-		} elseif (is_array($fields)) {
-			$fields = array_map('trim', $fields);
-			asort($fields);
-			$cache_key .= '_' . implode('_', $fields);
-			$select = 'p.' . $key . ', p.' . implode(', p.', $fields);
 		}
+	} elseif (is_array($fields)) {
+		$fields = array_map('trim', $fields);
 
+		asort($fields);
+
+		$cache_key .= '_' . implode('_', $fields);
+		$select = 'p.' . $key . ', p.' . implode(', p.', $fields);
 	}
 
 	if ($status) {
@@ -65,20 +71,28 @@ function tw_post_data(string $type, string $key = 'ID', $fields = 'post_title', 
 
 	$db = tw_app_database();
 
-	$select = esc_sql($select);
+	$select = $db->_escape($select);
 
-	if ($status) {
-		if (strpos($status, ',') > 0) {
-			$parts = array_map('trim', explode(',', esc_sql($status)));
-			$where = " AND p.post_status IN ('" . implode("','", $parts) . "')";
-		} else {
-			$where = " AND p.post_status = '" . esc_sql($status) . "'";
-		}
+	if ($type) {
+		$where = "WHERE p.post_type = '" . esc_sql($type) . "'";
 	} else {
 		$where = '';
 	}
 
-	$rows = $db->get_results($db->prepare("SELECT {$select} FROM {$db->posts} p WHERE p.post_type = %s" . $where . " ORDER BY %s", $type, $order), ARRAY_A);
+	if ($status) {
+		if (empty($where)) {
+			$where = 'WHERE';
+		}
+
+		if (strpos($status, ',') > 0) {
+			$parts = array_map('trim', explode(',', $db->_escape($status)));
+			$where .= " AND p.post_status IN ('" . implode("','", $parts) . "')";
+		} else {
+			$where .= " AND p.post_status = '" . $db->_escape($status) . "'";
+		}
+	}
+
+	$rows = $db->get_results("SELECT {$select} FROM {$db->posts} p " . $where . " ORDER BY " . $db->_escape($order), ARRAY_A);
 
 	if (is_array($fields)) {
 		foreach ($rows as $row) {
@@ -89,9 +103,15 @@ function tw_post_data(string $type, string $key = 'ID', $fields = 'post_title', 
 			$data[$row[$key]] = $array;
 
 		}
-	} elseif ($fields and is_string($fields)) {
-		foreach ($rows as $row) {
-			$data[$row[$key]] = $row[$fields];
+	} elseif (is_string($fields)) {
+		if ($fields === '') {
+			foreach ($rows as $row) {
+				$data[] = $row[$key];
+			}
+		} else {
+			foreach ($rows as $row) {
+				$data[$row[$key]] = $row[$fields];
+			}
 		}
 	} else {
 		foreach ($rows as $row) {
@@ -252,33 +272,79 @@ function tw_post_term_thread(int $post_id, string $taxonomy, $single = true): ar
 
 
 /**
+ * Get a list of terms attached to a post
+ */
+function tw_post_get_terms(int $post_id, string $taxonomy): array
+{
+	/**
+	 * @see get_object_term_cache()
+	 */
+	$term_cache = wp_cache_get($post_id, $taxonomy . '_relationships');
+
+	if (is_array($term_cache)) {
+		$term_ids = [];
+
+		foreach ($term_cache as $term_id) {
+			if (is_numeric($term_id)) {
+				$term_ids[] = (int) $term_id;
+			} elseif (is_object($term_id) and isset($term_id->term_id)) {
+				$term_ids[] = (int) $term_id->term_id;
+			}
+		}
+
+		return $term_ids;
+	}
+
+	$term_map = tw_post_terms($taxonomy);
+
+	if (isset($term_map[$post_id]) and is_array($term_map[$post_id])) {
+		$term_ids = $term_map[$post_id];
+	} else {
+		$term_ids = [];
+	}
+
+	wp_cache_set($post_id, $term_ids, $taxonomy . '_relationships');
+
+	return $term_ids;
+}
+
+
+/**
  * Sync the post terms
  *
  * @param int    $post_id
- * @param int[]  $terms
+ * @param int[]  $term_ids
  * @param string $taxonomy
  * @param bool   $append
  *
  * @return bool
  */
-function tw_post_set_terms(int $post_id, array $terms, string $taxonomy, bool $append = false): bool
+function tw_post_set_terms(int $post_id, array $term_ids, string $taxonomy, bool $append = false): bool
 {
-	$term_map = tw_post_terms($taxonomy);
+	$old_term_ids = tw_post_get_terms($post_id, $taxonomy);
 
-	if (!empty($term_map[$post_id])) {
-		$old_terms = $term_map[$post_id];
+	if ($append and $old_term_ids) {
+		$new_term_ids = array_values(array_unique(array_merge($term_ids, $old_term_ids)));
 	} else {
-		$old_terms = [];
+		$new_term_ids = $term_ids;
 	}
 
-	if ($append and $old_terms) {
-		$terms = array_merge($terms, $old_terms);
+	$count_old = count($old_term_ids);
+	$count_new = count($new_term_ids);
+
+	if ($count_old !== $count_new) {
+		$update_terms = true;
+	} elseif ($count_old === 0) {
+		$update_terms = false;
+	} else {
+		sort($new_term_ids);
+		sort($old_term_ids);
+
+		$update_terms = ($new_term_ids !== $old_term_ids);
 	}
 
-	$terms = array_values(array_unique($terms));
-
-	if (array_diff($old_terms, $terms) or array_diff($terms, $old_terms)) {
-		wp_set_object_terms($post_id, $terms, $taxonomy, false);
+	if ($update_terms) {
+		wp_set_object_terms($post_id, $term_ids, $taxonomy, false);
 
 		return true;
 	}
