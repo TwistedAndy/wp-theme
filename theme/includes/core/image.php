@@ -809,9 +809,9 @@ function tw_image_resize(string $image_url, array|string $image_size, $image_id 
 		return $thumb_url;
 	}
 
-	$thumb_path = strtolower(substr($image_url, $position + 1));
+	$thumb_name = strtolower(substr($image_url, $position + 1));
 
-	if (preg_match('#(.*?)\.(gif|jpg|jpeg|png|bmp|webp)$#is', $thumb_path, $matches)) {
+	if (preg_match('#(.*?)\.(gif|jpg|jpeg|png|bmp|webp)$#is', $thumb_name, $matches)) {
 
 		$size = tw_image_size($image_size, (int) $image_id);
 		$sizes = tw_image_sizes();
@@ -851,19 +851,29 @@ function tw_image_resize(string $image_url, array|string $image_size, $image_id 
 		}
 
 		$crop = ($crop and is_array($crop)) ? '_' . implode('_', $crop) : '';
+		$name = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id_string . $matches[1] . $url_hash . $crop;
 
-		$thumb_path = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id_string . $matches[1] . $url_hash . $crop . '.webp';
+		$thumb_mime = 'image/webp';
+		$thumb_name = $name . '.webp';
 
 		if (!is_dir($upload_dir . '/cache/')) {
 			wp_mkdir_p($upload_dir . '/cache/');
 		}
 
-		if (!is_readable($upload_dir . $thumb_path)) {
-			$thumb_path = str_replace('.webp', '.' . $matches[2], $thumb_path);
+		if (is_readable($upload_dir . $thumb_name)) {
+			return $upload_url . $thumb_name;
 		}
 
-		if (is_readable($upload_dir . $thumb_path)) {
-			return $upload_url . $thumb_path;
+		if (empty($matches[2]) or $matches[2] !== 'png') {
+			$fallback_name = $name . '.jpg';
+			$fallback_mime = 'image/jpeg';
+		} else {
+			$fallback_name = $name . '.' . $matches[2];
+			$fallback_mime = 'image/png';
+		}
+
+		if (is_readable($upload_dir . $fallback_name)) {
+			return (filesize($upload_dir . $fallback_name) < 50) ? $image_url : $upload_url . $fallback_name;
 		}
 
 		if (str_starts_with($image_url, $upload_url)) {
@@ -872,55 +882,57 @@ function tw_image_resize(string $image_url, array|string $image_size, $image_id 
 			$image_path = $image_url;
 		}
 
-		if (str_starts_with($image_path, '/') and !str_starts_with($image_path, '//')) {
-			$image_path = untrailingslashit(ABSPATH) . $image_path;
+		$image_url = trim($image_url);
 
-			if (!is_file($image_path)) {
-				$image_path = $image_url;
-			}
+		if (str_starts_with($image_path, '/') and !str_starts_with($image_path, '//') and !is_file($image_path)) {
+			$image_path = $image_url;
 		}
 
 		$editor = wp_get_image_editor($image_path);
 
-		if ($editor instanceof WP_Image_Editor) {
-
-			$image_size = (array) $editor->get_size();
-
-			if (!empty($image_size['width']) and !empty($image_size['height'])) {
-				$image_size = tw_image_calculate($image_size['width'], $image_size['height'], $width, $height, $size['crop'], $size['aspect']);
-				$width = $image_size['width'];
-				$height = $image_size['height'];
-			}
-
-			$editor->resize($width, $height, $crop);
-
-			$mime_type = 'image/webp';
-
-			$result = $editor->save($upload_dir . $thumb_path, $editor::supports_mime_type($mime_type) ? $mime_type : null);
-
-			if (!is_array($result) or !is_readable($result['path'])) {
-				return $image_url;
-			}
-
-			$position = strpos($result['path'], '/cache/');
-
-			if ($position === false) {
-				return $image_url;
-			}
-
-			$thumb_path = substr($result['path'], $position);
-
-			do_action('twee_thumb_created', $upload_dir . $thumb_path, $upload_url . $thumb_path, $image_id);
-
-		} else {
-
+		if (!$editor instanceof WP_Image_Editor) {
 			return $image_url;
-
 		}
 
-		$thumb_url = $upload_url . $thumb_path;
+		$image_size = (array) $editor->get_size();
 
-	} elseif (preg_match('#(.*?)\.(svg)$#is', $thumb_path, $matches)) {
+		if (!empty($image_size['width']) and !empty($image_size['height'])) {
+			$image_size = tw_image_calculate($image_size['width'], $image_size['height'], $width, $height, $size['crop'], $size['aspect']);
+			$width = $image_size['width'];
+			$height = $image_size['height'];
+		}
+
+		$editor->resize($width, $height, $crop);
+
+		$result = $editor->save($upload_dir . $thumb_name, $editor::supports_mime_type($thumb_mime) ? $thumb_mime : null);
+
+		if (!is_array($result) or !is_readable($result['path']) or empty($result['filesize'])) {
+			if (empty($result['filesize'])) {
+				unlink($result['path']);
+			}
+
+			$editor = wp_get_image_editor($image_path);
+
+			$result = $editor->save($upload_dir . $fallback_name, $fallback_mime);
+
+			if (!is_array($result) or !is_readable($result['path']) or empty($result['filesize'])) {
+				return $image_url;
+			}
+		}
+
+		$position = strpos($result['path'], '/cache/');
+
+		if ($position === false) {
+			return $image_url;
+		}
+
+		$thumb_name = substr($result['path'], $position);
+
+		do_action('twee_thumb_created', $upload_dir . $thumb_name, $upload_url . $thumb_name, $image_id);
+
+		$thumb_url = $upload_url . $thumb_name;
+
+	} elseif (preg_match('#(.*?)\.(svg)$#is', $thumb_name, $matches)) {
 
 		$thumb_url = $image_url;
 
