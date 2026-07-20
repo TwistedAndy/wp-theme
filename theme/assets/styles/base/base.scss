@@ -1,6 +1,7 @@
 @import '../elements/buttons';
 @import '../elements/contents';
 @import '../elements/content';
+@import '../elements/toggle';
 @import '../elements/hidden';
 @import '../elements/items';
 @import '../elements/play';
@@ -168,6 +169,13 @@
 
 .content {
 	@extend %content;
+
+	& + .toggle {
+		@extend %toggle;
+		width: auto;
+		margin: calc(var(--gap-content) - var(--gap-contents)) 0 0;
+	}
+
 }
 
 .items {
