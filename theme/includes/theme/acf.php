@@ -90,6 +90,14 @@ function tw_acf_load_value($result, $post_id, array $field)
 
 	if ($entity['type'] == 'option') {
 		$result = get_option($post_id . '_' . $field['name'], null);
+	} elseif ($entity['type'] == 'order') {
+		$order = tw_acf_get_order($entity['id']);
+
+		if (is_a($order, 'WC_Order')) {
+			$result = $order->get_meta($field['name'], true);
+		} else {
+			return null;
+		}
 	} else {
 		$result = tw_meta_get($entity['type'], $entity['id'], $field['name']);
 	}
@@ -184,6 +192,14 @@ function tw_acf_save_value($check, $values, $post_id, array $field)
 
 		if ($entity['type'] == 'option') {
 			$old_values = get_option($entity['id'] . $field['name'], null);
+		} elseif ($entity['type'] == 'order') {
+			$order = tw_acf_get_order($entity['id']);
+
+			if (is_a($order, 'WC_Order')) {
+				$old_values = $order->get_meta($field['name']);
+			} else {
+				return null;
+			}
 		} else {
 			$old_values = tw_meta_get($entity['type'], $entity['id'], $field['name']);
 		}
@@ -252,6 +268,44 @@ function tw_acf_save_value($check, $values, $post_id, array $field)
 			delete_option($map_key);
 		}
 
+	} elseif ($entity['type'] == 'order') {
+
+		$order = tw_acf_get_order($entity['id']);
+
+		if (!is_a($order, 'WC_Order')) {
+			return $check;
+		}
+
+		$map = $order->get_meta($map_key, true);
+
+		if (!is_array($map)) {
+			$map = [];
+		}
+
+		if (empty($value) and !is_numeric($value)) {
+			if (isset($map[$field['name']])) {
+				unset($map[$field['name']]);
+			}
+
+			$order->delete_meta_data($entity['type']);
+		} else {
+			$field_key = $field['key'];
+
+			if (str_starts_with($field_key, 'field_')) {
+				$map[$field['name']] = substr($field_key, 6);
+			}
+
+			$order->update_meta_data($field['name'], $value);
+		}
+
+		if ($map) {
+			$order->update_meta_data($map_key, $map);
+		} else {
+			$order->delete_meta_data($map_key);
+		}
+
+		$order->save_meta_data();
+
 	} else {
 
 		$map = tw_meta_get($entity['type'], $entity['id'], $map_key);
@@ -315,6 +369,14 @@ function tw_acf_load_reference($result, string $field, $post_id)
 
 	if ($entity['type'] == 'option') {
 		$map = get_option($entity['id'] . $map_key, null);
+	} elseif ($entity['type'] == 'order') {
+		$order = tw_acf_get_order($entity['id']);
+
+		if (!is_a($order, 'WC_Order')) {
+			return $result;
+		}
+
+		$map = $order->get_meta($map_key, true);
 	} else {
 		$map = tw_meta_get($entity['type'], $entity['id'], $map_key);
 	}
@@ -364,6 +426,14 @@ function tw_acf_total_rows($value, $post_id, string $name)
 
 	if ($entity['type'] == 'option') {
 		$data = get_option($entity['id'] . $name, null);
+	} elseif ($entity['type'] == 'order') {
+		$order = tw_acf_get_order($entity['id']);
+
+		if (!is_a($order, 'WC_Order')) {
+			return $value;
+		}
+
+		$data = $order->get_meta($name, true);
 	} else {
 		$data = tw_meta_get($entity['type'], $entity['id'], $name);
 	}
@@ -611,7 +681,7 @@ function tw_acf_decode_post_id($post_id): array
 			'id'   => $post_id
 		];
 
-		$position = strpos($post_id, '_');
+		$position = strrpos($post_id, '_');
 
 		if ($position > 0) {
 			$type = substr($post_id, 0, $position);
@@ -632,9 +702,9 @@ function tw_acf_decode_post_id($post_id): array
 					'type' => 'user',
 					'id'   => $id
 				];
-			} elseif ($type === 'comment') {
+			} elseif ($type === 'woo_order') {
 				$entity = [
-					'type' => 'comment',
+					'type' => 'order',
 					'id'   => $id
 				];
 			} elseif (in_array($type, ['blog', 'site'])) {
@@ -1285,4 +1355,30 @@ function tw_acf_revision_create(int $revision_id): void
 	}
 
 	tw_meta_update('post', $revision->ID, '_acf_map', $post_map);
+}
+
+
+/**
+ * Get a WooCommerce Order object
+ */
+function tw_acf_get_order(int $order_id): false|object
+{
+	$cache_key = 'order_' . $order_id;
+	$cache_group = 'acf';
+
+	$order = tw_app_get($cache_key, $cache_group, '');
+
+	if (is_a($order, 'WC_Order') or $order === false) {
+		return $order;
+	}
+
+	if (function_exists('wc_get_order')) {
+		$order = wc_get_order($order_id);
+	} else {
+		$order = false;
+	}
+
+	tw_app_set($cache_key, $order, $cache_group);
+
+	return $order;
 }

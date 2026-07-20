@@ -658,8 +658,151 @@ if (class_exists('WooCommerce')) {
 
 }
 
-
 /**
+ * ACF 5 Compatibility for WooCommerce HPOS Orders
+ * Backports the ACF 6 HPOS rendering logic to ACF 5.
+ */
+if (defined('ACF_VERSION') and version_compare(ACF_VERSION, '6.4.2', '<') and class_exists('\Automattic\WooCommerce\Utilities\OrderUtil') and \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled()) {
+
+	/**
+	 * Add new rules for orders and subscriptions
+	 */
+	add_filter('acf/location/rule_values/post_type', function(array $choices): array {
+		$choices['shop_order'] = __('Order', 'twee');
+		$choices['shop_subscription'] = __('Subscription', 'twee');
+
+		return $choices;
+	});
+
+	/**
+	 * Render the ACF fields
+	 */
+	function tw_acfe_hpos_init(): void
+	{
+		acf_enqueue_scripts(['uploader' => true]);
+		add_action('add_meta_boxes', 'tw_acfe_hpos_add_meta_boxes', 10, 2);
+		add_action('woocommerce_update_order', 'tw_acf_hpos_save_order', 10, 1);
+	}
+
+	add_action('load-woocommerce_page_wc-orders', 'tw_acfe_hpos_init');
+	add_action('load-woocommerce_page_wc-orders--shop_subscription', 'tw_acfe_hpos_init');
+
+	/**
+	 * Queries the field groups and registers the metaboxes on the HPOS screen.
+	 */
+	function tw_acfe_hpos_add_meta_boxes($post_type, $order): void
+	{
+		if ($order instanceof WP_Post) {
+			$order = wc_get_order($order->ID);
+		}
+
+		if (class_exists('WC_Subscription') and $order instanceof WC_Subscription) {
+			$order_id = $order->get_id();
+			$location = 'shop_subscription';
+		} elseif (is_object($order) and method_exists($order, 'get_id')) {
+			$order_id = $order->get_id();
+			$location = 'shop_order';
+		} else {
+			return;
+		}
+
+		$screen = wc_get_page_screen_id('shop-order');
+
+		// Force ACF to fetch field groups assigned to 'shop_order'
+		$field_groups = acf_get_field_groups([
+			'post_id'   => $order_id,
+			'post_type' => $location,
+		]);
+
+		if ($field_groups) {
+			$postboxes = [];
+
+			foreach ($field_groups as $field_group) {
+				$id = 'acf-' . $field_group['key'];
+				$context = $field_group['position'];
+				$priority = 'core';
+
+				$postboxes[] = [
+					'id'    => $id,
+					'key'   => $field_group['key'],
+					'style' => $field_group['style'],
+					'label' => $field_group['label_placement'],
+					'edit'  => acf_get_field_group_edit_link($field_group['ID']),
+				];
+
+				$priority = apply_filters('acf/input/meta_box_priority', $priority, $field_group);
+
+				add_meta_box(
+					$id,
+					$field_group['title'],
+					'tw_acf_hpos_render_meta_box',
+					$screen,
+					$context,
+					$priority,
+					[
+						'field_group' => $field_group,
+						'order'       => $order
+					]
+				);
+			}
+
+			acf_localize_data([
+				'postboxes' => $postboxes
+			]);
+		}
+
+		if (acf_get_setting('remove_wp_meta_box')) {
+			remove_meta_box('order_custom', $screen, 'normal');
+		}
+
+		// Print hidden input fields needed for ACF to process the save
+		add_action('order_edit_form_top', function($order): void {
+			acf_form_data([
+				'screen'  => 'post',
+				'post_id' => 'woo_order_' . $order->get_id(),
+			]);
+		});
+
+		do_action('acf/add_meta_boxes', $post_type, $order, $field_groups);
+	}
+
+	/**
+	 * Renders the actual fields inside the metabox.
+	 */
+	function tw_acf_hpos_render_meta_box($post, $metabox): void
+	{
+		if ($post instanceof WP_Post) {
+			$order_id = $post->ID;
+		} elseif ($post instanceof WC_Order) {
+			$order_id = $post->get_id();
+		} else {
+			return;
+		}
+
+		$field_group = $metabox['args']['field_group'];
+
+		$fields = acf_get_fields($field_group);
+
+		acf_render_fields($fields, 'woo_order_' . $order_id, 'div', $field_group['instruction_placement']);
+	}
+
+	/**
+	 * Intercepts the HPOS order save and routes it to ACF.
+	 */
+	function tw_acf_hpos_save_order(int $order_id): void
+	{
+		if (empty($_POST['acf'])) {
+			return;
+		}
+
+		remove_action('woocommerce_update_order', 'tw_acf_hpos_save_order', 10);
+
+		acf_save_post('woo_order_' . $order_id);
+	}
+
+}
+
+/*
  * A fallback for the get field function
  */
 if (!is_admin() and !function_exists('get_field')) {
