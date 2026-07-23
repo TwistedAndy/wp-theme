@@ -54,7 +54,7 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 		if ($image->post_type === 'attachment') {
 			$image = $image->ID;
 		} else {
-			$image = tw_meta_get('post', $image->ID, '_thumbnail_id');
+			$image = get_metadata_raw('post', $image->ID, '_thumbnail_id', true);
 		}
 	} elseif (is_array($image)) {
 		if (!empty($image['id'])) {
@@ -148,7 +148,7 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 	}
 
 	if (is_numeric($image)) {
-		$alt = (string) tw_meta_get('post', $image, '_wp_attachment_image_alt');
+		$alt = (string) get_metadata_raw('post', $image, '_wp_attachment_image_alt', true);
 
 		if ($alt) {
 			$attributes['alt'] = $alt;
@@ -296,7 +296,7 @@ function tw_image_link($image, $size = 'full'): string
 		if ($image->post_type === 'attachment') {
 			$image = $image->ID;
 		} else {
-			$image = (int) tw_meta_get('post', $image->ID, '_thumbnail_id');
+			$image = (int) get_metadata_raw('post', $image->ID, '_thumbnail_id', true);
 		}
 	}
 
@@ -324,7 +324,7 @@ function tw_image_link($image, $size = 'full'): string
 
 		$image = (int) $image;
 
-		$file = tw_meta_get('post', $image, '_wp_attached_file');
+		$file = get_metadata_raw('post', $image, '_wp_attached_file', true);
 
 		if (empty($file)) {
 			return apply_filters('wp_get_attachment_url', $thumb_url, $image);
@@ -338,11 +338,14 @@ function tw_image_link($image, $size = 'full'): string
 			$image_url = $upload_url . '/' . $file;
 		}
 
+		$source_url = $image_url;
+		$image_url = str_replace(['#'], ['%23'], esc_url($image_url));
+
 		if ($size === 'full' or stripos($image_url, '.svg') > 0) {
 			return apply_filters('wp_get_attachment_url', $image_url, $image);
 		}
 
-		$meta = (array) tw_meta_get('post', $image, '_wp_attachment_metadata');
+		$meta = (array) get_metadata_raw('post', $image, '_wp_attachment_metadata', true);
 
 		if (!empty($meta['width']) and !empty($meta['height'])) {
 
@@ -374,10 +377,10 @@ function tw_image_link($image, $size = 'full'): string
 			if (!empty($meta['sizes'][$size]) and !empty($meta['sizes'][$size]['file'])) {
 				$thumb_url = path_join(dirname($image_url), $meta['sizes'][$size]['file']);
 			} else {
-				$thumb_url = tw_image_resize($image_url, $size, $image);
+				$thumb_url = tw_image_resize($source_url, $size, $image);
 			}
 		} elseif (is_array($size)) {
-			$thumb_url = tw_image_resize($image_url, $size, $image);
+			$thumb_url = tw_image_resize($source_url, $size, $image);
 		} else {
 			$thumb_url = $image_url;
 		}
@@ -766,7 +769,7 @@ function tw_image_size($size, int $image_id = 0): array
 		return $result;
 	}
 
-	$meta = tw_meta_get('post', $image_id, '_wp_attachment_metadata');
+	$meta = get_metadata_raw('post', $image_id, '_wp_attachment_metadata', true);
 
 	if (is_array($meta) and !empty($meta['width']) and !empty($meta['height'])) {
 		if ($size === 'full' or (!empty($meta['file']) and stripos($meta['file'], '.svg') === strlen($meta['file']) - 4)) {
