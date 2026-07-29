@@ -339,7 +339,7 @@ function tw_image_link($image, $size = 'full'): string
 		}
 
 		$source_url = $image_url;
-		$image_url = str_replace(['#'], ['%23'], esc_url($image_url));
+		$image_url = str_replace('#', '%23', $image_url);
 
 		if ($size === 'full' or stripos($image_url, '.svg') > 0) {
 			return apply_filters('wp_get_attachment_url', $image_url, $image);
