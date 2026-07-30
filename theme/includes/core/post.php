@@ -356,12 +356,12 @@ function tw_post_set_terms(int $post_id, array $term_ids, string $taxonomy, bool
 /**
  * Build the post query
  *
- * @param string $type
- * @param array  $block
+ * @param string|array $type
+ * @param array        $block
  *
  * @return array
  */
-function tw_post_query(string $type, array $block = []): array
+function tw_post_query(string|array $type, array $block = []): array
 {
 	$taxonomies = get_object_taxonomies($type);
 

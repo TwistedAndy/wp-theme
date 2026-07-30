@@ -20,7 +20,6 @@
  */
 function tw_breadcrumbs(string $separator = '', string $before = '<nav class="breadcrumbs_box"><div class="fixed">', string $after = '</div></nav>', $query = null, bool $current = true): string
 {
-
 	$result = '';
 
 	if (empty($query)) {
@@ -149,11 +148,9 @@ function tw_breadcrumbs_list($query = null): array
 				$current_term = 0;
 			}
 
-			$map = tw_post_terms($taxonomy);
+			$terms = tw_post_get_terms($post_id, $taxonomy);
 
-			if (!empty($map[$post_id]) and is_array($map[$post_id])) {
-
-				$terms = $map[$post_id];
+			if ($terms) {
 
 				if ($current_term > 0 and !in_array($current_term, $terms)) {
 					$current_term = 0;
@@ -213,7 +210,7 @@ function tw_breadcrumbs_list($query = null): array
 
 	if ($post_type) {
 
-		$link = get_option('options_link_' . $post_type, false);
+		$link = get_option('link_' . $post_type, false);
 
 		if (is_array($link) and !empty($link['url'])) {
 			$breadcrumbs['archive'] = [

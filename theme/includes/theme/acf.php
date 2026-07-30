@@ -62,13 +62,13 @@ add_action('init', 'tw_acf_init_filters', 5);
 /**
  * Load a compressed field value and return it in the ACF format
  *
- * @param null|mixed $result
- * @param int|string $post_id
- * @param array      $field
+ * @param mixed             $result
+ * @param object|string|int $post_id
+ * @param array             $field
  *
  * @return mixed
  */
-function tw_acf_load_value($result, $post_id, array $field)
+function tw_acf_load_value($result, $post_id, array $field): mixed
 {
 	if ($result !== null or (is_string($post_id) and str_starts_with($post_id, 'field_'))) {
 		return $result;
@@ -82,6 +82,7 @@ function tw_acf_load_value($result, $post_id, array $field)
 
 	if ($field['type'] === 'clone' and !empty($field['sub_fields'])) {
 		$values = [];
+
 		foreach ($field['sub_fields'] as $sub_field) {
 			$values[$sub_field['key']] = tw_acf_load_value(null, $post_id, $sub_field);
 		}
@@ -115,12 +116,11 @@ function tw_acf_load_value($result, $post_id, array $field)
 	}
 
 	if (in_array($field['type'], ['group', 'repeater', 'flexible_content'])) {
-
-		$result = tw_acf_decode_data($result, $field);
-
 		if (!is_array($result)) {
 			return null;
 		}
+
+		$result = tw_acf_decode_data($result, $field);
 
 		if (!empty($field['pagination']) and (acf_get_data('acf_is_rendering') or doing_action('wp_ajax_acf/ajax/query_repeater'))) {
 
@@ -156,14 +156,14 @@ function tw_acf_load_value($result, $post_id, array $field)
 /**
  * Convert a field value in the ACF format and save it
  *
- * @param null|mixed $check
+ * @param mixed      $check
  * @param array      $values
  * @param int|string $post_id
  * @param array      $field
  *
- * @return mixed|true|null
+ * @return mixed
  */
-function tw_acf_save_value($check, $values, $post_id, array $field)
+function tw_acf_save_value($check, $values, $post_id, array $field): mixed
 {
 	if ($check !== null or empty($field['type']) or (is_string($post_id) and str_starts_with($post_id, 'field_'))) {
 		return $check;
@@ -185,7 +185,13 @@ function tw_acf_save_value($check, $values, $post_id, array $field)
 		return true;
 	}
 
-	$value = tw_acf_encode_data($values, $field);
+	if (is_array($values)) {
+		$value = tw_acf_encode_data($values, $field);
+	} elseif (is_string($values) or is_numeric($values)) {
+		$value = stripslashes($values);
+	} else {
+		return null;
+	}
 
 	$map_key = '_acf_map';
 
@@ -356,9 +362,9 @@ function tw_acf_save_value($check, $values, $post_id, array $field)
  * @param string     $field
  * @param            $post_id
  *
- * @return mixed|string
+ * @return mixed
  */
-function tw_acf_load_reference($result, string $field, $post_id)
+function tw_acf_load_reference($result, string $field, $post_id): mixed
 {
 	$entity = tw_acf_decode_post_id($post_id);
 
@@ -417,7 +423,7 @@ function tw_acf_pre_render_field(array $field): array
  *
  * @return int|null
  */
-function tw_acf_total_rows($value, $post_id, string $name)
+function tw_acf_total_rows($value, $post_id, string $name): int|null
 {
 	$entity = tw_acf_decode_post_id($post_id);
 
@@ -455,16 +461,8 @@ function tw_acf_total_rows($value, $post_id, string $name)
 /*
  * Convert a field value in the compact format
  */
-function tw_acf_encode_data($values, array $field)
+function tw_acf_encode_data(array $values, array $field): array
 {
-	if (!is_array($values)) {
-		if (is_string($values)) {
-			$values = stripslashes($values);
-		}
-
-		return $values;
-	}
-
 	$data = [];
 
 	if (!empty($field['layouts']) and is_array($field['layouts'])) {
@@ -478,20 +476,12 @@ function tw_acf_encode_data($values, array $field)
 		$index = 0;
 
 		foreach ($values as $value) {
-
-			if (!empty($value['acf_fc_layout']) and !empty($layouts[$value['acf_fc_layout']])) {
-
-				$processed = tw_acf_encode_data($value, $layouts[$value['acf_fc_layout']]);
-
-				if ($processed or is_array($processed)) {
-					$data[$index] = $processed;
-					$data[$index]['acf_fc_layout'] = $value['acf_fc_layout'];
-				}
-
+			if (is_array($value) and !empty($value['acf_fc_layout']) and !empty($layouts[$value['acf_fc_layout']])) {
+				$data[$index] = tw_acf_encode_data($value, $layouts[$value['acf_fc_layout']]);
+				$data[$index]['acf_fc_layout'] = $value['acf_fc_layout'];
 			}
 
 			$index++;
-
 		}
 
 		$values = $data;
@@ -511,57 +501,45 @@ function tw_acf_encode_data($values, array $field)
 		 * It is very important difference comparing to how we decode data
 		 */
 		if (!empty($values['acf_fc_layout']) or str_starts_with($key, 'field_')) {
-
 			foreach ($values as $field_key => $value) {
-
 				if (!isset($fields[$field_key]) or !isset($fields[$field_key]['name'])) {
 					continue;
 				}
 
 				$sub_field = $fields[$field_key];
 
-				$processed = tw_acf_encode_data($value, $sub_field);
-
-				if ($processed or is_numeric($processed)) {
-					$data[$sub_field['name']] = $processed;
+				if (is_array($value)) {
+					$data[$sub_field['name']] = tw_acf_encode_data($value, $sub_field);
+				} elseif (is_string($value) or is_numeric($value)) {
+					$data[$sub_field['name']] = stripslashes($value);
 				}
-
 			}
-
 		} else {
-
 			$index = 0;
 
 			foreach ($values as $row) {
-
 				if (!empty($row['acf_deleted'])) {
 					continue;
 				}
 
 				foreach ($row as $field_key => $value) {
-
 					if (!isset($fields[$field_key])) {
 						continue;
 					}
 
 					$sub_field = $fields[$field_key];
 
-					if (isset($sub_field['name'])) {
-
-						$processed = tw_acf_encode_data($value, $sub_field);
-
-						if ($processed or is_numeric($processed)) {
-							$data[$index][$sub_field['name']] = $processed;
+					if (!empty($sub_field['name'])) {
+						if (is_array($value)) {
+							$data[$index][$sub_field['name']] = tw_acf_encode_data($value, $sub_field);
+						} elseif (is_string($value) or is_numeric($value)) {
+							$data[$index][$sub_field['name']] = stripslashes($value);
 						}
-
 					}
-
 				}
 
 				$index++;
-
 			}
-
 		}
 
 		$values = $data;
@@ -575,12 +553,8 @@ function tw_acf_encode_data($values, array $field)
 /*
  * Convert a field value in the ACF format
  */
-function tw_acf_decode_data($values, array $field)
+function tw_acf_decode_data(array $values, array $field): array
 {
-	if (!is_array($values)) {
-		return $values;
-	}
-
 	$data = [];
 
 	if (!empty($field['layouts']) and is_array($field['layouts'])) {
@@ -598,7 +572,7 @@ function tw_acf_decode_data($values, array $field)
 		}
 
 		foreach ($values as $value) {
-			if (!empty($value['acf_fc_layout']) and !empty($layouts[$value['acf_fc_layout']])) {
+			if (is_array($value) and !empty($value['acf_fc_layout']) and !empty($layouts[$value['acf_fc_layout']])) {
 				$data[$index] = tw_acf_decode_data($value, $layouts[$value['acf_fc_layout']]);
 				$data[$index]['acf_fc_layout'] = $value['acf_fc_layout'];
 			}
@@ -625,7 +599,11 @@ function tw_acf_decode_data($values, array $field)
 					$name = $sub_field['name'];
 
 					if (isset($metadata[$name])) {
-						$value = tw_acf_decode_data($metadata[$name], $sub_field);
+						if (is_array($metadata[$name])) {
+							$value = tw_acf_decode_data($metadata[$name], $sub_field);
+						} else {
+							$value = $metadata[$name];
+						}
 					} else {
 						$value = '';
 					}
@@ -638,7 +616,11 @@ function tw_acf_decode_data($values, array $field)
 				$name = $sub_field['name'];
 
 				if (isset($values[$name])) {
-					$value = tw_acf_decode_data($values[$name], $sub_field);
+					if (is_array($values[$name])) {
+						$value = tw_acf_decode_data($values[$name], $sub_field);
+					} else {
+						$value = $values[$name];
+					}
 				} else {
 					$value = '';
 				}
@@ -851,7 +833,6 @@ function tw_acf_compress_meta(string $meta_type = 'post', int $object_id = 0): v
 	} else {
 		tw_meta_delete($meta_type, $object_id, '_acf_map');
 	}
-
 }
 
 

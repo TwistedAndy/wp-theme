@@ -12,11 +12,11 @@
  * Block template files should be located in the "blocks" folder in the theme root directory.
  * Template file names should correspond to the ACF Flexible content layouts names.
  *
- * @param array $blocks array with blocks or a single block
+ * @param array $blocks An array with blocks or a single block
  *
  * @return string
  */
-function tw_block_render($blocks): string
+function tw_block_render(array $blocks): string
 {
 	if (empty($blocks)) {
 		return '';
@@ -70,7 +70,7 @@ function tw_block_render($blocks): string
  *
  * @return string
  */
-function tw_block_attributes($class, array $block): string
+function tw_block_attributes(string|array $class, array $block): string
 {
 	$classes = [];
 
@@ -163,7 +163,7 @@ function tw_block_contents(array $block, bool $split = false, string $wrapper = 
  *
  * @return string
  */
-function tw_block_buttons(array $buttons, string $wrapper = 'buttons', string $size = '')
+function tw_block_buttons(array $buttons, string $wrapper = 'buttons', string $size = ''): string
 {
 	if (!empty($buttons)) {
 		$result = tw_app_template('buttons', ['buttons' => $buttons, 'wrapper' => $wrapper, 'size' => $size]);
