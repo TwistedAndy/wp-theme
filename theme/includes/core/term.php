@@ -190,9 +190,9 @@ function tw_term_links($post_id, string $taxonomy = 'category', string $class = 
 			}
 
 			if ($with_link) {
-				$result[] = '<a href="' . tw_term_link($term_id, $taxonomy) . '"' . $class . '>' . $labels[$term_id] . '</a>';
+				$result[] = '<a href="' . esc_url(tw_term_link($term_id, $taxonomy)) . '"' . $class . '>' . esc_html($labels[$term_id]) . '</a>';
 			} elseif ($class) {
-				$result[] = '<span' . $class . '>' . $labels[$term_id] . '</span>';
+				$result[] = '<span' . $class . '>' . esc_html($labels[$term_id]) . '</span>';
 			} else {
 				$result[] = $labels[$term_id];
 			}
@@ -451,14 +451,13 @@ function tw_term_children(int $term_id = 0, string $taxonomy = '', array $parent
  *
  * @param 'term_id'|'name'|'slug' $field
  * @param string                  $taxonomy
- * @param string                  $key
  *
  * @return array
  */
-function tw_term_order(string $field = 'term_id', string $taxonomy = '', string $key = 'order'): array
+function tw_term_order(string $field = 'term_id', string $taxonomy = ''): array
 {
 	$cache_key = 'terms_order_' . $field;
-	$cache_group = 'twee_terms';
+	$cache_group = 'twee_meta_term';
 
 	if ($taxonomy) {
 		$cache_key .= '_' . $taxonomy;
@@ -480,13 +479,7 @@ function tw_term_order(string $field = 'term_id', string $taxonomy = '', string 
 		$where = '';
 	}
 
-	if ($key and is_string($key)) {
-		$meta_key = (string) esc_sql($key);
-	} else {
-		$meta_key = 'order';
-	}
-
-	$result = $db->get_results("SELECT t.term_id, t.slug, t.name, tm.meta_value FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id LEFT JOIN {$db->termmeta} tm ON t.term_id = tm.term_id AND tm.meta_key = '{$meta_key}'{$where}", ARRAY_A);
+	$result = $db->get_results("SELECT t.term_id, t.slug, t.name, tm.meta_value FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id LEFT JOIN {$db->termmeta} tm ON t.term_id = tm.term_id AND tm.meta_key = 'order'{$where}", ARRAY_A);
 
 	if ($result) {
 
@@ -551,7 +544,7 @@ function tw_term_posts(string $taxonomy, string $type = '', string $status = '',
 		if ($object instanceof WP_Taxonomy and empty($object->hierarchical)) {
 			$children = false;
 		} else {
-			$cache_group .= '_children';
+			$cache_key .= '_children';
 		}
 
 	}
@@ -587,7 +580,7 @@ function tw_term_posts(string $taxonomy, string $type = '', string $status = '',
 						$terms[$term_id] = [];
 					}
 
-					$terms[$term_id] = array_merge($terms[$term_id], $items);
+					$terms[$term_id] = array_values(array_unique(array_merge($terms[$term_id], $items)));
 
 				}
 
@@ -602,20 +595,30 @@ function tw_term_posts(string $taxonomy, string $type = '', string $status = '',
 
 		if ($status) {
 			if (strpos($status, ',')) {
-				$statuses = explode(',', esc_sql($status));
+				$statuses = explode(',', $status);
+
+				foreach ($statuses as $index => $status) {
+					$statuses[$index] = trim(esc_sql($status));
+				}
+
+				$where[] = "p.post_status IN ('" . implode("','", $statuses) . "')";
 			} else {
-				$statuses = [esc_sql($status)];
+				$where[] = "p.post_status = '" . esc_sql($status) . "'";
 			}
-			$where[] = "p.post_status IN ('" . implode(',', $statuses) . "')";
 		}
 
 		if ($type) {
 			if (strpos($type, ',')) {
-				$types = explode(',', esc_sql($type));
+				$types = explode(',', $type);
+
+				foreach ($types as $index => $type) {
+					$types[$index] = esc_sql(trim($type));
+				}
+
+				$where[] = "p.post_type IN ('" . implode("','", $types) . "')";
 			} else {
-				$types = [esc_sql($type)];
+				$where[] = "p.post_type = '" . esc_sql(trim($type)) . "'";
 			}
-			$where[] = "p.post_type IN ('" . implode(',', $types) . "')";
 		}
 
 		if ($where) {
@@ -693,10 +696,10 @@ function tw_term_tree(string $taxonomy, bool $flatten = false): array
 					}
 
 					$elements[] = [
-						'id'       => $term_id,
-						'name'     => $label,
-						'parent'   => $parent,
-						'depth'    => 0
+						'id'     => $term_id,
+						'name'   => $label,
+						'parent' => $parent,
+						'depth'  => 0
 					];
 				}
 
@@ -710,10 +713,10 @@ function tw_term_tree(string $taxonomy, bool $flatten = false): array
 
 				foreach ($data as $term_id => $label) {
 					$elements[] = [
-						'id'       => (int) $term_id,
-						'name'     => $label,
-						'parent'   => 0,
-						'depth'    => 0
+						'id'     => (int) $term_id,
+						'name'   => $label,
+						'parent' => 0,
+						'depth'  => 0
 					];
 				}
 

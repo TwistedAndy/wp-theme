@@ -270,7 +270,7 @@ function tw_app_include($folder, $files = [])
  *
  * @return string
  */
-function tw_app_template($template, $item = [], $folder = 'parts')
+function tw_app_template($template, $item = [], $folder = 'parts'): string
 {
 	$start_level = ob_get_level();
 

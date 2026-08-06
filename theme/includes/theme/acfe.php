@@ -126,7 +126,7 @@ function tw_acfe_init(): void
 		'redirect'      => false,
 		'position'      => 90,
 		'icon_url'      => 'dashicons-star-filled',
-		'update_button' => __('Refresh', 'twee'),
+		'update_button' => __('Update', 'twee'),
 		'autoload'      => true
 	]);
 }
@@ -294,6 +294,32 @@ function tw_acfe_render_scripts(): void
 
 		body:not(.acf-admin-6) .acf-field .select2-container.-acf .select2-selection--multiple .select2-search--inline {
 			margin-top: 0;
+		}
+
+		body.acfe-wp-7-0:not(.block-editor-page) .acf-input-append,
+		body.acfe-wp-7-0:not(.block-editor-page) .acf-input-prepend {
+			min-height: 32px;
+			line-height: 1;
+			padding-top: 8px;
+			padding-bottom: 8px;
+		}
+
+		.acf-admin-7-0 .select2-container.-acf .select2-selection--single {
+			height: auto;
+		}
+
+		.acf-admin-7-0 .select2-container.-acf .select2-selection--multiple .select2-selection__rendered {
+			min-height: 32px;
+		}
+
+		.acf-admin-7-0 .select2-container.-acf .select2-selection--multiple .select2-selection__choice {
+			padding-top: 0;
+			padding-bottom: 0;
+			font-size: inherit;
+		}
+
+		.acf-admin-7-0 .select2-container.-acf .select2-selection--multiple .select2-search__field {
+			min-width: auto;
 		}
 	</style>
 <?php }

@@ -80,6 +80,20 @@ class PostTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test filtering posts across all post types by status.
+	 */
+	public function test_post_data_all_types_status_filter(): void
+	{
+		$published_id = self::factory()->post->create(['post_type' => 'post', 'post_status' => 'publish']);
+		$draft_id = self::factory()->post->create(['post_type' => 'page', 'post_status' => 'draft']);
+
+		$results = tw_post_data('', 'ID', 'post_title', 'publish');
+
+		$this->assertArrayHasKey($published_id, $results);
+		$this->assertArrayNotHasKey($draft_id, $results);
+	}
+
+	/**
 	 * Test retrieval of raw term relationships.
 	 */
 	public function test_post_terms_get(): void
@@ -122,6 +136,28 @@ class PostTest extends WP_UnitTestCase {
 		$threads = tw_post_term_thread($post_id, 'category', false);
 		$this->assertNotEmpty($threads);
 		$this->assertArrayHasKey(3, $threads[0]);
+	}
+
+	/**
+	 * Test that cached term threads are scoped to one post.
+	 */
+	public function test_post_term_thread_cache_is_scoped_by_post(): void
+	{
+		$taxonomy = 'category';
+		$first_post_id = self::factory()->post->create();
+		$second_post_id = self::factory()->post->create();
+		$first_term_id = self::factory()->term->create(['taxonomy' => $taxonomy, 'name' => 'First']);
+		$second_term_id = self::factory()->term->create(['taxonomy' => $taxonomy, 'name' => 'Second']);
+
+		wp_set_object_terms($first_post_id, [$first_term_id], $taxonomy);
+		wp_set_object_terms($second_post_id, [$second_term_id], $taxonomy);
+
+		$first_thread = tw_post_term_thread($first_post_id, $taxonomy);
+		$second_thread = tw_post_term_thread($second_post_id, $taxonomy);
+
+		$this->assertArrayHasKey($first_term_id, $first_thread);
+		$this->assertArrayHasKey($second_term_id, $second_thread);
+		$this->assertArrayNotHasKey($first_term_id, $second_thread);
 	}
 
 	/**
@@ -182,6 +218,22 @@ class PostTest extends WP_UnitTestCase {
 		wp_update_post(['ID' => $id, 'post_title' => 'New']); // Triggers save_post -> clear
 
 		$this->assertFalse(wp_cache_get($key, $grp));
+	}
+
+	/**
+	 * Test that post changes invalidate the all-types cache group.
+	 */
+	public function test_global_post_cache_clearing(): void
+	{
+		$post_id = self::factory()->post->create(['post_title' => 'Before']);
+		tw_post_data('', 'ID', 'post_title');
+
+		$this->assertSame('Before', wp_cache_get('posts_ID_post_title', 'twee_posts')[$post_id]);
+
+		wp_update_post(['ID' => $post_id, 'post_title' => 'After']);
+
+		$this->assertFalse(wp_cache_get('posts_ID_post_title', 'twee_posts'));
+		$this->assertSame('After', tw_post_data('', 'ID', 'post_title')[$post_id]);
 	}
 
 	/**
@@ -349,6 +401,16 @@ class PostTest extends WP_UnitTestCase {
 
 		$this->assertTrue($is_append_to_empty);
 		$this->assertEquals([$term_id_1], wp_get_object_terms($post_id, $taxonomy, ['fields' => 'ids']));
+	}
+
+	/**
+	 * Test that term assignment failures are reported to callers.
+	 */
+	public function test_post_set_terms_returns_false_for_invalid_taxonomy(): void
+	{
+		$post_id = self::factory()->post->create();
+
+		$this->assertFalse(tw_post_set_terms($post_id, [1], 'missing_taxonomy'));
 	}
 
 	/**

@@ -1275,7 +1275,7 @@ function tw_acf_revision_fields(array $result, array $post): array
 	}
 
 	if ($fields) {
-		if (is_array($result)) {
+		if ($result) {
 			$result = array_merge($result, $fields);
 		} else {
 			$result = $fields;

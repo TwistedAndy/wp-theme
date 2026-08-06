@@ -299,6 +299,7 @@ class ImageTest extends WP_UnitTestCase {
 		};
 
 		add_filter('upload_dir', $filter_upload_dir);
+		tw_app_clear('image');
 
 		// 2. Define the absolute path and expected URL based on our mocked dir
 		$mock_basedir = '/tmp/wp-content/uploads';
@@ -310,14 +311,17 @@ class ImageTest extends WP_UnitTestCase {
 		update_post_meta(self::$image_id, '_wp_attached_file', $absolute_file);
 
 		// 4. Run the function (it will call wp_upload_dir() and trigger our filter)
-		$link = tw_image_link(self::$image_id, 'full', true);
+		try {
+			$link = tw_image_link(self::$image_id, 'full');
 
-		// 5. Assertions
-		$this->assertEquals($expected_link, $link);
-
-		// 6. Cleanup
-		remove_filter('upload_dir', $filter_upload_dir);
-		update_post_meta(self::$image_id, '_wp_attached_file', 'test-image.jpg');
+			// 5. Assertions
+			$this->assertEquals($expected_link, $link);
+		} finally {
+			// 6. Cleanup
+			remove_filter('upload_dir', $filter_upload_dir);
+			tw_app_clear('image');
+			update_post_meta(self::$image_id, '_wp_attached_file', 'test-image.jpg');
+		}
 	}
 
 	/**

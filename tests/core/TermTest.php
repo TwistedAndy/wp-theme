@@ -164,6 +164,25 @@ class TermTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that generated term-link HTML is escaped.
+	 */
+	public function test_term_links_escape_html_output(): void
+	{
+		global $wpdb;
+
+		$post_id = self::factory()->post->create();
+		$term_id = self::factory()->term->create(['taxonomy' => 'category']);
+		$wpdb->update($wpdb->terms, ['name' => '<script>alert(1)</script>'], ['term_id' => $term_id]);
+		clean_term_cache($term_id, 'category');
+		wp_set_object_terms($post_id, [$term_id], 'category');
+
+		$link = tw_term_links($post_id, 'category')[0];
+
+		$this->assertStringNotContainsString('<script>', $link);
+		$this->assertStringContainsString('&lt;script&gt;', $link);
+	}
+
+	/**
 	 * Test tw_term_links logic branches: Object input, Invalid IDs, Plain text.
 	 */
 	public function test_term_links_coverage(): void
@@ -215,6 +234,18 @@ class TermTest extends WP_UnitTestCase {
 	{
 		$term_id = self::factory()->term->create(['taxonomy' => 'category', 'slug' => 'link-test']);
 		$this->assertStringContainsString('?cat=' . $term_id, tw_term_link($term_id, 'category'));
+
+		$filter = function($link, $term, $taxonomy) {
+			return add_query_arg('filtered', $taxonomy, $link);
+		};
+
+		add_filter('term_link', $filter, 10, 3);
+
+		try {
+			$this->assertStringContainsString('filtered=category', tw_term_link($term_id, 'category'));
+		} finally {
+			remove_filter('term_link', $filter, 10);
+		}
 	}
 
 	/**
@@ -235,7 +266,7 @@ class TermTest extends WP_UnitTestCase {
 		register_taxonomy('query_tax', 'post', ['public' => true, 'rewrite' => ['slug' => 'qt']]);
 		$q_term = self::factory()->term->create(['taxonomy' => 'query_tax', 'slug' => 'qs']);
 		tw_app_clear('twee_terms_query_tax');
-		$this->assertStringContainsString("?taxonomy=query_tax&term=qs", tw_term_link($q_term, 'query_tax'));
+		$this->assertStringContainsString('?query_tax=qs', tw_term_link($q_term, 'query_tax'));
 
 		// 4. Hierarchical Query Param Check
 		$hier_tax = 'hier_tax';
@@ -244,7 +275,7 @@ class TermTest extends WP_UnitTestCase {
 		tw_app_clear("twee_terms_{$hier_tax}");
 
 		$link = tw_term_link($child, $hier_tax);
-		$this->assertStringContainsString("?taxonomy={$hier_tax}&term=c", $link);
+		$this->assertStringContainsString("?{$hier_tax}=c", $link);
 
 		// 5. Cache Hit
 		$this->assertEquals($link, tw_term_link($child, $hier_tax));
@@ -383,7 +414,7 @@ class TermTest extends WP_UnitTestCase {
 		foreach ($flat as $item) {
 			if ($item['id'] == $child) {
 				$found_child = true;
-				$this->assertEmpty($item['children']);
+				$this->assertArrayNotHasKey('children', $item);
 			}
 		}
 		$this->assertTrue($found_child);
@@ -428,16 +459,35 @@ class TermTest extends WP_UnitTestCase {
 		$t1 = self::factory()->term->create(['taxonomy' => 'category']);
 		$t2 = self::factory()->term->create(['taxonomy' => 'category']);
 
-		update_term_meta($t1, 'custom_order', 10);
-		update_term_meta($t2, 'custom_order', 5);
+		update_term_meta($t1, 'order', 10);
+		update_term_meta($t2, 'order', 5);
 
 		tw_app_clear('twee_terms');
 		clean_term_cache($t1, 'category');
 		clean_term_cache($t2, 'category');
 
-		$order = tw_term_order('term_id', 'category', 'custom_order');
+		$order = tw_term_order('term_id', 'category');
 		$this->assertEquals(5, $order[$t2]);
 		$this->assertEquals(10, $order[$t1]);
+	}
+
+	/**
+	 * Test that term-meta updates invalidate ordering caches.
+	 */
+	public function test_term_order_cache_is_invalidated_by_meta_updates(): void
+	{
+		$term_id = self::factory()->term->create(['taxonomy' => 'category']);
+		$cache_group = 'twee_meta_term';
+
+		wp_cache_set('terms_order_term_id', [$term_id => 1], $cache_group);
+		wp_cache_set('terms_order_name', ['Term' => 1], $cache_group);
+		wp_cache_set('terms_order_slug', ['term' => 1], $cache_group);
+
+		tw_meta_cache_update('term', $term_id, 'order', 2);
+
+		$this->assertFalse(wp_cache_get('terms_order_term_id', $cache_group));
+		$this->assertFalse(wp_cache_get('terms_order_name', $cache_group));
+		$this->assertFalse(wp_cache_get('terms_order_slug', $cache_group));
 	}
 
 	/**
@@ -449,22 +499,13 @@ class TermTest extends WP_UnitTestCase {
 		$tag = self::factory()->term->create(['taxonomy' => 'post_tag', 'name' => 'Tag']);
 
 		update_term_meta($t1, 'order', 99);
-		update_term_meta($tag, 'custom', 20);
 
 		tw_app_clear('twee_terms');
 
-		// 1. Global Fetch (Empty Tax)
-		// Covers: } else { $where = ''; }
-		$global = tw_term_order('term_id', '', 'custom');
-		$this->assertEquals(20, $global[$tag]);
-
-		// 2. Default Meta Key ('order')
-		// Covers: } else { $meta_key = 'order'; }
-		$default = tw_term_order('term_id', 'category', '');
+		$default = tw_term_order('term_id', 'category');
 		$this->assertEquals(99, $default[$t1]);
 
-		// 3. Cache Hit
-		$this->assertSame($default, tw_term_order('term_id', 'category', ''));
+		$this->assertSame($default, tw_term_order('term_id', 'category'));
 	}
 
 	/**
@@ -499,6 +540,7 @@ class TermTest extends WP_UnitTestCase {
 
 		wp_set_object_terms($p1, [$child], 'category');
 		wp_set_object_terms($p2, [$tag], 'post_tag');
+		wp_set_object_terms($p2, [$child], 'category');
 
 		tw_app_clear('twee_post_terms_category');
 		tw_app_clear('twee_post_terms_post_tag');
@@ -517,7 +559,8 @@ class TermTest extends WP_UnitTestCase {
 		// 3. Comma-Separated Logic
 		// Covers: if (strpos($status, ',')) ...
 		$res_multi = tw_term_posts('category', 'post,page', 'publish,draft', false);
-		$this->assertIsArray($res_multi);
+		$this->assertContains($p1, $res_multi[$child]);
+		$this->assertContains($p2, $res_multi[$child]);
 
 		// 4. Single Status Logic (No Comma)
 		// Covers: } else { $statuses = [esc_sql($status)]; }
@@ -527,12 +570,32 @@ class TermTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that hierarchical aggregation does not duplicate posts.
+	 */
+	public function test_term_posts_hierarchy_deduplicates_posts(): void
+	{
+		$parent = self::factory()->term->create(['taxonomy' => 'category']);
+		$child = self::factory()->term->create(['taxonomy' => 'category', 'parent' => $parent]);
+		$post_id = self::factory()->post->create();
+
+		wp_set_object_terms($post_id, [$parent, $child], 'category');
+		tw_app_clear('twee_post_terms_category');
+		tw_app_clear('twee_terms_category');
+
+		$terms = tw_term_posts('category', 'post', '', true);
+
+		$this->assertContains($post_id, $terms[$parent]);
+		$this->assertCount(1, $terms[$parent]);
+	}
+
+	/**
 	 * Test hook registration.
 	 */
 	public function test_term_cache_clearing_hooks(): void
 	{
 		$this->assertEquals(10, has_action('clean_taxonomy_cache', 'tw_term_clear_taxonomy'));
 		$this->assertEquals(10, has_action('edited_terms', 'tw_term_clear_ids'));
+		$this->assertEquals(10, has_action('clean_term_cache', 'tw_term_clear_ids'));
 	}
 
 }

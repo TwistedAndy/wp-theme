@@ -199,7 +199,7 @@ function tw_content_heading($query = false, string $before = '', string $after =
  *
  * @return string
  */
-function tw_content_strip(string $text, int $length = 200, $allowed_tags = false, string $find = ' ', string $dots = '...')
+function tw_content_strip(string $text, int $length = 200, $allowed_tags = false, string $find = ' ', string $dots = '...'): string
 {
 	if ($allowed_tags) {
 

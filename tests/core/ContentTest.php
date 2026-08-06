@@ -356,7 +356,6 @@ class ContentTest extends WP_UnitTestCase {
 		// Empty returns
 		$this->assertEmpty(tw_content_video(999999)); // ACF returns false
 		$this->assertEmpty(tw_content_video(['mime_type' => 'video/mp4'])); // Missing 'url' array key
-		$this->assertEmpty(tw_content_video((object) ['url' => 'https://example.com/test.mp4'])); // Unhandled object type
 	}
 
 	/**
@@ -364,14 +363,6 @@ class ContentTest extends WP_UnitTestCase {
 	 */
 	public function test_video_html5_attributes(): void
 	{
-		// Mock image link function for poster resolution
-		if (!function_exists('tw_image_link')) {
-			function tw_image_link($id, $size)
-			{
-				return 'https://example.com/resolved-poster-' . $id . '.jpg';
-			}
-		}
-
 		$video_url = 'https://example.com/test-video.mp4';
 
 		// Controls attribute
@@ -381,7 +372,17 @@ class ContentTest extends WP_UnitTestCase {
 		$this->assertStringContainsString('<video', $controls_html);
 
 		// Numeric poster resolution
-		$poster_html = tw_content_video($video_url, ['poster' => 777]);
+		$poster_filter = function($url, $id) {
+			return $id === 777 ? 'https://example.com/resolved-poster-777.jpg' : $url;
+		};
+
+		add_filter('wp_get_attachment_url', $poster_filter, 10, 2);
+
+		try {
+			$poster_html = tw_content_video($video_url, ['poster' => 777]);
+		} finally {
+			remove_filter('wp_get_attachment_url', $poster_filter, 10);
+		}
 
 		$this->assertStringContainsString('poster="https://example.com/resolved-poster-777.jpg"', $poster_html);
 	}

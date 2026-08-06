@@ -291,7 +291,7 @@ function tw_meta_delete(string $meta_type, int $object_id, string $meta_key): bo
  *
  * @return mixed
  */
-function tw_meta_fetch_value(string $meta_type, int $object_id, string $meta_key, string $updated_value)
+function tw_meta_fetch_value(string $meta_type, int $object_id, string $meta_key, string $updated_value): mixed
 {
 	$column_id = ('user' === $meta_type) ? 'umeta_id' : 'meta_id';
 	$existing_meta = [];
@@ -332,7 +332,6 @@ function tw_meta_fetch_value(string $meta_type, int $object_id, string $meta_key
 	}
 
 	return $current_value;
-
 }
 
 
@@ -403,6 +402,10 @@ function tw_meta_cache_update(string $meta_type, int $object_id, string $meta_ke
 	if (is_array($meta_map)) {
 		$meta_map[$object_id] = (is_object($meta_value) or is_array($meta_value)) ? serialize($meta_value) : $meta_value;
 		wp_cache_set($cache_key, $meta_map, $cache_group);
+	} elseif ($meta_type === 'term' and $meta_key === 'order') {
+		wp_cache_delete('terms_order_term_id', $cache_group);
+		wp_cache_delete('terms_order_name', $cache_group);
+		wp_cache_delete('terms_order_slug', $cache_group);
 	}
 }
 

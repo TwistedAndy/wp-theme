@@ -702,7 +702,7 @@ class AcfTest extends WP_UnitTestCase {
 	{
 		$post_id = self::factory()->post->create();
 
-		$this->assertEquals('default', tw_acf_total_rows('default', null, 'field'));
+		$this->assertNull(tw_acf_total_rows(null, null, 'field'));
 
 		// Array Count
 		update_post_meta($post_id, 'my_repeater', [1, 2, 3]);

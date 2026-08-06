@@ -210,7 +210,7 @@ function tw_breadcrumbs_list($query = null): array
 
 	if ($post_type) {
 
-		$link = get_option('link_' . $post_type, false);
+		$link = get_option('options_link_' . $post_type, false);
 
 		if (is_array($link) and !empty($link['url'])) {
 			$breadcrumbs['archive'] = [
