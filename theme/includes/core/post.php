@@ -96,28 +96,30 @@ function tw_post_data(string $type, string $key = 'ID', $fields = 'post_title', 
 
 	$rows = $db->get_results("SELECT {$select} FROM {$db->posts} p " . $where . " ORDER BY " . $db->_escape($order), ARRAY_A);
 
-	if (is_array($fields)) {
-		foreach ($rows as $row) {
-			$array = [];
-			foreach ($fields as $field) {
-				$array[$field] = $row[$field] ?? '';
-			}
-			$data[$row[$key]] = $array;
-
-		}
-	} elseif (is_string($fields)) {
-		if ($fields === '') {
+	if ($rows) {
+		if (is_array($fields)) {
 			foreach ($rows as $row) {
-				$data[] = $row[$key];
+				$array = [];
+				foreach ($fields as $field) {
+					$array[$field] = $row[$field] ?? '';
+				}
+				$data[$row[$key]] = $array;
+
+			}
+		} elseif (is_string($fields)) {
+			if ($fields === '') {
+				foreach ($rows as $row) {
+					$data[] = $row[$key];
+				}
+			} else {
+				foreach ($rows as $row) {
+					$data[$row[$key]] = $row[$fields];
+				}
 			}
 		} else {
 			foreach ($rows as $row) {
-				$data[$row[$key]] = $row[$fields];
+				$data[$row[$key]] = $row;
 			}
-		}
-	} else {
-		foreach ($rows as $row) {
-			$data[$row[$key]] = $row;
 		}
 	}
 

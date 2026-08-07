@@ -456,8 +456,8 @@ function tw_term_children(int $term_id = 0, string $taxonomy = '', array $parent
  */
 function tw_term_order(string $field = 'term_id', string $taxonomy = ''): array
 {
-	$cache_key = 'terms_order_' . $field;
-	$cache_group = 'twee_meta_term';
+	$cache_key = 'order_' . $field;
+	$cache_group = 'twee_term_order';
 
 	if ($taxonomy) {
 		$cache_key .= '_' . $taxonomy;
@@ -637,14 +637,16 @@ function tw_term_posts(string $taxonomy, string $type = '', string $status = '',
 				WHERE tt.taxonomy = %s", $taxonomy), ARRAY_A);
 		}
 
-		foreach ($rows as $row) {
-			if (empty($row['object_id']) or empty($row['term_id'])) {
-				continue;
+		if ($rows) {
+			foreach ($rows as $row) {
+				if (empty($row['object_id']) or empty($row['term_id'])) {
+					continue;
+				}
+				if (!isset($terms[$row['term_id']])) {
+					$terms[$row['term_id']] = [];
+				}
+				$terms[(int) $row['term_id']][] = (int) $row['object_id'];
 			}
-			if (!isset($terms[$row['term_id']])) {
-				$terms[$row['term_id']] = [];
-			}
-			$terms[(int) $row['term_id']][] = (int) $row['object_id'];
 		}
 
 	}

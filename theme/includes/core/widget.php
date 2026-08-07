@@ -88,7 +88,7 @@ class Widget extends \WP_Widget {
 		foreach ($this->fields as $name => $field) { ?>
 
 			<p>
-				<label for="<?php echo $this->get_field_id($name); ?>"><?php echo $field['name']; ?>:</label>
+				<label for="<?php echo $this->get_field_id($name); ?>"><?php echo esc_html($field['name']); ?>:</label>
 
 				<?php if ($field['type'] == 'textarea') { ?>
 
@@ -101,13 +101,13 @@ class Widget extends \WP_Widget {
 						<?php if (empty($field['multiple'])) { ?>
 							<select class="widefat" id="<?php echo $this->get_field_id($name); ?>" name="<?php echo $this->get_field_name($name); ?>">
 								<?php foreach ($field['values'] as $key => $value) { ?>
-									<option value="<?php echo $key; ?>"<?php echo ($instance[$name] == $key) ? ' selected="selected"' : ''; ?>><?php echo $value; ?></option>
+									<option value="<?php echo esc_attr($key); ?>"<?php echo ($instance[$name] == $key) ? ' selected="selected"' : ''; ?>><?php echo esc_html($value); ?></option>
 								<?php } ?>
 							</select>
 						<?php } else { ?>
 							<select class="widefat" id="<?php echo $this->get_field_id($name); ?>" name="<?php echo $this->get_field_name($name); ?>[]" multiple>
 								<?php foreach ($field['values'] as $key => $value) { ?>
-									<option value="<?php echo $key; ?>"<?php echo (is_array($instance[$name]) and in_array($key, $instance[$name])) ? ' selected="selected"' : ''; ?>><?php echo $value; ?></option>
+									<option value="<?php echo esc_attr($key); ?>"<?php echo (is_array($instance[$name]) and in_array($key, $instance[$name])) ? ' selected="selected"' : ''; ?>><?php echo esc_html($value); ?></option>
 								<?php } ?>
 							</select>
 						<?php } ?>
@@ -116,16 +116,16 @@ class Widget extends \WP_Widget {
 
 						<?php foreach ($field['values'] as $key => $value) { ?>
 							<br />
-							<input id="<?php echo $this->get_field_id($name . $key); ?>" type="radio" name="<?php echo $this->get_field_name($name); ?>" value="<?php echo $key; ?>" <?php if ($instance[$name] == $key) { ?> checked="checked"<?php } ?> />
-							<label for="<?php echo $this->get_field_id($name . $key); ?>"><?php echo $value; ?></label>
+							<input id="<?php echo $this->get_field_id($name . $key); ?>" type="radio" name="<?php echo $this->get_field_name($name); ?>" value="<?php echo esc_attr($key); ?>" <?php if ($instance[$name] == $key) { ?> checked="checked"<?php } ?> />
+							<label for="<?php echo $this->get_field_id($name . $key); ?>"><?php echo esc_html($value); ?></label>
 						<?php } ?>
 
 					<?php } elseif ($field['type'] == 'checkbox') { ?>
 
 						<?php foreach ($field['values'] as $key => $value) { ?>
 							<br />
-							<input id="<?php echo $this->get_field_id($name . $key); ?>" type="checkbox" name="<?php echo $this->get_field_name($name); ?>" value="<?php echo $key; ?>" <?php if ($instance[$name] == $key) { ?> checked="checked"<?php } ?> />
-							<label for="<?php echo $this->get_field_id($name . $key); ?>"><?php echo $value; ?></label>
+							<input id="<?php echo $this->get_field_id($name . $key); ?>" type="checkbox" name="<?php echo $this->get_field_name($name); ?>[]" value="<?php echo esc_attr($key); ?>" <?php if (is_array($instance[$name]) ? in_array($key, $instance[$name]) : $instance[$name] == $key) { ?> checked="checked"<?php } ?> />
+							<label for="<?php echo $this->get_field_id($name . $key); ?>"><?php echo esc_html($value); ?></label>
 						<?php } ?>
 
 					<?php } ?>

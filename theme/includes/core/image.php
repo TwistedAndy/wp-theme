@@ -117,8 +117,8 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 				$width = (int) round((float) str_replace('vw', '', $value) / 100 * $cards_width) - $cards_padding;
 			}
 
-			foreach ($sizes as $key => $value) {
-				if (!empty($value['width']) and $value['width'] >= $width) {
+			foreach ($sizes as $key => $size_config) {
+				if (!empty($size_config['width']) and $size_config['width'] >= $width) {
 					$size = (string) $key;
 					break;
 				}
@@ -186,7 +186,7 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 		$after = '</a>' . $after;
 	}
 
-	if (!isset($attributes['loading']) or (is_bool($attributes['loading'])) and $attributes['loading']) {
+	if (!isset($attributes['loading']) or (is_bool($attributes['loading']) and $attributes['loading'])) {
 		$attributes['loading'] = 'lazy';
 	} else {
 		unset($attributes['loading']);
@@ -265,7 +265,7 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 		}
 	}
 
-	$image = $before . '<img src="' . $image_url . '" ' . implode(' ', $data) . ' />' . $after;
+	$image = $before . '<img src="' . esc_url($image_url) . '" ' . implode(' ', $data) . ' />' . $after;
 
 	if (empty($attributes['domain'])) {
 		$image = str_replace(TW_HOME . '/' . TW_FOLDER, '/', $image);
@@ -520,6 +520,8 @@ function tw_image_srcset(int $image, array $attributes): array
 		$value = $attributes['sizes'][$breakpoint];
 
 		if (is_numeric($value) and $value > 0) {
+			$value = (float) $value;
+
 			if ($value > 100) {
 				$width_list[$screen_width] = (int) $value;
 				$media_list[$screen_width] = $value . 'px';
@@ -529,13 +531,13 @@ function tw_image_srcset(int $image, array $attributes): array
 					$media_list[$screen_width] = $width_list[$screen_width] . 'px';
 				} else {
 					$width_list[$screen_width] = (int) round(($screen_width - $cards_gap * ($value - 1)) / $value) - $cards_padding;
-					$media_list[$screen_width] = (int) round(100 / $value, 2) . 'vw';
+					$media_list[$screen_width] = round(100 / $value, 2) . 'vw';
 				}
 			} elseif ($breakpoint == 'dt') {
 				$width_list[$screen_width] = (int) round($cards_width * $value / 100) - $cards_padding;
 				$media_list[$screen_width] = $width_list[$screen_width] . 'px';
 			} else {
-				$width_list[$screen_width] = (int) round(((float) $value / 100) * $screen_width);
+				$width_list[$screen_width] = (int) round(($value / 100) * $screen_width);
 				$media_list[$screen_width] = $value . 'vw';
 			}
 		} elseif (strpos($value, 'px') > 0) {
@@ -604,8 +606,12 @@ function tw_image_srcset(int $image, array $attributes): array
 			$data = tw_image_size($src_size, $image);
 
 			if ($data['width'] > 0 and !in_array($data['width'], $widths)) {
-				$widths[] = $data['width'];
-				$srcset[] = tw_image_link($image, $src_size) . ' ' . round($data['width']) . 'w';
+				$link = tw_image_link($image, $src_size);
+
+				if ($link) {
+					$widths[] = $data['width'];
+					$srcset[] = $link . ' ' . round($data['width']) . 'w';
+				}
 			}
 		}
 
@@ -808,7 +814,7 @@ function tw_image_resize(string $image_url, array|string $image_size, $image_id 
 
 	$position = strrpos($image_url, '/');
 
-	if ($position >= strlen($image_url)) {
+	if ($position === false or $position >= strlen($image_url)) {
 		return $thumb_url;
 	}
 
@@ -853,8 +859,8 @@ function tw_image_resize(string $image_url, array|string $image_size, $image_id 
 			$url_hash = '_' . hash('crc32', $image_url, false);
 		}
 
-		$crop = ($crop and is_array($crop)) ? '_' . implode('_', $crop) : '';
-		$name = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id_string . $matches[1] . $url_hash . $crop;
+		$crop_suffix = ($crop and is_array($crop)) ? '_' . implode('_', $crop) : '';
+		$name = '/cache/thumbs_' . $width . 'x' . $height . '/' . $image_id_string . $matches[1] . $url_hash . $crop_suffix;
 
 		$thumb_mime = 'image/webp';
 		$thumb_name = $name . '.webp';
@@ -893,7 +899,9 @@ function tw_image_resize(string $image_url, array|string $image_size, $image_id 
 
 		$editor = wp_get_image_editor($image_path);
 
-		if (!$editor instanceof WP_Image_Editor) {
+		if ($editor instanceof WP_Error) {
+			tw_logger_error('Failed to initialize the image editor. Error: ' . $editor->get_error_message() . '. Image Path: ' . $image_path, 'image');
+
 			return $image_url;
 		}
 
@@ -909,16 +917,35 @@ function tw_image_resize(string $image_url, array|string $image_size, $image_id 
 
 		$result = $editor->save($upload_dir . $thumb_name, $editor::supports_mime_type($thumb_mime) ? $thumb_mime : null);
 
-		if (!is_array($result) or !is_readable($result['path']) or empty($result['filesize'])) {
-			if (empty($result['filesize'])) {
+		if ($result instanceof WP_Error) {
+			tw_logger_error('Failed to save the image. Error: ' . $result->get_error_message() . '. Image URL: ' . $image_url, 'image');
+			$retry = true;
+		} elseif (empty($result['path']) or !is_readable($result['path']) or empty($result['filesize'])) {
+			if (!empty($result['path'])) {
 				unlink($result['path']);
 			}
 
+			$retry = true;
+		} else {
+			$retry = false;
+		}
+
+		if ($retry) {
 			$editor = wp_get_image_editor($image_path);
+
+			if ($editor instanceof WP_Error) {
+				tw_logger_error('Failed to initialize the image editor again. Error: ' . $editor->get_error_message() . '. Image Path: ' . $image_path, 'image');
+
+				return $image_url;
+			}
 
 			$result = $editor->save($upload_dir . $fallback_name, $fallback_mime);
 
-			if (!is_array($result) or !is_readable($result['path']) or empty($result['filesize'])) {
+			if ($result instanceof WP_Error) {
+				tw_logger_error('Failed to save the image again. Error: ' . $result->get_error_message() . '. Image URL: ' . $image_url, 'image');
+
+				return $image_url;
+			} elseif (empty($result['path']) or !is_readable($result['path']) or empty($result['filesize'])) {
 				return $image_url;
 			}
 		}
@@ -1073,7 +1100,12 @@ function tw_image_preview(string $video_url, $return_url = true): string
 		if (is_readable($poster_path)) {
 			return $return_url ? $poster_url : $poster_path;
 		} elseif (is_readable($lock_path)) {
-			return '';
+			$time = file_get_contents($lock_path);
+
+			// Retry if the lock file is older than 1 hour
+			if (is_numeric($time) and (int) $time > time() - 3600) {
+				return '';
+			}
 		}
 
 		$youtube_url = "https://img.youtube.com/vi/{$youtube_id}/maxresdefault.jpg";
@@ -1090,13 +1122,19 @@ function tw_image_preview(string $video_url, $return_url = true): string
 			if ($body) {
 				file_put_contents($poster_path, $body);
 
+				// Clean up the lock file upon successful fetch
+				if (file_exists($lock_path)) {
+					unlink($lock_path);
+				}
+
 				return $return_url ? $poster_url : $poster_path;
 			}
 		}
 
-	} elseif (preg_match('#(?:(?:www\.)?player\.)?(?:www\.)?vimeo\.com/(?:video/|channels/[^/]+/|groups/[^/]+/videos/)?([0-9]+)#i', $video_url, $match)) {
+	} elseif (preg_match('#(?:(?:www\.)?player\.)?(?:www\.)?vimeo\.com/(?:video/|channels/[^/]+/|groups/[^/]+/videos/)?([0-9]+(?:/[a-zA-Z0-9]+)?)#i', $video_url, $match)) {
 
-		$vimeo_id = $match[1];
+		// Convert potential privacy hashes (e.g., 12345/abcdef) to a safe filename structure
+		$vimeo_id = str_replace('/', '_', $match[1]);
 		$vimeo_url = '';
 
 		$lock_path = $cache_dir . 'vimeo_' . $vimeo_id . '.lock';
@@ -1106,37 +1144,51 @@ function tw_image_preview(string $video_url, $return_url = true): string
 		if (is_readable($poster_path)) {
 			return $return_url ? $poster_url : $poster_path;
 		} elseif (is_readable($lock_path)) {
-			return '';
+			$time = file_get_contents($lock_path);
+
+			// Retry if the lock file is older than 1 hour
+			if (is_numeric($time) and (int) $time > time() - 3600) {
+				return '';
+			}
 		}
 
-		$response = wp_remote_get("https://vimeo.com/api/v2/video/{$vimeo_id}.json", ['timeout' => 15]);
+		// Switch to oEmbed API to reliably fetch public and unlisted links
+		$oembed_api_url = "https://vimeo.com/api/oembed.json?url=" . urlencode($video_url);
+		$response = wp_remote_get($oembed_api_url, ['timeout' => 5]);
 
-		if (!is_wp_error($response) and wp_remote_retrieve_response_code($response) === 200) {
+		if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
 			$body = json_decode(wp_remote_retrieve_body($response), true);
 
-			if (!empty($body[0]['thumbnail_large'])) {
-				$vimeo_url = $body[0]['thumbnail_large'];
+			if (!empty($body['thumbnail_url'])) {
+				// Strip the dimension suffix (e.g., _295x166) to fetch the maximum resolution original file
+				$vimeo_url = preg_replace('/_[0-9]+x[0-9]+(?=\.[a-zA-Z]+$|$)/', '', $body['thumbnail_url']);
 			}
 		}
 
 		if ($vimeo_url) {
-			$image_response = wp_remote_get($vimeo_url, ['timeout' => 15]);
+			$image_response = wp_remote_get($vimeo_url, ['timeout' => 5]);
 
-			if (!is_wp_error($image_response) and wp_remote_retrieve_response_code($image_response) === 200) {
+			if (!is_wp_error($image_response) && wp_remote_retrieve_response_code($image_response) === 200) {
 				$image_body = wp_remote_retrieve_body($image_response);
 
 				if ($image_body) {
 					file_put_contents($poster_path, $image_body);
+
+					// Clean up the lock file upon successful fetch
+					if (file_exists($lock_path)) {
+						unlink($lock_path);
+					}
 				}
 			}
 		}
 	}
 
-	if ($poster_path and is_readable($poster_path)) {
+	if ($poster_path && is_readable($poster_path)) {
 		return $return_url ? $poster_url : $poster_path;
 	}
 
 	if ($lock_path) {
+		// Create negative cache lock to prevent spamming broken URLs
 		file_put_contents($lock_path, time());
 	}
 

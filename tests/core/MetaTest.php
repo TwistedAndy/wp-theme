@@ -116,7 +116,10 @@ class MetaTest extends WP_UnitTestCase {
 		$this->assertGreaterThan(1, count($chunk_map), 'Data should be segmented into multiple chunks.');
 
 		// Verify first chunk contains exactly 100 items
-		$first_chunk = wp_cache_get($meta_key . '_chunk_0', 'twee_meta_post');
+		$this->assertIsArray($chunk_map[0]);
+		$this->assertSame(20001, $chunk_map[0]['first']);
+		$this->assertMatchesRegularExpression('/^' . $meta_key . '_chunk_[a-f0-9]{16}_0$/', $chunk_map[0]['key']);
+		$first_chunk = wp_cache_get($chunk_map[0]['key'], 'twee_meta_post');
 		$this->assertIsArray($first_chunk);
 		$this->assertCount(100, $first_chunk);
 	}
@@ -139,6 +142,17 @@ class MetaTest extends WP_UnitTestCase {
 
 		// ID 50 should resolve to Chunk 2
 		$this->assertEquals($meta_key . '_chunk_2', tw_meta_cache_key('post', 50, $meta_key));
+
+		$generation_map = [
+			0 => ['first' => 500, 'key' => $meta_key . '_chunk_generation_0'],
+			1 => ['first' => 400, 'key' => $meta_key . '_chunk_generation_1'],
+			2 => ['first' => 300, 'key' => $meta_key . '_chunk_generation_2'],
+		];
+		wp_cache_set($meta_key . '_chunks', $generation_map, 'twee_meta_post');
+
+		$this->assertEquals($meta_key . '_chunk_generation_0', tw_meta_cache_key('post', 450, $meta_key));
+		$this->assertEquals($meta_key . '_chunk_generation_1', tw_meta_cache_key('post', 350, $meta_key));
+		$this->assertEquals($meta_key . '_chunk_generation_2', tw_meta_cache_key('post', 50, $meta_key));
 	}
 
 	/**
@@ -293,17 +307,33 @@ class MetaTest extends WP_UnitTestCase {
 	 */
 	public function test_tw_meta_handles_partial_chunk_failure(): void
 	{
+		global $wpdb;
+
 		$meta_key = 'partial_chunk_key';
 		$cache_group = 'twee_meta_post';
 
-		$segment_map = [0 => 10, 1 => 20];
+		$wpdb->insert($wpdb->postmeta, [
+			'post_id'    => 20,
+			'meta_key'   => $meta_key,
+			'meta_value' => 'database_value_20',
+		]);
+		$wpdb->insert($wpdb->postmeta, [
+			'post_id'    => 10,
+			'meta_key'   => $meta_key,
+			'meta_value' => 'database_value_10',
+		]);
+
+		$segment_map = [0 => 20, 1 => 10];
 		wp_cache_set($meta_key . '_chunks', $segment_map, $cache_group);
-		wp_cache_set($meta_key . '_chunk_0', [5 => 'exists'], $cache_group);
+		wp_cache_set($meta_key . '_chunk_0', [20 => 'stale_value'], $cache_group);
 
 		$results = tw_meta('post', $meta_key);
 
-		$this->assertCount(1, $results);
-		$this->assertArrayHasKey(5, $results);
+		$this->assertSame([
+			20 => 'database_value_20',
+			10 => 'database_value_10',
+		], $results);
+		$this->assertFalse(wp_cache_get($meta_key . '_chunks', $cache_group));
 	}
 
 	/**

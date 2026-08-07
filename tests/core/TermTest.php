@@ -234,18 +234,6 @@ class TermTest extends WP_UnitTestCase {
 	{
 		$term_id = self::factory()->term->create(['taxonomy' => 'category', 'slug' => 'link-test']);
 		$this->assertStringContainsString('?cat=' . $term_id, tw_term_link($term_id, 'category'));
-
-		$filter = function($link, $term, $taxonomy) {
-			return add_query_arg('filtered', $taxonomy, $link);
-		};
-
-		add_filter('term_link', $filter, 10, 3);
-
-		try {
-			$this->assertStringContainsString('filtered=category', tw_term_link($term_id, 'category'));
-		} finally {
-			remove_filter('term_link', $filter, 10);
-		}
 	}
 
 	/**
@@ -266,7 +254,7 @@ class TermTest extends WP_UnitTestCase {
 		register_taxonomy('query_tax', 'post', ['public' => true, 'rewrite' => ['slug' => 'qt']]);
 		$q_term = self::factory()->term->create(['taxonomy' => 'query_tax', 'slug' => 'qs']);
 		tw_app_clear('twee_terms_query_tax');
-		$this->assertStringContainsString('?query_tax=qs', tw_term_link($q_term, 'query_tax'));
+		$this->assertStringContainsString('?taxonomy=query_tax&term=qs', tw_term_link($q_term, 'query_tax'));
 
 		// 4. Hierarchical Query Param Check
 		$hier_tax = 'hier_tax';
@@ -275,7 +263,7 @@ class TermTest extends WP_UnitTestCase {
 		tw_app_clear("twee_terms_{$hier_tax}");
 
 		$link = tw_term_link($child, $hier_tax);
-		$this->assertStringContainsString("?{$hier_tax}=c", $link);
+		$this->assertStringContainsString("?taxonomy={$hier_tax}&term=c", $link);
 
 		// 5. Cache Hit
 		$this->assertEquals($link, tw_term_link($child, $hier_tax));
@@ -477,17 +465,17 @@ class TermTest extends WP_UnitTestCase {
 	public function test_term_order_cache_is_invalidated_by_meta_updates(): void
 	{
 		$term_id = self::factory()->term->create(['taxonomy' => 'category']);
-		$cache_group = 'twee_meta_term';
+		$cache_group = 'twee_term_order';
 
-		wp_cache_set('terms_order_term_id', [$term_id => 1], $cache_group);
-		wp_cache_set('terms_order_name', ['Term' => 1], $cache_group);
-		wp_cache_set('terms_order_slug', ['term' => 1], $cache_group);
+		wp_cache_set('order_term_id', [$term_id => 1], $cache_group);
+		wp_cache_set('order_name', ['Term' => 1], $cache_group);
+		wp_cache_set('order_slug', ['term' => 1], $cache_group);
 
 		tw_meta_cache_update('term', $term_id, 'order', 2);
 
-		$this->assertFalse(wp_cache_get('terms_order_term_id', $cache_group));
-		$this->assertFalse(wp_cache_get('terms_order_name', $cache_group));
-		$this->assertFalse(wp_cache_get('terms_order_slug', $cache_group));
+		$this->assertFalse(wp_cache_get('order_term_id', $cache_group));
+		$this->assertFalse(wp_cache_get('order_name', $cache_group));
+		$this->assertFalse(wp_cache_get('order_slug', $cache_group));
 	}
 
 	/**

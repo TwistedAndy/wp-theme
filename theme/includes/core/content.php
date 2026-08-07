@@ -104,19 +104,19 @@ function tw_content_link(array $link, string $class = 'button', string $hidden =
 	}
 
 	if ($class) {
-		$class = ' class="' . $class . '"';
+		$class = ' class="' . esc_attr($class) . '"';
 	} else {
 		$class = '';
 	}
 
 	if (!empty($link['target'])) {
-		$target = ' target="' . $link['target'] . '"';
+		$target = ' target="' . esc_attr($link['target']) . '"';
 	} else {
 		$target = '';
 	}
 
 	if ($hidden) {
-		$hidden = '<span class="sr-hidden">' . $hidden . '</span>';
+		$hidden = '<span class="sr-hidden">' . esc_html($hidden) . '</span>';
 	}
 
 	return '<a href="' . esc_url($link['url']) . '"' . $class . $target . '>' . $link['title'] . $hidden . '</a>';
@@ -306,13 +306,13 @@ function tw_content_phone(string $string): string
  */
 function tw_content_date(WP_Post $post, string $format = ''): string
 {
-	if (!$format) {
+	if (empty($format)) {
 		$format = (string) get_option('date_format', 'Y-m-d H:i:s');
 	}
 
 	$date = mysql2date($format, $post->post_date);
 
-	return apply_filters('get_the_date', $date, $format);
+	return apply_filters('get_the_date', $date, $format, $post);
 }
 
 
@@ -427,7 +427,7 @@ function tw_content_video(int|string|array $video, array $args = []): string
 		$iframe_url = 'https://www.youtube-nocookie.com/embed/' . $video_id . '?' . http_build_query($params);
 		$args['class'] .= ' video_youtube';
 
-	} elseif (preg_match('#(?:(?:www\.)?player\.)?(?:www\.)?vimeo\.com/(?:video/|channels/[^/]+/|groups/[^/]+/videos/)?([0-9]+)#i', $url, $match)) {
+	} elseif (preg_match('#(?:(?:www\.)?player\.)?(?:www\.)?vimeo\.com/(?:video/|channels/[^/]+/|groups/[^/]+/videos/)?([0-9]+(?:/[a-zA-Z0-9]+)?)#i', $url, $match)) {
 		$video_id = $match[1];
 
 		$params = [

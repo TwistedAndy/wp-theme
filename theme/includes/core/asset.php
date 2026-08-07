@@ -41,7 +41,11 @@ function tw_asset_init(): void
 	 */
 	$base = TW_ROOT . 'assets/plugins/';
 
-	$files = scandir($base);
+	if (is_dir($base)) {
+		$files = scandir($base);
+	} else {
+		$files = [];
+	}
 
 	$assets = tw_app_get('registered', 'assets', []);
 
@@ -86,7 +90,11 @@ function tw_asset_init(): void
 	 */
 	$base = TW_ROOT . 'assets/build/blocks/';
 
-	$files = scandir($base);
+	if (is_dir($base)) {
+		$files = scandir($base);
+	} else {
+		$files = [];
+	}
 
 	if (is_array($files)) {
 		foreach ($files as $file) {
@@ -425,7 +433,7 @@ function tw_asset_enqueue($name, bool $instant = false): void
 			if (!empty($asset['module'])) {
 				add_filter('script_loader_tag', function($tag, $handle) use ($asset_name) {
 					if ($handle === $asset_name) {
-						return str_replace(' type="script"', ' type="module"', $tag);
+						return str_replace('<script ', '<script type="module" ', $tag);
 					} else {
 						return $tag;
 					}
@@ -651,7 +659,7 @@ function tw_asset_normalize(array $asset): array
 		}
 
 		if ($timestamp > 0) {
-			$asset['version'] = substr($timestamp, 4);
+			$asset['version'] = substr((string) $timestamp, 4);
 		}
 
 	}

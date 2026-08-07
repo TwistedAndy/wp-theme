@@ -123,10 +123,6 @@ function tw_meta(string $meta_type = 'post', string $meta_key = '_thumbnail_id',
  */
 function tw_meta_get(string $meta_type, int $object_id, string $meta_key): mixed
 {
-	if (!TW_CACHE) {
-		return get_metadata_raw($meta_type, $object_id, $meta_key, true);
-	}
-
 	$object_id = absint($object_id);
 
 	$cache = wp_cache_get($object_id, $meta_type . '_meta');
@@ -174,10 +170,6 @@ function tw_meta_get(string $meta_type, int $object_id, string $meta_key): mixed
  */
 function tw_meta_update(string $meta_type, int $object_id, string $meta_key, $meta_value): bool
 {
-	if (!TW_CACHE) {
-		return update_metadata($meta_type, $object_id, $meta_key, $meta_value);
-	}
-
 	$object_id = absint($object_id);
 	$meta_key = stripslashes($meta_key);
 
@@ -246,10 +238,6 @@ function tw_meta_update(string $meta_type, int $object_id, string $meta_key, $me
  */
 function tw_meta_delete(string $meta_type, int $object_id, string $meta_key): bool
 {
-	if (!TW_CACHE) {
-		return delete_metadata($meta_type, $object_id, $meta_key);
-	}
-
 	if (empty($meta_type) or empty($meta_key)) {
 		return false;
 	}
@@ -403,9 +391,7 @@ function tw_meta_cache_update(string $meta_type, int $object_id, string $meta_ke
 		$meta_map[$object_id] = (is_object($meta_value) or is_array($meta_value)) ? serialize($meta_value) : $meta_value;
 		wp_cache_set($cache_key, $meta_map, $cache_group);
 	} elseif ($meta_type === 'term' and $meta_key === 'order') {
-		wp_cache_delete('terms_order_term_id', $cache_group);
-		wp_cache_delete('terms_order_name', $cache_group);
-		wp_cache_delete('terms_order_slug', $cache_group);
+		tw_app_clear('twee_term_order');
 	}
 }
 
