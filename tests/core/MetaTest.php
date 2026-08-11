@@ -89,39 +89,34 @@ class MetaTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test large dataset chunking logic (data > 100 items).
-	 * Verifies split-key chunk creation.
+	 * Test that a large dataset can be fetched after a chunk is evicted.
 	 */
-	public function test_chunking_logic_creates_multiple_cache_keys(): void
+	public function test_tw_meta_handles_large_dataset(): void
 	{
 		global $wpdb;
 		$meta_key = 'test_chunk_key';
-		$item_count = 105;
+		$item_count = 2049;
+		$expected = [];
 
 		// Seed database directly for processing speed
 		$bulk_values = [];
 		for ($i = 1; $i <= $item_count; $i++) {
 			$unique_id = 20000 + $i;
-			$bulk_values[] = "($unique_id, '$meta_key', 'val_$i')";
+			$value = "val_$i";
+			$bulk_values[] = "($unique_id, '$meta_key', '$value')";
+			$expected[$unique_id] = $value;
 		}
 		$wpdb->query("INSERT INTO {$wpdb->postmeta} (post_id, meta_key, meta_value) VALUES " . implode(',', $bulk_values));
+		krsort($expected);
 
-		// Trigger fetch to populate cache segments
-		$results = tw_meta('post', $meta_key);
-		$this->assertCount($item_count, $results);
+		$this->assertSame($expected, tw_meta('post', $meta_key));
 
-		// Verify chunk map exists in cache
-		$chunk_map = wp_cache_get($meta_key . '_chunks', 'twee_meta_post');
-		$this->assertIsArray($chunk_map);
-		$this->assertGreaterThan(1, count($chunk_map), 'Data should be segmented into multiple chunks.');
+		// Simulate an external cache service evicting a less frequently used chunk.
+		$evicted_chunk_key = tw_meta_cache_key('post', 20001, $meta_key);
+		$this->assertNotSame($meta_key, $evicted_chunk_key);
+		wp_cache_delete($evicted_chunk_key, 'twee_meta_post');
 
-		// Verify first chunk contains exactly 100 items
-		$this->assertIsArray($chunk_map[0]);
-		$this->assertSame(20001, $chunk_map[0]['first']);
-		$this->assertMatchesRegularExpression('/^' . $meta_key . '_chunk_[a-f0-9]{16}_0$/', $chunk_map[0]['key']);
-		$first_chunk = wp_cache_get($chunk_map[0]['key'], 'twee_meta_post');
-		$this->assertIsArray($first_chunk);
-		$this->assertCount(100, $first_chunk);
+		$this->assertSame($expected, tw_meta('post', $meta_key));
 	}
 
 	/**
@@ -132,7 +127,7 @@ class MetaTest extends WP_UnitTestCase {
 		$meta_key = 'chunked_key';
 		// Simulate map: [Index => Start_ID (DESC)]
 		$chunk_map = [0 => 500, 1 => 400, 2 => 300];
-		wp_cache_set($meta_key . '_chunks', $chunk_map, 'twee_meta_post');
+		wp_cache_set($meta_key, ['__chunk_map' => $chunk_map], 'twee_meta_post');
 
 		// ID 450 should resolve to Chunk 0
 		$this->assertEquals($meta_key . '_chunk_0', tw_meta_cache_key('post', 450, $meta_key));
@@ -143,16 +138,6 @@ class MetaTest extends WP_UnitTestCase {
 		// ID 50 should resolve to Chunk 2
 		$this->assertEquals($meta_key . '_chunk_2', tw_meta_cache_key('post', 50, $meta_key));
 
-		$generation_map = [
-			0 => ['first' => 500, 'key' => $meta_key . '_chunk_generation_0'],
-			1 => ['first' => 400, 'key' => $meta_key . '_chunk_generation_1'],
-			2 => ['first' => 300, 'key' => $meta_key . '_chunk_generation_2'],
-		];
-		wp_cache_set($meta_key . '_chunks', $generation_map, 'twee_meta_post');
-
-		$this->assertEquals($meta_key . '_chunk_generation_0', tw_meta_cache_key('post', 450, $meta_key));
-		$this->assertEquals($meta_key . '_chunk_generation_1', tw_meta_cache_key('post', 350, $meta_key));
-		$this->assertEquals($meta_key . '_chunk_generation_2', tw_meta_cache_key('post', 50, $meta_key));
 	}
 
 	/**
@@ -271,15 +256,68 @@ class MetaTest extends WP_UnitTestCase {
 	 */
 	public function test_cache_key_boundary_alignment(): void
 	{
+		global $wpdb;
+
 		$meta_key = 'boundary_key';
 		$cache_group = 'twee_meta_post';
 
 		// Map: Chunk 0 starts at 200, Chunk 1 starts at 100
 		$boundary_map = [0 => 200, 1 => 100];
-		wp_cache_set($meta_key . '_chunks', $boundary_map, $cache_group);
+		wp_cache_set($meta_key, ['__chunk_map' => $boundary_map], $cache_group);
 
 		$this->assertEquals($meta_key . '_chunk_0', tw_meta_cache_key('post', 200, $meta_key));
 		$this->assertEquals($meta_key . '_chunk_1', tw_meta_cache_key('post', 100, $meta_key));
+
+		$large_meta_key = 'large_boundary_key';
+		$first_id = 50001;
+		$item_count = 10000;
+		$bulk_values = [];
+
+		for ($i = 0; $i < $item_count; $i++) {
+			$object_id = $first_id + $i;
+			$bulk_values[] = "($object_id, '$large_meta_key', 'value_$object_id')";
+		}
+
+		$wpdb->query("INSERT INTO {$wpdb->postmeta} (post_id, meta_key, meta_value) VALUES " . implode(',', $bulk_values));
+
+		try {
+			tw_meta('post', $large_meta_key);
+
+			$cached_meta = wp_cache_get($large_meta_key, $cache_group);
+			$this->assertIsArray($cached_meta);
+			$this->assertArrayHasKey('__chunk_map', $cached_meta);
+
+			$expected_chunk_map = [];
+			$last_id = $first_id + $item_count - 1;
+			$total_chunks = ($item_count + 1023) >> 10;
+
+			for ($index = 0; $index < $total_chunks; $index++) {
+				$expected_chunk_map[$index] = $last_id - ($index << 10);
+			}
+
+			$this->assertSame($expected_chunk_map, $cached_meta['__chunk_map']);
+			$first_chunk = wp_cache_get($large_meta_key . '_chunk_0', $cache_group);
+			$second_chunk = wp_cache_get($large_meta_key . '_chunk_1', $cache_group);
+			$last_chunk = wp_cache_get($large_meta_key . '_chunk_9', $cache_group);
+
+			$this->assertArrayHasKey(60000, $first_chunk);
+			$this->assertArrayHasKey(58977, $first_chunk);
+			$this->assertArrayNotHasKey(58976, $first_chunk);
+			$this->assertArrayHasKey(58976, $second_chunk);
+			$this->assertArrayHasKey(57953, $second_chunk);
+			$this->assertArrayNotHasKey(57952, $second_chunk);
+			$this->assertArrayHasKey(50784, $last_chunk);
+			$this->assertArrayHasKey(50001, $last_chunk);
+			$this->assertArrayNotHasKey(50000, $last_chunk);
+
+			$this->assertEquals($large_meta_key . '_chunk_0', tw_meta_cache_key('post', 60000, $large_meta_key));
+			$this->assertEquals($large_meta_key . '_chunk_1', tw_meta_cache_key('post', 58976, $large_meta_key));
+			$this->assertEquals($large_meta_key . '_chunk_2', tw_meta_cache_key('post', 57952, $large_meta_key));
+			$this->assertEquals($large_meta_key . '_chunk_9', tw_meta_cache_key('post', 50784, $large_meta_key));
+			$this->assertEquals($large_meta_key . '_chunk_9', tw_meta_cache_key('post', 50001, $large_meta_key));
+		} finally {
+			$wpdb->delete($wpdb->postmeta, ['meta_key' => $large_meta_key]);
+		}
 	}
 
 	/**
@@ -324,7 +362,7 @@ class MetaTest extends WP_UnitTestCase {
 		]);
 
 		$segment_map = [0 => 20, 1 => 10];
-		wp_cache_set($meta_key . '_chunks', $segment_map, $cache_group);
+		wp_cache_set($meta_key, ['__chunk_map' => $segment_map], $cache_group);
 		wp_cache_set($meta_key . '_chunk_0', [20 => 'stale_value'], $cache_group);
 
 		$results = tw_meta('post', $meta_key);
@@ -333,7 +371,8 @@ class MetaTest extends WP_UnitTestCase {
 			20 => 'database_value_20',
 			10 => 'database_value_10',
 		], $results);
-		$this->assertFalse(wp_cache_get($meta_key . '_chunks', $cache_group));
+		$this->assertSame($results, wp_cache_get($meta_key, $cache_group));
+		$this->assertFalse(wp_cache_get($meta_key . '_chunk_0', $cache_group));
 	}
 
 	/**

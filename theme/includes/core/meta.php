@@ -18,28 +18,35 @@
  */
 function tw_meta(string $meta_type = 'post', string $meta_key = '_thumbnail_id', bool $decode = false): array
 {
-	$chunk_size = 100;
 	$cache_key = $meta_key;
 	$cache_group = 'twee_meta_' . $meta_type;
 
-	$chunk_map = wp_cache_get($cache_key . '_chunks', $cache_group);
+	$meta = wp_cache_get($cache_key, $cache_group);
 
-	if (is_array($chunk_map) and $chunk_map) {
+	if (is_array($meta) and isset($meta['__chunk_map']) and is_array($meta['__chunk_map'])) {
+
+		$chunk_map = $meta['__chunk_map'];
 
 		$meta = [];
 
 		foreach ($chunk_map as $index => $last_element) {
-
 			$chunk_data = wp_cache_get($cache_key . '_chunk_' . $index, $cache_group);
 
 			if (is_array($chunk_data)) {
 				$meta += $chunk_data;
+			} else {
+				$meta = false;
+				break;
 			}
-
 		}
 
-	} else {
-		$meta = wp_cache_get($cache_key, $cache_group);
+		if ($meta === false) {
+			wp_cache_delete($cache_key, $cache_group);
+
+			foreach ($chunk_map as $index => $last_element) {
+				wp_cache_delete($cache_key . '_chunk_' . $index, $cache_group);
+			}
+		}
 	}
 
 	if (is_array($meta)) {
@@ -64,10 +71,8 @@ function tw_meta(string $meta_type = 'post', string $meta_key = '_thumbnail_id',
 	$chunk_map = [];
 
 	if (is_array($result)) {
-
 		foreach ($result as $line => $row) {
-
-			$index = intdiv($line, $chunk_size);
+			$index = $line >> 10; // Divide a line number by 1024
 			$object_id = (int) $row[$key];
 
 			if (!isset($chunks[$index])) {
@@ -76,31 +81,45 @@ function tw_meta(string $meta_type = 'post', string $meta_key = '_thumbnail_id',
 			}
 
 			$chunks[$index][$object_id] = (string) $row['meta_value'];
-
 		}
-
 	}
 
 	if (count($chunks) > 1) {
 
-		wp_cache_set($cache_key . '_chunks', $chunk_map, $cache_group);
-
-		foreach ($chunks as $index => $chunk) {
-			wp_cache_set($cache_key . '_chunk_' . $index, $chunk, $cache_group);
+		foreach ($chunks as $chunk) {
 			$meta += $chunk;
 		}
 
-	} elseif (count($chunks) == 1) {
+		$cached = true;
 
-		$meta = reset($chunks);
+		foreach ($chunks as $index => $chunk) {
+			$chunk_key = $cache_key . '_chunk_' . $index;
+			$cached = wp_cache_set($chunk_key, $chunk, $cache_group);
 
-		if ($chunk_map) {
-			wp_cache_delete($cache_key . '_chunks', $cache_group);
+			if (!$cached) {
+				break;
+			}
 		}
 
-	}
+		if ($cached) {
+			$cached = wp_cache_set($cache_key, ['__chunk_map' => $chunk_map], $cache_group);
+		}
 
-	wp_cache_set($cache_key, $meta, $cache_group);
+		if (!$cached) {
+			wp_cache_delete($cache_key, $cache_group);
+
+			foreach ($chunks as $index => $chunk) {
+				wp_cache_delete($cache_key . '_chunk_' . $index, $cache_group);
+			}
+		}
+
+	} else {
+		if (count($chunks) === 1) {
+			$meta = reset($chunks);
+		}
+
+		wp_cache_set($cache_key, $meta, $cache_group);
+	}
 
 	if ($decode) {
 		foreach ($meta as $object_id => $meta_value) {
@@ -337,9 +356,10 @@ function tw_meta_cache_key(string $meta_type, int $object_id, string $meta_key):
 	$cache_key = $meta_key;
 	$cache_group = 'twee_meta_' . $meta_type;
 
-	$chunk_map = wp_cache_get($cache_key . '_chunks', $cache_group);
+	$meta = wp_cache_get($cache_key, $cache_group);
 
-	if (is_array($chunk_map) and $chunk_map) {
+	if (is_array($meta) and isset($meta['__chunk_map']) and is_array($meta['__chunk_map'])) {
+		$chunk_map = $meta['__chunk_map'];
 		$chunk_index = 0;
 		$low_index = 0;
 		$high_index = count($chunk_map) - 1;
