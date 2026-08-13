@@ -785,7 +785,7 @@ function tw_image_size($size, int $image_id = 0): array
 			$result['width'] = $meta['sizes'][$size]['width'];
 			$result['height'] = $meta['sizes'][$size]['height'];
 		} else {
-			$size = tw_image_calculate($meta['width'], $meta['height'], $result['width'], $result['height'], $result['crop'], $result['aspect']);
+			$size = tw_image_calculate($meta['width'], $meta['height'], $result['width'], $result['height'], $result['crop'], $result['aspect'], $result['cover']);
 			$result['width'] = $size['width'];
 			$result['height'] = $size['height'];
 		}
