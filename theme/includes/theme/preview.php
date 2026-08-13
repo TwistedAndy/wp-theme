@@ -128,18 +128,32 @@ function tw_preview_action_preview(): void
 		'message' => '',
 	];
 
-	$node = apply_filters('twee_preview_node', '"C:\Program Files\NodeJS\node.exe"');
-	$script = apply_filters('twee_preview_script', '"D:\Work\wp-content\themes\screens.js"');
+	$node = apply_filters('twee_preview_node', 'C:\Program Files\NodeJS\node.exe');
+	$script = apply_filters('twee_preview_script', 'D:\Work\wp-content\themes\screens.js');
 
-	$command = $node . ' ' . $script . ' "' . $link . '?preview" #block_' . $_POST['id'] . ' 2>&1';
+	$block_id = (int) $_POST['id'];
+	$cmd = [$node, $script, $link . '?preview', '#block_' . $block_id];
 
-	exec($command, $output, $result_code);
+	$descriptors = [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'w']];
+	$proc = proc_open($cmd, $descriptors, $pipes);
+	$result_code = -1;
+	$output = [];
+
+	if (is_resource($proc)) {
+		fclose($pipes[0]);
+		$stdout = stream_get_contents($pipes[1]);
+		$stderr = stream_get_contents($pipes[2]);
+		fclose($pipes[1]);
+		fclose($pipes[2]);
+		$result_code = proc_close($proc);
+		$output = array_filter(explode("\n", trim($stdout . $stderr)));
+	}
 
 	if ($result_code === 0) {
 		$result['success'] = 1;
 	}
 
-	if ($output and is_array($output)) {
+	if ($output) {
 		$result['message'] = implode("\n", $output);
 	}
 
