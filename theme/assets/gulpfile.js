@@ -1,6 +1,7 @@
 let fs = require('fs'),
+	path = require('path'),
 	gulp = require('gulp'),
-	sass = require('gulp-sass/legacy'),
+	gulpSass = require('gulp-sass'),
 	notify = require('gulp-notify'),
 	concat = require('gulp-concat'),
 	plumber = require('gulp-plumber'),
@@ -8,8 +9,16 @@ let fs = require('fs'),
 	insert = require('gulp-insert'),
 	uglify = require('gulp-uglify-es').default;
 
-if (typeof sass.compiler === 'undefined') {
-	sass = sass(require('node-sass'));
+let sass;
+
+try {
+	sass = gulpSass(require('sass'));
+} catch (sassError) {
+	try {
+		sass = require('gulp-sass/legacy')(require('node-sass'));
+	} catch (nodeSassError) {
+		throw new Error('No Sass compiler found. Install either "sass" or "node-sass".');
+	}
 }
 
 let folders = {
@@ -37,9 +46,11 @@ let options = {
 		}) || null
 	},
 	sass: {
+		style: 'compressed',
 		outputStyle: 'compressed',
 		indentType: 'tab',
-		indentWidth: 1
+		indentWidth: 1,
+		silenceDeprecations: ['import']
 	},
 	sourcemaps: {
 		styles: {
@@ -65,6 +76,7 @@ function woo() {
 		.pipe(plumber(options.plumber))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
+		.pipe(sourcemaps.mapSources(source => path.isAbsolute(source) ? path.relative(path.resolve('./styles'), source).replaceAll('\\', '/') : source))
 		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
 		.pipe(gulp.dest(folders.build));
 }
@@ -80,6 +92,7 @@ function theme() {
 		}))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
+		.pipe(sourcemaps.mapSources(source => path.isAbsolute(source) ? path.relative(path.resolve('./styles'), source).replaceAll('\\', '/') : source))
 		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
 		.pipe(gulp.dest(folders.build));
 }
@@ -108,6 +121,7 @@ function blocks() {
 		}))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
+		.pipe(sourcemaps.mapSources(source => path.isAbsolute(source) ? path.relative(path.resolve('./styles/blocks'), source).replaceAll('\\', '/') : source))
 		.pipe(insert.transform(function(contents, file) {
 			return contents.replaceAll('url(../images/', 'url(../../images/');
 		}))
@@ -123,6 +137,7 @@ function plugins() {
 		.pipe(plumber(options.plumber))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
+		.pipe(sourcemaps.mapSources(source => path.isAbsolute(source) ? path.relative(path.resolve('./styles'), source).replaceAll('\\', '/') : source))
 		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
 		.pipe(gulp.dest('./'));
 }
