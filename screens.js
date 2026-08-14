@@ -2,118 +2,92 @@ const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
 
-(async () => {
+function getErrorMessage(error) {
+	return error instanceof Error ? error.message : String(error);
+}
+
+async function main() {
+	const args = process.argv.slice(2);
+
+	if (!args[0]) {
+		throw new Error('Usage: screens.js <URL> [selector] [theme]');
+	}
+
+	const url = args[0];
+
+	if (!url.includes('.test')) {
+		throw new Error('URL should contain .test');
+	}
+
+	let parsedUrl;
 
 	try {
+		parsedUrl = new URL(url);
+	} catch (error) {
+		throw new Error(`Invalid URL: ${url}`);
+	}
 
-		const browser = await puppeteer.launch();
-		const page = await browser.newPage();
+	const project = parsedUrl.hostname.replace(/\.test$/, '');
+	const projectsFolder = 'Z:/';
+	const themeName = args[2] || project;
+	const projectPath = fs.readdirSync(projectsFolder, {withFileTypes: true})
+		.filter(item => item.isDirectory())
+		.map(item => path.join(projectsFolder, item.name, project))
+		.find(candidate => fs.existsSync(candidate));
 
-		// Set the viewport size
+	if (!projectPath) {
+		throw new Error(`Unable to find a project: ${project}`);
+	}
+
+	const themePath = path.join(projectPath, 'wp-content/themes', themeName);
+
+	if (!fs.existsSync(themePath)) {
+		throw new Error(`Unable to find a theme: ${themePath}`);
+	}
+
+	const previewFolder = path.join(themePath, 'assets/preview');
+	fs.mkdirSync(previewFolder, {recursive: true});
+
+	let browser;
+	let page;
+
+	try {
+		browser = await puppeteer.launch();
+		page = await browser.newPage();
 		await page.setViewport({
 			width: 1280,
 			height: 1280
 		});
 
-		const args = process.argv.slice(2);
-
-		if (args.length === 0) {
-			console.error('Usage: screens.bat <URL>');
-			process.exit(0);
-		}
-
-		const url = args[0];
-
-		if (url.indexOf('.test') === -1) {
-			console.error('URL should contain .test');
-			process.exit(0);
-		}
-
-		let project = (new URL(url)).hostname.replace('.test', ''),
-			projectsFolder = 'Z:/',
-			projectPath = '',
-			themeName = args[2] ? args[2] : project;
-
-		let subfolders = fs.readdirSync(projectsFolder, {withFileTypes: true}).filter(item => item.isDirectory()).map(item => path.join(projectsFolder, item.name));
-
-		for (const subfolder of subfolders) {
-
-			let subfolderContents = fs.readdirSync(subfolder, {withFileTypes: true}).filter(item => item.isDirectory() && item.name === project).map(item => path.join(subfolder, item.name));
-
-			if (subfolderContents.length > 0) {
-				projectPath = subfolderContents[0];
-			}
-
-		}
-
-		if (projectPath === '') {
-			console.error('Unable to find a project: ' + project);
-			process.exit(0);
-		}
-
-		const themePath = path.join(projectPath, 'wp-content/themes/' + themeName);
-
-		if (!fs.existsSync(themePath)) {
-			console.error('Unable to find a theme: ' + themePath);
-			process.exit(0);
-		}
-
-		// Define the screenshots folder
-		const previewFolder = path.join(themePath, 'assets/preview');
-
-		if (!fs.existsSync(previewFolder)) {
-			fs.mkdirSync(previewFolder, {recursive: true}); // Create folder if it doesn't exist
-		}
-
-		// Load the page
 		console.log(`URL: ${url.replace('?preview', '')}`);
-
 		await page.goto(url, {waitUntil: 'networkidle2'});
 
-		// Remove or hide specific elements (e.g., sticky header, footer, ads)
 		await page.evaluate(() => {
-			const selectorsToRemove = ['.header_box', '.footer_box'];
-			selectorsToRemove.forEach(selector => {
-				document.querySelectorAll(selector).forEach(el => el.remove());
-			});
+			for (const selector of ['.header_box', '.footer_box']) {
+				document.querySelectorAll(selector).forEach(element => element.remove());
+			}
 		});
 
-		const selector = args[1] ? args[1] : 'section[class*="_box"]';
+		const selector = args[1] || 'section[class*="_box"]';
 		const elements = await page.$$(selector);
 
 		if (elements.length === 0) {
 			console.log('No Sections Found');
-			await browser.close();
-			process.exit(0);
+			return;
 		}
 
-		/**
-		 * Process selected sections
-		 */
-		for (let i = 0; i < elements.length; i++) {
+		for (const element of elements) {
+			const className = await element.evaluate(el => el.className || '');
+			const layout = await element.evaluate(el => el.dataset.layout || '');
+			const sectionName = layout || className.match(/(\w+)_box/)?.[1];
 
-			const className = await elements[i].evaluate(el => el.className);
-
-			let fileName = '',
-				currentLayout = await elements[i].evaluate(el => el.dataset.layout);
-
-			if (currentLayout) {
-				fileName = currentLayout;
-			} else {
-				const match = className.match(/(\w+)_box/);
-				if (match[1]) {
-					fileName = match[1];
-				}
-			}
-
-			if (!fileName) {
+			if (!sectionName) {
 				console.log(`Skipped Section: ${className}`);
 				continue;
 			}
 
-			fileName = currentLayout + '.webp';
-
-			await elements[i].evaluate(el => el.classList.add('box_top', 'box_bottom'));
+			const fileName = `${sectionName}.webp`;
+			await element.evaluate(el => el.classList.add('box_top', 'box_bottom'));
 
 			const filePath = path.join(previewFolder, fileName);
 
@@ -121,20 +95,13 @@ const fs = require('fs');
 			if (!args[1] && fs.existsSync(filePath)) {
 				console.log(`Skipped: ${fileName}`);
 				continue;
-			} else {
-				console.log(`Created: ${fileName}`);
 			}
 
-			// Scroll the element into view to trigger lazy loading
-			await elements[i].evaluate(el => el.scrollIntoView({
-				behavior: 'instant',
-				block: 'start'
-			}));
-
-			// Wait for 2 seconds for images to download and render
+			console.log(`Created: ${fileName}`);
+			await element.evaluate(el => el.scrollIntoView({behavior: 'instant', block: 'start'}));
 			await new Promise(resolve => setTimeout(resolve, 2000));
 
-			const bounding = await elements[i].boundingBox();
+			const bounding = await element.boundingBox();
 			const options = {
 				path: filePath,
 				type: 'webp',
@@ -146,21 +113,20 @@ const fs = require('fs');
 					x: 0,
 					y: 0,
 					width: page.viewport().width,
-					height: page.viewport().height,
-				}
+					height: page.viewport().height
+				};
 			}
 
-			await elements[i].screenshot(options);
-
+			await element.screenshot(options);
 		}
-
-		await browser.close();
-
-	} catch (error) {
-
-		console.error('Error:', error);
-		process.exit(0);
-
+	} finally {
+		if (browser) {
+			await browser.close().catch(() => {});
+		}
 	}
+}
 
-})();
+main().catch(error => {
+	console.error('Error:', getErrorMessage(error));
+	process.exitCode = 1;
+});

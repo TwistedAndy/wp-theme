@@ -133,14 +133,18 @@ function tw_preview_action_preview(): void
 
 	$command = $node . ' ' . $script . ' "' . $link . '?preview" #block_' . $_POST['id'] . ' 2>&1';
 
+	$output = [];
+	$result_code = 1;
 	exec($command, $output, $result_code);
 
 	if ($result_code === 0) {
 		$result['success'] = 1;
 	}
 
-	if ($output and is_array($output)) {
+	if (is_array($output) and $output) {
 		$result['message'] = implode("\n", $output);
+	} elseif ($result_code !== 0) {
+		$result['message'] = 'Preview generation failed with exit code ' . $result_code . '.';
 	}
 
 	wp_send_json($result);
