@@ -206,7 +206,7 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 
 	$empty_dimensions = (empty($attributes['width']) or empty($attributes['height']));
 
-	if (stripos($image_url, '.svg') === false) {
+	if (stripos($image_url, '.svg') !== false) {
 		if (is_numeric($image) and $image > 0 and $empty_dimensions) {
 			$data = tw_image_size($size, (int) $image);
 
