@@ -544,6 +544,12 @@ function tw_acf_encode_data(array $values, array $field): array
 
 		$values = $data;
 
+	} else {
+		foreach ($values as $index => $value) {
+			if (is_string($value) and $value !== '' and str_contains($value, '\\')) {
+				$values[$index] = stripslashes($value);
+			}
+		}
 	}
 
 	return $values;
