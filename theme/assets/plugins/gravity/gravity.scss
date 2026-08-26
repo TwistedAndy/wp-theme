@@ -1304,6 +1304,170 @@ input.hasDatepicker {
 }
 
 
+/* New Datepicker Widget */
+
+.gform-datepicker {
+
+	&.datepicker_with_icon {
+		padding-right: 40px;
+	}
+
+	&-toggle {
+		position: absolute;
+		top: 50%;
+		right: 15px;
+		margin: 0;
+		transform: translateY(-50%);
+		z-index: 2;
+
+		.gform-calendar-icon {
+			display: block;
+			width: 16px;
+			height: 16px;
+			background-color: currentColor;
+			-webkit-mask: url(../../images/ico_datepicker.svg) 50% 50% / contain no-repeat;
+			font-family: inherit;
+
+			&:before {
+				content: '';
+				display: none;
+			}
+
+		}
+
+	}
+
+	&-calendar {
+		display: block;
+		position: absolute;
+		top: 100%;
+		right: auto;
+		left: 0;
+		overflow: hidden;
+		min-width: 240px;
+		height: auto;
+		margin: 5px 0 0;
+		border-radius: var(--radius-small);
+		background: var(--color-base);
+		box-shadow: var(--shadow-small);
+		font-family: var(--font-main);
+		font-size: rem(13);
+		font-weight: 500;
+		line-height: rem(20);
+		z-index: 100;
+
+		table {
+			table-layout: fixed;
+			width: 100%;
+			margin: 0 auto;
+			border-collapse: collapse;
+			inline-size: 100%;
+		}
+
+		th, td {
+			padding: 5px;
+			border: 1px solid var(--color-border);
+			text-align: center;
+		}
+
+		th {
+
+			&.week {
+				color: var(--color-heading);
+				font-size: rem(12);
+				font-weight: 600;
+				line-height: rem(16);
+			}
+
+		}
+
+		td {
+
+			&[role="button"] {
+				cursor: pointer;
+			}
+
+			@include hover {
+				&.day:not(.disabled):hover {
+					position: relative;
+					border-color: var(--color-primary);
+					background-color: var(--color-primary);
+					color: var(--color-primary-text);
+					z-index: 2;
+				}
+			}
+
+			&.disabled, &.empty {
+				background-color: var(--color-background);
+				color: var(--color-muted);
+				cursor: default;
+			}
+
+			&.selected {
+				border-color: var(--color-primary);
+				background-color: var(--color-primary);
+				color: var(--color-primary-text);
+			}
+
+			&.day {
+				padding: 6px 2px;
+			}
+
+		}
+
+		p {
+			margin: 0;
+		}
+
+		select {
+			padding: 5px 20px 5px 10px;
+			border-radius: 0;
+			background: var(--field-base) url(../../images/ico_select.svg) right 8px top 50% / 10px auto no-repeat;
+			font-size: rem(13);
+			font-weight: 500;
+			line-height: rem(20);
+		}
+
+		.nav {
+
+			&.prev span {
+				transform: scaleX(-1);
+			}
+
+			span {
+				display: inline-block;
+				position: relative;
+				width: 12px;
+				height: 12px;
+				background-color: currentColor;
+				-webkit-mask: url(../../images/ico_gravity_arrow.svg) 50% 50% / contain no-repeat;
+				font-size: 0;
+				line-height: 0;
+				vertical-align: middle;
+				transition: 0.2s;
+			}
+
+		}
+
+		.monthSelector, .yearSelector {
+			position: relative;
+		}
+
+		.monthMessage {
+			@extend %hidden;
+		}
+
+		@include hover {
+			.btn:hover {
+				color: var(--color-primary);
+			}
+		}
+
+	}
+
+}
+
+
 /* Multi-Select Field */
 
 .chosen-container {

@@ -1,1 +1,1 @@
-{"version":3,"sourceRoot":"../../styles/blocks/","sources":["D:/Work/wp-content/themes/theme/assets/styles/elements/contents.scss"],"names":[],"mappings":"AAAA,uBACC,gCACA,kCACA,kBAEA,kCACC,gBAGD,gCACC,qBACA","file":"content.css"}
+{"version":3,"sourceRoot":"../../styles/blocks/","sources":["../elements/contents.scss"],"names":[],"mappings":"AAAA,uBACC,gCACA,kCACA,kBAEA,kCACC,gBAGD,gCACC,qBACA","file":"content.css"}

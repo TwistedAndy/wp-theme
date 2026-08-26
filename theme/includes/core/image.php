@@ -330,6 +330,10 @@ function tw_image_link($image, $size = 'full'): string
 			return apply_filters('wp_get_attachment_url', $thumb_url, $image);
 		}
 
+		if (str_contains($file, ':\\')) {
+			$file = str_replace('\\', '/', $file);
+		}
+
 		if (str_starts_with($file, $upload_dir)) {
 			$image_url = str_replace($upload_dir, $upload_url, $file);
 		} elseif (str_starts_with($file, 'http') or str_starts_with($file, '//')) {
@@ -1255,6 +1259,10 @@ function tw_image_folders(): array
 		'basedir' => $dir['basedir'] ?? '',
 		'baseurl' => $dir['baseurl'] ?? '',
 	];
+
+	if (!str_starts_with($folders['basedir'], '/')) {
+		$folders['basedir'] = str_replace('\\', '/', $folders['basedir']);
+	}
 
 	tw_app_set($cache_key, $folders, $cache_group);
 
