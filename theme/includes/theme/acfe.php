@@ -299,7 +299,7 @@ function tw_acfe_render_scripts(): void
 		body.acfe-wp-7-0:not(.block-editor-page) .acf-input-append,
 		body.acfe-wp-7-0:not(.block-editor-page) .acf-input-prepend {
 			min-height: 32px;
-			line-height: 1;
+			line-height: 1 !important;
 			padding-top: 8px;
 			padding-bottom: 8px;
 		}
@@ -313,8 +313,8 @@ function tw_acfe_render_scripts(): void
 		}
 
 		.acf-admin-7-0 .select2-container.-acf .select2-selection--multiple .select2-selection__choice {
-			padding-top: 0;
-			padding-bottom: 0;
+			padding-top: 0 !important;
+			padding-bottom: 0 !important;
 			font-size: inherit;
 		}
 

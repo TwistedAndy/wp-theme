@@ -49,6 +49,7 @@
 			.button {
 				flex-basis: 160px;
 				flex-grow: 1;
+				z-index: unset;
 			}
 
 			& + .gform_confirmation_wrapper, & + .gform_confirmation_message {

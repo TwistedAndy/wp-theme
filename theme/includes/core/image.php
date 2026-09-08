@@ -238,7 +238,6 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 			}
 		}
 
-		$attributes = tw_image_srcset((int) $image, $attributes);
 	} elseif ($image > 0 and $empty_dimensions) {
 		$data = tw_image_size($size, (int) $image);
 
@@ -246,6 +245,8 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 			$attributes['width'] = round($data['width']);
 			$attributes['height'] = round($data['height']);
 		}
+
+		$attributes = tw_image_srcset((int) $image, $attributes);
 	}
 
 	if (empty($attributes['srcset']) or is_array($attributes['srcset'])) {

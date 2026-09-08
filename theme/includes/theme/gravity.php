@@ -15,6 +15,12 @@ add_filter('gform_disable_css', '__return_true');
 
 
 /**
+ * Hide the spinner
+ */
+add_filter('gform_always_show_spinner', '__return_false');
+
+
+/**
  * Remove additional image sizes
  */
 add_filter('gform_image_sizes', '__return_empty_array');
