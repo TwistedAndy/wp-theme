@@ -185,7 +185,13 @@ const Twee = {
 			const module = Twee.getModule(key);
 
 			if (module && module.selector) {
-				jQuery(selector).filter(module.selector).each(function() {
+				let elements = jQuery(selector);
+
+				if (module.selector !== 'html') {
+					elements = elements.filter(module.selector);
+				}
+
+				elements.each(function() {
 					Twee.initModule(key, this);
 				});
 			}
@@ -203,7 +209,7 @@ const Twee = {
 	 */
 	runModule: function(element, key, module) {
 
-		if (element instanceof HTMLElement && element.matches(module.selector) && (Twee.runOnce(element, key) || module.multiple)) {
+		if (element instanceof HTMLElement && (module.selector === 'html' || element.matches(module.selector)) && (Twee.runOnce(element, key) || module.multiple)) {
 
 			module.callback.call(element, jQuery, jQuery(element), module);
 

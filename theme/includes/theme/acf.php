@@ -593,10 +593,10 @@ function tw_acf_decode_data(array $values, array $field): array
 		/**
 		 * Repeaters always use numeric keys, but groups usually don't
 		 */
-		if (!empty($field['type']) and $field['type'] === 'group') {
-			$is_repeater = false;
-		} else {
+		if (empty($field['type'])) {
 			$is_repeater = is_numeric(array_key_first($values));
+		} else {
+			$is_repeater = $field['type'] === 'repeater';
 		}
 
 		if ($is_repeater) {

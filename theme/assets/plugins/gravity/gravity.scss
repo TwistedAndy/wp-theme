@@ -112,6 +112,12 @@
 		width: calc(var(--width-item) - var(--gap-field-x));
 		--width-item: 100%;
 
+		&:has(gmp-place-autocomplete),
+		&:has(.gform-datepicker-calendar) {
+			position: relative;
+			z-index: 3;
+		}
+
 		&.spacer {
 			display: none;
 		}
