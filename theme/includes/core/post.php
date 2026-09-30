@@ -357,7 +357,7 @@ function tw_post_set_terms(int $post_id, array $term_ids, string $taxonomy, bool
 		$update_terms = ($new_ids !== $old_ids);
 	}
 
-	if (!$update_terms) {
+	if (!$update_terms or !taxonomy_exists($taxonomy)) {
 		return false;
 	}
 
@@ -484,6 +484,10 @@ function tw_post_recount_terms(string $taxonomy, array $term_ids = [], bool $def
 
 	wp_cache_delete_multiple(array_keys($cases), 'terms');
 	wp_cache_set('last_changed', microtime(), 'terms');
+
+	// The term counts are cached by tw_term_data() and tw_term_taxonomies()
+	tw_app_clear('twee_terms');
+	tw_app_clear('twee_terms_' . $taxonomy);
 }
 
 add_action('twee_post_recount_terms_event', 'tw_post_recount_terms');
@@ -631,6 +635,23 @@ function tw_post_clear_cache(int $post_id, WP_Post $post): void
 
 add_action('save_post', 'tw_post_clear_cache', 10, 2);
 add_action('delete_post', 'tw_post_clear_cache', 10, 2);
+
+
+/**
+ * Invalidate the filtered tw_term_posts() results when a post status or type changes
+ */
+add_action('transition_post_status', function(string $new_status, string $old_status) {
+	// New posts get their terms later, which clears the cache via set_object_terms
+	if ($new_status !== $old_status and $old_status !== 'new') {
+		wp_cache_set_last_changed('twee_post_status');
+	}
+}, 10, 2);
+
+add_action('post_updated', function(int $post_id, WP_Post $post_after, WP_Post $post_before) {
+	if ($post_after->post_type !== $post_before->post_type) {
+		wp_cache_set_last_changed('twee_post_status');
+	}
+}, 10, 3);
 
 
 /**

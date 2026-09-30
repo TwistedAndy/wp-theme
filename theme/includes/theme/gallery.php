@@ -80,7 +80,7 @@ add_filter('attachment_fields_to_save', function($post, $attachment) {
 	}
 
 	if (!empty($attachment['video_link'])) {
-		tw_meta_update('post', $post['ID'], 'video_link', sanitize_text_field($attachment['video_link']));
+		tw_meta_update('post', $post['ID'], 'video_link', sanitize_text_field(wp_unslash($attachment['video_link'])));
 	} else {
 		tw_meta_delete('post', $post['ID'], 'video_link');
 	}

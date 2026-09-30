@@ -818,7 +818,7 @@ function tw_acf_compress_meta(string $meta_type = 'post', int $object_id = 0): v
 
 		if ($meta_value === '') {
 			unset($acf_map[$meta_key]);
-			tw_meta_delete($meta_key, $object_id, $meta_key);
+			tw_meta_delete($meta_type, $object_id, $meta_key);
 			continue;
 		}
 

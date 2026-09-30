@@ -537,6 +537,11 @@ function tw_term_posts(string $taxonomy, string $type = '', string $status = '',
 		$status = '';
 	}
 
+	// Filtered results are invalidated when a post status or type changes
+	if ($type or $status) {
+		$cache_key .= '_' . wp_cache_get_last_changed('twee_post_status');
+	}
+
 	if ($children) {
 
 		$object = get_taxonomy($taxonomy);
@@ -823,6 +828,8 @@ function tw_term_clear_taxonomy(string $taxonomy): void
 {
 	tw_app_clear('twee_terms');
 	tw_app_clear('twee_terms_' . $taxonomy);
+	tw_app_clear('twee_post_terms_' . $taxonomy);
+	tw_app_clear('twee_term_order');
 }
 
 add_action('clean_taxonomy_cache', 'tw_term_clear_taxonomy', 10, 1);
@@ -835,6 +842,8 @@ function tw_term_clear_ids($ids, string $taxonomy): void
 {
 	tw_app_clear('twee_terms');
 	tw_app_clear('twee_terms_' . $taxonomy);
+	tw_app_clear('twee_post_terms_' . $taxonomy);
+	tw_app_clear('twee_term_order');
 }
 
 add_action('edited_terms', 'tw_term_clear_ids', 10, 2);

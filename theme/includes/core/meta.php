@@ -64,7 +64,7 @@ function tw_meta(string $meta_type = 'post', string $meta_key = '_thumbnail_id',
 	$db = tw_app_database();
 
 	$key = $meta_type . '_id';
-	$table = $db->prefix . $meta_type . 'meta';
+	$table = $db->{$meta_type . 'meta'};
 	$result = $db->get_results($db->prepare("SELECT meta.{$key}, meta.meta_value FROM {$table} AS meta WHERE meta.meta_key = %s ORDER BY meta.{$key} DESC", $meta_key), ARRAY_A);
 
 	$chunks = [];
@@ -194,10 +194,11 @@ function tw_meta_update(string $meta_type, int $object_id, string $meta_key, $me
 
 	$current_value = tw_meta_get($meta_type, $object_id, $meta_key);
 
+	// The value is expected to be unslashed, unlike in update_metadata()
 	if (is_array($meta_value) or is_object($meta_value)) {
 		$updated_value = serialize($meta_value);
 	} else {
-		$updated_value = stripslashes((string) $meta_value);
+		$updated_value = (string) $meta_value;
 	}
 
 	if ($current_value === null) {
@@ -205,7 +206,7 @@ function tw_meta_update(string $meta_type, int $object_id, string $meta_key, $me
 	} elseif (is_array($current_value) or is_object($current_value)) {
 		$current_value = serialize($current_value);
 	} else {
-		$current_value = stripslashes((string) $current_value);
+		$current_value = (string) $current_value;
 	}
 
 	if ($current_value === $updated_value) {
@@ -213,17 +214,17 @@ function tw_meta_update(string $meta_type, int $object_id, string $meta_key, $me
 	}
 
 	$db = tw_app_database();
-	$table = $meta_type . 'meta';
+	$table = $db->{$meta_type . 'meta'};
 	$column = $meta_type . '_id';
 
 	if ($current_value === null) {
-		$result = $db->insert($db->$table, [
+		$result = $db->insert($table, [
 			$column      => $object_id,
 			'meta_key'   => $meta_key,
 			'meta_value' => $updated_value,
 		]);
 	} else {
-		$result = $db->update($db->$table, [
+		$result = $db->update($table, [
 			'meta_value' => $updated_value,
 		], [
 			$column    => $object_id,
@@ -233,13 +234,14 @@ function tw_meta_update(string $meta_type, int $object_id, string $meta_key, $me
 		if (is_numeric($result) and $result > 1) {
 			$limit = $result - 1;
 			$key = esc_sql($meta_key);
-			$db->query("DELETE FROM {$db->prefix}{$table} WHERE {$column} = $object_id AND meta_key = '{$key}' LIMIT $limit");
+			$db->query("DELETE FROM {$table} WHERE {$column} = $object_id AND meta_key = '{$key}' LIMIT $limit");
 		}
 	}
 
 	if ($result) {
 		tw_meta_cache_update($meta_type, $object_id, $meta_key, $updated_value);
 		wp_cache_delete($object_id, $meta_type . '_meta');
+		wp_cache_set_last_changed($meta_type . 's');
 	}
 
 	return (bool) $result;
@@ -270,11 +272,11 @@ function tw_meta_delete(string $meta_type, int $object_id, string $meta_key): bo
 
 	$db = tw_app_database();
 
-	$table = $meta_type . 'meta';
+	$table = $db->{$meta_type . 'meta'};
 	$column = sanitize_key($meta_type . '_id');
 	$object_id = absint($object_id);
 
-	$result = $db->delete($db->$table, [
+	$result = $db->delete($table, [
 		$column    => $object_id,
 		'meta_key' => $meta_key,
 	]);
@@ -282,6 +284,7 @@ function tw_meta_delete(string $meta_type, int $object_id, string $meta_key): bo
 	if ($result) {
 		tw_meta_cache_delete($meta_type, $object_id, $meta_key);
 		wp_cache_delete($object_id, $meta_type . '_meta');
+		wp_cache_set_last_changed($meta_type . 's');
 	}
 
 	return (bool) $result;
@@ -305,9 +308,9 @@ function tw_meta_fetch_value(string $meta_type, int $object_id, string $meta_key
 	$existing_ids = [];
 
 	$db = tw_app_database();
-	$table = $meta_type . 'meta';
+	$table = $db->{$meta_type . 'meta'};
 	$column = $meta_type . '_id';
-	$rows = $db->get_results($db->prepare("SELECT {$column_id}, meta_key, meta_value FROM {$db->prefix}{$table} WHERE meta_key = %s AND $column = %d", $meta_key, $object_id), ARRAY_A);
+	$rows = $db->get_results($db->prepare("SELECT {$column_id}, meta_key, meta_value FROM {$table} WHERE meta_key = %s AND $column = %d", $meta_key, $object_id), ARRAY_A);
 
 	if ($rows) {
 		foreach ($rows as $row) {
@@ -335,7 +338,7 @@ function tw_meta_fetch_value(string $meta_type, int $object_id, string $meta_key
 	}
 
 	if ($existing_ids) {
-		$db->query("DELETE FROM {$db->prefix}{$table} WHERE {$column_id} IN (" . implode(', ', array_keys($existing_ids)) . ")");
+		$db->query("DELETE FROM {$table} WHERE {$column_id} IN (" . implode(', ', array_keys($existing_ids)) . ")");
 	}
 
 	return $current_value;
@@ -408,9 +411,12 @@ function tw_meta_cache_update(string $meta_type, int $object_id, string $meta_ke
 	$meta_map = wp_cache_get($cache_key, $cache_group);
 
 	if (is_array($meta_map)) {
-		$meta_map[$object_id] = (is_object($meta_value) or is_array($meta_value)) ? serialize($meta_value) : $meta_value;
+		// Cast scalars to strings, as they are stored in the database
+		$meta_map[$object_id] = (is_object($meta_value) or is_array($meta_value)) ? serialize($meta_value) : (string) $meta_value;
 		wp_cache_set($cache_key, $meta_map, $cache_group);
-	} elseif ($meta_type === 'term' and $meta_key === 'order') {
+	}
+
+	if ($meta_type === 'term' and $meta_key === 'order') {
 		tw_app_clear('twee_term_order');
 	}
 }
@@ -429,6 +435,25 @@ function tw_meta_cache_delete(string $meta_type, int $object_id, string $meta_ke
 {
 	$cache_key = tw_meta_cache_key($meta_type, $object_id, $meta_key);
 	$cache_group = 'twee_meta_' . $meta_type;
+
+	if ($meta_type === 'term' and $meta_key === 'order') {
+		tw_app_clear('twee_term_order');
+	}
+
+	// The key is deleted for all objects, e.g. by delete_metadata() with $delete_all
+	if ($object_id === 0) {
+		$meta = wp_cache_get($meta_key, $cache_group);
+
+		if (is_array($meta) and isset($meta['__chunk_map']) and is_array($meta['__chunk_map'])) {
+			foreach ($meta['__chunk_map'] as $index => $last_element) {
+				wp_cache_delete($meta_key . '_chunk_' . $index, $cache_group);
+			}
+		}
+
+		wp_cache_delete($meta_key, $cache_group);
+
+		return;
+	}
 
 	$meta_map = wp_cache_get($cache_key, $cache_group);
 
@@ -455,9 +480,5 @@ foreach (['post', 'term', 'user', 'comment'] as $meta_type) {
 	add_action('deleted_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key) use ($meta_type) {
 		tw_meta_cache_delete($meta_type, $object_id, $meta_key);
 	}, 10, 3);
-
-	add_action('deleted_' . $meta_type, function() use ($meta_type) {
-		tw_app_clear('twee_meta_' . $meta_type);
-	}, 20);
 
 }
