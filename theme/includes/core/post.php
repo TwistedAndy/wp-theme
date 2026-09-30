@@ -314,47 +314,179 @@ function tw_post_get_terms(int $post_id, string $taxonomy): array
 
 
 /**
- * Sync the post terms
+ * Sync the post terms directly in the database
  *
  * @param int    $post_id
  * @param int[]  $term_ids
  * @param string $taxonomy
  * @param bool   $append
  *
- * @return bool
+ * @return bool True if the terms were changed
  */
 function tw_post_set_terms(int $post_id, array $term_ids, string $taxonomy, bool $append = false): bool
 {
-	$old_term_ids = tw_post_get_terms($post_id, $taxonomy);
+	$term_map = tw_post_terms($taxonomy);
 
-	if ($append and $old_term_ids) {
-		$new_term_ids = array_values(array_unique(array_merge($term_ids, $old_term_ids)));
+	if (isset($term_map[$post_id]) and is_array($term_map[$post_id])) {
+		$old_ids = $term_map[$post_id];
 	} else {
-		$new_term_ids = $term_ids;
+		$old_ids = [];
 	}
 
-	$count_old = count($old_term_ids);
-	$count_new = count($new_term_ids);
+	if ($term_ids !== []) {
+		$term_ids = array_map('intval', $term_ids);
+	}
+
+	if ($append and $old_ids) {
+		$new_ids = array_values(array_unique(array_merge($term_ids, $old_ids)));
+	} else {
+		$new_ids = $term_ids;
+	}
+
+	$count_old = count($old_ids);
+	$count_new = count($new_ids);
 
 	if ($count_old !== $count_new) {
 		$update_terms = true;
 	} elseif ($count_old === 0) {
 		$update_terms = false;
 	} else {
-		sort($new_term_ids);
-		sort($old_term_ids);
+		sort($new_ids);
+		sort($old_ids);
 
-		$update_terms = ($new_term_ids !== $old_term_ids);
+		$update_terms = ($new_ids !== $old_ids);
 	}
 
-	if ($update_terms) {
-		$result = wp_set_object_terms($post_id, $term_ids, $taxonomy, $append);
-
-		return !$result instanceof WP_Error;
+	if (!$update_terms) {
+		return false;
 	}
 
-	return false;
+	// The term IDs are used as term_taxonomy_id, as they are always equal
+	$added_ids = array_diff($new_ids, $old_ids);
+	$removed_ids = array_diff($old_ids, $new_ids);
+
+	if (!$added_ids and !$removed_ids) {
+		return false;
+	}
+
+	$db = tw_app_database();
+
+	if ($removed_ids) {
+		$db->query("DELETE FROM {$db->term_relationships} WHERE object_id = {$post_id} AND term_taxonomy_id IN (" . implode(',', $removed_ids) . ")");
+	}
+
+	if ($added_ids) {
+		$values = [];
+
+		foreach ($added_ids as $tt_id) {
+			$values[] = "({$post_id},{$tt_id},0)";
+		}
+
+		$db->query("INSERT IGNORE INTO {$db->term_relationships} (object_id, term_taxonomy_id, term_order) VALUES " . implode(',', $values));
+	}
+
+	tw_post_recount_terms($taxonomy, array_merge($added_ids, $removed_ids), true);
+
+	wp_cache_set('last_changed', microtime(), 'terms');
+	wp_cache_set($post_id, $new_ids, $taxonomy . '_relationships');
+
+	do_action('set_object_terms', $post_id, $term_ids, $new_ids, $taxonomy, $append, $old_ids);
+
+	// Skip, if the terms were changed by a hook, e.g. the default product category
+	if (wp_cache_get($post_id, $taxonomy . '_relationships') === $new_ids) {
+		$term_map[$post_id] = $new_ids;
+
+		$cache_key = 'post_terms';
+		$cache_group = 'twee_post_terms_' . $taxonomy;
+
+		wp_cache_set($cache_key, $term_map, $cache_group);
+	}
+
+	return true;
 }
+
+
+/**
+ * Recount the published posts attached to the taxonomy terms
+ *
+ * @param string $taxonomy
+ * @param int[]  $term_ids Term IDs to recount, all terms if empty
+ * @param bool   $defer    Recount all terms in the background if the Action Scheduler is available
+ *
+ * @return void
+ */
+function tw_post_recount_terms(string $taxonomy, array $term_ids = [], bool $defer = false): void
+{
+	if ($defer and function_exists('as_schedule_single_action')) {
+		$task = 'twee_post_recount_terms_event';
+		$args = ['taxonomy' => $taxonomy];
+
+		if (!tw_app_get($taxonomy, 'twee_post_recount') and as_has_scheduled_action($task, $args) === false) {
+			as_schedule_single_action(time() + 90, $task, $args);
+		}
+
+		tw_app_set($taxonomy, true, 'twee_post_recount');
+
+		return;
+	}
+
+	$object = get_taxonomy($taxonomy);
+
+	// Use the custom callback, e.g. _wc_term_recount(), which also updates the WooCommerce term counts
+	if ($object instanceof WP_Taxonomy and $object->update_count_callback and $object->update_count_callback !== '_update_post_term_count') {
+		if (!$term_ids) {
+			$term_ids = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false, 'fields' => 'tt_ids']);
+		}
+
+		if (is_array($term_ids) and $term_ids) {
+			wp_update_term_count_now($term_ids, $taxonomy);
+		}
+
+		return;
+	}
+
+	$db = tw_app_database();
+
+	$where = $db->prepare('tt.taxonomy = %s', $taxonomy);
+
+	// The term IDs are used as term_taxonomy_id, as they are always equal
+	if ($term_ids) {
+		$where .= ' AND tt.term_taxonomy_id IN (' . implode(',', array_map('intval', $term_ids)) . ')';
+	}
+
+	$join = "p.ID = tr.object_id AND p.post_status = 'publish'";
+
+	if ($object instanceof WP_Taxonomy and $object->object_type) {
+		$join .= " AND p.post_type IN ('" . implode("','", array_map('esc_sql', $object->object_type)) . "')";
+	}
+
+	// Read the actual counts in one query and update only the changed terms
+	$counts = $db->get_results("
+		SELECT tt.term_taxonomy_id, COUNT(p.ID) AS total
+		FROM {$db->term_taxonomy} tt
+		LEFT JOIN {$db->term_relationships} tr ON tr.term_taxonomy_id = tt.term_taxonomy_id
+		LEFT JOIN {$db->posts} p ON {$join}
+		WHERE {$where}
+		GROUP BY tt.term_taxonomy_id, tt.count
+		HAVING tt.count <> total", ARRAY_A);
+
+	if (!$counts) {
+		return;
+	}
+
+	$cases = [];
+
+	foreach ($counts as $row) {
+		$cases[(int) $row['term_taxonomy_id']] = 'WHEN ' . (int) $row['term_taxonomy_id'] . ' THEN ' . (int) $row['total'];
+	}
+
+	$db->query("UPDATE {$db->term_taxonomy} SET count = CASE term_taxonomy_id " . implode(' ', $cases) . " END WHERE term_taxonomy_id IN (" . implode(',', array_keys($cases)) . ")");
+
+	wp_cache_delete_multiple(array_keys($cases), 'terms');
+	wp_cache_set('last_changed', microtime(), 'terms');
+}
+
+add_action('twee_post_recount_terms_event', 'tw_post_recount_terms');
 
 
 /**
@@ -503,10 +635,23 @@ add_action('delete_post', 'tw_post_clear_cache', 10, 2);
 
 /**
  * Clear post terms cache
+ *
+ * The taxonomy is the 3rd argument of the deleted_term_relationships action
  */
-function tw_post_clear_terms(int $object_id, array $terms, array $ids, string $taxonomy): void
+function tw_post_clear_terms(int $object_id, array $terms, array|string $ids, string $taxonomy = ''): void
 {
+	if (is_string($ids)) {
+		$taxonomy = $ids;
+	}
+
 	tw_app_clear('twee_post_terms_' . $taxonomy);
 }
 
 add_action('set_object_terms', 'tw_post_clear_terms', 10, 4);
+add_action('deleted_term_relationships', 'tw_post_clear_terms', 10, 3);
+
+
+/**
+ * Disable the legacy WooCommerce term cache clearing
+ */
+remove_action('set_object_terms', 'wc_clear_term_product_ids', 10);
