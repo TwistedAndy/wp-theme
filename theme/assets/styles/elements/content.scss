@@ -44,16 +44,14 @@
 	}
 
 	ul, ol {
-		display: block;
+		padding: 0;
 
 		ul, ol {
 			padding-top: var(--gap-list);
 		}
 
 		li {
-			display: block;
-			position: relative;
-			padding: 0 0 0 1.333em;
+			display: list-item;
 			margin-bottom: var(--gap-list);
 			--gap-content: var(--gap-list);
 
@@ -66,8 +64,12 @@
 	}
 
 	ul {
+		list-style: none;
 
 		& > li {
+			display: block;
+			position: relative;
+			padding: 0 0 0 1.333em;
 
 			&:before {
 				content: '';
@@ -82,22 +84,75 @@
 
 		}
 
+		&[type="circle"] {
+
+			& > li:before {
+				box-sizing: border-box;
+				border: 1px solid var(--color-primary);
+				background-color: transparent;
+			}
+
+		}
+
+		&[type="square"] {
+
+			& > li:before {
+				border-radius: 0;
+			}
+
+		}
+
 	}
 
 	ol {
-		counter-reset: list;
+		padding-left: 2em;
 
-		& > li {
-			counter-increment: list;
+		&:not([start], [reversed]) {
+			counter-reset: list list-item;
 
-			&:before {
-				content: counter(list) '.';
-				position: absolute;
-				top: 0;
-				left: 0;
-				font-weight: 700;
+			& > li {
+				counter-increment: list;
 			}
 
+		}
+
+		& > li::marker {
+			content: var(--marker, counters(list, '.') '. ');
+			color: var(--color-link);
+			font-weight: 700;
+		}
+
+		&:is([type], [start], [reversed]), li[value], li[value] ~ li {
+			--marker: normal;
+		}
+
+		&:not([type], [start], [reversed]) {
+			display: table;
+			padding-left: 0;
+
+			& > li {
+				display: table-row;
+
+				&:before {
+					content: var(--marker, counters(list, '.') '. ');
+					display: table-cell;
+					padding-right: 0.5rem;
+					color: var(--color-link);
+					font-weight: 700;
+					white-space: nowrap;
+				}
+
+				& + li:before {
+					padding-top: var(--gap-list);
+				}
+
+			}
+
+		}
+
+		&[style*="--start"] {
+			counter-set: section var(--start);
+			--marker: counter(section) '.' counters(list, '.') '. ';
 		}
 
 	}
