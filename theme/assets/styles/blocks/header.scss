@@ -13,6 +13,28 @@
 	transition: background-color 0.3s, box-shadow 0.3s, height 0.3s;
 	z-index: 10;
 
+	&:before {
+		content: '';
+		position: fixed;
+		top: calc(var(--height-header) + var(--offset-current));
+		right: 0;
+		bottom: 0;
+		left: 0;
+		background: var(--theme-heading);
+		transition: 0.4s;
+		visibility: hidden;
+		opacity: 0;
+		will-change: opacity;
+		contain: layout style;
+	}
+
+	&.is_menu, &.is_search {
+		&:before {
+			visibility: visible;
+			opacity: 0.35;
+		}
+	}
+
 	&.is_sticky {
 		position: sticky;
 		top: var(--offset-top);
@@ -34,10 +56,10 @@
 		flex-grow: 0;
 		flex-shrink: 0;
 		align-items: center;
-		width: var(--width-logo);
-		height: var(--height-logo);
+		width: 160px;
+		height: 40px;
 		margin: 0 var(--gap-grid) 0 0;
-		background: var(--mask-logo) 0 50% / contain no-repeat;
+		background: url(../images/ico_logo.svg) 0 50% / contain no-repeat;
 	}
 
 	.navigation {
@@ -142,10 +164,6 @@
 
 				}
 
-			}
-
-			.icon {
-				margin-left: 0;
 			}
 
 		}
@@ -264,25 +282,7 @@
 
 	@include desktop_small {
 
-		&:before {
-			content: '';
-			position: fixed;
-			top: calc(var(--height-header) + var(--height-bar) + var(--offset-header));
-			right: 0;
-			bottom: 0;
-			left: 0;
-			background: var(--color-shadow);
-			transition: 0.4s;
-			visibility: hidden;
-			opacity: 0;
-		}
-
 		&.is_menu {
-
-			&:before {
-				visibility: visible;
-				opacity: 0.4;
-			}
 
 			.menu_btn {
 
@@ -315,7 +315,7 @@
 		.navigation {
 			display: flex;
 			position: fixed;
-			top: calc(var(--height-header) + var(--offset-header));
+			top: calc(var(--height-header) + var(--offset-current));
 			right: 0;
 			bottom: 0;
 			left: auto;

@@ -1,277 +1,247 @@
-Twee.addModule('sticky', 'html', function($) {
+Twee.addModule('sticky', 'html', function() {
 
 	const global = window;
 
-	let screenOffset = 0,
-		updateScreenOffset = true,
-		isAdmin = document.body.classList.contains('admin-bar'),
-		elements = document.querySelectorAll('.header_box.is_sticky'),
-		header = $('.header_box').get(0),
+	// Elements stacked at the viewport edges, they get the --offset-top or --offset-bottom property and the is_stuck class
+	const stickySelector = '.is_sticky, #wpadminbar';
+
+	// Elements with the --offset-current property, they can be sticky or regular ones
+	const currentSelector = '.header_box';
+
+	// Sticky sidebars, which can be taller than the viewport and are scrolled with the page
+	const sidebarSelector = '.wrapper_box [data-sidebar]';
+
+	const page = {
+		element: document.body,
+		values: {}
+	};
+
+	let items = [],
+		listeners = [],
+		viewport = 0,
+		lastScroll = -1,
+		dirty = true,
 		ticking = false;
 
 	initStickyState();
 
 	function initStickyState() {
 
-		global.StickySidebar = StickySidebar;
+		const observer = new ResizeObserver(requestMeasure);
 
-		const handleScroll = Twee.throttle(function() {
-			if (!ticking) {
-				requestAnimationFrame(updateStickyState);
-				ticking = true;
-			}
-		}, 16);
+		document.querySelectorAll(stickySelector + ', ' + currentSelector).forEach(function(element) {
 
-		['resize', 'scroll', 'scrollend', 'orientationchange', 'load'].forEach((property) => {
-			global.addEventListener(property, handleScroll, { passive: true });
+			// The computed styles object is live, so it's enough to get it once
+			items.push({
+				element: element,
+				styles: global.getComputedStyle(element),
+				sticky: element.matches(stickySelector),
+				current: element.matches(currentSelector),
+				index: items.length,
+				values: {}
+			});
+
+			observer.observe(element);
+
+		});
+
+		global.addEventListener('scroll', requestUpdate, { passive: true });
+
+		['resize', 'load'].forEach((property) => {
+			global.addEventListener(property, requestMeasure, { passive: true });
 		});
 
 		updateStickyState();
 
-		$('.wrapper_box [data-sidebar]').each(function() {
-			StickySidebar(this, {
+		global.StickySidebar = StickySidebar;
+
+		document.querySelectorAll(sidebarSelector).forEach(function(element) {
+			StickySidebar(element, {
 				bottomSpacing: -50
 			});
 		});
 
 	}
 
+	function requestUpdate() {
+		if (!ticking) {
+			requestAnimationFrame(updateStickyState);
+			ticking = true;
+		}
+	}
+
+	function requestMeasure() {
+		dirty = true;
+		requestUpdate();
+	}
+
 	function updateStickyState() {
 
 		ticking = false;
 
-		let offsetHeader = 0,
-			offsetScroll = 0,
-			offsetTop = 0,
-			offsetBottom = 0,
-			items = [],
-			itemsTop = [],
-			itemsBottom = [];
+		let scroll = global.scrollY,
+			offsets = {
+				top: 0,
+				bottom: 0
+			},
+			changed = false,
+			measure = dirty,
+			screen = 0,
+			reserved = 0,
+			item,
+			rect,
+			position,
+			isStuck,
+			i;
 
-		if (global.scrollY === 0) {
-			updateScreenOffset = true;
+		if (!dirty && scroll === lastScroll) {
+			return;
 		}
 
-		if (updateScreenOffset) {
-			screenOffset = 0;
-		}
-
-		if (isAdmin) {
-
-			if (global.innerWidth <= 782 && global.innerWidth >= 600) {
-				offsetTop += 46;
-			} else if (global.innerWidth > 782) {
-				offsetTop += 32;
-			}
-
-			offsetScroll = offsetTop;
-
-			if (updateScreenOffset) {
-				screenOffset = offsetTop;
-			}
-
-		}
-
-		elements.forEach(function(element) {
-
-			let styles = global.getComputedStyle(element, null),
-				position = styles.getPropertyValue('position');
-
-			if (position !== 'fixed' && position !== 'sticky') {
-				return;
-			}
-
-			let bottom = styles.getPropertyValue('bottom'),
-				top = styles.getPropertyValue('top'),
-				rect = element.getBoundingClientRect();
-
-			if (rect.height > 0 && top.indexOf('px') !== -1) {
-				if (updateScreenOffset && element !== header && position === 'sticky') {
-					screenOffset += rect.height;
-				}
-
-				if (position === 'sticky' || (position === 'fixed' && bottom.indexOf('px') !== -1)) {
-					offsetScroll += rect.height;
-				}
-			}
-
-			let item = {
-				element: element,
-				rect: rect,
-				top: false,
-				bottom: false,
-				position: position
-			};
-
-			if (top.indexOf('px') !== -1) {
-				item.top = Number(top.replace('px', ''));
-				itemsTop.push(item);
-			} else if (bottom.indexOf('px') !== -1) {
-				item.bottom = Number(bottom.replace('px', ''));
-				itemsBottom.unshift(item);
-			}
-
-		});
-
-		if (itemsTop.length > 0) {
-
-			itemsTop.sort(function(a, b) {
-				return a.rect.top - b.rect.top;
-			});
-
-			items = itemsTop;
-
-		}
-
-		if (itemsBottom.length > 0) {
-
-			itemsBottom.sort(function(a, b) {
-				return b.rect.top - a.rect.top;
-			});
-
-			items = items.concat(itemsBottom);
-
-		}
-
-		let headerRect = false,
-			propertyChanges = [],
-			classChanges = [];
-
-		items.forEach(function(item) {
-
-			let element = item.element,
-				rect = item.rect,
-				isFixed = false,
-				value = offsetTop + 'px';
-
-			if (item.top !== false) {
-
-				value = Math.max(rect.y, -rect.height, offsetTop) + 'px';
-
-				if (element.style.getPropertyValue('--offset-top') !== value) {
-					propertyChanges.push({
-						'element': element,
-						'property': '--offset-top',
-						'value': value
-					});
-					item.top = parseInt(global.getComputedStyle(element, null).getPropertyValue('top').replace('px', '')) || 0;
-					rect = element.getBoundingClientRect();
-					item.rect = rect;
-				}
-
-				if (Math.abs(item.top - rect.top) < 10) {
-					offsetTop += rect.height;
-					isFixed = global.scrollY > 0;
-				}
-
-			} else if (item.bottom !== false) {
-
-				value = offsetBottom + 'px';
-
-				if (element.style.getPropertyValue('--offset-bottom') !== value) {
-					propertyChanges.push({
-						'element': element,
-						'property': '--offset-bottom',
-						'value': value
-					});
-					item.bottom = parseInt(global.getComputedStyle(element, null).getPropertyValue('bottom').replace('px', '')) || 0;
-					rect = element.getBoundingClientRect();
-					item.rect = rect;
-				}
-
-				if (Math.abs(global.innerHeight - rect.height - rect.top - item.bottom) < 1) {
-					offsetBottom += rect.height;
-					isFixed = true;
-				} else if (item.position === 'sticky') {
-					offsetTop += rect.height;
-				}
-
-			}
-
-			if ((!isFixed && element.classList.contains('is_fixed'))) {
-				classChanges.push({
-					'element': element,
-					'class': 'is_fixed',
-					'status': false
-				});
-			} else if (isFixed && !element.classList.contains('is_fixed')) {
-				classChanges.push({
-					'element': element,
-					'class': 'is_fixed',
-					'status': true
-				});
-			}
-
-			if (element === header) {
-				headerRect = rect;
-			}
-
-		});
-
-		if (header) {
-
-			if (headerRect === false) {
-				headerRect = header.getBoundingClientRect();
-			}
-
-			if (headerRect.y > 0) {
-				offsetHeader = headerRect.y;
-			}
-
-			if (headerRect.height > 0) {
-
-				if (global.scrollY === 0) {
-					screenOffset += headerRect.y;
-					screenOffset += headerRect.height;
-					updateScreenOffset = false;
-				} else if (updateScreenOffset) {
-					header.style.setProperty('position', 'static', 'important');
-
-					let realOffset = header.getBoundingClientRect().y + global.scrollY;
-
-					header.style.removeProperty('position');
-
-					screenOffset += realOffset;
-					screenOffset += headerRect.height;
-					updateScreenOffset = false;
-				}
-
-			}
-
-		}
+		lastScroll = scroll;
 
 		/**
-		 * Split property get and set operations to avoid forced reflows
+		 * Split get and set operations to avoid forced reflows
 		 */
-		let properties = ['--offset-top', '--offset-bottom', '--offset-scroll', '--offset-header', '--offset-screen'];
+		if (measure) {
+			viewport = document.documentElement.clientHeight;
+			dirty = false;
+		}
 
-		let values = [offsetTop + 'px', offsetBottom + 'px', offsetScroll + 'px', offsetHeader + 'px', screenOffset + 'px'];
+		for (i = 0; i < items.length; i++) {
 
-		properties.forEach(function(property, index) {
-			if (document.body.style.getPropertyValue(property) !== values[index]) {
-				propertyChanges.push({
-					'element': document.body,
-					'property': property,
-					'value': values[index]
-				});
+			item = items[i];
+			rect = item.element.getBoundingClientRect();
+
+			// Computed styles are changed on resize or with the offset only, so they are not read on scroll
+			if (measure) {
+
+				position = item.sticky ? item.styles.position : '';
+
+				if (position === 'fixed') {
+					item.type = 'fixed';
+				} else if (position === 'sticky' && item.styles.top !== 'auto') {
+					item.type = 'top';
+				} else if (position === 'sticky' && item.styles.bottom !== 'auto') {
+					item.type = 'bottom';
+				} else {
+					item.type = false;
+				}
+
+				item.base = parseFloat(item.styles[item.type]) || 0;
+
 			}
+
+			item.side = false;
+			item.stuck = false;
+			item.edge = Infinity;
+			item.height = rect.height;
+			item.top = rect.top;
+
+			// Hidden elements have no height, so they are excluded
+			if (rect.height === 0 || !item.type) {
+				continue;
+			}
+
+			if (item.type === 'fixed') {
+				// The computed top and bottom are always resolved for fixed elements, so the side is detected by the position
+				item.side = rect.top + rect.height / 2 < viewport / 2 ? 'top' : 'bottom';
+				item.stuck = true;
+			} else if (item.type === 'top') {
+				item.side = 'top';
+				item.stuck = Math.abs(rect.top - item.base) < 1;
+			} else {
+				item.side = 'bottom';
+				item.stuck = Math.abs(viewport - rect.bottom - item.base) < 1;
+			}
+
+			item.edge = item.side === 'top' ? rect.top : viewport - rect.bottom;
+
+		}
+
+		// Elements are stacked from the viewport edges to the center, the regular ones go last
+		// The document order is used for elements at the same position, e.g. when the hidden one is shown again
+		items.sort(function(a, b) {
+			return a.edge - b.edge || a.index - b.index;
 		});
 
-		if (propertyChanges.length > 0) {
-			propertyChanges.forEach(function(change) {
-				change.element.style.setProperty(change.property, change.value);
-			});
+		for (i = 0; i < items.length; i++) {
+
+			item = items[i];
+			isStuck = false;
+
+			if (item.side) {
+
+				changed = setOffset(item, item.side, offsets[item.side]) || changed;
+
+				if (item.stuck) {
+					offsets[item.side] += item.height;
+					isStuck = item.side === 'bottom' || scroll > 0;
+				}
+
+				if (item.side === 'top') {
+
+					// The space for all elements, which can be stuck at the top, so the anchor target is not covered after the scroll
+					reserved += item.height;
+
+					// The current distance from the viewport top, it's bigger than the top offset until the element is stuck
+					if (item.current) {
+						setOffset(item, 'current', Math.max(item.top, 0));
+					}
+
+				}
+
+			} else if (item.current && item.height > 0) {
+				// The regular element scrolls with the page, but its bottom edge never goes above the stuck elements
+				setOffset(item, 'current', Math.max(item.top, offsets.top - item.height));
+			}
+
+			// The natural position is known only when the element is not stuck, so the value is kept in other cases
+			if (item.current && !item.stuck && item.height > 0) {
+				screen = Math.max(screen, Math.round(item.top + item.height + scroll));
+			}
+
+			if (item.marked !== isStuck) {
+				item.element.classList.toggle('is_stuck', isStuck);
+				item.marked = isStuck;
+			}
+
 		}
 
-		if (classChanges.length > 0) {
-			classChanges.forEach(function(change) {
-				if (change.status) {
-					change.element.classList.add(change.class);
-				} else {
-					change.element.classList.remove(change.class);
-				}
-			});
+		let isMoved = setOffset(page, 'top', offsets.top);
+
+		setOffset(page, 'bottom', offsets.bottom);
+		setOffset(page, 'scroll', reserved);
+
+		if (screen > 0) {
+			setOffset(page, 'screen', screen);
 		}
+
+		// The changed offset moves the element, so its state should be checked again
+		if (changed) {
+			requestMeasure();
+		}
+
+		// Sidebars depend on the stuck elements, so they should be updated in the same frame
+		if (isMoved) {
+			listeners.forEach((listener) => listener());
+		}
+
+	}
+
+	/**
+	 * Values are cached to avoid touching the DOM when nothing is changed
+	 */
+	function setOffset(target, name, offset) {
+
+		if (target.values[name] === offset) {
+			return false;
+		}
+
+		target.values[name] = offset;
+		target.element.style.setProperty('--offset-' + name, offset + 'px');
+
+		return true;
 
 	}
 
@@ -281,6 +251,7 @@ Twee.addModule('sticky', 'html', function($) {
 
 		if (!sidebar) {
 			console.warn('Sticky element not specified');
+			return;
 		}
 
 		const options = Object.assign({
@@ -290,14 +261,22 @@ Twee.addModule('sticky', 'html', function($) {
 		}, userOptions);
 
 		// Internal State
-		let currentTop = 0,
+		let currentTop = Infinity,
 			lastScrollY = global.scrollY,
 			isApplied = false,
 			isDestroyed = false,
 			isActive = false,
-			baseTop = 0;
+			isFitting = false,
+			isMeasuring = false,
+			baseTop = 0,
+			appliedTop = null,
+			sidebarHeight = 0,
+			viewportHeight = 0;
 
 		let resizeObserver = null;
+
+		// Spacing functions can return different values on scroll, so they should be called every time
+		const isDynamic = typeof options.topSpacing === 'function' || typeof options.bottomSpacing === 'function';
 
 		// Private Methods
 		const getTopSpacing = () => {
@@ -309,9 +288,14 @@ Twee.addModule('sticky', 'html', function($) {
 			return typeof options.bottomSpacing === 'function' ? parseInt(options.bottomSpacing(sidebar)) || 0 : parseInt(options.bottomSpacing) || 0;
 		};
 
+		const getScroll = () => {
+			return Math.max(0, Math.min(document.documentElement.scrollHeight - global.innerHeight, global.scrollY));
+		};
+
 		const removeStyles = () => {
 			if (isApplied) {
 				sidebar.style.top = '';
+				appliedTop = null;
 				sidebar.classList.remove(options.stickyClass);
 				isApplied = false;
 			}
@@ -322,12 +306,12 @@ Twee.addModule('sticky', 'html', function($) {
 				return;
 			}
 
-			let sidebarHeight = sidebar.offsetHeight,
-				viewportHeight = global.innerHeight,
-				topSpacing = getTopSpacing(),
+			let topSpacing = getTopSpacing(),
 				bottomSpacing = getBottomSpacing();
 
-			if (sidebarHeight + topSpacing + bottomSpacing <= viewportHeight) {
+			isFitting = sidebarHeight + topSpacing + bottomSpacing <= viewportHeight;
+
+			if (isFitting) {
 				currentTop = topSpacing;
 			} else {
 				let minTop = viewportHeight - sidebarHeight - bottomSpacing,
@@ -336,7 +320,10 @@ Twee.addModule('sticky', 'html', function($) {
 				currentTop = Math.max(minTop, Math.min(topSpacing, newTop));
 			}
 
-			sidebar.style.top = currentTop + 'px';
+			if (currentTop !== appliedTop) {
+				sidebar.style.top = currentTop + 'px';
+				appliedTop = currentTop;
+			}
 		};
 
 		const handleScroll = () => {
@@ -344,8 +331,12 @@ Twee.addModule('sticky', 'html', function($) {
 				return;
 			}
 
-			let maxScroll = document.documentElement.scrollHeight - global.innerHeight,
-				currentScrollY = Math.max(0, Math.min(maxScroll, global.scrollY)),
+			// The fitting sidebar has the constant top value, so there is nothing to do on scroll
+			if (isFitting && !isDynamic) {
+				return;
+			}
+
+			let currentScrollY = getScroll(),
 				deltaY = currentScrollY - lastScrollY;
 
 			lastScrollY = currentScrollY;
@@ -358,10 +349,24 @@ Twee.addModule('sticky', 'html', function($) {
 				return;
 			}
 
+			// Offsets should be actual before reading the top value
+			isMeasuring = true;
+			dirty = true;
 			updateStickyState();
+			isMeasuring = false;
+
+			// Sizes are changed on resize only, so they are not read on scroll
+			sidebarHeight = sidebar.offsetHeight;
+			viewportHeight = global.innerHeight;
+
+			// The scroll position is not tracked for the fitting sidebar, so it should be synced before the state is changed
+			if (isFitting) {
+				lastScrollY = getScroll();
+			}
 
 			// Temporarily remove inline top style to accurately read CSS stylesheet values
 			sidebar.style.top = '';
+			appliedTop = null;
 
 			let styles = global.getComputedStyle(sidebar, null),
 				top = styles.getPropertyValue('top');
@@ -388,16 +393,20 @@ Twee.addModule('sticky', 'html', function($) {
 			updateSticky(0);
 		};
 
+		// The top value depends on the stuck elements, so it should be read again when they are changed
+		const handleOffset = () => {
+			if (!isMeasuring) {
+				handleResize();
+			}
+		};
+
 		const destroy = () => {
 			isDestroyed = true;
 
-			['scroll', 'scrollend'].forEach((property) => {
-				global.removeEventListener(property, handleScroll);
-			});
+			listeners = listeners.filter((listener) => listener !== handleOffset);
 
-			['resize', 'orientationchange'].forEach((property) => {
-				global.removeEventListener(property, handleResize);
-			});
+			global.removeEventListener('scroll', handleScroll);
+			global.removeEventListener('resize', handleResize);
 
 			if (resizeObserver) {
 				resizeObserver.disconnect();
@@ -416,17 +425,12 @@ Twee.addModule('sticky', 'html', function($) {
 				}
 			}
 
-			['scroll', 'scrollend'].forEach((property) => {
-				global.addEventListener(property, handleScroll, { passive: true });
-			});
+			global.addEventListener('scroll', handleScroll, { passive: true });
+			global.addEventListener('resize', handleResize, { passive: true });
 
-			['resize', 'orientationchange'].forEach((property) => {
-				global.addEventListener(property, handleResize, { passive: true });
-			});
+			listeners.push(handleOffset);
 
 			handleResize();
-
-			currentTop = getTopSpacing();
 		};
 
 		init();
@@ -434,7 +438,10 @@ Twee.addModule('sticky', 'html', function($) {
 		// Public API
 		return {
 			destroy,
-			updateSticky
+			updateSticky: (deltaY = 0) => {
+				sidebarHeight = sidebar.offsetHeight;
+				updateSticky(deltaY);
+			}
 		};
 	}
 
