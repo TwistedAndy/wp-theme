@@ -110,33 +110,7 @@ function tw_breadcrumbs_list($query = null): array
 
 		$post_id = $object->ID;
 		$post_type = $object->post_type;
-
-		if ($post_type == 'post') {
-
-			$taxonomy = 'category';
-
-		} elseif ($post_type == 'product') {
-
-			$taxonomy = 'product_cat';
-
-		} else {
-
-			$taxonomies = get_object_taxonomies($post_type, 'objects');
-
-			if ($taxonomies) {
-
-				$taxonomy = array_key_first($taxonomies);
-
-				foreach ($taxonomies as $key => $taxonomy_object) {
-					if ($taxonomy_object->hierarchical) {
-						$taxonomy = $key;
-						break;
-					}
-				}
-
-			}
-
-		}
+		$taxonomy = tw_post_taxonomy($object);
 
 		if ($taxonomy) {
 

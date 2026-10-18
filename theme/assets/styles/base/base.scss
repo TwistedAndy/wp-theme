@@ -180,6 +180,7 @@
 
 .items {
 	@extend %items;
+	--width-item: calc(100% / var(--columns-count));
 
 	&.carousel {
 		flex-wrap: nowrap;
@@ -192,19 +193,19 @@
 	@include media_min($desktop_small) {
 
 		&_1 {
-			--width-item: 100%;
+			--columns-count: 1;
 		}
 
 		&_2 {
-			--width-item: 50%;
+			--columns-count: 2;
 		}
 
 		&_3 {
-			--width-item: 33.33333%;
+			--columns-count: 3;
 		}
 
 		&_4, &_5, &_6 {
-			--width-item: 25%;
+			--columns-count: 4;
 		}
 
 	}
@@ -212,11 +213,11 @@
 	@include media_min($desktop_large) {
 
 		&_5 {
-			--width-item: 20%;
+			--columns-count: 5;
 		}
 
 		&_6 {
-			--width-item: 16.66666%;
+			--columns-count: 6;
 		}
 
 	}

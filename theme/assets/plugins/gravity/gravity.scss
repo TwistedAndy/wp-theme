@@ -1101,6 +1101,238 @@
 }
 
 
+/* Phone field */
+
+$gform_phone_flags: af, ax, al, dz, as, ad, ao, ai, ag, ar, am, aw, ac, au, at, az, bs, bh, bd, bb, by, be, bz, bj, bm, bt, bo, ba, bw, br, io, vg, bn, bg, bf, bi, kh, cm, ca, cv, bq, ky, cf, td, cl, cn, cx, cc, co, km, cg, cd, ck, cr, ci, hr, cu, cw, cy, cz, dk, dj, dm, do, ec, eg, sv, gq, er, ee, sz, et, fk, fo, fj, fi, fr, gf, pf, ga, gm, ge, de, gh, gi, gr, gl, gd, gp, gu, gt, gg, gn, gw, gy, ht, hn, hk, hu, is, in, id, ir, iq, ie, im, il, it, jm, jp, je, jo, kz, ke, ki, xk, kw, kg, la, lv, lb, ls, lr, ly, li, lt, lu, mo, mg, mw, my, mv, ml, mt, mh, mq, mr, mu, yt, mx, fm, md, mc, mn, me, ms, ma, mz, mm, na, nr, np, nl, nc, nz, ni, ne, ng, nu, nf, kp, mk, mp, no, om, pk, pw, ps, pa, pg, py, pe, ph, pl, pt, pr, qa, re, ro, ru, rw, ws, sm, st, sa, sn, rs, sc, sl, sg, sx, sk, si, sb, so, za, kr, ss, es, lk, bl, sh, kn, lc, mf, pm, vc, sd, sr, sj, se, ch, sy, tw, tj, tz, th, tl, tg, tk, to, tt, tn, tr, tm, tc, tv, ug, ua, ae, gb, us, uy, vi, uz, vu, va, ve, vn, wf, eh, ye, zm, zw;
+
+.gform-phone {
+	position: relative;
+	--height-flag: 16px;
+	--width-flag: calc(1.5 * var(--height-flag));
+
+	&__input-wrapper {
+		display: flex;
+		align-items: stretch;
+	}
+
+	.ginput_country-selector_container {
+		display: flex;
+		flex-grow: 0;
+		flex-shrink: 0;
+	}
+
+	.ginput_phone_container {
+		display: block;
+		flex-grow: 1;
+		min-width: 0;
+	}
+
+	&__country-selector {
+		display: flex;
+		position: relative;
+		align-items: center;
+		box-sizing: border-box;
+		min-width: auto;
+		height: auto;
+		min-height: var(--height-field);
+		padding: 0 12px;
+		margin: 0 -1px 0 0;
+		border: 1px solid var(--field-border);
+		border-radius: var(--radius-small) 0 0 var(--radius-small);
+		background: var(--field-base);
+		color: var(--field-text);
+		font-family: var(--font-main);
+		font-size: var(--size-field);
+		font-weight: 400;
+		line-height: var(--line-field);
+		text-transform: none;
+		transition: 0.2s;
+		cursor: pointer;
+		z-index: 2;
+		gap: 8px;
+
+		&:after {
+			content: '';
+			display: block;
+			flex-grow: 0;
+			flex-shrink: 0;
+			width: 10px;
+			height: 6px;
+			background-color: currentColor;
+			-webkit-mask: url(../../images/ico_select.svg) 50% 50% / contain no-repeat;
+			transition: 0.2s;
+		}
+
+		&:focus-visible {
+			border-color: var(--field-border-active);
+			outline: none;
+			background: var(--field-base-active);
+			color: var(--field-text-active);
+			z-index: 3;
+		}
+
+		@include hover {
+			&:hover {
+				border-color: var(--field-border-active);
+				background: var(--field-base-active);
+				color: var(--field-text-active);
+				z-index: 3;
+			}
+		}
+
+	}
+
+	&--open &__country-selector {
+		border-color: var(--field-border-active);
+		background: var(--field-base-active);
+		color: var(--field-text-active);
+		z-index: 3;
+
+		&:after {
+			transform: scaleY(-1);
+		}
+
+	}
+
+	&__input {
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+
+		&:focus {
+			z-index: 3;
+		}
+
+	}
+
+	&__flag-icon {
+		display: block;
+		flex-grow: 0;
+		flex-shrink: 0;
+		width: var(--width-flag);
+		height: var(--height-flag);
+		border-radius: 2px;
+		background: url(../../images/ico_gravity_flags.webp) calc(-1 * var(--flag, 0) * var(--width-flag)) 0 / auto var(--height-flag) no-repeat;
+
+		$position: 0;
+
+		@each $flag in $gform_phone_flags {
+			&--#{$flag} {
+				--flag: #{$position};
+			}
+
+			$position: $position + 1;
+		}
+
+	}
+
+	&__dial-code {
+		display: none;
+	}
+
+	&--show-dial-code &__dial-code {
+		display: block;
+	}
+
+	&__dropdown {
+		display: block;
+		position: absolute;
+		top: 100%;
+		left: 0;
+		overflow: hidden;
+		width: 100%;
+		min-width: 240px;
+		margin: 5px 0 0;
+		border-radius: var(--radius-small);
+		background: var(--color-base);
+		box-shadow: var(--shadow-small);
+		z-index: 100;
+
+		&--hidden {
+			display: none;
+		}
+
+	}
+
+	&__search-wrapper {
+		display: block;
+		position: relative;
+		padding: 8px;
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	&__search {
+		padding-left: 38px;
+		background: var(--field-base) url(../../images/ico_search.svg) 12px 50% / 16px auto no-repeat;
+		--height-field: 40px;
+	}
+
+	&__country-list {
+		display: block;
+		overflow-x: hidden;
+		overflow-y: auto;
+		max-height: 240px;
+		padding: 4px 0;
+		margin: 0;
+		list-style: none;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	&__country-item {
+		display: flex;
+		align-items: center;
+		padding: 6px 12px;
+		margin: 0;
+		color: var(--color-text);
+		font-size: rem(14);
+		line-height: rem(20);
+		list-style: none;
+		transition: background-color 0.2s;
+		cursor: pointer;
+		user-select: none;
+		gap: 10px;
+
+		&--focused {
+			outline: none;
+			background-color: var(--color-background);
+		}
+
+		&--active {
+			background-color: var(--color-background);
+			box-shadow: 3px 0 0 var(--color-primary) inset;
+			color: var(--color-heading);
+			font-weight: 600;
+		}
+
+		&--no-results {
+			color: var(--color-muted);
+			cursor: default;
+		}
+
+		@include hover {
+			&:not(&--no-results):hover {
+				background-color: var(--color-background);
+			}
+		}
+
+	}
+
+	&__country-name {
+		flex-grow: 1;
+		min-width: 0;
+	}
+
+	&__country-code {
+		flex-grow: 0;
+		flex-shrink: 0;
+		margin-left: auto;
+		color: var(--color-muted);
+		font-size: rem(12);
+		font-weight: 400;
+	}
+
+}
+
+
 /* Datepicker Widget */
 
 .ui-datepicker {

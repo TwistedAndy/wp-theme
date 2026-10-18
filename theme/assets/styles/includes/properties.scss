@@ -162,6 +162,7 @@
 	--offset-section-bottom: 0px;
 	--offset-current: 0px;
 	--offset-scroll: 0px;
+	--offset-screen: calc(var(--height-header) + var(--height-bar));
 
 	/* Dimensions */
 	--height-button: #{rem(50)};
@@ -170,12 +171,10 @@
 	--height-content: auto;
 	--height-image: 100%;
 	--height-icon: #{rem(16)};
-	--height-logo: 34px;
 	--height-bar: 0px;
 
 	--width-icon: var(--height-icon);
-	--width-logo: 170px;
-	--width-item: 25%;
+	--width-item: calc(100% / var(--columns-count));
 	--width-scrollbar: 15px;
 	--width-content: #{rem(640)};
 	--width-contents: #{rem(640)};
@@ -190,7 +189,8 @@
 
 	/* Mask Image */
 	--mask-image: none;
-	--mask-logo: url(../../images/ico_logo.svg);
+
+	--columns-count: 4;
 
 	@include desktop_small {
 
@@ -220,9 +220,9 @@
 		--height-button: #{rem(44)};
 		--height-header: #{rem(70)};
 
-		--width-item: 33.333%;
 		--width-scrollbar: 0px;
 
+		--columns-count: 3;
 	}
 
 	@include tablet_small {
@@ -242,17 +242,13 @@
 		--gap-grid-x: 10px;
 		--gap-field-x: 10px;
 
-		--width-item: 50%;
-
+		--columns-count: 2;
 	}
 
 	@include phone_small {
-
 		--size-huge: #{rem(42)};
 		--size-big: #{rem(36)};
-
-		--width-item: 100%;
-
+		--columns-count: 1;
 	}
 
 }

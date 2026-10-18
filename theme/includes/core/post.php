@@ -563,20 +563,18 @@ function tw_post_query(string|array $type, array $block = []): array
 				$args['post__not_in'][] = $object->ID;
 			}
 
-			$taxonomy = reset($taxonomies);
+			$taxonomy = tw_post_taxonomy($object);
 
 			if ($taxonomy and empty($block[$taxonomy])) {
+				$terms = tw_post_get_terms($object->ID, $taxonomy);
 
-				$terms = tw_post_terms($taxonomy);
-
-				if (!empty($terms[$object->ID])) {
+				if ($terms) {
 					$tax_query[] = [
 						'taxonomy' => $taxonomy,
 						'field'    => 'term_id',
-						'terms'    => $terms[$object->ID],
+						'terms'    => $terms,
 					];
 				}
-
 			}
 
 		}
@@ -616,6 +614,33 @@ function tw_post_query(string|array $type, array $block = []): array
 	}
 
 	return $args;
+}
+
+
+/**
+ * Get the primary post taxonomy
+ *
+ * @param WP_Post $item
+ *
+ * @return string
+ */
+function tw_post_taxonomy(WP_Post $item): string
+{
+	if ($item->post_type === 'post') {
+		$taxonomy = 'category';
+	} elseif ($item->post_type === 'product') {
+		$taxonomy = 'product_cat';
+	} else {
+		$taxonomies = get_object_taxonomies($item, 'names');
+
+		if ($taxonomies) {
+			$taxonomy = reset($taxonomies);
+		} else {
+			$taxonomy = '';
+		}
+	}
+
+	return $taxonomy;
 }
 
 

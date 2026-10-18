@@ -6,7 +6,7 @@ Twee.addModule('sticky', 'html', function() {
 	const stickySelector = '.is_sticky, #wpadminbar';
 
 	// Elements with the --offset-current property, they can be sticky or regular ones
-	const currentSelector = '.header_box';
+	const currentSelector = '.header_box, .is_sticky';
 
 	// Sticky sidebars, which can be taller than the viewport and are scrolled with the page
 	const sidebarSelector = '.wrapper_box [data-sidebar]';
@@ -35,6 +35,7 @@ Twee.addModule('sticky', 'html', function() {
 			items.push({
 				element: element,
 				styles: global.getComputedStyle(element),
+				map: element.computedStyleMap ? element.computedStyleMap() : null,
 				sticky: element.matches(stickySelector),
 				current: element.matches(currentSelector),
 				index: items.length,
@@ -92,7 +93,9 @@ Twee.addModule('sticky', 'html', function() {
 			rect,
 			position,
 			isStuck,
-			i;
+			previous,
+			i,
+			j;
 
 		if (!dirty && scroll === lastScroll) {
 			return;
@@ -130,6 +133,17 @@ Twee.addModule('sticky', 'html', function() {
 
 				item.base = parseFloat(item.styles[item.type]) || 0;
 
+				// Side panels are stretched between the top and bottom edges, so they don't take the space of the page
+				if (!item.type) {
+					item.panel = false;
+				} else if (item.map) {
+					// The computed top and bottom are always resolved for fixed elements, so the specified values are read from the style map
+					item.panel = item.map.get('top').value !== 'auto' && item.map.get('bottom').value !== 'auto';
+				} else {
+					// The style map is not supported in Firefox, so the panel is detected by its height
+					item.panel = rect.height > viewport / 2;
+				}
+
 			}
 
 			item.side = false;
@@ -139,7 +153,8 @@ Twee.addModule('sticky', 'html', function() {
 			item.top = rect.top;
 
 			// Hidden elements have no height, so they are excluded
-			if (rect.height === 0 || !item.type) {
+			// Panels are not stacked, they are processed after all other elements
+			if (rect.height === 0 || !item.type || item.panel) {
 				continue;
 			}
 
@@ -164,6 +179,8 @@ Twee.addModule('sticky', 'html', function() {
 		items.sort(function(a, b) {
 			return a.edge - b.edge || a.index - b.index;
 		});
+
+		console.log(items);
 
 		for (i = 0; i < items.length; i++) {
 
@@ -191,13 +208,30 @@ Twee.addModule('sticky', 'html', function() {
 
 				}
 
+			} else if (item.panel) {
+
+				// The panel goes last, so it gets the final offsets of all stacked elements
+				setOffset(item, 'top', offsets.top);
+				setOffset(item, 'bottom', offsets.bottom);
+
+				// The panel is placed relative to the previous element in the document, e.g. below the header
+				previous = false;
+
+				for (j = 0; j < items.length; j++) {
+					if (items[j].current && !items[j].panel && items[j].height > 0 && items[j].index < item.index && (!previous || items[j].index > previous.index)) {
+						previous = items[j];
+					}
+				}
+
+				setOffset(item, 'current', previous ? previous.values.current : offsets.top);
+
 			} else if (item.current && item.height > 0) {
 				// The regular element scrolls with the page, but its bottom edge never goes above the stuck elements
 				setOffset(item, 'current', Math.max(item.top, offsets.top - item.height));
 			}
 
 			// The natural position is known only when the element is not stuck, so the value is kept in other cases
-			if (item.current && !item.stuck && item.height > 0) {
+			if (item.current && !item.stuck && !item.panel && item.height > 0) {
 				screen = Math.max(screen, Math.round(item.top + item.height + scroll));
 			}
 
