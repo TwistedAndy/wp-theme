@@ -417,73 +417,83 @@ function tw_post_set_terms(int $post_id, array $term_ids, string $taxonomy, bool
  */
 function tw_post_recount_terms(string $taxonomy, array $term_ids = [], bool $defer = false): void
 {
-	if ($defer and function_exists('as_schedule_single_action')) {
-		$task = 'twee_post_recount_terms_event';
-		$args = ['taxonomy' => $taxonomy];
+	$object = get_taxonomy($taxonomy);
 
-		if (!tw_app_get($taxonomy, 'twee_post_recount') and as_has_scheduled_action($task, $args) === false) {
-			as_schedule_single_action(time() + 90, $task, $args);
-		}
-
-		tw_app_set($taxonomy, true, 'twee_post_recount');
-
+	if (!$object instanceof WP_Taxonomy) {
 		return;
 	}
 
-	$object = get_taxonomy($taxonomy);
-
-	// Use the custom callback, e.g. _wc_term_recount(), which also updates the WooCommerce term counts
-	if ($object instanceof WP_Taxonomy and $object->update_count_callback and $object->update_count_callback !== '_update_post_term_count') {
-		if (!$term_ids) {
-			$term_ids = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false, 'fields' => 'tt_ids']);
-		}
-
-		if (is_array($term_ids) and $term_ids) {
-			wp_update_term_count_now($term_ids, $taxonomy);
-		}
-
+	if ($defer and tw_app_get($taxonomy, 'twee_post_recount')) {
 		return;
+	}
+
+	// Recount the changed terms right away if the Action Scheduler is unavailable
+	if ($defer and function_exists('as_schedule_single_action') and ActionScheduler::is_initialized()) {
+		$task = 'twee_post_recount_terms_event';
+		$args = ['taxonomy' => $taxonomy];
+
+		// Returns a timestamp only for a pending action, as a running one may have already read the counts
+		if (is_int(as_next_scheduled_action($task, $args)) or as_schedule_single_action(time() + 2 * MINUTE_IN_SECONDS, $task, $args)) {
+			tw_app_set($taxonomy, true, 'twee_post_recount');
+
+			return;
+		}
+	}
+
+	// The full recount covers all changes scheduled in this request
+	if (!$term_ids) {
+		tw_app_set($taxonomy, null, 'twee_post_recount');
 	}
 
 	$db = tw_app_database();
 
 	$where = $db->prepare('tt.taxonomy = %s', $taxonomy);
 
-	// The term IDs are used as term_taxonomy_id, as they are always equal
+	// The term_taxonomy_id can differ from the term_id
 	if ($term_ids) {
-		$where .= ' AND tt.term_taxonomy_id IN (' . implode(',', array_map('intval', $term_ids)) . ')';
+		$where .= ' AND tt.term_id IN (' . implode(',', array_map('intval', $term_ids)) . ')';
 	}
 
-	$join = "p.ID = tr.object_id AND p.post_status = 'publish'";
+	$types = array_filter((array) $object->object_type, 'post_type_exists');
+	$callback = $object->update_count_callback;
 
-	if ($object instanceof WP_Taxonomy and $object->object_type) {
-		$join .= " AND p.post_type IN ('" . implode("','", array_map('esc_sql', $object->object_type)) . "')";
+	// Use the built-in counting for the custom callbacks, e.g. _wc_term_recount(), and for the attachments
+	if (($callback and $callback !== '_update_post_term_count') or !$types or $types !== (array) $object->object_type or in_array('attachment', $types)) {
+		$tt_ids = $db->get_col("SELECT tt.term_taxonomy_id FROM {$db->term_taxonomy} tt WHERE {$where}");
+
+		if ($tt_ids) {
+			wp_update_term_count_now($tt_ids, $taxonomy);
+		}
+	} else {
+		// The same statuses as in _update_post_term_count()
+		$statuses = (array) apply_filters('update_post_term_count_statuses', ['publish'], $object) ? : ['publish'];
+
+		$join = "p.ID = tr.object_id AND p.post_status IN ('" . implode("','", esc_sql($statuses)) . "') AND p.post_type IN ('" . implode("','", esc_sql($types)) . "')";
+
+		// Read the actual counts in one query and update only the changed terms
+		$counts = $db->get_results("
+			SELECT tt.term_taxonomy_id, tt.term_id, COUNT(p.ID) AS total
+			FROM {$db->term_taxonomy} tt
+			LEFT JOIN {$db->term_relationships} tr ON tr.term_taxonomy_id = tt.term_taxonomy_id
+			LEFT JOIN {$db->posts} p ON {$join}
+			WHERE {$where}
+			GROUP BY tt.term_taxonomy_id, tt.term_id, tt.count
+			HAVING tt.count <> total", ARRAY_A);
+
+		if (!$counts) {
+			return;
+		}
+
+		$cases = [];
+
+		foreach ($counts as $row) {
+			$cases[(int) $row['term_taxonomy_id']] = 'WHEN ' . (int) $row['term_taxonomy_id'] . ' THEN ' . (int) $row['total'];
+		}
+
+		$db->query("UPDATE {$db->term_taxonomy} SET count = CASE term_taxonomy_id " . implode(' ', $cases) . " END WHERE term_taxonomy_id IN (" . implode(',', array_keys($cases)) . ")");
+
+		clean_term_cache(array_column($counts, 'term_id'), $taxonomy, false);
 	}
-
-	// Read the actual counts in one query and update only the changed terms
-	$counts = $db->get_results("
-		SELECT tt.term_taxonomy_id, COUNT(p.ID) AS total
-		FROM {$db->term_taxonomy} tt
-		LEFT JOIN {$db->term_relationships} tr ON tr.term_taxonomy_id = tt.term_taxonomy_id
-		LEFT JOIN {$db->posts} p ON {$join}
-		WHERE {$where}
-		GROUP BY tt.term_taxonomy_id, tt.count
-		HAVING tt.count <> total", ARRAY_A);
-
-	if (!$counts) {
-		return;
-	}
-
-	$cases = [];
-
-	foreach ($counts as $row) {
-		$cases[(int) $row['term_taxonomy_id']] = 'WHEN ' . (int) $row['term_taxonomy_id'] . ' THEN ' . (int) $row['total'];
-	}
-
-	$db->query("UPDATE {$db->term_taxonomy} SET count = CASE term_taxonomy_id " . implode(' ', $cases) . " END WHERE term_taxonomy_id IN (" . implode(',', array_keys($cases)) . ")");
-
-	wp_cache_delete_multiple(array_keys($cases), 'terms');
-	wp_cache_set('last_changed', microtime(), 'terms');
 
 	// The term counts are cached by tw_term_data() and tw_term_taxonomies()
 	tw_app_clear('twee_terms');
@@ -563,18 +573,20 @@ function tw_post_query(string|array $type, array $block = []): array
 				$args['post__not_in'][] = $object->ID;
 			}
 
-			$taxonomy = tw_post_taxonomy($object);
+			$taxonomy = reset($taxonomies);
 
 			if ($taxonomy and empty($block[$taxonomy])) {
-				$terms = tw_post_get_terms($object->ID, $taxonomy);
 
-				if ($terms) {
+				$terms = tw_post_terms($taxonomy);
+
+				if (!empty($terms[$object->ID])) {
 					$tax_query[] = [
 						'taxonomy' => $taxonomy,
 						'field'    => 'term_id',
-						'terms'    => $terms,
+						'terms'    => $terms[$object->ID],
 					];
 				}
+
 			}
 
 		}
@@ -614,33 +626,6 @@ function tw_post_query(string|array $type, array $block = []): array
 	}
 
 	return $args;
-}
-
-
-/**
- * Get the primary post taxonomy
- *
- * @param WP_Post $item
- *
- * @return string
- */
-function tw_post_taxonomy(WP_Post $item): string
-{
-	if ($item->post_type === 'post') {
-		$taxonomy = 'category';
-	} elseif ($item->post_type === 'product') {
-		$taxonomy = 'product_cat';
-	} else {
-		$taxonomies = get_object_taxonomies($item, 'names');
-
-		if ($taxonomies) {
-			$taxonomy = reset($taxonomies);
-		} else {
-			$taxonomy = '';
-		}
-	}
-
-	return $taxonomy;
 }
 
 
