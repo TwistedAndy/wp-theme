@@ -602,25 +602,30 @@ function tw_image_srcset(int $image, array $attributes): array
 	$attributes['sizes'] = implode(', ', $queries);
 
 	if (!empty($attributes['srcset']) and is_array($attributes['srcset'])) {
-		$srcset = [];
-		$widths = [];
+		$links = [];
 
-		$attributes['srcset'] = array_unique($attributes['srcset']);
+		foreach (array_unique($attributes['srcset']) as $src_size) {
+			$width = (int) round(tw_image_size($src_size, $image)['width']);
 
-		foreach ($attributes['srcset'] as $src_size) {
-			$data = tw_image_size($src_size, $image);
+			if ($width < 1 or isset($links[$width])) {
+				continue;
+			}
 
-			if ($data['width'] > 0 and !in_array($data['width'], $widths)) {
-				$link = tw_image_link($image, $src_size);
+			$link = tw_image_link($image, $src_size);
 
-				if ($link) {
-					$widths[] = $data['width'];
-					$srcset[] = $link . ' ' . round($data['width']) . 'w';
-				}
+			if ($link and !in_array($link, $links)) {
+				$links[$width] = $link;
 			}
 		}
 
-		$attributes['srcset'] = implode(', ', $srcset);
+		// A single image is already in the src attribute
+		if (count($links) < 2) {
+			unset($attributes['srcset'], $attributes['sizes']);
+
+			return $attributes;
+		}
+
+		$attributes['srcset'] = implode(', ', array_map(fn($link, $width) => $link . ' ' . $width . 'w', $links, array_keys($links)));
 	}
 
 	return $attributes;
@@ -784,6 +789,10 @@ function tw_image_size($size, int $image_id = 0): array
 
 	if (is_array($meta) and !empty($meta['width']) and !empty($meta['height'])) {
 		if ($size === 'full' or (!empty($meta['file']) and stripos($meta['file'], '.svg') === strlen($meta['file']) - 4)) {
+			$result['width'] = $meta['width'];
+			$result['height'] = $meta['height'];
+		} elseif ($meta['width'] < $result['width'] or $meta['height'] < $result['height']) {
+			// WordPress does not create a thumbnail if an image is smaller than required, so the original is used
 			$result['width'] = $meta['width'];
 			$result['height'] = $meta['height'];
 		} elseif (!empty($meta['sizes']) and is_string($size) and !empty($meta['sizes'][$size])) {

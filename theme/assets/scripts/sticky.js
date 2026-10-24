@@ -180,8 +180,6 @@ Twee.addModule('sticky', 'html', function() {
 			return a.edge - b.edge || a.index - b.index;
 		});
 
-		console.log(items);
-
 		for (i = 0; i < items.length; i++) {
 
 			item = items[i];
