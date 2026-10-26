@@ -32,18 +32,24 @@ function tw_ajax_comment_list(): void
 		}
 	}
 
-	if ($params['page'] > 0 and $params['post'] > 0) {
+	$post_type = ($params['post'] > 0) ? get_post_type($params['post']) : false;
+
+	if ($params['page'] > 0 and $post_type and is_post_type_viewable($post_type)) {
 		query_posts([
 			'p'         => $params['post'],
-			'post_type' => 'product'
+			'post_type' => $post_type
 		]);
 
-		the_post();
+		if (have_posts()) {
+			the_post();
 
-		set_query_var('cpage', $params['page']);
+			set_query_var('cpage', $params['page']);
 
-		comments_template();
+			comments_template();
+		}
 	}
+
+	wp_die();
 }
 
 add_action('wp_ajax_nopriv_comment_list', 'tw_ajax_comment_list');

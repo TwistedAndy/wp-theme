@@ -198,7 +198,7 @@ function tw_acf_save_value($check, $values, $post_id, array $field): mixed
 	if ($field['type'] == 'repeater' and !empty($field['pagination']) and did_action('acf/save_post') and !isset($_POST['_acf_form'])) {
 
 		if ($entity['type'] == 'option') {
-			$old_values = get_option($entity['id'] . $field['name'], null);
+			$old_values = get_option($entity['id'] . '_' . $field['name'], null);
 		} elseif ($entity['type'] == 'order') {
 			$order = tw_acf_get_order($entity['id']);
 
@@ -294,7 +294,7 @@ function tw_acf_save_value($check, $values, $post_id, array $field): mixed
 				unset($map[$field['name']]);
 			}
 
-			$order->delete_meta_data($entity['type']);
+			$order->delete_meta_data($field['name']);
 		} else {
 			$field_key = $field['key'];
 
@@ -432,7 +432,7 @@ function tw_acf_total_rows($value, $post_id, string $name): int|null
 	}
 
 	if ($entity['type'] == 'option') {
-		$data = get_option($entity['id'] . $name, null);
+		$data = get_option($entity['id'] . '_' . $name, null);
 	} elseif ($entity['type'] == 'order') {
 		$order = tw_acf_get_order($entity['id']);
 

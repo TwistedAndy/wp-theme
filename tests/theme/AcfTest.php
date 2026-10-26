@@ -710,7 +710,7 @@ class AcfTest extends WP_UnitTestCase {
 		$this->assertEquals(3, tw_acf_total_rows(null, $post_id, 'my_repeater'));
 
 		// Option Numeric
-		update_option('optionsopt_rep', '5');
+		update_option('options_opt_rep', '5');
 		add_filter('acf/pre_load_metadata', 'tw_acf_total_rows', 10, 3);
 		$this->assertEquals(5, tw_acf_total_rows(null, 'options', 'opt_rep'));
 	}

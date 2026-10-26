@@ -241,7 +241,7 @@ function tw_meta_update(string $meta_type, int $object_id, string $meta_key, $me
 	if ($result) {
 		tw_meta_cache_update($meta_type, $object_id, $meta_key, $updated_value);
 		wp_cache_delete($object_id, $meta_type . '_meta');
-		wp_cache_set_last_changed($meta_type . 's');
+		wp_cache_set_last_changed($meta_type === 'comment' ? 'comment' : $meta_type . 's');
 	}
 
 	return (bool) $result;
@@ -284,7 +284,7 @@ function tw_meta_delete(string $meta_type, int $object_id, string $meta_key): bo
 	if ($result) {
 		tw_meta_cache_delete($meta_type, $object_id, $meta_key);
 		wp_cache_delete($object_id, $meta_type . '_meta');
-		wp_cache_set_last_changed($meta_type . 's');
+		wp_cache_set_last_changed($meta_type === 'comment' ? 'comment' : $meta_type . 's');
 	}
 
 	return (bool) $result;

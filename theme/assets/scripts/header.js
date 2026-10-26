@@ -78,7 +78,7 @@ Twee.addModule('header', '.header_box', function($, wrapper) {
 				$('[name="s"]', wrapper).blur();
 			}
 
-			unlockScroll();
+			Twee.unlockScroll();
 
 		} else {
 
@@ -89,7 +89,7 @@ Twee.addModule('header', '.header_box', function($, wrapper) {
 			}
 
 			if (lock) {
-				lockScroll();
+				Twee.lockScroll();
 			}
 
 		}

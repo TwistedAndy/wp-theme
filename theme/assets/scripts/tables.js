@@ -1,3 +1,3 @@
-Twee.addModule('tables', 'html', function($, container) {
-	$('.content > table', container).wrap('<div class="table"></div>');
+Twee.addModule('tables', '.content > table', function($, table) {
+	table.wrap('<div class="table"></div>');
 });

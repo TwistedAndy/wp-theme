@@ -64,7 +64,7 @@ const Twee = {
 			return false;
 		}
 
-		if (elements === 'undefined' || elements === false) {
+		if (typeof elements === 'undefined' || elements === false) {
 			elements = jQuery(module.selector);
 		} else {
 			elements = jQuery(elements);
@@ -174,7 +174,9 @@ const Twee = {
 	},
 
 	/**
-	 * Run all modules matching an element
+	 * Run all modules matching an element or its descendants
+	 *
+	 * The modules attached to the html element are global and run only once
 	 *
 	 * @param {HTMLElement|jQuery|string} selector
 	 */
@@ -184,14 +186,8 @@ const Twee = {
 
 			const module = Twee.getModule(key);
 
-			if (module && module.selector) {
-				let elements = jQuery(selector);
-
-				if (module.selector !== 'html') {
-					elements = elements.filter(module.selector);
-				}
-
-				elements.each(function() {
+			if (module && module.selector && module.selector !== 'html') {
+				jQuery(selector).find(module.selector).addBack(module.selector).each(function() {
 					Twee.initModule(key, this);
 				});
 			}
@@ -209,7 +205,7 @@ const Twee = {
 	 */
 	runModule: function(element, key, module) {
 
-		if (element instanceof HTMLElement && (module.selector === 'html' || element.matches(module.selector)) && (Twee.runOnce(element, key) || module.multiple)) {
+		if (element instanceof HTMLElement && element.matches(module.selector) && (Twee.runOnce(element, key) || module.multiple)) {
 
 			module.callback.call(element, jQuery, jQuery(element), module);
 

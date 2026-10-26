@@ -361,7 +361,12 @@ function tw_post_set_terms(int $post_id, array $term_ids, string $taxonomy, bool
 		return false;
 	}
 
-	// The term IDs are used as term_taxonomy_id, as they are always equal
+	// The term_taxonomy_id can differ from the term_id
+	$tt_ids = tw_term_data('term_id', 'term_taxonomy_id', $taxonomy);
+
+	// Skip the terms which do not belong to the taxonomy
+	$new_ids = array_values(array_intersect($new_ids, array_keys($tt_ids)));
+
 	$added_ids = array_diff($new_ids, $old_ids);
 	$removed_ids = array_diff($old_ids, $new_ids);
 
@@ -371,15 +376,17 @@ function tw_post_set_terms(int $post_id, array $term_ids, string $taxonomy, bool
 
 	$db = tw_app_database();
 
-	if ($removed_ids) {
-		$db->query("DELETE FROM {$db->term_relationships} WHERE object_id = {$post_id} AND term_taxonomy_id IN (" . implode(',', $removed_ids) . ")");
+	$removed_tt_ids = array_intersect_key($tt_ids, array_flip($removed_ids));
+
+	if ($removed_tt_ids) {
+		$db->query("DELETE FROM {$db->term_relationships} WHERE object_id = {$post_id} AND term_taxonomy_id IN (" . implode(',', array_map('intval', $removed_tt_ids)) . ")");
 	}
 
 	if ($added_ids) {
 		$values = [];
 
-		foreach ($added_ids as $tt_id) {
-			$values[] = "({$post_id},{$tt_id},0)";
+		foreach ($added_ids as $term_id) {
+			$values[] = "({$post_id}," . (int) $tt_ids[$term_id] . ",0)";
 		}
 
 		$db->query("INSERT IGNORE INTO {$db->term_relationships} (object_id, term_taxonomy_id, term_order) VALUES " . implode(',', $values));
@@ -390,7 +397,7 @@ function tw_post_set_terms(int $post_id, array $term_ids, string $taxonomy, bool
 	wp_cache_set('last_changed', microtime(), 'terms');
 	wp_cache_set($post_id, $new_ids, $taxonomy . '_relationships');
 
-	do_action('set_object_terms', $post_id, $term_ids, $new_ids, $taxonomy, $append, $old_ids);
+	do_action('set_object_terms', $post_id, $term_ids, array_values(array_intersect_key($tt_ids, array_flip($new_ids))), $taxonomy, $append, array_values(array_intersect_key($tt_ids, array_flip($old_ids))));
 
 	// Skip, if the terms were changed by a hook, e.g. the default product category
 	if (wp_cache_get($post_id, $taxonomy . '_relationships') === $new_ids) {

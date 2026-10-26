@@ -1,6 +1,6 @@
 <?php
 
 return [
-	'deps' => ['jquery', 'scripts'],
+	'deps' => ['jquery', 'app'],
 	'script' => ['loader.js'],
 ];

@@ -46,6 +46,9 @@ add_action('delete_attachment', 'tw_image_clear');
  */
 function tw_image($image, string|array $size = 'full', string $before = '', string $after = '', array $attributes = []): string
 {
+	// The post is replaced with its thumbnail ID below, but the post link is still required
+	$post = ($image instanceof WP_Post) ? $image : null;
+
 	if ($image instanceof WP_Post) {
 		if (empty($attributes['alt'])) {
 			$attributes['alt'] = $image->post_title;
@@ -105,7 +108,7 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 				if ($value > 100) {
 					$width = (int) $value;
 				} elseif ($value <= 12) {
-					$width = (int) round(($cards_width - $cards_gap * $value - 1) / $value) - $cards_padding;
+					$width = (int) round(($cards_width - $cards_gap * ($value - 1)) / $value) - $cards_padding;
 				} else {
 					$width = (int) round($cards_width * $value / 100) - $cards_padding;
 				}
@@ -138,8 +141,10 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 	$link_size = false;
 
 	if (!empty($attributes['link'])) {
-		if ($attributes['link'] == 'url' and ($image instanceof WP_Post or is_numeric($image))) {
-			$link_href = get_permalink($image);
+		if ($attributes['link'] == 'url' and $post) {
+			$link_href = get_permalink($post);
+		} elseif ($attributes['link'] == 'url' and is_numeric($image)) {
+			$link_href = get_permalink((int) $image);
 		} elseif (is_array($attributes['link']) or $attributes['link'] == 'full' or !empty($sizes[$attributes['link']])) {
 			$link_size = $attributes['link'];
 		} else {
@@ -358,8 +363,15 @@ function tw_image_link($image, $size = 'full'): string
 
 			/**
 			 * WordPress does not create a thumbnail if an image is smaller than required
+			 * Cropped sizes need both dimensions, other sizes only the ones that are set
 			 */
-			if ($meta['width'] < $data['width'] or $meta['height'] < $data['height']) {
+			if (empty($data['crop'])) {
+				$is_smaller = (($meta['width'] <= $data['width'] or $data['width'] < 1) and ($meta['height'] <= $data['height'] or $data['height'] < 1));
+			} else {
+				$is_smaller = ($meta['width'] < $data['width'] or $meta['height'] < $data['height']);
+			}
+
+			if ($is_smaller) {
 				return apply_filters('wp_get_attachment_url', $image_url, $image);
 			}
 
@@ -788,10 +800,17 @@ function tw_image_size($size, int $image_id = 0): array
 	$meta = get_metadata_raw('post', $image_id, '_wp_attachment_metadata', true);
 
 	if (is_array($meta) and !empty($meta['width']) and !empty($meta['height'])) {
+		// Cropped sizes need both dimensions, other sizes only the ones that are set
+		if (empty($result['crop'])) {
+			$is_smaller = (($meta['width'] <= $result['width'] or $result['width'] < 1) and ($meta['height'] <= $result['height'] or $result['height'] < 1));
+		} else {
+			$is_smaller = ($meta['width'] < $result['width'] or $meta['height'] < $result['height']);
+		}
+
 		if ($size === 'full' or (!empty($meta['file']) and stripos($meta['file'], '.svg') === strlen($meta['file']) - 4)) {
 			$result['width'] = $meta['width'];
 			$result['height'] = $meta['height'];
-		} elseif ($meta['width'] < $result['width'] or $meta['height'] < $result['height']) {
+		} elseif ($is_smaller) {
 			// WordPress does not create a thumbnail if an image is smaller than required, so the original is used
 			$result['width'] = $meta['width'];
 			$result['height'] = $meta['height'];
@@ -922,7 +941,7 @@ function tw_image_resize(string $image_url, array|string $image_size, $image_id 
 		$image_size = (array) $editor->get_size();
 
 		if (!empty($image_size['width']) and !empty($image_size['height'])) {
-			$image_size = tw_image_calculate($image_size['width'], $image_size['height'], $width, $height, $size['crop'], $size['aspect']);
+			$image_size = tw_image_calculate($image_size['width'], $image_size['height'], $width, $height, $size['crop'], $size['aspect'], $size['cover']);
 			$width = $image_size['width'];
 			$height = $image_size['height'];
 		}

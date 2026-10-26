@@ -42,7 +42,9 @@ tw_asset_register([
 		'localize' => function() {
 			return [
 				'ajaxurl' => admin_url('admin-ajax.php'),
-				'nonce' => wp_create_nonce('ajax-nonce')
+				'nonce' => wp_create_nonce('ajax-nonce'),
+				'lang_more' => __('Show More', 'twee'),
+				'lang_less' => __('Show Less', 'twee')
 			];
 		}
 	]

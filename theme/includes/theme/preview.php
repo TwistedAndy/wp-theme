@@ -28,7 +28,9 @@ add_filter('acfe/flexible/thumbnail', 'tw_preview_filter_thumbnail', 10, 3);
 /**
  * Run the code below only on the local server
  */
-if (!str_contains(TW_HOME, '.test')) {
+$host = (string) parse_url(TW_HOME, PHP_URL_HOST);
+
+if (!str_ends_with($host, '.test') and !str_ends_with($host, '.localhost') and wp_get_environment_type() !== 'local') {
 	return;
 }
 
@@ -57,6 +59,11 @@ function tw_preview_action_preview(): void
 		'success' => 0,
 		'message' => '',
 	];
+
+	if (!current_user_can('edit_posts') or !check_ajax_referer('twee_generate_preview', 'nonce', false)) {
+		$result['message'] = 'You are not allowed to generate previews';
+		wp_send_json($result);
+	}
 
 	if (!isset($_POST['id'])) {
 		$result['message'] = 'Block ID is not specified';
@@ -131,7 +138,8 @@ function tw_preview_action_preview(): void
 	$node = apply_filters('twee_preview_node', '"C:\Program Files\NodeJS\node.exe"');
 	$script = apply_filters('twee_preview_script', '"D:\Work\wp-content\themes\screens.js"');
 
-	$command = $node . ' ' . $script . ' "' . $link . '?preview" #block_' . $_POST['id'] . ' 2>&1';
+	// The escapeshellarg() function breaks percent-encoded links on Windows, while esc_url_raw() encodes quotes
+	$command = $node . ' ' . $script . ' "' . esc_url_raw($link . '?preview') . '" #block_' . (int) $_POST['id'] . ' 2>&1';
 
 	$output = [];
 	$result_code = 1;
@@ -173,6 +181,7 @@ function tw_preview_action_scripts(): void
 					dataType: 'json',
 					data: {
 						action: 'twee_generate_preview',
+						nonce: '<?php echo esc_js(wp_create_nonce('twee_generate_preview')); ?>',
 						post: $('[name="post_ID"]', form).val(),
 						term: $('[name="tag_ID"]', form).val(),
 						id: layout.data('id').replace('row-', '')

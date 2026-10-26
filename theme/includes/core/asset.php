@@ -349,7 +349,7 @@ function tw_asset_print(): void
 	if ($modules) {
 		add_filter('script_loader_tag', function($tag, $handle) use ($modules) {
 			if (isset($modules[$handle])) {
-				return str_replace('<script ', '<script type="module"', $tag);
+				return str_replace('<script ', '<script type="module" ', $tag);
 			} else {
 				return $tag;
 			}
@@ -619,6 +619,9 @@ function tw_asset_normalize(array $asset): array
 
 	$asset['deps'] = $deps;
 
+	// Styles and scripts share a version, so it depends on all files
+	$timestamp = 0;
+
 	foreach (['style', 'script'] as $type) {
 
 		if (empty($asset[$type])) {
@@ -628,8 +631,6 @@ function tw_asset_normalize(array $asset): array
 		if (is_string($asset[$type])) {
 			$asset[$type] = [$asset[$type]];
 		}
-
-		$timestamp = 0;
 
 		foreach ($asset[$type] as $key => $link) {
 
@@ -658,10 +659,10 @@ function tw_asset_normalize(array $asset): array
 
 		}
 
-		if ($timestamp > 0) {
-			$asset['version'] = substr((string) $timestamp, 4);
-		}
+	}
 
+	if ($timestamp > 0) {
+		$asset['version'] = substr((string) $timestamp, 4);
 	}
 
 	return $asset;
@@ -748,7 +749,10 @@ function tw_asset_inject($content): string
 
 	$limit = apply_filters('twee_asset_limit', 4);
 
-	foreach ($missing as $index => $name) {
+	// Only the blocks with styles count towards the limit
+	$count = 0;
+
+	foreach ($missing as $name) {
 
 		if (empty($assets[$name]) or empty($assets[$name]['style']) or !is_array($assets[$name]['style'])) {
 			continue;
@@ -756,13 +760,15 @@ function tw_asset_inject($content): string
 
 		$version = $assets[$name]['version'] ?? '';
 
+		$count++;
+
 		foreach ($assets[$name]['style'] as $style) {
 
 			if ($version) {
 				$style .= '?v=' . $version;
 			}
 
-			if ($index <= $limit) {
+			if ($count <= $limit) {
 				$stylesheets[] = '<link rel="stylesheet" href="' . esc_url($style) . '" media="all" />';
 			} else {
 				$stylesheets[] = '<link rel="preload" as="style" href="' . esc_url($style) . '" onload="this.onload=null;this.rel=\'stylesheet\'" />';

@@ -1,6 +1,6 @@
 Twee.addModule('modals', 'html', function($, wrapper) {
 
-	$('[data-modal]').click(function(e) {
+	wrapper.on('click', '[data-modal]', function() {
 
 		var modal = $(this).data('modal');
 
@@ -10,7 +10,7 @@ Twee.addModule('modals', 'html', function($, wrapper) {
 
 	});
 
-	$('a[href^="#modal_"]').click(function(e) {
+	wrapper.on('click', 'a[href^="#modal_"]', function(e) {
 		$($(this).attr('href')).trigger('open');
 		e.preventDefault();
 	});

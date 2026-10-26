@@ -1,15 +1,9 @@
-Twee.addModule('content', 'html', function($, wrapper) {
+Twee.addModule('content', '.content.is_compact', function($, content) {
 
-	$('.content.is_compact').each(function() {
+	updateContent(content);
 
-		var content = $(this);
-
+	$(window).on('resize', function() {
 		updateContent(content);
-
-		$(window).on('resize', function() {
-			updateContent(content);
-		});
-
 	});
 
 	function updateContent(content) {

@@ -222,6 +222,103 @@ add_filter('paginate_links_output', function($links) {
 
 
 /**
+ * Load terms instead of 404s when a post type and taxonomy share the same base
+ */
+add_filter('request', function($query_vars) {
+	global $wp, $wp_rewrite;
+
+	if (empty($wp->matched_rule)) {
+		return $query_vars;
+	}
+
+	// Rewrite rules start with the permalink front, e.g. "blog/", when with_front is enabled
+	$front = ltrim($wp_rewrite->front, '/');
+
+	$types = get_post_types(['public' => true], 'objects');
+
+	foreach (get_taxonomies(['public' => true], 'objects') as $taxonomy) {
+
+		if (empty($taxonomy->query_var) or empty($taxonomy->rewrite['slug'])) {
+			continue;
+		}
+
+		$base = $taxonomy->rewrite['slug'] . '/';
+
+		if (!empty($taxonomy->rewrite['with_front'])) {
+			$base = $front . $base;
+		}
+
+		if (!str_starts_with($wp->matched_rule, $base)) {
+			continue;
+		}
+
+		$path = '';
+		$type_var = '';
+		$type_name = '';
+
+		foreach ($types as $type) {
+			if (empty($type->query_var) or empty($type->rewrite['slug'])) {
+				continue;
+			}
+
+			$type_base = $type->rewrite['slug'] . '/';
+
+			if (!empty($type->rewrite['with_front'])) {
+				$type_base = $front . $type_base;
+			}
+
+			if ($type_base !== $base) {
+				continue;
+			}
+
+			$type_var = $type->query_var;
+			$type_name = $type->name;
+
+			if (!empty($query_vars[$type_var])) {
+				$path = $query_vars[$type_var];
+			} elseif (!empty($query_vars['attachment']) and $wp->matched_rule === $base . '[^/]+/([^/]+)/?$') {
+				$path = substr($wp->request, strlen($base));
+			}
+
+			if ($path) {
+				break;
+			}
+		}
+
+		if (empty($path)) {
+			continue;
+		}
+
+		$slugs = tw_term_data('slug', 'term_id', $taxonomy->name);
+
+		if (empty($slugs[basename($path)])) {
+			return $query_vars;
+		}
+
+		// Published posts take precedence over terms with the same slug
+		$post = get_page_by_path($path, OBJECT, $type_name);
+
+		if ($post instanceof WP_Post and $post->post_status === 'publish') {
+			return $query_vars;
+		}
+
+		// Swap the query variables so WP loads the term page.
+		$query_vars[$taxonomy->query_var] = $path;
+
+		if (!empty($query_vars['page']) and is_numeric($query_vars['page'])) {
+			$query_vars['paged'] = (int) $query_vars['page'];
+		}
+
+		unset($query_vars[$type_var], $query_vars['post_type'], $query_vars['name'], $query_vars['page'], $query_vars['attachment']);
+
+		break;
+	}
+
+	return $query_vars;
+});
+
+
+/**
  * Add all public terms to the link field
  */
 function tw_filters_link_field(array $results, array $query): array
@@ -248,7 +345,7 @@ function tw_filters_link_field(array $results, array $query): array
 
 	$db = tw_app_database();
 
-	$rows = $db->get_results("SELECT t.*, tt.taxonomy FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id WHERE t.name LIKE '%" . $db->esc_like($query['s']) . "%' AND tt.taxonomy IN ('" . implode("','", array_keys($map)) . "')", OBJECT);
+	$rows = $db->get_results($db->prepare("SELECT t.*, tt.taxonomy FROM {$db->terms} t LEFT JOIN {$db->term_taxonomy} tt ON t.term_id = tt.term_id WHERE t.name LIKE %s AND tt.taxonomy IN ('" . implode("','", esc_sql(array_keys($map))) . "')", '%' . $db->esc_like($query['s']) . '%'), OBJECT);
 
 	if (empty($rows)) {
 		return $results;
