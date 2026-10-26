@@ -459,7 +459,8 @@ class AcfTest extends WP_UnitTestCase {
 
 		$callback = function() use ($post_id, $field) {
 			$page = tw_acf_load_value(null, $post_id, $field);
-			$this->assertEquals(3, $page[0]['sub_val']);
+			$this->assertSame([2, 3], array_keys($page));
+			$this->assertEquals(3, $page[2]['sub_val']);
 		};
 		add_action('wp_ajax_acf/ajax/query_repeater', $callback);
 		do_action('wp_ajax_acf/ajax/query_repeater');
@@ -548,7 +549,7 @@ class AcfTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test repeater pagination saving (Chunk merging).
+	 * Test repeater pagination saving (New rows are appended).
 	 */
 	public function test_save_value_repeater_pagination(): void
 	{
@@ -566,13 +567,72 @@ class AcfTest extends WP_UnitTestCase {
 
 		do_action('acf/save_post');
 		unset($_POST['_acf_form']);
-		$_POST['paged'] = 2;
 
-		tw_acf_save_value(null, [['sub_val' => 30], ['sub_val' => 40]], $post_id, $field);
+		tw_acf_save_value(null, ['6720f1c2a9b3e' => ['sub_val' => 30], '6720f1c2a9b41' => ['sub_val' => 40]], $post_id, $field);
 
 		$merged = get_post_meta($post_id, 'paged_rep', true);
 		$this->assertCount(4, $merged);
 		$this->assertEquals(30, $merged[2]['val']);
+	}
+
+	/**
+	 * Test repeater pagination saving (Rows changed on different pages).
+	 */
+	public function test_save_value_repeater_pagination_changes(): void
+	{
+		$field = [
+			'type'          => 'repeater',
+			'name'          => 'paged_rep',
+			'key'           => 'field_rep',
+			'pagination'    => true,
+			'rows_per_page' => 2,
+			'sub_fields'    => [['key' => 'sub_val', 'name' => 'val', 'type' => 'text']]
+		];
+
+		$rows = [['val' => 'A'], ['val' => 'B'], ['val' => 'C'], ['val' => 'D'], ['val' => 'E']];
+
+		$save = function(array $value) use ($field, $rows): array {
+			$post_id = self::factory()->post->create();
+			update_post_meta($post_id, 'paged_rep', $rows);
+
+			tw_acf_save_value(null, $value, $post_id, $field);
+
+			return array_column(get_post_meta($post_id, 'paged_rep', true), 'val');
+		};
+
+		do_action('acf/save_post');
+		unset($_POST['_acf_form']);
+
+		// The row changed on the first page is posted with the rows of the second page
+		$this->assertSame(['A', 'B2', 'C', 'D', 'E'], $save([
+			'row-1' => ['sub_val' => 'B2', 'acf_changed' => 'true'],
+			'row-2' => ['sub_val' => 'C'],
+			'row-3' => ['sub_val' => 'D']
+		]));
+
+		// The row deleted on the first page is posted with the rows of the second page
+		$this->assertSame(['A', 'C', 'D', 'E'], $save([
+			'row-1' => ['sub_val' => 'B', 'acf_deleted' => 'true'],
+			'row-2' => ['sub_val' => 'C'],
+			'row-3' => ['sub_val' => 'D']
+		]));
+
+		// The row from the last page is moved to the first position
+		$this->assertSame(['E', 'A', 'B', 'C', 'D'], $save([
+			'row-4' => ['sub_val' => 'E', 'acf_reordered' => '0']
+		]));
+
+		// A new row is inserted at the selected position, or appended without one
+		$this->assertSame(['A', 'X', 'B', 'C', 'D', 'E', 'Y'], $save([
+			'6720f1c2a9b3e' => ['sub_val' => 'X', 'acf_reordered' => '1'],
+			'6720f1c2a9b41' => ['sub_val' => 'Y']
+		]));
+
+		// The clone template and unknown rows are ignored
+		$this->assertSame(['A', 'B', 'C', 'D', 'E'], $save([
+			'acfcloneindex' => ['sub_val' => 'Clone'],
+			'row-9'         => ['sub_val' => 'Missing']
+		]));
 	}
 
 	/**
@@ -592,23 +652,22 @@ class AcfTest extends WP_UnitTestCase {
 		do_action('acf/save_post');
 		unset($_POST['_acf_form']);
 
-		// Scenario A: Update Chunk
+		// Scenario A: Update Rows
 		update_option('options_opt_rep', [['val' => 'Old 1'], ['val' => 'Old 2']]);
-		$_POST['paged'] = 1;
 
-		tw_acf_save_value(null, [['sub_val' => 'New 1'], ['sub_val' => 'New 2']], 'options', $field);
+		tw_acf_save_value(null, ['row-0' => ['sub_val' => 'New 1'], 'row-1' => ['sub_val' => 'New 2']], 'options', $field);
 		$this->assertEquals('New 1', get_option('options_opt_rep')[0]['val']);
 
 		// Scenario B: Non-Array Fallback
 		update_option('options_opt_rep', 'invalid');
-		tw_acf_save_value(null, [['sub_val' => 'Fresh']], 'options', $field);
+		tw_acf_save_value(null, ['6720f1c2a9b45' => ['sub_val' => 'Fresh']], 'options', $field);
 		$this->assertEquals('Fresh', get_option('options_opt_rep')[0]['val']);
 	}
 
 	/**
-	 * Test updating an existing repeater page (Chunk overwrite).
+	 * Test updating an existing repeater page.
 	 */
-	public function test_save_value_repeater_update_chunk(): void
+	public function test_save_value_repeater_update_rows(): void
 	{
 		$post_id = self::factory()->post->create();
 		update_post_meta($post_id, 'rep_field', [['val' => 'Original 1'], ['val' => 'Original 2']]);
@@ -624,9 +683,8 @@ class AcfTest extends WP_UnitTestCase {
 
 		do_action('acf/save_post');
 		unset($_POST['_acf_form']);
-		$_POST['paged'] = 1;
 
-		tw_acf_save_value(null, [['sub_val' => 'Updated 1'], ['sub_val' => 'Updated 2']], $post_id, $field);
+		tw_acf_save_value(null, ['row-0' => ['sub_val' => 'Updated 1'], 'row-1' => ['sub_val' => 'Updated 2']], $post_id, $field);
 
 		$result = get_post_meta($post_id, 'rep_field', true);
 		$this->assertEquals('Updated 1', $result[0]['val']);

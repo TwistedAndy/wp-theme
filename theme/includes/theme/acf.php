@@ -130,19 +130,14 @@ function tw_acf_load_value($result, $post_id, array $field): mixed
 
 			$per_page = isset($field['rows_per_page']) ? (int) $field['rows_per_page'] : 20;
 
-			$chunks = array_chunk($result, $per_page);
-
 			if (acf_get_data('acf_is_rendering') or empty($_POST['paged']) or $_POST['paged'] < 1) {
-				$index = 0;
+				$offset = 0;
 			} else {
-				$index = (int) $_POST['paged'] - 1;
+				$offset = ((int) $_POST['paged'] - 1) * $per_page;
 			}
 
-			if (!empty($chunks[$index])) {
-				return $chunks[$index];
-			}
-
-			return [];
+			// Keep the row indexes, as ACF renders them as row-N and posts the changed rows with them
+			return array_slice($result, $offset, $per_page, true);
 		}
 
 	} elseif ($field['type'] == 'google_map' and is_string($result)) {
@@ -215,26 +210,64 @@ function tw_acf_save_value($check, $values, $post_id, array $field): mixed
 			$old_values = [];
 		}
 
-		$per_page = isset($field['rows_per_page']) ? (int) $field['rows_per_page'] : 20;
+		// ACF posts saved rows as row-N with their absolute index and new rows with random keys
+		$old_count = count($old_values);
 
-		$index = isset($_POST['paged']) ? (int) $_POST['paged'] : 0;
+		$new_rows = [];
+		$rows_to_move = [];
+		$new_rows_to_move = [];
 
-		if ($index > 0) {
-			--$index;
+		if (is_array($values)) {
+			foreach ($values as $key => $row) {
+				if (!is_array($row) or $key === 'acfcloneindex') {
+					continue;
+				}
+
+				$data = tw_acf_encode_data([$row], $field);
+				$data = $data[0] ?? [];
+
+				if (str_starts_with((string) $key, 'row-')) {
+					$index = (int) substr($key, 4);
+
+					// Skip the rows removed after the page was loaded
+					if (!array_key_exists($index, $old_values)) {
+						continue;
+					}
+
+					if (isset($row['acf_deleted'])) {
+						$old_values[$index] = 'acf_deleted';
+					} elseif (isset($row['acf_reordered'])) {
+						$rows_to_move[(int) $row['acf_reordered']][] = $data;
+						unset($old_values[$index]);
+					} else {
+						$old_values[$index] = $data;
+					}
+				} elseif (isset($row['acf_reordered']) and (int) $row['acf_reordered'] <= $old_count) {
+					$new_rows_to_move[(int) $row['acf_reordered']][] = $data;
+				} else {
+					$new_rows[] = $data;
+				}
+			}
 		}
 
-		$chunks = array_chunk($old_values, $per_page);
+		ksort($rows_to_move);
 
-		if (isset($chunks[$index])) {
-			$chunks[$index] = $value;
-		} else {
-			$chunks[] = $value;
+		foreach ($rows_to_move as $position => $rows) {
+			array_splice($old_values, $position, 0, $rows);
+		}
+
+		krsort($new_rows_to_move);
+
+		foreach ($new_rows_to_move as $position => $rows) {
+			array_splice($old_values, $position, 0, $rows);
 		}
 
 		$value = [];
 
-		foreach ($chunks as $chunk) {
-			array_push($value, ...$chunk);
+		foreach (array_merge($old_values, $new_rows) as $row) {
+			if ($row !== 'acf_deleted') {
+				$value[] = $row;
+			}
 		}
 
 	}
