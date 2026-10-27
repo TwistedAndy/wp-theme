@@ -76,7 +76,8 @@ function tw_acf_load_value($result, $post_id, array $field): mixed
 
 	$entity = tw_acf_decode_post_id($post_id);
 
-	if (empty($entity['id']) or empty($entity['type'])) {
+	// ACF keeps the block values in the block attributes
+	if (empty($entity['id']) or empty($entity['type']) or $entity['type'] === 'block') {
 		return null;
 	}
 
@@ -166,7 +167,7 @@ function tw_acf_save_value($check, $values, $post_id, array $field): mixed
 
 	$entity = tw_acf_decode_post_id($post_id);
 
-	if (empty($entity['id']) or empty($entity['type'])) {
+	if (empty($entity['id']) or empty($entity['type']) or $entity['type'] === 'block') {
 		return null;
 	}
 
@@ -401,7 +402,7 @@ function tw_acf_load_reference($result, string $field, $post_id): mixed
 {
 	$entity = tw_acf_decode_post_id($post_id);
 
-	if (empty($entity['id']) or empty($entity['type'])) {
+	if (empty($entity['id']) or empty($entity['type']) or $entity['type'] === 'block') {
 		return $result;
 	}
 
@@ -460,7 +461,7 @@ function tw_acf_total_rows($value, $post_id, string $name): int|null
 {
 	$entity = tw_acf_decode_post_id($post_id);
 
-	if (empty($entity['id']) or empty($entity['type'])) {
+	if (empty($entity['id']) or empty($entity['type']) or $entity['type'] === 'block') {
 		return $value;
 	}
 
@@ -705,7 +706,13 @@ function tw_acf_decode_post_id($post_id): array
 
 		$position = strrpos($post_id, '_');
 
-		if ($position > 0) {
+		if (str_starts_with($post_id, 'block_')) {
+			$entity = [
+				'type' => 'block',
+				'id'   => $post_id
+			];
+		} elseif ($position > 0 and is_numeric(substr($post_id, $position + 1))) {
+			// Options pages can use IDs like user_settings, so only numeric IDs are objects
 			$type = substr($post_id, 0, $position);
 			$id = (int) substr($post_id, $position + 1);
 
@@ -724,6 +731,11 @@ function tw_acf_decode_post_id($post_id): array
 					'type' => 'user',
 					'id'   => $id
 				];
+			} elseif ($type === 'comment') {
+				$entity = [
+					'type' => 'comment',
+					'id'   => $id
+				];
 			} elseif ($type === 'woo_order') {
 				$entity = [
 					'type' => 'order',
@@ -733,11 +745,6 @@ function tw_acf_decode_post_id($post_id): array
 				$entity = [
 					'type' => 'blog',
 					'id'   => $id
-				];
-			} elseif ($type == 'block') {
-				$entity = [
-					'type' => 'block',
-					'id'   => $post_id
 				];
 			}
 
@@ -837,17 +844,14 @@ function tw_acf_compress_meta(string $meta_type = 'post', int $object_id = 0): v
 		}
 	}
 
-	if (!empty($metadata['_acf_map']) and is_array($metadata['_acf_map'])) {
-		$acf_map = $metadata['_acf_map'];
-	} else {
+	// The raw metadata values are serialized
+	$acf_map = maybe_unserialize($metadata['_acf_map'] ?? '');
+
+	if (!is_array($acf_map)) {
 		$acf_map = [];
 	}
 
 	foreach ($acf_values as $meta_key => $meta_value) {
-
-		if (!empty($acf_map[$meta_key])) {
-			continue;
-		}
 
 		if ($meta_value === '') {
 			unset($acf_map[$meta_key]);
@@ -1246,22 +1250,27 @@ function tw_acf_revision_fields(array $result, array $post): array
 		return $result;
 	}
 
+	// WordPress builds the revision fields on every save, but they are displayed only when comparing revisions
+	if (!did_action('load-revision.php') and !(wp_doing_ajax() and isset($_REQUEST['action']) and $_REQUEST['action'] === 'get-revision-diffs')) {
+		return $result;
+	}
+
 	$fields = [];
-	$filters = [];
+	$data = [];
 
-	$data = tw_acf_decompress_fields('post', $post['ID'], true);
+	$ids = array_merge([$post['ID']], wp_get_post_revisions($post['ID'], ['fields' => 'ids']));
 
-	$revisions = wp_get_post_revisions($post['ID']);
+	foreach ($ids as $id) {
 
-	foreach ($revisions as $revision) {
+		// Each post is decompressed once per request, as the field filters below need the same data
+		$revision_data = tw_app_get('revision_' . $id, 'acf');
 
-		$revision_data = tw_acf_decompress_fields('post', $revision->ID, true);
-
-		foreach ($revision_data as $key => $field) {
-			if (!isset($data[$key])) {
-				$data[$key] = $field;
-			}
+		if (!is_array($revision_data)) {
+			$revision_data = tw_acf_decompress_fields('post', $id, true);
+			tw_app_set('revision_' . $id, $revision_data, 'acf');
 		}
+
+		$data += $revision_data;
 
 	}
 
@@ -1279,17 +1288,20 @@ function tw_acf_revision_fields(array $result, array $post): array
 		$fields[$prefix . $key] = $block . $field['label'];
 
 		/**
-		 * Do not add more than one filter for a field
+		 * Do not add more than one filter for a field, as the fields are built for each compared pair
 		 */
-		if (!in_array($key, $filters)) {
-
-			$filters[] = $key;
+		if (!has_filter('_wp_post_revision_field_' . $prefix . $key)) {
 
 			add_filter('_wp_post_revision_field_' . $prefix . $key, function($result, $key, $post) {
 
 				$key = substr($key, 9);
 
-				$data = tw_acf_decompress_fields('post', $post->ID, true);
+				$data = tw_app_get('revision_' . $post->ID, 'acf');
+
+				if (!is_array($data)) {
+					$data = tw_acf_decompress_fields('post', $post->ID, true);
+					tw_app_set('revision_' . $post->ID, $data, 'acf');
+				}
 
 				if ($data and !empty($data[$key]) and isset($data[$key]['value'])) {
 

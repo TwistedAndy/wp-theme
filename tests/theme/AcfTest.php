@@ -121,7 +121,15 @@ class AcfTest extends WP_UnitTestCase {
 		$this->assertEquals(['type' => 'blog', 'id' => 1], tw_acf_decode_post_id('blog_1'));
 		$this->assertEquals(['type' => 'blog', 'id' => 2], tw_acf_decode_post_id('site_2'));
 		$this->assertEquals(['type' => 'block', 'id' => 'block_abc'], tw_acf_decode_post_id('block_abc'));
+		$this->assertEquals(['type' => 'block', 'id' => 'block_123'], tw_acf_decode_post_id('block_123'));
+		$this->assertEquals(['type' => 'comment', 'id' => 7], tw_acf_decode_post_id('comment_7'));
 		$this->assertEquals(['type' => 'option', 'id' => 'options'], tw_acf_decode_post_id('option'));
+
+		// Options pages with IDs starting with an object type
+		$this->assertEquals(['type' => 'option', 'id' => 'user_settings'], tw_acf_decode_post_id('user_settings'));
+		$this->assertEquals(['type' => 'option', 'id' => 'post_options'], tw_acf_decode_post_id('post_options'));
+		$this->assertEquals(['type' => 'option', 'id' => 'site_options'], tw_acf_decode_post_id('site_options'));
+		$this->assertEquals(['type' => 'option', 'id' => 'category_settings'], tw_acf_decode_post_id('category_settings'));
 
 		// Objects
 		$term = new WP_Term((object) ['term_id' => 55]);
@@ -426,6 +434,19 @@ class AcfTest extends WP_UnitTestCase {
 		$field = ['name' => 'my_repeater', 'type' => 'repeater', 'sub_fields' => [['key' => 'sub_1', 'name' => 'sub']]];
 
 		$this->assertNull(tw_acf_load_value(null, $post_id, $field));
+	}
+
+	/**
+	 * Test that the block values are left to ACF.
+	 */
+	public function test_block_values(): void
+	{
+		$field = ['key' => 'field_rep', 'name' => 'my_repeater', 'type' => 'repeater', 'sub_fields' => [['key' => 'field_sub', 'name' => 'sub']]];
+
+		$this->assertNull(tw_acf_load_value(null, 'block_abc123', $field));
+		$this->assertNull(tw_acf_save_value(null, [['field_sub' => 'Value']], 'block_abc123', $field));
+		$this->assertEquals('field_rep', tw_acf_load_reference('field_rep', 'my_repeater', 'block_abc123'));
+		$this->assertEquals(3, tw_acf_total_rows(3, 'block_abc123', 'my_repeater'));
 	}
 
 	/**
@@ -847,6 +868,7 @@ class AcfTest extends WP_UnitTestCase {
 		$this->assertIsArray($map);
 		$this->assertEquals('simple123', $map['simple_text']); // Simple field mapped
 		$this->assertEquals('rep456', $map['my_repeater']); // Repeater mapped
+		$this->assertEquals('old_map_val', $map['existing_key']); // Existing map kept
 		$this->assertArrayNotHasKey('orphan_field', $map); // Orphan ignored
 
 		// 2. Simple Field Verification
@@ -877,6 +899,20 @@ class AcfTest extends WP_UnitTestCase {
 
 		// Assert Map is Deleted
 		$this->assertEmpty(get_post_meta($post_delete_id, '_acf_map', true));
+
+		// A compressed field saved again in the ACF format is converted with the new rows
+		$post_mapped_id = self::factory()->post->create();
+
+		update_post_meta($post_mapped_id, '_acf_map', ['my_repeater' => 'rep456']);
+		update_post_meta($post_mapped_id, '_my_repeater', 'field_rep456');
+		update_post_meta($post_mapped_id, 'my_repeater', '1');
+		update_post_meta($post_mapped_id, '_my_repeater_0_sub_val', 'field_sub789');
+		update_post_meta($post_mapped_id, 'my_repeater_0_sub_val', 'New Row');
+
+		tw_acf_compress_meta('post', $post_mapped_id);
+
+		$this->assertEquals('New Row', get_post_meta($post_mapped_id, 'my_repeater', true)[0]['sub_val']);
+		$this->assertEquals(['my_repeater' => 'rep456'], get_post_meta($post_mapped_id, '_acf_map', true));
 	}
 
 	/**
@@ -965,11 +1001,20 @@ class AcfTest extends WP_UnitTestCase {
 		update_post_meta($post_id, 'flex', [['acf_fc_layout' => 'l_1', 'sub' => 'Hero Text']]);
 		update_post_meta($post_id, 'rep', [['val' => 'Rep Item']]);
 
+		// The fields are not added outside the revisions screen
+		$this->assertEquals([], tw_acf_revision_fields([], ['ID' => $post_id]));
+
+		do_action('load-revision.php');
+
 		$fields = tw_acf_revision_fields([], ['ID' => $post_id]);
+
+		// The fields are built for each compared pair, but the filters are added once
+		tw_acf_revision_fields([], ['ID' => $post_id]);
 
 		// Flex Check
 		$key_flex = 'twee_acf_flex_0_sub';
 		$this->assertEquals('Hero - Sub', $fields[$key_flex]);
+		$this->assertCount(1, $GLOBALS['wp_filter']["_wp_post_revision_field_$key_flex"]->callbacks[20]);
 		$this->assertEquals('Hero Text', apply_filters("_wp_post_revision_field_$key_flex", '', $key_flex, get_post($post_id)));
 
 		// Repeater Check
