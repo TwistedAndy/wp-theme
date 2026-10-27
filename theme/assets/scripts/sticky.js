@@ -8,8 +8,11 @@ Twee.addModule('sticky', 'html', function() {
 	// Elements with the --offset-current property, they can be sticky or regular ones
 	const currentSelector = '.header_box, .is_sticky';
 
+	// Elements with the --offset-screen property, it's the distance from the viewport top to the bottom edge of the stacked elements
+	const screenSelector = '.header_box';
+
 	// Sticky sidebars, which can be taller than the viewport and are scrolled with the page
-	const sidebarSelector = '.wrapper_box [data-sidebar]';
+	const sidebarSelector = '.wrapper_box [data-sidebar], .product_box > .fixed > .product';
 
 	const page = {
 		element: document.body,
@@ -17,8 +20,10 @@ Twee.addModule('sticky', 'html', function() {
 	};
 
 	let items = [],
+		screens = [],
 		listeners = [],
 		viewport = 0,
+		natural = 0,
 		lastScroll = -1,
 		dirty = true,
 		ticking = false;
@@ -44,6 +49,13 @@ Twee.addModule('sticky', 'html', function() {
 
 			observer.observe(element);
 
+		});
+
+		document.querySelectorAll(screenSelector).forEach(function(element) {
+			screens.push({
+				element: element,
+				values: {}
+			});
 		});
 
 		global.addEventListener('scroll', requestUpdate, { passive: true });
@@ -246,8 +258,11 @@ Twee.addModule('sticky', 'html', function() {
 		setOffset(page, 'scroll', reserved);
 
 		if (screen > 0) {
-			setOffset(page, 'screen', screen);
+			natural = screen;
 		}
+
+		// The natural bottom edge goes up on scroll until it reaches the stuck elements
+		screens.forEach((target) => setOffset(target, 'screen', Math.max(natural - scroll, offsets.top)));
 
 		// The changed offset moves the element, so its state should be checked again
 		if (changed) {
