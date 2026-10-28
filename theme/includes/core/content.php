@@ -324,7 +324,7 @@ function tw_content_date(WP_Post $post, string $format = ''): string
  *
  * @return string
  */
-function tw_content_time(WP_Post $post, string $label = ' min read'): string
+function tw_content_time(WP_Post $post, string $label = ' mins read'): string
 {
 	$word_count = str_word_count(strip_tags($post->post_content));
 
