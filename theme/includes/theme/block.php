@@ -91,33 +91,33 @@ function tw_block_attributes(string|array $class, array $block): string
 		$options = $settings['options'];
 
 		if (in_array('border', $options)) {
-			$classes[] = 'box_border';
+			$classes[] = 'has_border';
 		}
 
 	}
 
 	if (!empty($settings['top']) and $settings['top'] != 'default') {
 		if ($settings['top'] == 'normal') {
-			$classes[] = 'box_top';
+			$classes[] = 'has_top';
 		} elseif ($settings['top'] == 'half') {
-			$classes[] = 'box_top_half';
+			$classes[] = 'has_top_half';
 		} elseif ($settings['top'] == 'none') {
-			$classes[] = 'box_no_top';
+			$classes[] = 'has_no_top';
 		}
 	}
 
 	if (!empty($settings['bottom']) and $settings['bottom'] != 'default') {
 		if ($settings['bottom'] == 'normal') {
-			$classes[] = 'box_bottom';
+			$classes[] = 'has_bottom';
 		} elseif ($settings['bottom'] == 'half') {
-			$classes[] = 'box_bottom_half';
+			$classes[] = 'has_bottom_half';
 		} elseif ($settings['bottom'] == 'none') {
-			$classes[] = 'box_no_bottom';
+			$classes[] = 'has_no_bottom';
 		}
 	}
 
 	if (!empty($settings['background']) and $settings['background'] != 'default') {
-		$classes[] = 'box_' . $settings['background'];
+		$classes[] = 'is_' . $settings['background'];
 	}
 
 	$result = 'class="' . implode(' ', $classes) . '"';

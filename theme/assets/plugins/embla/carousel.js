@@ -148,10 +148,10 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 						if (nodes.length > 0) {
 							let selectedDot = $(nodes.get(selected));
-							nodes.removeClass('is_first is_prev is_current is_next is_last');
-							selectedDot.addClass('is_current');
-							selectedDot.prev().addClass('is_prev').prev().addClass('is_first');
-							selectedDot.next().addClass('is_next').next().addClass('is_last');
+							nodes.removeClass('first prev current next last');
+							selectedDot.addClass('current');
+							selectedDot.prev().addClass('prev').prev().addClass('first');
+							selectedDot.next().addClass('next').next().addClass('last');
 						}
 
 					}
@@ -164,16 +164,16 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 				let classMap = {
 					y: {
-						center: 'is_middle',
-						end: 'is_bottom'
+						center: 'middle',
+						end: 'bottom'
 					},
 					x: {
-						center: 'is_center',
-						end: 'is_right'
+						center: 'center',
+						end: 'right'
 					}
 				};
 
-				let classList = 'is_center is_right is_middle is_bottom',
+				let classList = 'center right middle bottom',
 					activeClass = (scrollPrev && scrollNext) ? classMap[args.axis]?.[args.align] : '';
 
 				if (activeClass) {
@@ -188,9 +188,9 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 				slides.forEach(function(slide, index) {
 					if (index === selected) {
-						slides[index].classList.add('is_active');
+						slides[index].classList.add('active');
 					} else {
-						slides[index].classList.remove('is_active');
+						slides[index].classList.remove('active');
 					}
 				});
 
@@ -264,9 +264,9 @@ Twee.addModule('carousel', 'html', function($, container) {
 
 				slides.forEach(function(slide, index) {
 					if (index === target) {
-						slides[index].classList.add('is_active');
+						slides[index].classList.add('active');
 					} else {
-						slides[index].classList.remove('is_active');
+						slides[index].classList.remove('active');
 					}
 				});
 

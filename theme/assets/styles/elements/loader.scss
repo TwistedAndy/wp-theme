@@ -8,7 +8,7 @@
 		transition: opacity 0.3s, background 0.3s;
 	}
 
-	&.is_loading {
+	&.loading {
 		background-image: url(../images/ico_loading.svg);
 
 		.item {

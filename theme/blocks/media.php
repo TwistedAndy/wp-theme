@@ -31,19 +31,21 @@ if (in_array('card', $options)) {
 
 		if (!empty($block['image'])) {
 
-			echo '<div class="media">';
-
 			if (!empty($block['video'])) {
 
 				tw_asset_enqueue('bigger');
 
+				echo '<div class="media media_video">';
+
 				echo tw_image($block['image'], $size, '', '', [
 					'link' => $block['video'],
-					'link_class' => 'image is_video',
+					'link_class' => 'image',
 					'after' => '<span class="play"></span>'
 				]);
 
 			} else {
+
+				echo '<div class="media">';
 
 				echo tw_image($block['image'], $size, '<div class="image">', '</div>');
 

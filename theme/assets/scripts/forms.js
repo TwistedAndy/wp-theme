@@ -47,10 +47,10 @@ Twee.addModule('forms', '.form_box, .comment_box', function($, forms) {
 				type: 'post',
 				dataType: 'json',
 				beforeSend: function() {
-					button.prop('disabled', true).addClass('is_loading');
+					button.prop('disabled', true).addClass('loading');
 				},
 			}).always(function() {
-				button.prop('disabled', false).removeClass('is_loading');
+				button.prop('disabled', false).removeClass('loading');
 			}).done(processResponse);
 
 			e.preventDefault();
@@ -77,7 +77,7 @@ Twee.addModule('forms', '.form_box, .comment_box', function($, forms) {
 				processData: false,
 				contentType: false,
 				beforeSend: function() {
-					button.prop('disabled', true).addClass('is_loading');
+					button.prop('disabled', true).addClass('loading');
 				},
 				xhr: function() {
 					var xhr = new XMLHttpRequest();
@@ -92,7 +92,7 @@ Twee.addModule('forms', '.form_box, .comment_box', function($, forms) {
 				},
 			}).always(function() {
 
-				button.prop('disabled', false).removeClass('is_loading');
+				button.prop('disabled', false).removeClass('loading');
 
 			}).done(processResponse);
 
@@ -124,11 +124,11 @@ Twee.addModule('forms', '.form_box, .comment_box', function($, forms) {
 				type: 'post',
 				dataType: 'json',
 				beforeSend: function() {
-					button.prop('disabled', true).addClass('is_loading');
+					button.prop('disabled', true).addClass('loading');
 				},
 			}).always(function() {
 
-				button.prop('disabled', false).removeClass('is_loading');
+				button.prop('disabled', false).removeClass('loading');
 
 			}).done(processResponse);
 

@@ -27,6 +27,12 @@ $phone_small: 400;
 	}
 }
 
+@mixin hoverless() {
+	@media (hover: none) {
+		@content;
+	}
+}
+
 @mixin clear() {
 	&:after {
 		display: table;

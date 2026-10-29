@@ -12,7 +12,7 @@
 		line-height: 0;
 		text-align: center;
 
-		&.is_video {
+		&.media_video {
 
 			&:before {
 				content: '';
@@ -134,7 +134,7 @@
 			flex-shrink: 0;
 			width: 50%;
 
-			&.is_video {
+			&.media_video {
 
 				&:before {
 					border-radius: var(--radius-regular);

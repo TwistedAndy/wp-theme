@@ -80,13 +80,13 @@ Twee.addModule('loader', '[data-loader]', function($, button) {
 			dataType: 'json',
 			data: data,
 			beforeSend: function() {
-				button.addClass('is_loading');
-				wrapper.addClass('is_loading');
+				button.addClass('loading');
+				wrapper.addClass('loading');
 			}
 		}).always(function() {
 
-			button.removeClass('is_loading');
-			wrapper.removeClass('is_loading');
+			button.removeClass('loading');
+			wrapper.removeClass('loading');
 			section.trigger('loaded');
 
 		}).done(function(response) {
@@ -128,7 +128,7 @@ Twee.addModule('loader', '[data-loader]', function($, button) {
 					wrapper.css('height', heightOld);
 				}
 
-				button.addClass('is_hidden');
+				button.addClass('hidden');
 
 				if (data.number > 0) {
 
@@ -137,7 +137,7 @@ Twee.addModule('loader', '[data-loader]', function($, button) {
 					button.data('loader', data);
 
 					if (response['more']) {
-						button.removeClass('is_hidden');
+						button.removeClass('hidden');
 					}
 
 				}
@@ -154,7 +154,7 @@ Twee.addModule('loader', '[data-loader]', function($, button) {
 
 			} else {
 
-				button.addClass('is_hidden');
+				button.addClass('hidden');
 
 				if (animate) {
 					wrapper.removeAttr('style');

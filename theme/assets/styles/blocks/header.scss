@@ -399,13 +399,13 @@
 					z-index: -1;
 				}
 
-				&.is_active > ul, & > ul:focus-within {
+				&.opened > ul, & > ul:focus-within {
 					transform: translateX(0);
 					opacity: 1;
 					z-index: 3;
 				}
 
-				&.is_parent > ul {
+				&.parent > ul {
 					overflow: hidden;
 					height: 100%;
 				}

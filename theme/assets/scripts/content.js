@@ -1,4 +1,4 @@
-Twee.addModule('content', '.content.is_compact', function($, content) {
+Twee.addModule('content', '.content.content_compact', function($, content) {
 
 	updateContent(content);
 
@@ -10,11 +10,11 @@ Twee.addModule('content', '.content.is_compact', function($, content) {
 
 		var toggle = content.next('.toggle'),
 			element = content.get(0),
-			isExpanded = content.hasClass('is_expanded');
+			isExpanded = content.hasClass('expanded');
 
 		// Temporarily remove the expanded state to accurately check for natural overflow
 		if (isExpanded) {
-			content.removeClass('is_expanded');
+			content.removeClass('expanded');
 		}
 
 		// Check if there's an overflow
@@ -26,27 +26,27 @@ Twee.addModule('content', '.content.is_compact', function($, content) {
 				content.after(toggle);
 
 				toggle.on('click', function() {
-					if (content.hasClass('is_expanded')) {
-						content.removeClass('is_expanded').addClass('is_collapsed');
-						toggle.text(tw_template.lang_more).removeClass('is_active');
+					if (content.hasClass('expanded')) {
+						content.removeClass('expanded').addClass('collapsed');
+						toggle.text(tw_template.lang_more).removeClass('active');
 					} else {
-						content.addClass('is_expanded').removeClass('is_collapsed');
-						toggle.text(tw_template.lang_less).addClass('is_active');
+						content.addClass('expanded').removeClass('collapsed');
+						toggle.text(tw_template.lang_less).addClass('active');
 					}
 				});
 			}
 
 			// Restore the correct classes and button state based on the previous state
 			if (isExpanded) {
-				content.addClass('is_expanded').removeClass('is_collapsed');
-				toggle.text(tw_template.lang_less).addClass('is_active');
+				content.addClass('expanded').removeClass('collapsed');
+				toggle.text(tw_template.lang_less).addClass('active');
 			} else {
-				content.addClass('is_collapsed').removeClass('is_expanded');
-				toggle.text(tw_template.lang_more).removeClass('is_active');
+				content.addClass('collapsed').removeClass('expanded');
+				toggle.text(tw_template.lang_more).removeClass('active');
 			}
 		} else {
 			// If no overflow (e.g., window widened), remove classes and the toggle button
-			content.removeClass('is_collapsed is_expanded');
+			content.removeClass('collapsed expanded');
 
 			if (toggle.length > 0) {
 				toggle.remove();

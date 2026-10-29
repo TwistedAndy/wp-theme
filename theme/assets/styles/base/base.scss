@@ -34,11 +34,11 @@
 		@extend %button_disabled;
 	}
 
-	&.is_hidden {
+	&.hidden {
 		display: none;
 	}
 
-	&.is_loading, &.is_loading:hover {
+	&.loading, &.loading:hover {
 		border-color: var(--color-border);
 		background-color: transparent;
 		background-image: url(../images/ico_loading.svg);
@@ -60,8 +60,8 @@
 		text-align: center;
 	}
 
-	.items + &:has(.button:not(.is_hidden)),
-	.embla + &:has(.button:not(.is_hidden)) {
+	.items + &:has(.button:not(.hidden)),
+	.embla + &:has(.button:not(.hidden)) {
 		margin-top: var(--gap-contents);
 	}
 
@@ -70,14 +70,14 @@
 .contents {
 	@extend %contents;
 
-	.fixed:has(> &.is_split),
-	.fixed:has(> &.is_heading) {
+	.fixed:has(> &.contents_split),
+	.fixed:has(> &.contents_heading) {
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;
 	}
 
-	&.is_split {
+	&.contents_split {
 
 		&:has(.buttons) {
 			display: contents;
@@ -101,7 +101,7 @@
 
 	}
 
-	&.is_heading {
+	&.contents_heading {
 		margin-right: 0;
 		margin-left: 0;
 		text-align: left;
@@ -133,7 +133,7 @@
 
 	@include desktop_small {
 
-		&.is_heading {
+		&.contents_heading {
 			margin-right: auto;
 			margin-left: auto;
 			text-align: center;
@@ -288,19 +288,19 @@
 		margin: 0;
 		z-index: 1;
 
-		&.is_right .embla_container {
+		&.right .embla_container {
 			left: calc(-1 * var(--gap-grid-x));
 		}
 
-		&.is_center .embla_container {
+		&.center .embla_container {
 			left: calc(-0.5 * var(--gap-grid-x));
 		}
 
-		&.is_bottom {
+		&.bottom {
 			top: calc(-1 * var(--gap-grid-y));
 		}
 
-		&.is_middle {
+		&.middle {
 			top: calc(-0.5 * var(--gap-grid-y));
 		}
 
@@ -392,7 +392,7 @@
 		transition: 0.2s;
 		cursor: pointer;
 
-		&[class*="is_"] {
+		&:is(.first, .prev, .current, .next, .last) {
 			width: rem(24);
 			height: rem(24);
 		}
@@ -408,17 +408,17 @@
 			transform: scale(0);
 		}
 
-		&.is_last:before,
-		&.is_first:before {
+		&.last:before,
+		&.first:before {
 			transform: scale(0.333);
 		}
 
-		&.is_prev:before,
-		&.is_next:before {
+		&.prev:before,
+		&.next:before {
 			transform: scale(0.666);
 		}
 
-		&.is_current:before {
+		&.current:before {
 			background-color: var(--color-primary);
 			transform: scale(1);
 		}

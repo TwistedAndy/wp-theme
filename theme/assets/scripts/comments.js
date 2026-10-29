@@ -27,10 +27,10 @@ Twee.addModule('comments', '.comments_box', function($, section) {
 			dataType: 'html',
 			data: data,
 			beforeSend: function() {
-				button.addClass('is_loading');
+				button.addClass('loading');
 			}
 		}).always(function() {
-			button.removeClass('is_loading');
+			button.removeClass('loading');
 		}).done(function(response) {
 
 			if (response) {
@@ -42,22 +42,22 @@ Twee.addModule('comments', '.comments_box', function($, section) {
 					wrapper.append($(comments));
 
 					if (data.page < data.pages) {
-						button.removeClass('is_hidden');
+						button.removeClass('hidden');
 					} else {
-						button.addClass('is_hidden');
+						button.addClass('hidden');
 					}
 
 					section.trigger('init');
 
 				} else {
 
-					button.addClass('is_hidden');
+					button.addClass('hidden');
 
 				}
 
 			} else {
 
-				button.addClass('is_hidden');
+				button.addClass('hidden');
 
 			}
 

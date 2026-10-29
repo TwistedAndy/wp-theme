@@ -314,14 +314,14 @@ const Twee = {
 	 * Lock the screen scroll
 	 */
 	lockScroll: function() {
-		document.body.classList.add('is_locked');
+		document.body.classList.add('locked');
 	},
 
 	/**
 	 * Unlock the screen scroll
 	 */
 	unlockScroll: function() {
-		document.body.classList.remove('is_locked');
+		document.body.classList.remove('locked');
 	},
 
 	/**

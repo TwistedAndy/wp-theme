@@ -21,7 +21,7 @@
 		}
 	}
 
-	&.is_active:after {
+	&.active:after {
 		transform: scaleY(-1);
 	}
 

@@ -44,10 +44,10 @@ Twee.addModule('header', '.header_box', function($, wrapper) {
 
 		submenu.click(function(e) {
 
-			submenus.removeClass('is_active is_parent');
+			submenus.removeClass('opened parent');
 
 			if (window.innerWidth <= 1024) {
-				submenu.addClass('is_active').parents('.submenu').addClass('is_active is_parent');
+				submenu.addClass('opened').parents('.submenu').addClass('opened parent');
 				submenus.find('.sub-menu').scrollTop(0);
 			}
 
@@ -56,7 +56,7 @@ Twee.addModule('header', '.header_box', function($, wrapper) {
 		});
 
 		back.click(function(e) {
-			submenu.removeClass('is_active').parents('.submenu').removeClass('is_parent');
+			submenu.removeClass('opened').parents('.submenu').removeClass('parent');
 			e.stopPropagation();
 		});
 

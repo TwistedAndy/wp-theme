@@ -1,103 +1,111 @@
 # Twee 4.3
 
-**Twee** is a powerful WordPress theme framework built for high-performance, large-scale projects. It is finely tuned for Advanced Custom Fields, features an
-alternative metadata storage API, and leverages object caching to minimize database load and maximize speed.
+**Twee** is a WordPress theme framework for large, fast sites. It is built around Advanced Custom Fields (ACF). It
+stores ACF data in fewer database rows, reads metadata in bulk and from the object cache, and loads only the styles
+that a page uses.
+
+The theme in the `theme` folder is a starting point. Copy it, rename it, and build the site on it. Its markup and styles
+follow the CSS_BOX approach of the [CSS_BOX Starter Kit](https://github.com/TwistedAndy/starter-kit), and its `AGENTS.md`
+holds the rules for markup, styles and scripts.
 
 ## Features
 
-### 1. Ultrafast Metadata Storage for Advanced Custom Fields
+### Metadata storage for ACF
 
-- Stores metadata for Repeater, Group, or Clone fields in a single row instead of multiple rows
-- Fully compatible with the WordPress Metadata API, even for complex field types
-- Stores field keys in a single field, instead of duplicating keys for each row as in the default ACF behavior
-- Fully supports the ACF API and all ACF plugins
-- Enables dynamic rendering for ACF Flexible Content fields when using the ACF Extended plugin
-- Supports automatic section preview generation for ACF Flexible Content fields via Puppeteer
+- A Repeater, Group, Flexible Content or Clone field is stored in one metadata row, not in a row for each subfield.
+- The value of such a field can be read as an array with `get_post_meta()`.
+- The field keys of a record are stored in one row, not in a row for each field.
+- All of this works through ACF filters, so the ACF API, ACF add-ons and revisions keep working.
 
-### 2. Highly Optimized Metadata API
+### Metadata, posts and terms
 
-- Includes a performance-optimized metadata API that remains fully compatible with WordPress
-- Reduces heavy database queries by preloading metadata into memory
-- Uses cache partitioning to minimize data transfer from cache
-- Implements advanced techniques like binary search to speed up metadata access
-- Fully integrates with WordPress metadata caching
-- Performs fast metadata updates by checking for changes before writing to the database
+- The metadata API is compatible with WordPress, but faster. It preloads metadata into memory and uses the WordPress
+  metadata cache.
+- An update writes to the database only when the value has changed.
+- Metadata for many records is read in one query, split into partitions, and searched with a binary search.
+- The post functions fetch the data of many posts at once, to avoid N+1 queries. They fetch the terms of posts and the
+  posts of terms in one request.
+- The term functions build and cache term trees, flatten them, and find the parents and children of a term.
 
-### 3. High-Performance Post and Term Libraries
+### Assets
 
-- Enables bulk fetching of post data to avoid N+1 query issues
-- Retrieves post terms and term posts in a single request for improved performance
-- Builds and caches term trees, with the ability to flatten them if needed
-- Includes term threading to easily retrieve full parent-child term hierarchies
-- Supports fetching post IDs associated with specific terms
+- Scripts and styles are registered in one place, with their dependencies.
+- Each box, a section with a class that ends in `_box`, has a stylesheet of its own. A page loads the stylesheet of a
+  box only when its HTML has that class.
+- The custom properties and the fonts are put inline into the head, so the page renders without waiting for them.
+- The version of a file follows its content, so you never bump it by hand.
 
-### 4. Advanced Asset Management
+### Images
 
-- Automatically scans, resolves, and registers assets and their dependencies
-- Includes only required styles based on section class names
-- Injects essential base styles and fonts into the head for improved loading speed
-- Automates versioning to eliminate manual version bumps when unnecessary
-- Loads required assets for Flexible Content section previews automatically
+- Hidden image sizes are made on the first request, so the uploads folder holds only the sizes that are used.
+- `srcset` and `sizes` are built from the layout.
+- SVG uploads get correct metadata.
+- WebP conversion is built in, and the popular image optimization plugins are supported.
 
-### 5. Efficient Image Processing and Thumbnail Generation
+### Other tools
 
-- Supports hidden image sizes that generate thumbnails on demand to avoid clutter
-- Integrates with popular image minification plugins for optimized output
-- Allows SVG uploads and generates proper metadata
-- Automatically generates correct srcset and sizes based on layout settings
-- Uses high-performance caching for faster thumbnail generation
-- Provides built-in WebP conversion support
+- Blocks for pages, built with the ACF Flexible Content field, with previews in the admin.
+- Pagination for custom queries.
+- Breadcrumbs with JSON-LD structured data.
+- A Load More button for lists of posts.
+- Accessibility fixes for menus.
+- A base class for widgets.
+- A logger that is compatible with WooCommerce.
+- Unit tests for the core libraries.
 
-### 6. Additional Tools and Utilities
+## Requirements
 
-- Includes a custom pagination library with support for custom queries
-- Offers a breadcrumbs library with JSON-LD structured data support
-- Fixes common accessibility issues in menus
-- Built-in Load More post handler for dynamic content loading
-- Integrated logging system with WooCommerce compatibility
-- Provides a base class for building widgets
-- Centralized configuration within functions.php for easy management
-
-### 7. Build Tools and Styles
-
-- Uses Gulp to build all assets, automatically generating separate block styles, injecting CSS properties into the head, and applying additional optimizations
-- Assumes that all styles for a single block are located in one SCSS or CSS file, with the base class ending in _box. Learn more about this approach
-  here: [CSS_BOX: A Better Way to Write CSS](https://www.reddit.com/r/css/comments/1apomz1/css_box_a_better_way_to_write_css/)
-- The HTML/CSS starter kit is available in a separate repository: [CSS_BOX Starter Kit](https://github.com/TwistedAndy/starter-kit)
-- Uses the Bigger Picture library for popup images and videos: [Bigger Picture](https://github.com/TwistedAndy/bigger-picture). This library is optimized for
-  maximum browser performance and a smooth user experience
-- The core libraries are fully covered by unit tests
+- WordPress, with PHP 8.0 or newer.
+- [Advanced Custom Fields Pro](https://www.advancedcustomfields.com/pro/).
+- [Advanced Custom Fields: Extended](https://wordpress.org/plugins/acf-extended/), for the previews of blocks in the admin.
+- [Node.js](https://nodejs.org/) 16 or newer, to build the assets.
+- An object cache, such as Redis, is recommended.
 
 ## Installation
 
-- Install a theme framework as a regular theme by copying the theme folder.
-- Rename the theme folder as needed and add a **screenshot.jpg** file to the root.
-- Install the [Advanced Custom Fields Pro](https://www.advancedcustomfields.com/pro/) plugin
-- If you plan to use section previews in WP Admin, also install [Advanced Custom Fields: Extended](https://wordpress.org/plugins/acf-extended/)
-- Open WP Admin -> ACF -> Field Groups -> Sync available -> Sync ([read more](https://www.advancedcustomfields.com/resources/synchronized-json/))
+1. Copy the `theme` folder into `wp-content/themes`, and rename it.
+2. Change the theme name in `style.css`, and add a `screenshot.jpg` to the theme folder.
+3. Install and activate ACF Pro, and ACF Extended if you want block previews.
+4. Activate the theme.
+5. Sync the field groups: WP Admin → ACF → Field Groups → Sync available → Sync. The groups are stored as JSON in
+   `includes/acf`. See [Synchronized JSON](https://www.advancedcustomfields.com/resources/synchronized-json/).
+6. Install the packages for the assets:
+
+   ```bash
+   cd assets
+   npm install
+   ```
+
+## Folders
+
+| Path | Holds |
+| --- | --- |
+| `functions.php` | The configuration of the theme: assets, image sizes, menus, post types and taxonomies. |
+| `includes/core/` | The core libraries: app, asset, content, image, logger, meta, post, term and widget. |
+| `includes/theme/` | The features of the theme: ACF, blocks, breadcrumbs, gallery, the loader, pagination, previews and others. |
+| `includes/acf/` | The ACF field groups, as JSON. |
+| `includes/widgets/` | The widgets of the theme. |
+| `blocks/` | One template for each layout of the Flexible Content field, such as `media.php`. |
+| `parts/` | The parts that templates share: the header, the footer, buttons, contents and posts. |
+| `assets/styles/` | The styles: properties, base styles, elements and one file for each box in `blocks/`. |
+| `assets/scripts/` | The modules that every page loads. |
+| `assets/plugins/` | Libraries and the modules that only some pages load, each with an `index.php`. |
+| `assets/build/` | The built styles and scripts. Do not edit them by hand. |
+| `assets/preview/` | The previews of blocks, `<layout>.webp`, shown in the admin. |
 
 ## Configuration
 
-All configurations are located in functions.php.
+Everything is configured in `functions.php`.
 
-### Scripts and Styles
+### Scripts and styles
 
-Theme scripts and styles can be registered using the ```tw_asset_register()``` function.
-
-It supports registering multiple assets at once:
+`tw_asset_register()` registers one or more assets. An asset is a set of scripts, styles and the data they need:
 
 ```php
 tw_asset_register([
 	'base' => [
 		'style' => 'base.css',
-		'inline' => '',
 		'footer' => false,
-		'display' => true,
-		'directory' => 'build'
-	],
-	'other' => [
-		'style' => 'other.css',
-		'footer' => true,
 		'display' => true,
 		'directory' => 'build'
 	],
@@ -118,101 +126,128 @@ tw_asset_register([
 ]);
 ```
 
-Note that the script and style properties support both file names in the specified directory and arrays of file names.
+The keys of an asset:
 
-The directory is specified using the ```'directory'``` parameter.
+- `script` and `style` name a file, or a list of files, in `directory`.
+- `deps` lists the assets or WordPress scripts that load first.
+- `display` set to `true` loads the asset on every page. Any other asset is loaded with `tw_asset_enqueue('<name>')`.
+- `footer` loads the asset at the end of the page.
+- `localize` is an array, or a function that returns one. Its data is available to scripts as the object named in
+  `object`.
+- `inline` holds styles, or a function that returns them, that are put inline when the asset is loaded.
 
-Assets marked with ```'display' => true``` will be enqueued automatically.
+The theme also registers by itself:
 
-The others can be enqueued using the ```tw_asset_enqueue(...)``` call.
+- each folder in `assets/plugins`, as an asset of the same name. Its `index.php` returns the keys above;
+- each stylesheet in `assets/build/blocks`, as the asset `<name>_box`. It loads when a page has that class.
 
-If you need to include additional JavaScript data, specify it for the ```'localize'``` property as an array or as a function returning an array.
+### Image sizes
 
-The data will be available under the object specified in the ```'object'``` property.
+`tw_image_sizes()` adds an image size, or changes an existing one. A size with `'hidden' => true` is not registered in
+WordPress. It is made and cached the first time `tw_image()`, `tw_image_link()` or `tw_image_attribute()` asks for it.
+Use it for a size that only a few sections need.
 
-If you need to inject some inline styles added when the main asset is enqueued, use the ```'inline'``` property. It supports both the styles and a callback returning styles.
+### Post types, taxonomies, menus and widgets
 
-Additionally, the script automatically registers all the assets located in the ```assets/plugins``` folder. The data is pulled from the ```index.php``` files.
+- `tw_app_type()` and `tw_app_taxonomy()` register post types and taxonomies. They take the same arguments as
+  [register_post_type()](https://developer.wordpress.org/reference/functions/register_post_type/) and
+  [register_taxonomy()](https://developer.wordpress.org/reference/functions/register_taxonomy/), and register them at
+  the right time.
+- `tw_app_menus()` registers menus, and `tw_app_sidebar()` registers sidebars.
+- `tw_app_widget()` registers a widget by its class name. See `includes/widgets/Posts.php`.
 
-### Image Sizes
+## Blocks
 
-Use the ```tw_image_sizes()``` function to register a new thumbnail size or redefine an existing one.
+A page is built from blocks: the layouts of an ACF Flexible Content field.
 
-Some thumbnail sizes can be marked as hidden with the ```'hidden' => true``` flag. In this case, they will not be registered in WordPress but will be generated and cached on the first call in ```tw_image()```, ```tw_image_link()```, ```tw_image_attribute()``` and similar functions.
+- `tw_block_render($blocks)` renders the blocks. Each layout has its template, `blocks/<layout>.php`.
+- A template writes its section with `tw_block_attributes('<name>_box', $block)`. This adds the classes that the
+  settings of the block choose:
+  - the background: `is_light` or `is_dark`;
+  - the top spacing: `has_top`, `has_top_half` or `has_no_top`;
+  - the bottom spacing: `has_bottom`, `has_bottom_half` or `has_no_bottom`;
+  - the border: `has_border`.
+- `tw_block_contents()` renders the title, the text and the buttons of a block. `tw_block_buttons()` renders the
+  buttons alone.
+- A block marked as hidden is not shown on the site.
 
-This feature is extremely useful when you need an image in a special size for a few sections on the site and do not want to bloat the uploads folder with additional image sizes.
+### Previews
 
-### Post Types and Taxonomies
+ACF Extended shows a preview image for each layout, `assets/preview/<layout>.webp`. `screens.js` makes them with
+Puppeteer from a page of the site that shows the blocks:
 
-Custom post types can be registered using ```tw_app_type()``` and ```tw_app_taxonomy()``` functions.
+```bash
+node screens.js http://project.test/?preview
+```
 
-Their arguments are almost identical to [register_post_type()](https://developer.wordpress.org/reference/functions/register_post_type/) and [register_taxonomy()](https://developer.wordpress.org/reference/functions/register_taxonomy/). They are registered at the correct time automatically.
+The URL must end in `.test`. The script finds the project in `Z:/` by its host name. A second argument sets the
+selector of the sections, and a third sets the theme folder when its name differs from the host.
 
-### Sidebars, Menus, and Widgets
+## Building the assets
 
-They can be registered using ```tw_app_sidebar()```, ```tw_app_menus()```, and ```tw_app_widget()``` functions.
+Run these in `theme/assets`:
 
-In the case of widgets, the function expects to have a class name of the custom widget class. See ```includes/widgets/posts.php``` as an example.
+| Command | Does |
+| --- | --- |
+| `npm run watch` | Builds again on each change. |
+| `npm run build` | Builds all the styles and scripts. |
+| `npm run theme` | Builds the base styles, `build/base.css` and `build/other.css`. |
+| `npm run blocks` | Builds a stylesheet for each box in `build/blocks`. |
+| `npm run woo` | Builds the WooCommerce styles, `build/woo.css`. |
+| `npm run plugins` | Builds the styles in `plugins`. |
+| `npm run scripts` | Joins the modules in `scripts` into `build/scripts.js`. |
+| `npm run imagemin` | Compresses the images. It needs `imagemin-cli`, installed globally. |
+| `npm run svgo` | Minifies the SVG icons. It needs `svgo`, installed globally. |
 
-## Usage
+The build of a box stylesheet adds the imports it needs by itself: the mixins, and the elements that it extends.
 
-This theme framework includes a huge library of helper functions grouped by the context. You may find them in the ```includes/core``` and ```includes/theme``` folders.
+## Scripts
 
-Here are some most useful libraries:
+Behavior is written in modules with `Twee.addModule()`. The loader is the plugin `assets/plugins/app`:
 
-### Asset
+```js
+Twee.addModule('faq', '.faq_box', function($, wrapper) {
 
-It includes functions to work with assets (a set of script, styles, and related data). It resolves the dependencies, support lazy loading, and styles injecting. The most useful function is ```tw_asset_enqueue()```, which includes the specified asset to the page.
+	wrapper.on('click', '.title', function() {
+		$(this).closest('.item').toggleClass('opened');
+	});
 
-### Content
+});
+```
 
-This library contains a set of functions to work with title, text, link, dates, etc.
+A module runs once for each element that matches its selector, including the elements that a script adds later with
+`Twee.runModules()`. The `AGENTS.md` of the starter kit describes the rules in full.
 
-### Image
+## Libraries
 
-It includes functions to work with images. The most used ones are:
-- ```tw_image()```. Return the image tag with optional wrappers, source sets, etc. It supports usage of hidden image sizes and optimized for maximum speed and compatibility. It is much faster than the built-in WordPress functions.
-- ```tw_image_link()```. It's useful when you need to have only an image link.
-- ```tw_image_attribute()```. This function is used mostly to inject the background images or mask images.
+The functions are grouped by subject in `includes/core` and `includes/theme`. The most used ones:
 
-### ACF
+- **Asset**: registers and loads assets, resolves their dependencies, and puts styles inline. `tw_asset_enqueue()`
+  loads an asset on the page.
+- **Content**: works with titles, text, links and dates.
+- **Image**:
+  - `tw_image()` returns an image tag with its wrappers and `srcset`. It supports hidden sizes, and is much faster than
+    the WordPress functions.
+  - `tw_image_link()` returns only the link of an image.
+  - `tw_image_attribute()` returns an image as a custom property, such as a background or a mask.
+- **ACF**: stores Repeater, Group and Flexible Content fields in one row each, and the field keys in one row.
+- **ACFE**: customizes ACF and integrates ACF Extended.
+- **Block**: renders the blocks of the Flexible Content field and their common fields.
+- **Meta**: reads, updates and deletes metadata through the cache, and maps the metadata of many records at once.
+- **Post**: maps post data, the terms of posts and the threads of terms.
+- **Term**: builds and flattens term trees, and finds parent and child terms, the posts of terms and term links.
 
-This library includes optimizations for Advanced Custom Fields (ACF) data. It allows complex fields like Repeater, Group, or Flexible Content fields to be stored in a single metadata row instead of multiple rows. This approach makes ACF fields compatible with the WordPress Metadata API.
+## Tests
 
-For example, if you have a repeater field, you can simply get its value as an array using the ```get_post_meta()``` call.
+The tests use the WordPress test library, and run against a database that they wipe. Set its connection in
+`tests/config.php` or `phpunit.xml.dist`. Then install the packages and run the tests in this folder:
 
-Another important feature is optimized field key storage. By default, ACF stores each field key in a separate row. So, if you have 20 ACF fields, there will be at least 40 metadata rows. This library optimizes the process by storing all field keys in one field as an array.
+```bash
+composer install
+composer test
+```
 
-All these optimizations use ACF filters, ensuring full compatibility with the ACF plugin and related plugins. Revisions are also supported.
-
-### ACFE
-
-This library includes a host of ACF customizations and manages integration with the ACF Extended plugin.
-
-### Block
-
-It offers functions to handle page builders based on the Flexible Content field, along with helper functions to process common fields like Content or Buttons.
-
-### Metadata
-
-This library provides a set of functions to speed up metadata processing:
-
-- Optimized functions to get, update, or remove metadata, which rely on caching and operate much faster than default WordPress implementations.
-- Metadata mapping functions, useful when you need metadata for a large number of records. Instead of making a separate database query for each record, it
-  retrieves the metadata for all records, splits it into partitions, and uses a B-tree index for faster searching.
-- Cache processing logic to ensure all optimizations remain reliable.
-
-### Post
-
-This library provides tools to work with post data. It includes post data mapping functions, a post terms library, a term thread builder, and other functionality essential for performance optimization.
-
-### Term
-
-This library includes functions for working with terms, such as building and flattening a term tree, retrieving parent and child terms, accessing posts associated with specific terms, getting term links, and more. It's crucial for achieving optimal performance.
-
-### Others
-
-In addition to the previously mentioned libraries, there is a wide range of other essential functionalities designed to accelerate development and significantly enhance site performance.
+`composer test` loads the `pcov` extension for the coverage report. Without it, run `vendor/bin/phpunit --no-coverage`.
 
 ## About
 
@@ -222,14 +257,12 @@ Contact: [toniyevych@gmail.com](mailto:toniyevych@gmail.com)
 
 Feel free to contact me if you have any questions.
 
-
 ## Contribution
 
 * Fork this repository
 * Commit your changes
 * Push it to the branch
 * Create the new pull request
-
 
 ## License
 

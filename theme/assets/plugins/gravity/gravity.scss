@@ -393,7 +393,7 @@
 		background: var(--color-background) 50% 50% / 27px 27px no-repeat;
 		text-align: center;
 
-		&.is_loading {
+		&.loading {
 			background-image: url(../../images/ico_loading.svg);
 
 			& > span, &:before {
@@ -504,7 +504,7 @@
 		-webkit-mask: url(../../images/ico_gravity_remove.svg) 50% 50% / contain no-repeat;
 		color: inherit;
 
-		&.is_loading {
+		&.loading {
 			-webkit-mask-image: url(../../images/ico_loading.svg);
 		}
 

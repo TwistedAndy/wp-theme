@@ -9,10 +9,11 @@ if (empty($block['tag'])) {
 }
 
 if (!empty($wrapper)) {
+	$class = $wrapper;
 	if (!empty($block['layout']) and $block['layout'] !== 'default') {
-		$wrapper .= ' is_' . $block['layout'];
+		$wrapper .= ' ' . $class . '_' . $block['layout'];
 	} elseif (!empty($split) and !empty($block['buttons'])) {
-		$wrapper .= ' is_split';
+		$wrapper .= ' ' . $class . '_split';
 	}
 }
 
