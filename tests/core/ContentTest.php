@@ -261,7 +261,7 @@ class ContentTest extends WP_UnitTestCase {
 		$this->assertSame('2023-01-01', tw_content_date($post, 'Y-m-d'));
 
 		// Time
-		$this->assertSame('3 min read', tw_content_time(self::factory()->post->create_and_get(['post_content' => 'Short'])));
+		$this->assertSame('3 mins read', tw_content_time(self::factory()->post->create_and_get(['post_content' => 'Short'])));
 		$long_post = self::factory()->post->create_and_get(['post_content' => str_repeat('word ', 600)]);
 		$this->assertStringContainsString('3 min', tw_content_time($long_post));
 

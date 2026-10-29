@@ -32,6 +32,9 @@ class ImageTest extends WP_UnitTestCase {
 		}
 
 		self::$image_id = self::factory()->attachment->create_upload_object($file);
+
+		// The upload is a copy in the folder of the month, so the source is no longer needed.
+		unlink($file);
 	}
 
 	/**
@@ -308,6 +311,7 @@ class ImageTest extends WP_UnitTestCase {
 		$expected_link = $mock_baseurl . '/absolute-image.jpg';
 
 		// 3. Set the meta to match the mocked basedir exactly
+		$attached_file = get_post_meta(self::$image_id, '_wp_attached_file', true);
 		update_post_meta(self::$image_id, '_wp_attached_file', $absolute_file);
 
 		// 4. Run the function (it will call wp_upload_dir() and trigger our filter)
@@ -320,7 +324,7 @@ class ImageTest extends WP_UnitTestCase {
 			// 6. Cleanup
 			remove_filter('upload_dir', $filter_upload_dir);
 			tw_app_clear('image');
-			update_post_meta(self::$image_id, '_wp_attached_file', 'test-image.jpg');
+			update_post_meta(self::$image_id, '_wp_attached_file', $attached_file);
 		}
 	}
 
@@ -818,6 +822,8 @@ class ImageTest extends WP_UnitTestCase {
 		}
 
 		$temp_attachment_id = self::factory()->attachment->create_upload_object($filename);
+
+		unlink($filename);
 
 		// Create mock cache file
 		if (!is_dir($cache_path)) {

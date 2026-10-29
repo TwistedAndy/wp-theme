@@ -589,7 +589,7 @@ function tw_post_query(string|array $type, array $block = []): array
 					$tax_query[] = [
 						'taxonomy' => $taxonomy,
 						'field'    => 'term_id',
-						'terms'    => $terms[$object->ID],
+						'terms'    => $terms,
 					];
 				}
 			}
