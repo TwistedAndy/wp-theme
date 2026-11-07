@@ -149,11 +149,13 @@
 	--gap-field-y: 20px;
 
 	--gap-section: 80px;
-	--gap-section-top: 0;
-	--gap-section-bottom: 1;
+	--gap-section-top: calc(var(--gap-scale-top) * var(--gap-section));
+	--gap-section-bottom: calc(var(--gap-scale-bottom) * var(--gap-section));
 	--gap-section-inner: 80px;
 	--gap-section-small: 50px;
 	--gap-section-side: 40px;
+	--gap-scale-top: 0;
+	--gap-scale-bottom: 1;
 
 	/* Offsets */
 	--offset-top: 0px;

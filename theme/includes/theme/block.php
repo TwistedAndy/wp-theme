@@ -100,12 +100,12 @@ function tw_block_attributes(string|array $class, array $block): string
 
 	if (isset($settings['top']) and is_numeric($settings['top']) and $settings['top'] >= 0) {
 		$classes[] = 'has_top';
-		$styles[] = '--gap-section-top: ' . (float) $settings['top'];
+		$styles[] = '--gap-scale-top: ' . (float) $settings['top'];
 	}
 
 	if (isset($settings['bottom']) and is_numeric($settings['bottom']) and $settings['bottom'] >= 0) {
 		$classes[] = 'has_bottom';
-		$styles[] = '--gap-section-bottom: ' . (float) $settings['bottom'];
+		$styles[] = '--gap-scale-bottom: ' . (float) $settings['bottom'];
 	}
 
 	if (!empty($settings['background']) and $settings['background'] != 'default') {

@@ -76,7 +76,7 @@ function woo() {
 		.pipe(plumber(options.plumber))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
-		.pipe(sourcemaps.mapSources(source => path.isAbsolute(source) ? path.relative(path.resolve('./styles'), source).replaceAll('\\', '/') : source))
+		.pipe(sourcemaps.mapSources(source => relativeSource(source, './styles')))
 		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
 		.pipe(gulp.dest(folders.build));
 }
@@ -92,7 +92,7 @@ function theme() {
 		}))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
-		.pipe(sourcemaps.mapSources(source => path.isAbsolute(source) ? path.relative(path.resolve('./styles'), source).replaceAll('\\', '/') : source))
+		.pipe(sourcemaps.mapSources(source => relativeSource(source, './styles')))
 		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
 		.pipe(gulp.dest(folders.build));
 }
@@ -121,7 +121,7 @@ function blocks() {
 		}))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
-		.pipe(sourcemaps.mapSources(source => path.isAbsolute(source) ? path.relative(path.resolve('./styles/blocks'), source).replaceAll('\\', '/') : source))
+		.pipe(sourcemaps.mapSources(source => relativeSource(source, './styles/blocks')))
 		.pipe(insert.transform(function(contents, file) {
 			return contents.replaceAll('url(../images/', 'url(../../images/');
 		}))
@@ -137,7 +137,7 @@ function plugins() {
 		.pipe(plumber(options.plumber))
 		.pipe(sourcemaps.init())
 		.pipe(sass(options.sass))
-		.pipe(sourcemaps.mapSources(source => path.isAbsolute(source) ? path.relative(path.resolve('./styles'), source).replaceAll('\\', '/') : source))
+		.pipe(sourcemaps.mapSources(source => relativeSource(source, './')))
 		.pipe(sourcemaps.write('./', options.sourcemaps.styles))
 		.pipe(gulp.dest('./'));
 }
@@ -200,6 +200,34 @@ function injectImports(contents, elements) {
 	}
 
 	return contents;
+
+}
+
+/**
+ * Make a source map path relative to the source root
+ *
+ * gulp-sass strips the leading slash from every source, so on macOS and
+ * Linux an absolute path outside the file base (like includes/mixins.scss)
+ * arrives as "Users/name/...". Restore the slash when that file exists.
+ *
+ * @param {string} source
+ * @param {string} root
+ *
+ * @returns {string}
+ */
+function relativeSource(source, root) {
+
+	root = path.resolve(root);
+
+	if (!path.isAbsolute(source) && !fs.existsSync(path.resolve(root, source)) && fs.existsSync(path.sep + source)) {
+		source = path.sep + source;
+	}
+
+	if (path.isAbsolute(source)) {
+		source = path.relative(root, source).replaceAll('\\', '/');
+	}
+
+	return source;
 
 }
 

@@ -82,11 +82,11 @@ body {
 	--gap-section-side: 20px;
 
 	& > section:first-child:not(.has_top) {
-		--gap-section-top: 1;
+		--gap-scale-top: 1;
 	}
 
 	& > section:last-child:not(.has_bottom) {
-		--gap-bottom: 1;
+		--gap-scale-bottom: 1;
 	}
 
 	iframe {
@@ -98,13 +98,15 @@ body {
 section {
 	position: relative;
 	overflow-x: clip;
-	padding: calc(var(--gap-section-top) * var(--gap-section) + var(--gap-section-shift)) var(--gap-aside) calc(var(--gap-section-bottom) * var(--gap-section));
+	padding: calc(var(--gap-section-top) + var(--gap-section-shift)) var(--gap-aside) var(--gap-section-bottom);
 	background-color: var(--color-section);
 	color: var(--color-text);
-	scroll-margin-top: calc(var(--height-top) + var(--gap-section) * (1 - var(--gap-section-top)));
+	scroll-margin-top: calc(var(--height-top) + var(--gap-section) * (1 - var(--gap-scale-top)));
+	--gap-section-top: calc(var(--gap-scale-top) * var(--gap-section));
+	--gap-section-bottom: calc(var(--gap-scale-bottom) * var(--gap-section));
 
 	&:first-of-type:not(.has_top) {
-		--gap-section-top: 1;
+		--gap-scale-top: 1;
 	}
 
 	section {
@@ -113,10 +115,10 @@ section {
 	}
 
 	&:where(.is_dark, .is_light) {
-		--gap-section-top: 1;
+		--gap-scale-top: 1;
 
 		& + section:where(:not(.has_top)) {
-			--gap-section-top: 1;
+			--gap-scale-top: 1;
 		}
 
 	}
@@ -142,18 +144,18 @@ section {
 }
 
 .has_top {
-	--gap-section-top: 1;
+	--gap-scale-top: 1;
 }
 
 .has_bottom {
-	--gap-section-bottom: 1;
+	--gap-scale-bottom: 1;
 }
 
 .has_border {
 	border-bottom: 1px solid var(--color-border);
 
 	& + section:not(.has_top) {
-		--gap-section-top: 1;
+		--gap-scale-top: 1;
 	}
 
 }
