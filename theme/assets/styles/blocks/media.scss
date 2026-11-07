@@ -62,7 +62,7 @@
 		}
 
 		&.is_full {
-			--gap-section-top: var(--gap-section);
+			--gap-section-top: 1;
 
 			.media {
 				position: absolute;

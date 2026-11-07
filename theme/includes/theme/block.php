@@ -96,24 +96,16 @@ function tw_block_attributes(string|array $class, array $block): string
 
 	}
 
-	if (!empty($settings['top']) and $settings['top'] != 'default') {
-		if ($settings['top'] == 'normal') {
-			$classes[] = 'has_top';
-		} elseif ($settings['top'] == 'half') {
-			$classes[] = 'has_top_half';
-		} elseif ($settings['top'] == 'none') {
-			$classes[] = 'has_no_top';
-		}
+	$styles = [];
+
+	if (isset($settings['top']) and is_numeric($settings['top']) and $settings['top'] >= 0) {
+		$classes[] = 'has_top';
+		$styles[] = '--gap-section-top: ' . (float) $settings['top'];
 	}
 
-	if (!empty($settings['bottom']) and $settings['bottom'] != 'default') {
-		if ($settings['bottom'] == 'normal') {
-			$classes[] = 'has_bottom';
-		} elseif ($settings['bottom'] == 'half') {
-			$classes[] = 'has_bottom_half';
-		} elseif ($settings['bottom'] == 'none') {
-			$classes[] = 'has_no_bottom';
-		}
+	if (isset($settings['bottom']) and is_numeric($settings['bottom']) and $settings['bottom'] >= 0) {
+		$classes[] = 'has_bottom';
+		$styles[] = '--gap-section-bottom: ' . (float) $settings['bottom'];
 	}
 
 	if (!empty($settings['background']) and $settings['background'] != 'default') {
@@ -127,6 +119,10 @@ function tw_block_attributes(string|array $class, array $block): string
 		$result .= ' data-layout="' . esc_attr($block['acf_fc_layout']) . '"';
 	} elseif (!empty($settings['block_id'])) {
 		$result .= ' id="' . $settings['block_id'] . '"';
+	}
+
+	if ($styles) {
+		$result .= ' style="' . implode(';', $styles) . '"';
 	}
 
 	return $result;

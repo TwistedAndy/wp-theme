@@ -81,12 +81,12 @@ body {
 	--gap-section: 40px;
 	--gap-section-side: 20px;
 
-	& > section:first-child:not(.has_no_top) {
-		--gap-section-top: var(--gap-section);
+	& > section:first-child:not(.has_top) {
+		--gap-section-top: 1;
 	}
 
-	& > section:last-child:not(.has_no_bottom) {
-		--gap-section-bottom: var(--gap-section);
+	& > section:last-child:not(.has_bottom) {
+		--gap-bottom: 1;
 	}
 
 	iframe {
@@ -98,15 +98,13 @@ body {
 section {
 	position: relative;
 	overflow-x: clip;
-	padding: calc(var(--gap-section-top) + var(--offset-section-top)) var(--gap-section-side) calc(var(--gap-section-bottom) + var(--offset-section-bottom));
+	padding: calc(var(--gap-section-top) * var(--gap-section) + var(--gap-section-shift)) var(--gap-aside) calc(var(--gap-section-bottom) * var(--gap-section));
 	background-color: var(--color-section);
 	color: var(--color-text);
-	scroll-margin-top: calc(var(--offset-scroll) + var(--gap-section) - var(--gap-section-top));
-	--gap-section-top: 0px;
-	--gap-section-bottom: var(--gap-section);
+	scroll-margin-top: calc(var(--height-top) + var(--gap-section) * (1 - var(--gap-section-top)));
 
-	&:first-of-type {
-		--gap-section-top: var(--gap-section);
+	&:first-of-type:not(.has_top) {
+		--gap-section-top: 1;
 	}
 
 	section {
@@ -115,10 +113,10 @@ section {
 	}
 
 	&:where(.is_dark, .is_light) {
-		--gap-section-top: var(--gap-section);
+		--gap-section-top: 1;
 
-		& + section:where(:not(.has_top_half, .has_no_top)) {
-			--gap-section-top: var(--gap-section);
+		& + section:where(:not(.has_top)) {
+			--gap-section-top: 1;
 		}
 
 	}
@@ -131,6 +129,7 @@ section {
 }
 
 .is_dark {
+	color: var(--theme-white);
 	--color-base: var(--theme-black);
 	--color-section: #1a003e;
 	--color-background: var(--theme-text);
@@ -140,38 +139,21 @@ section {
 	--color-border: #{rgbo(--theme-white, 10%)};
 	--color-field: #{rgbo(--theme-white, 10%)};
 	--color-icon: var(--theme-white);
-	color: var(--theme-white);
 }
 
 .has_top {
-	--gap-section-top: var(--gap-section);
-}
-
-.has_top_half {
-	--gap-section-top: calc(0.5 * var(--gap-section));
+	--gap-section-top: 1;
 }
 
 .has_bottom {
-	--gap-section-bottom: var(--gap-section);
-}
-
-.has_bottom_half {
-	--gap-section-bottom: calc(0.5 * var(--gap-section));
-}
-
-.has_no_top {
-	--gap-section-top: 0px;
-}
-
-.has_no_bottom {
-	--gap-section-bottom: 0px;
+	--gap-section-bottom: 1;
 }
 
 .has_border {
 	border-bottom: 1px solid var(--color-border);
 
-	& + section {
-		--gap-section-top: var(--gap-section);
+	& + section:not(.has_top) {
+		--gap-section-top: 1;
 	}
 
 }
