@@ -172,7 +172,7 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 		$link_class = '';
 
 		if (!empty($attributes['link_class'])) {
-			$link_class = ' class="' . $attributes['link_class'] . '"';
+			$link_class = ' class="' . esc_attr($attributes['link_class']) . '"';
 		}
 
 		$link_attributes = '';
@@ -207,49 +207,33 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 		$after = $attributes['after'] . $after;
 	}
 
-	$empty_dimensions = (empty($attributes['width']) or empty($attributes['height']));
+	if (empty($attributes['width']) or empty($attributes['height'])) {
 
-	if (stripos($image_url, '.svg') !== false) {
-		if (is_numeric($image) and $image > 0 and $empty_dimensions) {
+		if (is_numeric($image) and $image > 0) {
 			$data = tw_image_size($size, (int) $image);
 
 			if ($data['width'] > 0 and $data['height'] > 0) {
 				$attributes['width'] = round($data['width']);
 				$attributes['height'] = round($data['height']);
 			}
-		}
 
-		if ($empty_dimensions) {
-			$dir = tw_image_folders();
-
-			$upload_dir = $dir['basedir'];
-			$upload_url = $dir['baseurl'];
-
-			if (str_starts_with($image_url, $upload_url)) {
-				$image_path = str_replace($upload_url, $upload_dir, $image_url);
-
-				if (is_file($image_path)) {
-					$image_info = getimagesize($image_path);
-				} else {
-					$image_info = [];
-				}
-
-				if (!empty($image_info[0]) and !empty($image_info[1])) {
-					$attributes['width'] = round($image_info[0]);
-					$attributes['height'] = round($image_info[1]);
-				}
+			if (stripos($image_url, '.svg') === false) {
+				$attributes = tw_image_srcset((int) $image, $attributes);
 			}
 		}
 
-	} elseif ($image > 0 and $empty_dimensions) {
-		$data = tw_image_size($size, (int) $image);
+		// Images in the uploads or theme folder, including SVG, take the size of the file, as a size only sets the box the image fits in
+		if (empty($attributes['width']) or empty($attributes['height'])) {
+			$dir = tw_image_folders();
+			$image_path = str_replace([$dir['baseurl'], TW_URL], [$dir['basedir'], TW_ROOT], $image_url);
+			$image_info = ($image_path !== $image_url and is_file($image_path)) ? getimagesize($image_path) : false;
 
-		if ($data['width'] > 0 and $data['height'] > 0) {
-			$attributes['width'] = round($data['width']);
-			$attributes['height'] = round($data['height']);
+			if (!empty($image_info[0]) and !empty($image_info[1])) {
+				$attributes['width'] = $image_info[0];
+				$attributes['height'] = $image_info[1];
+			}
 		}
 
-		$attributes = tw_image_srcset((int) $image, $attributes);
 	}
 
 	if (empty($attributes['srcset']) or is_array($attributes['srcset'])) {

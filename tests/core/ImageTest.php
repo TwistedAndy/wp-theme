@@ -208,10 +208,10 @@ class ImageTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString('href="' . $relative_link . '"', $out_link);
 
-		// Alt Tags
+		// The link gets a title only from link_title, not from the alt text
 		$attr_alt_title = ['link' => 'full', 'alt' => 'Fallback Title'];
 		$out_alt_title = tw_image(self::$image_id, 'thumbnail', '', '', $attr_alt_title);
-		$this->assertStringContainsString('title="Fallback Title"', $out_alt_title);
+		$this->assertStringNotContainsString('title=', $out_alt_title);
 
 		// Link Attributes
 		$attr_class_title = ['link' => 'full', 'link_class' => 'link_test_class', 'link_title' => 'Link Title', 'link_target' => '_blank'];
@@ -219,6 +219,10 @@ class ImageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString('class="link_test_class"', $out_class_title);
 		$this->assertStringContainsString('title="Link Title"', $out_class_title);
 		$this->assertStringContainsString('target="_blank"', $out_class_title);
+
+		// The link class is escaped like the other link attributes
+		$out_quote = tw_image(self::$image_id, 'thumbnail', '', '', ['link' => 'full', 'link_class' => 'a" onclick="x']);
+		$this->assertStringContainsString('class="a&quot; onclick=&quot;x"', $out_quote);
 	}
 
 	/**
@@ -800,6 +804,49 @@ class ImageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString('assets/images/test.svg', $svg_link);
 
 		unlink($path);
+	}
+
+	/**
+	 * Test that images given by a file name or a link take the width and height of the file, not of the size.
+	 */
+	public function test_tw_image_file_dimensions(): void
+	{
+		if (!function_exists('imagecreatetruecolor')) {
+			$this->markTestSkipped('GD missing');
+		}
+
+		$upload = self::$upload_dir . '/test-size.png';
+		$theme = TW_ROOT . 'assets/images/test-size.png';
+		$svg = TW_ROOT . 'assets/images/test-size.svg';
+
+		$image = imagecreatetruecolor(1200, 800);
+		imagepng($image, $upload);
+		copy($upload, $theme);
+		file_put_contents($svg, '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30"></svg>');
+
+		$dimensions = function(string $html) {
+			preg_match('#width="(\d+)" height="(\d+)"#', $html, $match);
+
+			return [(int) ($match[1] ?? 0), (int) ($match[2] ?? 0)];
+		};
+
+		// A size without a crop only sets the box the image fits in, so the thumbnail is not 500x500
+		$html = tw_image(wp_upload_dir()['baseurl'] . '/test-size.png', [500, 500, false]);
+		preg_match('#src="[^"]*/uploads(/cache/[^"]+)"#', $html, $match);
+		$this->assertNotEmpty($match);
+		$file = getimagesize(self::$upload_dir . $match[1]);
+		$this->assertSame([$file[0], $file[1]], $dimensions($html));
+		$this->assertNotSame([500, 500], $dimensions($html));
+
+		$this->assertSame([1200, 800], $dimensions(tw_image('test-size.png', 'full')));
+		$this->assertSame([40, 30], $dimensions(tw_image('test-size.svg', 'full')));
+
+		// The width and height set by the caller stay
+		$this->assertSame([88, 88], $dimensions(tw_image('test-size.svg', 'full', '', '', ['width' => 88, 'height' => 88])));
+
+		unlink($upload);
+		unlink($theme);
+		unlink($svg);
 	}
 
 	/**
