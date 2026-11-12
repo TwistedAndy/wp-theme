@@ -179,8 +179,6 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 
 		if (!empty($attributes['link_title'])) {
 			$link_attributes .= ' title="' . esc_attr($attributes['link_title']) . '"';
-		} elseif (!empty($attributes['alt'])) {
-			$link_attributes .= ' title="' . esc_attr($attributes['alt']) . '"';
 		}
 
 		if (!empty($attributes['link_target'])) {
