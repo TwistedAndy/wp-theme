@@ -28,6 +28,11 @@ function tw_acf_init_filters(): void
 	add_filter('acf/pre_load_reference', 'tw_acf_load_reference', 10, 3);
 	add_action('acf/pre_render_field', 'tw_acf_pre_render_field', 5);
 
+	// ACF reads the total rows again when it loads a page of rows after saving in the block editor
+	add_action('wp_ajax_acf/ajax/query_repeater', function() {
+		add_filter('acf/pre_load_metadata', 'tw_acf_total_rows', 10, 4);
+	}, 5);
+
 	/**
 	 * Process Revisions
 	 */
@@ -92,7 +97,7 @@ function tw_acf_load_value($result, $post_id, array $field): mixed
 	}
 
 	if ($entity['type'] == 'option') {
-		$result = get_option($post_id . '_' . $field['name'], null);
+		$result = get_option($entity['id'] . '_' . $field['name'], null);
 	} elseif ($entity['type'] == 'order') {
 		$order = tw_acf_get_order($entity['id']);
 
@@ -141,8 +146,15 @@ function tw_acf_load_value($result, $post_id, array $field): mixed
 			return array_slice($result, $offset, $per_page, true);
 		}
 
-	} elseif ($field['type'] == 'google_map' and is_string($result)) {
-		$result = json_decode($result, true);
+	} elseif ($result !== null) {
+
+		if ($field['type'] == 'google_map' and is_string($result)) {
+			$result = json_decode($result, true);
+		}
+
+		// ACF skips the field type filters, such as Load Terms of the taxonomy field, when this filter returns a value
+		$result = apply_filters('acf/load_value', $result, $post_id, $field);
+
 	}
 
 	return $result;
@@ -173,18 +185,31 @@ function tw_acf_save_value($check, $values, $post_id, array $field): mixed
 
 	if ($field['type'] === 'clone' and !empty($field['sub_fields']) and is_array($values)) {
 		foreach ($field['sub_fields'] as $sub_field) {
+			// ACF functions, such as update_field(), also accept the names
 			if (isset($values[$sub_field['key']])) {
 				tw_acf_save_value(null, $values[$sub_field['key']], $post_id, $sub_field);
+			} elseif (isset($values[$sub_field['name']])) {
+				tw_acf_save_value(null, $values[$sub_field['name']], $post_id, $sub_field);
 			}
 		}
 
 		return true;
 	}
 
+	$is_container = in_array($field['type'], ['group', 'repeater', 'flexible_content']);
+
+	if (!$is_container) {
+		// ACF skips the field type filters, such as Save Terms of the taxonomy field, when this filter returns a value
+		$values = apply_filters('acf/update_value', $values, $post_id, $field, $values);
+	}
+
 	if (is_array($values)) {
 		$value = tw_acf_encode_data($values, $field);
 	} elseif (is_string($values) or is_numeric($values)) {
 		$value = stripslashes($values);
+	} elseif ($values === null or is_bool($values)) {
+		// Null deletes the value, as in acf_update_value()
+		$value = $values ? '1' : '';
 	} else {
 		return null;
 	}
@@ -385,6 +410,18 @@ function tw_acf_save_value($check, $values, $post_id, array $field): mixed
 
 	acf_flush_value_cache($post_id, $field['name']);
 
+	// ACF also caches the formatted values of sub fields by names like blocks_0_title
+	if ($is_container and function_exists('acf_get_store')) {
+		$store = acf_get_store('values');
+		$prefix = $post_id . ':' . $field['name'] . '_';
+
+		foreach (array_keys((array) $store->get()) as $name) {
+			if (str_starts_with((string) $name, $prefix)) {
+				$store->remove($name);
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -440,7 +477,7 @@ function tw_acf_load_reference($result, string $field, $post_id): mixed
 function tw_acf_pre_render_field(array $field): array
 {
 	if ($field['type'] == 'repeater') {
-		add_filter('acf/pre_load_metadata', 'tw_acf_total_rows', 10, 3);
+		add_filter('acf/pre_load_metadata', 'tw_acf_total_rows', 10, 4);
 		acf_set_data('acf_is_rendering', true);
 	}
 
@@ -454,14 +491,15 @@ function tw_acf_pre_render_field(array $field): array
  * @param int|null          $value
  * @param object|string|int $post_id
  * @param string            $name
+ * @param bool              $hidden True when ACF reads a field reference, not a row count
  *
  * @return int|null
  */
-function tw_acf_total_rows($value, $post_id, string $name): int|null
+function tw_acf_total_rows($value, $post_id, string $name, bool $hidden = false): int|null
 {
 	$entity = tw_acf_decode_post_id($post_id);
 
-	if (empty($entity['id']) or empty($entity['type']) or $entity['type'] === 'block') {
+	if ($hidden or empty($entity['id']) or empty($entity['type']) or $entity['type'] === 'block') {
 		return $value;
 	}
 
@@ -524,56 +562,45 @@ function tw_acf_encode_data(array $values, array $field): array
 
 		$fields = [];
 
+		// ACF functions, such as update_field() and add_row(), also accept the sub field names
 		foreach ($field['sub_fields'] as $sub_field) {
-			$fields[$sub_field['key']] = $sub_field;
+			if (!empty($sub_field['name'])) {
+				$fields[$sub_field['key']] = $sub_field;
+				$fields[$sub_field['name']] ??= $sub_field;
+			}
 		}
 
-		$key = array_key_first($values);
+		// Repeaters keep the rows by numeric keys or keys like row-0, and groups, clones and layouts keep the values by sub fields
+		$is_repeater = (($field['type'] ?? '') === 'repeater');
 
-		/**
-		 * Repeaters arrays are using the numeric keys or keys like row-0.
-		 * It is very important difference comparing to how we decode data
-		 */
-		if (!empty($values['acf_fc_layout']) or str_starts_with($key, 'field_')) {
-			foreach ($values as $field_key => $value) {
-				if (!isset($fields[$field_key]) or !isset($fields[$field_key]['name'])) {
+		$index = 0;
+
+		foreach ($is_repeater ? $values : [$values] as $row_key => $row) {
+			if (!is_array($row) or $row_key === 'acfcloneindex' or !empty($row['acf_deleted'])) {
+				continue;
+			}
+
+			$data[$index] = [];
+
+			foreach ($row as $field_key => $value) {
+				if (!isset($fields[$field_key])) {
 					continue;
 				}
 
 				$sub_field = $fields[$field_key];
 
 				if (is_array($value)) {
-					$data[$sub_field['name']] = tw_acf_encode_data($value, $sub_field);
+					$data[$index][$sub_field['name']] = tw_acf_encode_data($value, $sub_field);
 				} elseif (is_string($value) or is_numeric($value)) {
-					$data[$sub_field['name']] = stripslashes($value);
+					$data[$index][$sub_field['name']] = stripslashes($value);
 				}
 			}
-		} else {
-			$index = 0;
 
-			foreach ($values as $row) {
-				if (!empty($row['acf_deleted'])) {
-					continue;
-				}
+			$index++;
+		}
 
-				foreach ($row as $field_key => $value) {
-					if (!isset($fields[$field_key])) {
-						continue;
-					}
-
-					$sub_field = $fields[$field_key];
-
-					if (!empty($sub_field['name'])) {
-						if (is_array($value)) {
-							$data[$index][$sub_field['name']] = tw_acf_encode_data($value, $sub_field);
-						} elseif (is_string($value) or is_numeric($value)) {
-							$data[$index][$sub_field['name']] = stripslashes($value);
-						}
-					}
-				}
-
-				$index++;
-			}
+		if (!$is_repeater) {
+			$data = $data[0] ?? [];
 		}
 
 		$values = $data;
@@ -697,12 +724,15 @@ function tw_acf_decode_post_id($post_id): array
 		];
 	} elseif (is_string($post_id)) {
 
-		$post_id = strtolower(trim($post_id));
+		$post_id = trim($post_id);
 
+		// Keep the case of an options page ID, as ACF does in the option names
 		$entity = [
 			'type' => 'option',
 			'id'   => $post_id
 		];
+
+		$post_id = strtolower($post_id);
 
 		$position = strrpos($post_id, '_');
 
@@ -1355,9 +1385,23 @@ function tw_acf_revision_restore(int $post_id, int $revision_id): void
 		return;
 	}
 
+	$post_map = tw_meta_get('post', $post_id, '_acf_map');
+
+	// Remove the fields that were empty or missing in the revision
+	if (is_array($post_map)) {
+		foreach (array_keys(array_diff_key($post_map, $map)) as $key) {
+			tw_meta_delete('post', $post_id, $key);
+		}
+	}
+
 	foreach ($map as $key => $field) {
 		$value = tw_meta_get('post', $revision_id, $key);
-		tw_meta_update('post', $post_id, $key, $value);
+
+		if ($value === null) {
+			tw_meta_delete('post', $post_id, $key);
+		} else {
+			tw_meta_update('post', $post_id, $key, $value);
+		}
 	}
 
 	tw_meta_update('post', $post_id, '_acf_map', $map);
@@ -1384,7 +1428,10 @@ function tw_acf_revision_create(int $revision_id): void
 
 	foreach ($post_map as $key => $field) {
 		$value = tw_meta_get('post', $post_id, $key);
-		tw_meta_update('post', $revision->ID, $key, $value);
+
+		if ($value !== null) {
+			tw_meta_update('post', $revision->ID, $key, $value);
+		}
 	}
 
 	tw_meta_update('post', $revision->ID, '_acf_map', $post_map);

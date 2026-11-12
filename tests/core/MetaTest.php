@@ -421,9 +421,9 @@ class MetaTest extends WP_UnitTestCase {
 
 		tw_meta_update('post', $post_id, $meta_key, $target_val);
 
-		// Check database state after initial cleanup
-		$rows_after_first = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s", $post_id, $meta_key));
-		$this->assertCount(2, $rows_after_first);
+		// The row with the target value is kept, and the others are removed
+		$rows_after_first = $wpdb->get_col($wpdb->prepare("SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s", $post_id, $meta_key));
+		$this->assertSame([$target_val], $rows_after_first);
 
 		tw_meta_update('post', $post_id, $meta_key, 'new_value');
 
@@ -483,6 +483,50 @@ class MetaTest extends WP_UnitTestCase {
 
 		$final_count = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s", $post_id, $meta_key));
 		$this->assertEquals(1, (int) $final_count);
+	}
+
+	/**
+	 * Verify that duplicates are removed when the cache shows another value and one of the rows already has the new value.
+	 */
+	public function test_meta_update_removes_duplicates_with_matching_row(): void
+	{
+		global $wpdb;
+		$post_id = self::factory()->post->create();
+		$meta_key = 'dupe_match_key';
+
+		add_post_meta($post_id, $meta_key, 'a');
+		add_post_meta($post_id, $meta_key, 'b');
+
+		// The cache shows one value, which differs from the new one
+		tw_meta('post', $meta_key);
+		tw_meta_cache_update('post', $post_id, $meta_key, 'a');
+		wp_cache_delete($post_id, 'post_meta');
+
+		tw_meta_update('post', $post_id, $meta_key, 'b');
+
+		$rows = $wpdb->get_col($wpdb->prepare("SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s", $post_id, $meta_key));
+		$this->assertSame(['b'], $rows);
+		$this->assertSame('b', tw_meta_get('post', $post_id, $meta_key));
+	}
+
+	/**
+	 * Verify that a string with serialized data stays a string, as WordPress serializes it again.
+	 */
+	public function test_serialized_string_stays_a_string(): void
+	{
+		$post_id = self::factory()->post->create();
+		$serialized = serialize([1, 2]);
+
+		tw_meta('post', 'serialized_hook_key');
+		update_post_meta($post_id, 'serialized_hook_key', $serialized);
+		wp_cache_delete($post_id, 'post_meta');
+		$this->assertSame($serialized, tw_meta_get('post', $post_id, 'serialized_hook_key'));
+
+		tw_meta_update('post', $post_id, 'serialized_own_key', $serialized);
+		wp_cache_delete($post_id, 'post_meta');
+		$this->assertSame($serialized, get_post_meta($post_id, 'serialized_own_key', true));
+		$this->assertSame($serialized, tw_meta_get('post', $post_id, 'serialized_own_key'));
+		$this->assertFalse(tw_meta_update('post', $post_id, 'serialized_own_key', $serialized));
 	}
 
 }

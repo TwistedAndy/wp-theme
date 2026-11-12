@@ -47,6 +47,9 @@ function tw_post_data(string $type, string $key = 'ID', $fields = 'post_title', 
 
 		$cache_key .= '_' . implode('_', $fields);
 		$select = 'p.' . $key . ', p.' . implode(', p.', $fields);
+	} else {
+		// Full rows, unlike the list of keys for an empty string
+		$cache_key .= '_all';
 	}
 
 	if ($status) {

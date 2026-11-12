@@ -194,24 +194,15 @@ function tw_meta_update(string $meta_type, int $object_id, string $meta_key, $me
 
 	$current_value = tw_meta_get($meta_type, $object_id, $meta_key);
 
-	// The value is expected to be unslashed, unlike in update_metadata()
-	if (is_array($meta_value) or is_object($meta_value)) {
-		$updated_value = serialize($meta_value);
-	} else {
-		$updated_value = (string) $meta_value;
-	}
+	// The value is expected to be unslashed, unlike in update_metadata(), and is serialized the same way
+	$updated_value = (string) maybe_serialize($meta_value);
 
-	if ($current_value === null) {
-		$current_value = tw_meta_fetch_value($meta_type, $object_id, $meta_key, $updated_value);
-	} elseif (is_array($current_value) or is_object($current_value)) {
-		$current_value = serialize($current_value);
-	} else {
-		$current_value = (string) $current_value;
-	}
-
-	if ($current_value === $updated_value) {
+	if ($current_value !== null and (string) maybe_serialize($current_value) === $updated_value) {
 		return false;
 	}
+
+	// Read the stored rows and remove the duplicates, which the cache does not show
+	$current_value = tw_meta_fetch_value($meta_type, $object_id, $meta_key, $updated_value);
 
 	$db = tw_app_database();
 	$table = $db->{$meta_type . 'meta'};
@@ -223,24 +214,22 @@ function tw_meta_update(string $meta_type, int $object_id, string $meta_key, $me
 			'meta_key'   => $meta_key,
 			'meta_value' => $updated_value,
 		]);
-	} else {
+	} elseif ($current_value !== $updated_value) {
 		$result = $db->update($table, [
 			'meta_value' => $updated_value,
 		], [
 			$column    => $object_id,
 			'meta_key' => $meta_key,
 		]);
-
-		if (is_numeric($result) and $result > 1) {
-			$limit = $result - 1;
-			$key = esc_sql($meta_key);
-			$db->query("DELETE FROM {$table} WHERE {$column} = $object_id AND meta_key = '{$key}' LIMIT $limit");
-		}
+	} else {
+		$result = false;
 	}
 
+	// Update the caches even when the stored value was already the same, as they were stale
+	tw_meta_cache_update($meta_type, $object_id, $meta_key, $updated_value);
+	wp_cache_delete($object_id, $meta_type . '_meta');
+
 	if ($result) {
-		tw_meta_cache_update($meta_type, $object_id, $meta_key, $updated_value);
-		wp_cache_delete($object_id, $meta_type . '_meta');
 		wp_cache_set_last_changed($meta_type === 'comment' ? 'comment' : $meta_type . 's');
 	}
 
@@ -469,12 +458,13 @@ function tw_meta_cache_delete(string $meta_type, int $object_id, string $meta_ke
  */
 foreach (['post', 'term', 'user', 'comment'] as $meta_type) {
 
+	// The hooks pass the unserialized value, and WordPress serializes a serialized string again
 	add_action('added_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key, $meta_value) use ($meta_type) {
-		tw_meta_cache_update($meta_type, $object_id, $meta_key, $meta_value);
+		tw_meta_cache_update($meta_type, $object_id, $meta_key, maybe_serialize($meta_value));
 	}, 10, 4);
 
 	add_action('updated_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key, $meta_value) use ($meta_type) {
-		tw_meta_cache_update($meta_type, $object_id, $meta_key, $meta_value);
+		tw_meta_cache_update($meta_type, $object_id, $meta_key, maybe_serialize($meta_value));
 	}, 10, 4);
 
 	add_action('deleted_' . $meta_type . '_meta', function($meta_id, $object_id, $meta_key) use ($meta_type) {

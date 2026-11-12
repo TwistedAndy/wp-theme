@@ -82,6 +82,11 @@ class AcfTest extends WP_UnitTestCase {
 		$this->assertEquals(10, has_filter('acf/pre_load_reference', 'tw_acf_load_reference'));
 		$this->assertEquals(5, has_action('acf/pre_render_field', 'tw_acf_pre_render_field'));
 
+		// ACF reads the total rows when it loads a page of rows
+		do_action('wp_ajax_acf/ajax/query_repeater');
+		$this->assertEquals(10, has_filter('acf/pre_load_metadata', 'tw_acf_total_rows'));
+		remove_filter('acf/pre_load_metadata', 'tw_acf_total_rows', 10);
+
 		// Revision Hooks
 		$this->assertEquals(10, has_action('wp_restore_post_revision', 'tw_acf_revision_restore'));
 		$this->assertEquals(20, has_action('_wp_put_post_revision', 'tw_acf_revision_create'));
@@ -140,6 +145,64 @@ class AcfTest extends WP_UnitTestCase {
 
 		$comment = new WP_Comment((object) ['comment_ID' => 101]);
 		$this->assertEquals(['type' => 'comment', 'id' => 101], tw_acf_decode_post_id($comment));
+
+		// Options page IDs keep their case, as ACF uses them in the option names
+		$this->assertEquals(['type' => 'option', 'id' => 'Theme_Settings'], tw_acf_decode_post_id(' Theme_Settings '));
+		$this->assertEquals(['type' => 'term', 'id' => 5], tw_acf_decode_post_id('Term_5'));
+	}
+
+	/**
+	 * Test encoding values keyed by sub field names, as update_field() and add_row() pass them.
+	 */
+	public function test_encode_data_by_names(): void
+	{
+		$sub_fields = [
+			['key' => 'field_sub_1', 'name' => 'title', 'type' => 'text'],
+			['key' => 'field_sub_2', 'name' => 'text', 'type' => 'text'],
+		];
+
+		$repeater = ['type' => 'repeater', 'name' => 'rep', 'sub_fields' => $sub_fields];
+		$group = ['type' => 'group', 'name' => 'grp', 'sub_fields' => $sub_fields];
+
+		$this->assertSame([['title' => 'A', 'text' => 'B'], ['title' => 'C']], tw_acf_encode_data([['title' => 'A', 'field_sub_2' => 'B'], ['title' => 'C']], $repeater));
+		$this->assertSame(['title' => 'A'], tw_acf_encode_data(['title' => 'A', 'unknown' => 'X'], $group));
+		$this->assertSame([], tw_acf_encode_data([], $group));
+
+		// The clone row and the rows that are not arrays are skipped
+		$this->assertSame([['title' => 'A']], tw_acf_encode_data(['acfcloneindex' => ['field_sub_1' => ''], 'row-0' => ['field_sub_1' => 'A'], 'row-1' => 'x'], $repeater));
+	}
+
+	/**
+	 * Test that the ACF field type filters run for the values stored here, and how null and bool values are stored.
+	 */
+	public function test_field_type_filters(): void
+	{
+		$post_id = self::factory()->post->create();
+		$field = ['key' => 'field_filtered', 'name' => 'filtered', 'type' => 'text'];
+
+		$update = function($value) {
+			return $value . ' saved';
+		};
+
+		$load = function($value) {
+			return $value . ' loaded';
+		};
+
+		add_filter('acf/update_value', $update);
+		add_filter('acf/load_value', $load);
+
+		tw_acf_save_value(null, 'Text', $post_id, $field);
+		$this->assertSame('Text saved', get_post_meta($post_id, 'filtered', true));
+		$this->assertSame('Text saved loaded', tw_acf_load_value(null, $post_id, $field));
+
+		remove_filter('acf/update_value', $update);
+		remove_filter('acf/load_value', $load);
+
+		// Null and false delete the value, and true is stored as 1
+		tw_acf_save_value(null, true, $post_id, $field);
+		$this->assertSame('1', get_post_meta($post_id, 'filtered', true));
+		tw_acf_save_value(null, null, $post_id, $field);
+		$this->assertSame([], get_post_meta($post_id, 'filtered'));
 	}
 
 	/**
@@ -792,6 +855,12 @@ class AcfTest extends WP_UnitTestCase {
 		update_option('options_opt_rep', '5');
 		add_filter('acf/pre_load_metadata', 'tw_acf_total_rows', 10, 3);
 		$this->assertEquals(5, tw_acf_total_rows(null, 'options', 'opt_rep'));
+
+		// A field reference is not a row count, and the filter stays for the count
+		add_filter('acf/pre_load_metadata', 'tw_acf_total_rows', 10, 4);
+		$this->assertNull(tw_acf_total_rows(null, $post_id, 'my_repeater', true));
+		$this->assertEquals(10, has_filter('acf/pre_load_metadata', 'tw_acf_total_rows'));
+		remove_filter('acf/pre_load_metadata', 'tw_acf_total_rows', 10);
 	}
 
 	/* -------------------------------------------------------------------------
@@ -1065,6 +1134,18 @@ class AcfTest extends WP_UnitTestCase {
 
 		tw_acf_revision_restore($post_id, $other_revision_id);
 		$this->assertEquals('Reset', get_post_meta($post_id, 'restored_field', true));
+
+		// 5. The fields added after the revision and the fields without a value are removed
+		update_metadata('post', $revision_id, '_acf_map', ['restored_field' => 'key_123', 'missing_field' => 'key_456']);
+		update_post_meta($post_id, '_acf_map', ['restored_field' => 'key_123', 'missing_field' => 'key_456', 'new_field' => 'key_789']);
+		update_post_meta($post_id, 'missing_field', 'Later Value');
+		update_post_meta($post_id, 'new_field', 'New Value');
+
+		tw_acf_revision_restore($post_id, $revision_id);
+
+		$this->assertEquals('Restored Value', get_post_meta($post_id, 'restored_field', true));
+		$this->assertSame([], get_post_meta($post_id, 'missing_field'));
+		$this->assertSame([], get_post_meta($post_id, 'new_field'));
 	}
 
 	/**

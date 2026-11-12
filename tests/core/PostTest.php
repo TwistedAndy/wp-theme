@@ -442,4 +442,18 @@ class PostTest extends WP_UnitTestCase {
 		$this->assertEquals(['views' => 'DESC', 'date' => 'DESC'], $args_view['orderby']);
 	}
 
+	/**
+	 * Verify that the list of keys and the full rows use different cache keys.
+	 */
+	public function test_post_data_keys_and_rows_are_cached_apart(): void
+	{
+		$post_id = self::factory()->post->create(['post_type' => 'page']);
+
+		$this->assertContains($post_id, array_map('intval', tw_post_data('page', 'ID', '')));
+
+		$rows = tw_post_data('page', 'ID', false);
+		$this->assertIsArray($rows[$post_id]);
+		$this->assertEquals($post_id, $rows[$post_id]['ID']);
+	}
+
 }

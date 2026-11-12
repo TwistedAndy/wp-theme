@@ -368,8 +368,10 @@ function tw_term_ancestors(int $term_id, string $taxonomy): array
  */
 function tw_term_ancestors_walker(int $term_id, array $thread, array $parents): array
 {
-	if (!empty($parents[$term_id])) {
-		$parent_id = (int) $parents[$term_id];
+	$parent_id = (int) ($parents[$term_id] ?? 0);
+
+	// Stop at a loop in the hierarchy, e.g. in imported data
+	if ($parent_id and $parent_id !== $term_id and !in_array($parent_id, $thread, true)) {
 		$thread[] = $parent_id;
 		$thread = tw_term_ancestors_walker($parent_id, $thread, $parents);
 	}

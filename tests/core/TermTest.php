@@ -586,4 +586,14 @@ class TermTest extends WP_UnitTestCase {
 		$this->assertEquals(10, has_action('clean_term_cache', 'tw_term_clear_ids'));
 	}
 
+	/**
+	 * Verify that a loop in the term hierarchy does not recurse forever.
+	 */
+	public function test_term_ancestors_walker_stops_at_loops(): void
+	{
+		$this->assertSame([2, 3], tw_term_ancestors_walker(1, [], [1 => 2, 2 => 3, 3 => 0]));
+		$this->assertSame([2, 1], tw_term_ancestors_walker(1, [], [1 => 2, 2 => 1]));
+		$this->assertSame([], tw_term_ancestors_walker(1, [], [1 => 1]));
+	}
+
 }
