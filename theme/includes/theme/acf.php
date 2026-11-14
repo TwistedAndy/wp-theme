@@ -564,7 +564,7 @@ function tw_acf_encode_data(array $values, array $field): array
 
 		// ACF functions, such as update_field() and add_row(), also accept the sub field names
 		foreach ($field['sub_fields'] as $sub_field) {
-			if (!empty($sub_field['name'])) {
+			if (isset($sub_field['name']) and $sub_field['name'] !== '') {
 				$fields[$sub_field['key']] = $sub_field;
 				$fields[$sub_field['name']] ??= $sub_field;
 			}
@@ -1141,7 +1141,7 @@ function tw_acf_decompress_fields(string $meta_type = 'post', int $object_id = 0
  */
 function tw_acf_decompress_walker(array $result, $data, string $base_key, array $field, bool $include_layouts = false): array
 {
-	if (empty($field['name'])) {
+	if (!isset($field['name']) or $field['name'] === '') {
 		return $result;
 	}
 

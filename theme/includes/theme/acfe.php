@@ -499,6 +499,21 @@ function tw_acfe_render_setup(): void
 	}
 
 	/**
+	 * Set the post and the product of a single post query,
+	 * because templates such as the product block read them
+	 */
+	tw_app_set('old_product', $GLOBALS['product'] ?? null, 'layouts');
+
+	if ($wp_query->is_singular() and $wp_query->post instanceof WP_Post) {
+		$post = $wp_query->post;
+		setup_postdata($post);
+
+		if ($post->post_type === 'product' and function_exists('wc_get_product')) {
+			$GLOBALS['product'] = wc_get_product($post);
+		}
+	}
+
+	/**
 	 * Reset the currently enqueued scripts
 	 * to include them again in an iframe
 	 */
@@ -561,6 +576,8 @@ function tw_acfe_render_reset(): void
 		$post = tw_app_get('old_post', 'layouts');
 		wp_reset_postdata();
 	}
+
+	$GLOBALS['product'] = tw_app_get('old_product', 'layouts');
 }
 
 

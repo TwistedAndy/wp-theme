@@ -135,7 +135,7 @@ function tw_preview_action_preview(): void
 		'message' => '',
 	];
 
-	$node = apply_filters('twee_preview_node', '"C:\Program Files\NodeJS\node.exe"');
+	$node = apply_filters('twee_preview_node', '"c:\Users\Andy\AppData\Local\Author Software\nvm\.nodejs\node.exe"');
 	$script = apply_filters('twee_preview_script', '"D:\Work\wp-content\themes\screens.js"');
 
 	// The escapeshellarg() function breaks percent-encoded links on Windows, while esc_url_raw() encodes quotes
