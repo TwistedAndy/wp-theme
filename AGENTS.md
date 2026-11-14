@@ -122,7 +122,7 @@ A block with the `hidden` option is not shown on the site.
    - Check a field with `!empty()` before you print it. Every field of a block may be empty.
 4. **Write the styles**, `assets/styles/blocks/<box>.scss`, under `.<box>_box`, as "Styles" says. Run `npm run blocks` in `assets`. The theme loads `build/blocks/<box>.css` on every page that has the class `<box>_box`. You do not enqueue it.
 5. **Write a script** only if the block has behavior, as "Scripts" says.
-6. **Make the preview.** Put the block on a page, and run `node screens.js http://<project>.test/<page>/?preview` from the repository root. The script finds the site in `Z:/`, by the host name. It saves `assets/preview/<layout>.webp` into the theme of that site, and ACF Extended shows it in the list of layouts.
+6. **Make the preview.** Put the block on a page, and click the camera icon (**Generate a preview**) on the layout in the editor. The browser makes a WebP image of the block preview, 1280 pixels wide and not more than 1280 pixels high, and saves it as `assets/preview/<layout>.webp`. ACF Extended shows it in the list of layouts. The icon shows only on a local site. To make the previews of all the blocks of a page at one time, run `node screens.js http://<project>.test/<page>/?preview` from the repository root. This script needs Node.js and Puppeteer.
 
 ## Styles
 
