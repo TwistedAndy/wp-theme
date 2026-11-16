@@ -304,6 +304,27 @@ function tw_acfe_render_scripts(): void
 			padding-bottom: 8px;
 		}
 
+		/* WordPress sizes the pagination buttons only under .tablenav, which ACF's repeater pagination lacks */
+		body.acfe-wp-7-0 .acf-tablenav .button {
+			vertical-align: baseline;
+			min-width: 32px;
+			min-height: 32px;
+			padding: 0 4px;
+			font-size: 16px;
+			line-height: 1.875;
+			text-align: center;
+		}
+
+		@media screen and (max-width: 782px) {
+			body.acfe-wp-7-0 .acf-tablenav .button {
+				min-width: 40px;
+				min-height: 40px;
+				padding: 10px 8px;
+				font-size: 18px;
+				line-height: 1;
+			}
+		}
+
 		.acf-admin-7-0 .select2-container.-acf .select2-selection--single {
 			height: auto;
 		}
