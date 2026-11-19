@@ -328,12 +328,19 @@ function tw_post_get_terms(int $post_id, string $taxonomy): array
  */
 function tw_post_set_terms(int $post_id, array $term_ids, string $taxonomy, bool $append = false): bool
 {
-	$term_map = tw_post_terms($taxonomy);
-
-	if (isset($term_map[$post_id]) and is_array($term_map[$post_id])) {
-		$old_ids = $term_map[$post_id];
+	// Without group flushes, each change empties the cache, so read only this post's terms
+	if (function_exists('wp_cache_supports') and wp_cache_supports('flush_group')) {
+		$term_map = tw_post_terms($taxonomy);
+		$old_ids = $term_map[$post_id] ?? [];
 	} else {
-		$old_ids = [];
+		$term_map = null;
+		$db = tw_app_database();
+
+		$old_ids = array_map('intval', $db->get_col($db->prepare("
+			SELECT tt.term_id
+			FROM {$db->term_relationships} tr
+			INNER JOIN {$db->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+			WHERE tr.object_id = %d AND tt.taxonomy = %s", $post_id, $taxonomy)));
 	}
 
 	if ($term_ids !== []) {
@@ -403,7 +410,7 @@ function tw_post_set_terms(int $post_id, array $term_ids, string $taxonomy, bool
 	do_action('set_object_terms', $post_id, $term_ids, array_values(array_intersect_key($tt_ids, array_flip($new_ids))), $taxonomy, $append, array_values(array_intersect_key($tt_ids, array_flip($old_ids))));
 
 	// Skip, if the terms were changed by a hook, e.g. the default product category
-	if (wp_cache_get($post_id, $taxonomy . '_relationships') === $new_ids) {
+	if ($term_map !== null and wp_cache_get($post_id, $taxonomy . '_relationships') === $new_ids) {
 		$term_map[$post_id] = $new_ids;
 
 		$cache_key = 'post_terms';
