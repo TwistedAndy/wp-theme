@@ -117,7 +117,7 @@ A block with the `hidden` option is not shown on the site.
    - The section has one `_box` class. Its name is the name of the box, which is usually the name of the layout.
    - The order inside `.fixed` is the contents, the items, then the buttons. The code above moves the buttons of `contents` below the items. Leave them in `contents` when they belong beside the title.
    - Turn the options into classes: a box modifier goes to the class list of `tw_block_attributes()`, such as `is_reversed`. A modifier of an element goes to that element, such as `items_3`.
-   - Load what the block needs, where it renders: `tw_asset_enqueue('embla')` for a carousel.
+   - Load what the block needs, where it renders: `tw_asset_enqueue('better')` for a carousel.
    - Use the shared parts for repeated markup: `tw_app_template('card', ['item' => $item])` renders `parts/card.php`, with the keys of the array as its variables.
    - Check a field with `!empty()` before you print it. Every field of a block may be empty.
 4. **Write the styles**, `assets/styles/blocks/<box>.scss`, under `.<box>_box`, as "Styles" says. Run `npm run blocks` in `assets`. The theme loads `build/blocks/<box>.css` on every page that has the class `<box>_box`. You do not enqueue it.
@@ -169,7 +169,7 @@ Twee.addModule('faq', '.faq_box', function($, wrapper) {
   ```php
   return [
       'script' => [
-          'embla-carousel.umd.js',
+          'better-carousel.min.js',
           'carousel.js',
       ],
       'deps' => ['app']

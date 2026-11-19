@@ -2,7 +2,7 @@
 
 return [
 	'script' => [
-		'embla-carousel.umd.js',
+		'better-carousel.min.js',
 		'carousel.js',
 	],
 	'deps' => ['app']

@@ -56,8 +56,6 @@ Twee.addModule('loader', '[data-loader]', function($, button) {
 
 	button.on('click', function() {
 
-		var carousel = wrapper.data('carousel');
-
 		data = button.data('loader');
 
 		data.terms = [];
@@ -99,28 +97,12 @@ Twee.addModule('loader', '[data-loader]', function($, button) {
 			}
 
 			if (data.offset === 0) {
-				if (carousel) {
-					carousel.slides.forEach(function(slide) {
-						carousel.removeSlide(slide.index);
-					});
-				} else {
-					wrapper.children().remove();
-				}
+				wrapper.children().remove();
 			}
 
 			if (response['result']) {
 
-				var posts = $(response['result']);
-
-				if (carousel) {
-					posts.each(function() {
-						carousel.appendSlide({
-							html: this.innerHTML
-						});
-					});
-				} else {
-					wrapper.append(posts);
-				}
+				wrapper.append($(response['result']));
 
 				if (animate) {
 					wrapper.removeAttr('style');
@@ -143,8 +125,6 @@ Twee.addModule('loader', '[data-loader]', function($, button) {
 				}
 
 				Twee.runModules(section);
-
-				$('.items.carousel', section).trigger('embla.init');
 
 				if (animate) {
 					wrapper.animate({ height: heightNew }, 400, function() {

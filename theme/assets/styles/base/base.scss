@@ -51,13 +51,13 @@
 	}
 
 	.items + &,
-	.embla + &,
+	.better + &,
 	.contents + & {
 		text-align: center;
 	}
 
 	.items + &:has(.button:not(.hidden)),
-	.embla + &:has(.button:not(.hidden)) {
+	.better + &:has(.button:not(.hidden)) {
 		margin-top: var(--gap-contents);
 	}
 
@@ -220,61 +220,15 @@
 
 }
 
-.embla {
+.better {
 	display: block;
 	position: relative;
 
-	&_horizontal {
-
-		.embla_container {
-			overflow: visible;
-			--gap-grid-y: 0px;
+	// Only for a mouse: a touch screen shows no cursor
+	@media (pointer: fine) {
+		&.dragging {
+			cursor: grabbing;
 		}
-
-	}
-
-	&_vertical {
-
-		.embla_viewport {
-			height: 100%;
-		}
-
-		.embla_container {
-			overflow: visible;
-			height: calc(100% + var(--gap-grid-y));
-			margin-bottom: calc(-1 * var(--gap-grid-y));
-			--gap-grid-x: 0px;
-		}
-
-		.embla_button {
-			top: auto;
-			right: 0;
-			bottom: 0;
-			left: 0;
-			width: auto;
-			height: 30px;
-			margin: 0;
-
-			&:before {
-				transform: rotate(90deg);
-			}
-
-		}
-
-		.embla_prev {
-			top: 0;
-			bottom: auto;
-
-			&:before {
-				transform: rotate(-90deg);
-			}
-
-		}
-
-		.embla_dots {
-			flex-direction: column;
-		}
-
 	}
 
 	&_viewport {
@@ -283,29 +237,30 @@
 		width: 100%;
 		margin: 0;
 		z-index: 1;
+	}
 
-		&.right .embla_container {
-			left: calc(-1 * var(--gap-grid-x));
+	&_horizontal {
+
+		// The width comes from the parent, not from the slides
+		.better_viewport {
+			contain: inline-size;
 		}
 
-		&.center .embla_container {
-			left: calc(-0.5 * var(--gap-grid-x));
-		}
-
-		&.bottom {
-			top: calc(-1 * var(--gap-grid-y));
-		}
-
-		&.middle {
-			top: calc(-0.5 * var(--gap-grid-y));
+		.better_container {
+			overflow: visible;
+			--gap-grid-y: 0px;
 		}
 
 	}
 
-	&_dynamic {
+	&_auto_height {
 
-		.embla_container {
-			justify-content: flex-start !important;
+		.better_viewport {
+			transition: height var(--better-duration) cubic-bezier(0.25, 1, 0.5, 1);
+		}
+
+		.better_container {
+			align-items: flex-start;
 		}
 
 	}
@@ -313,10 +268,11 @@
 	&_button {
 		display: block;
 		position: absolute;
-		right: 0;
 		bottom: 0;
+		inset-inline-end: 0;
 		width: var(--height-button);
 		height: var(--height-button);
+		padding: 0;
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-regular);
 		background-color: var(--color-background);
@@ -357,41 +313,105 @@
 	}
 
 	&_prev {
-		right: auto;
-		left: 0;
+		inset-inline-start: 0;
+		inset-inline-end: auto;
+	}
+
+	// The arrow points to the right: to the left for the previous slide, and for the next slide in a right-to-left carousel
+	&_prev:dir(ltr):before,
+	&_next:dir(rtl):before {
+		transform: scaleX(-1);
+	}
+
+	// The play button of the autoplay: a triangle, or two bars while it plays
+	&_play {
+		inset-inline-start: 0;
+		inset-inline-end: auto;
 
 		&:before {
-			transform: scaleX(-1);
+			width: rem(10);
+			margin-left: -#{rem(5)};
+			-webkit-mask: none;
+			clip-path: polygon(0 0, 100% 50%, 0 100%);
 		}
 
 	}
 
+	&_prev ~ &_play {
+		inset-inline-start: calc(var(--height-button) + 8px);
+	}
+
+	// With no arrows and no dots, the play button goes under the slides
+	&_viewport + &_play {
+		position: relative;
+		margin-top: var(--gap-grid-y);
+	}
+
+	&.playing &_play:before {
+		background: linear-gradient(90deg, currentColor 35%, transparent 35% 65%, currentColor 65%);
+		clip-path: none;
+	}
+
+	// A window of 5 dots: the track slides in it, and the marker shows the selected dot
 	&_dots {
 		display: flex;
 		position: relative;
-		flex-wrap: wrap;
 		align-items: center;
-		justify-content: center;
+		width: rem(120);
 		height: var(--height-button);
-		margin: var(--gap-grid-y) calc(var(--height-button) + 8px) 0;
+		margin: var(--gap-grid-y) auto 0;
+		overflow: hidden;
 		z-index: 3;
 		--height-button: #{rem(40)};
+
+		&_track {
+			display: flex;
+			position: relative;
+			flex: none;
+			translate: calc(var(--better-shift, 0) * #{rem(24)});
+			transition: translate 0.4s;
+
+			&:dir(rtl) {
+				translate: calc(var(--better-shift, 0) * -#{rem(24)});
+			}
+
+		}
+
+		&_marker {
+			position: absolute;
+			top: rem(5);
+			inset-inline-start: rem(5);
+			width: rem(14);
+			height: rem(14);
+			border-radius: 50%;
+			background: var(--color-primary);
+			translate: calc(var(--better-dot, 0) * #{rem(24)});
+			transition: translate 0.4s;
+			pointer-events: none;
+			z-index: 1;
+
+			&:dir(rtl) {
+				translate: calc(var(--better-dot, 0) * -#{rem(24)});
+			}
+
+		}
+
 	}
 
 	&_dot {
 		display: flex;
+		flex: none;
 		align-items: center;
 		justify-content: center;
-		width: 0;
-		height: 0;
+		width: rem(24);
+		height: rem(24);
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: none;
 		color: var(--color-border);
-		transition: 0.2s;
+		transition: color 0.2s;
 		cursor: pointer;
-
-		&:is(.first, .prev, .current, .next, .last) {
-			width: rem(24);
-			height: rem(24);
-		}
 
 		&:before {
 			content: '';
@@ -400,7 +420,6 @@
 			height: rem(14);
 			border-radius: 50%;
 			background: currentColor;
-			transition: 0.2s;
 			transform: scale(0);
 		}
 
@@ -415,7 +434,6 @@
 		}
 
 		&.current:before {
-			background-color: var(--color-primary);
 			transform: scale(1);
 		}
 
@@ -427,6 +445,98 @@
 
 	}
 
+	// The selected dot has the size of its neighbors, so it does not show beside the marker on its way
+	&_dots_glide &_dot.current:before {
+		transform: scale(0.666);
+	}
+
+	// All dots have the same size, and the selected dot has another color
+	&_dots_all {
+		width: max-content;
+		max-width: 100%;
+
+		.better_dot:before {
+			width: rem(9);
+			height: rem(9);
+			transform: none;
+		}
+
+		.better_dot.current:before {
+			background: var(--color-primary);
+		}
+
+	}
+
+	&_vertical {
+
+		.better_viewport {
+			height: 100%;
+		}
+
+		.better_container {
+			overflow: visible;
+			height: calc(100% + var(--gap-grid-y));
+			margin-bottom: calc(-1 * var(--gap-grid-y));
+			--gap-grid-x: 0px;
+		}
+
+		.better_button {
+			top: auto;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			width: auto;
+			height: 30px;
+			margin: 0;
+
+			&:before {
+				transform: rotate(90deg);
+			}
+
+		}
+
+		.better_prev {
+			top: 0;
+			bottom: auto;
+
+			&:before {
+				transform: rotate(-90deg);
+			}
+
+		}
+
+		.better_dots {
+			position: absolute;
+			top: 50%;
+			right: 0;
+			flex-direction: column;
+			width: var(--height-button);
+			height: rem(120);
+			margin: 0;
+			transform: translateY(-50%);
+		}
+
+		.better_dots_track {
+			flex-direction: column;
+			translate: 0 calc(var(--better-shift, 0) * #{rem(24)});
+		}
+
+		.better_dots_marker {
+			translate: 0 calc(var(--better-dot, 0) * #{rem(24)});
+		}
+
+		.better_dots_all {
+			height: auto;
+			max-height: 100%;
+		}
+
+	}
+
+}
+
+// The elements in the slides get the touch action of the viewport, so a list that scrolls does not keep a touch move along the axis
+:where(.better_viewport) * {
+	touch-action: var(--better-touch);
 }
 
 .screen-reader-text, .sr-hidden {

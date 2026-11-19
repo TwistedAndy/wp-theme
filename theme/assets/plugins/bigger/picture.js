@@ -42,16 +42,16 @@ Twee.addModule('bigger', 'html', function($, container) {
 	// Scroll a carousel to the shown item when its slide is out of view
 	function syncCarousel(wrapper, activeItem) {
 
-		let embla = $(activeItem.element).closest('.carousel').data('embla');
+		let carousel = window.BetterCarousel?.get($(activeItem.element).closest('.carousel').get(0));
 
-		if (!embla) {
+		if (!carousel) {
 			return;
 		}
 
-		let index = embla.slideNodes().findIndex((slide) => slide.contains(activeItem.element));
+		let index = carousel.slideNodes().findIndex((slide) => slide.contains(activeItem.element));
 
-		if (index > -1 && !embla.slidesInView().includes(index)) {
-			embla.goTo(index);
+		if (index > -1 && !carousel.slidesInView().includes(index)) {
+			carousel.goToSlide(index);
 		}
 
 	}

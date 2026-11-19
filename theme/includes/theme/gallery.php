@@ -154,7 +154,7 @@ function tw_gallery_shortcode(string $output, array $attr): string
 		return $output;
 	}
 
-	tw_asset_enqueue('embla');
+	tw_asset_enqueue('better');
 
 	ob_start(); ?>
 

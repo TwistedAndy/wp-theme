@@ -66,7 +66,7 @@ $classes = ['items'];
 
 if (in_array('slider', $options)) {
 	$classes[] = 'carousel';
-	tw_asset_enqueue('embla');
+	tw_asset_enqueue('better');
 }
 
 if (!empty($block['columns']) and is_numeric($block['columns'])) {
