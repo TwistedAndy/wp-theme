@@ -319,9 +319,9 @@
                     "hide_label": "",
                     "choices": {
                         "default": "Default",
-                        "none": "None",
-                        "half": "Half",
-                        "normal": "Normal"
+                        "0": "None",
+                        "0.5": "Half",
+                        "1": "Normal"
                     },
                     "default_value": "default",
                     "allow_null": 0,
@@ -349,9 +349,9 @@
                     "hide_label": "",
                     "choices": {
                         "default": "Default",
-                        "none": "None",
-                        "half": "Half",
-                        "normal": "Normal"
+                        "0": "None",
+                        "0.5": "Half",
+                        "1": "Normal"
                     },
                     "default_value": "default",
                     "allow_null": 0,
@@ -415,5 +415,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1723728218
+    "modified": 1795074936
 }

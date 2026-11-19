@@ -56,8 +56,8 @@ The field group "Common Fields", `includes/acf/group_61f6630b70b82.json`, is ina
 `tw_block_attributes()` turns the settings into the attributes of the section:
 
 - `background`: `is_light` or `is_dark`;
-- `top`: `has_top`, `has_top_half` or `has_no_top`;
-- `bottom`: `has_bottom`, `has_bottom_half` or `has_no_bottom`;
+- `top`: `has_top`, and `--gap-scale-top` in the `style` attribute. The select stores 0 (None), 0.5 (Half) or 1 (Normal). The top padding is this number multiplied by `--gap-section`, plus `--offset-section-top`;
+- `bottom`: `has_bottom`, and `--gap-scale-bottom` in the `style` attribute, with the same values;
 - `options`: `has_border`;
 - `block_id`: the `id` of the section, for a link to it.
 
@@ -132,7 +132,7 @@ The styles follow CSS_BOX. The [CSS_BOX Starter Kit](https://github.com/TwistedA
 - The box, its file and its root selector match: `.faq_box` → `assets/styles/blocks/faq.scss` → `.faq_box { … }`. All the styles of the box are under that root.
 - Inner elements have short classes that say what they are: `.contents`, `.content`, `.items`, `.item`, `.image`, `.details`, `.title`, `.text`, `.buttons`, `.button`, `.label`, `.field`. Do not repeat the name of the block in them. Plain tags, such as `h3` or `p`, take no class.
 - Modifiers and states:
-  - a box takes `is_*` for its kind, scheme or state, and `has_*` for what it has: `.is_dark`, `.is_reversed`, `.has_no_top`;
+  - a box takes `is_*` for its kind, scheme or state, and `has_*` for what it has: `.is_dark`, `.is_reversed`, `.has_border`;
   - an inner element takes `<element>_<modifier>`: `.button_outline`, `.items_3`, `.media_video`;
   - an inner element takes a plain word for its state: `.active`, `.opened`, `.loading`, `.hidden`;
   - no class starts with `box_`.
