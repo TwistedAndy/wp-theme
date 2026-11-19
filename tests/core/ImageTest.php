@@ -850,6 +850,43 @@ class ImageTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The SVG size comes from the width, height and viewBox of the root element, in the uploads and theme folders
+	 */
+	public function test_tw_image_svg_dimensions(): void
+	{
+		$upload = self::$upload_dir . '/test-svg-size.svg';
+		$theme = TW_ROOT . 'assets/images/test-svg-size.svg';
+
+		$size = function(string $root, string $file = '') use ($upload) {
+			file_put_contents($file ?: $upload, '<?xml version="1.0"?><!-- Comment --><svg xmlns="http://www.w3.org/2000/svg" ' . $root . '><path stroke-width="3" d="M0 0"/></svg>');
+
+			$html = $file ? tw_image('test-svg-size.svg') : tw_image(wp_upload_dir()['baseurl'] . '/test-svg-size.svg');
+			preg_match('#width="(\d+)" height="(\d+)"#', $html, $match);
+
+			return [(int) ($match[1] ?? 0), (int) ($match[2] ?? 0)];
+		};
+
+		$this->assertSame([40, 30], $size('width="40" height="30" viewBox="0 0 80 60"'));
+		$this->assertSame([40, 30], $size('width="40px" height="30.2px"'));
+		$this->assertSame([472, 298], $size('fill="none" viewBox="0 0 472 298"'));
+		$this->assertSame([120, 60], $size("width='100%' height='100%' viewBox='0,0,120,60'"));
+		$this->assertSame([60, 30], $size('width="60" viewBox="0 0 120 60"'));
+		$this->assertSame([90, 45], $size('height="45" viewBox="0 0 120 60"'));
+		$this->assertSame([0, 0], $size('width="10em" height="5em"'));
+		$this->assertSame([0, 0], $size('stroke-width="2"'));
+		$this->assertSame([0, 0], $size('viewBox="0 0 0 60"'));
+
+		// A theme image takes its size from the file in the assets/images folder
+		$this->assertSame([88, 44], $size('viewBox="0 0 88 44"', $theme));
+
+		file_put_contents($upload, 'not an image');
+		$this->assertStringNotContainsString('width=', tw_image(wp_upload_dir()['baseurl'] . '/test-svg-size.svg'));
+
+		unlink($upload);
+		unlink($theme);
+	}
+
+	/**
 	 * Test hook registration: delete_attachment -> tw_image_clear.
 	 */
 	public function test_delete_attachment_hook_triggers_clear(): void

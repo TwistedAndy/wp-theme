@@ -226,7 +226,39 @@ function tw_image($image, string|array $size = 'full', string $before = '', stri
 		if (empty($attributes['width']) or empty($attributes['height'])) {
 			$dir = tw_image_folders();
 			$image_path = str_replace([$dir['baseurl'], TW_URL], [$dir['basedir'], TW_ROOT], $image_url);
-			$image_info = ($image_path !== $image_url and is_file($image_path)) ? getimagesize($image_path) : false;
+			$image_info = false;
+			$is_file = ($image_path !== $image_url and is_file($image_path));
+
+			if ($is_file and !str_ends_with(strtolower($image_path), '.svg')) {
+				$image_info = getimagesize($image_path);
+			} elseif ($is_file and preg_match('#<svg\b[^>]*>#i', (string) file_get_contents($image_path, false, null, 0, 8192), $tag)) {
+				// Before PHP 8.5, getimagesize() cannot read SVGs, and it ignores the viewBox
+				// A relative or missing size comes from the viewBox
+				$svg = ['width' => '', 'height' => '', 'viewBox' => ''];
+
+				foreach (array_keys($svg) as $name) {
+					if (preg_match('#\s' . $name . '\s*=\s*["\']([^"\']*)["\']#i', $tag[0], $match)) {
+						$svg[$name] = trim($match[1]);
+					}
+				}
+
+				$svg_width = preg_match('#^\d*\.?\d+(px)?$#i', $svg['width']) ? (float) $svg['width'] : 0;
+				$svg_height = preg_match('#^\d*\.?\d+(px)?$#i', $svg['height']) ? (float) $svg['height'] : 0;
+				$svg_box = array_map('floatval', preg_split('#[\s,]+#', $svg['viewBox']));
+
+				if (count($svg_box) === 4 and $svg_box[2] > 0 and $svg_box[3] > 0) {
+					if (!$svg_width and !$svg_height) {
+						$svg_width = $svg_box[2];
+						$svg_height = $svg_box[3];
+					} elseif (!$svg_height) {
+						$svg_height = $svg_width * $svg_box[3] / $svg_box[2];
+					} elseif (!$svg_width) {
+						$svg_width = $svg_height * $svg_box[2] / $svg_box[3];
+					}
+				}
+
+				$image_info = [(int) round($svg_width), (int) round($svg_height)];
+			}
 
 			if (!empty($image_info[0]) and !empty($image_info[1])) {
 				$attributes['width'] = $image_info[0];

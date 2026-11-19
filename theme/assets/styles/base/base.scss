@@ -30,10 +30,6 @@
 		@extend %button_black;
 	}
 
-	&:disabled {
-		@extend %button_disabled;
-	}
-
 	&.hidden {
 		display: none;
 	}

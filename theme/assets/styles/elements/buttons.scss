@@ -36,6 +36,10 @@
 		}
 	}
 
+	&:disabled {
+		@extend %button_disabled;
+	}
+
 }
 
 %button_white {
@@ -84,12 +88,12 @@
 }
 
 %button_disabled {
-	--button-base: var(--color-background);
-	--button-text: var(--color-muted);
-	--button-border: var(--color-border);
-	--button-border-active: var(--color-border);
-	--button-base-active: var(--color-background);
-	--button-text-active: var(--color-muted);
+	--button-border: var(--button-border-disabled);
+	--button-base: var(--button-base-disabled);
+	--button-text: var(--button-text-disabled);
+	--button-border-active: var(--button-border-disabled);
+	--button-base-active: var(--button-base-disabled);
+	--button-text-active: var(--button-text-disabled);
 }
 
 %button_icon_before {
