@@ -759,28 +759,35 @@ function tw_term_tree(string $taxonomy, bool $flatten = false): array
 /**
  * Build a term tree
  *
+ * The function groups the elements by parent one time. Thus, it reads each element
+ * only one time for any number of terms.
+ *
  * @param array $elements
  * @param int   $parent_id
  * @param int   $depth
+ * @param array $groups The elements grouped by parent. The first call makes them.
  *
  * @return array
  */
-function tw_term_build_tree(array $elements, int $parent_id = 0, int $depth = 0): array
+function tw_term_build_tree(array $elements, int $parent_id = 0, int $depth = 0, array $groups = []): array
 {
+	if ($groups === []) {
+		foreach ($elements as $element) {
+			$groups[(int) $element['parent']][] = $element;
+		}
+	}
+
 	$branch = [];
 
-	foreach ($elements as $index => $element) {
-		if ($element['parent'] == $parent_id) {
-			$element['depth'] = $depth;
-			$children = tw_term_build_tree($elements, $element['id'], $depth + 1);
+	foreach ($groups[$parent_id] ?? [] as $element) {
+		$element['depth'] = $depth;
+		$children = tw_term_build_tree([], $element['id'], $depth + 1, $groups);
 
-			if ($children) {
-				$element['children'] = $children;
-			}
-
-			$branch[$element['id']] = $element;
-			unset($elements[$index]);
+		if ($children) {
+			$element['children'] = $children;
 		}
+
+		$branch[$element['id']] = $element;
 	}
 
 	return $branch;
