@@ -225,6 +225,15 @@ function tw_term_link(int $term_id, string $taxonomy): string
 		return $link;
 	}
 
+	// A theme can give its own link, such as the link of a translated term
+	$link = apply_filters('twee_term_link', null, $term_id, $taxonomy);
+
+	if (is_string($link)) {
+		wp_cache_set($cache_key, $link, $cache_group);
+
+		return $link;
+	}
+
 	$object = get_taxonomy($taxonomy);
 
 	if (!($object instanceof WP_Taxonomy) or !$object->public or !$object->rewrite) {

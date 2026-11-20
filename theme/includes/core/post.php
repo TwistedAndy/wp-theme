@@ -658,12 +658,22 @@ function tw_post_taxonomy(WP_Post $item): string
 	} elseif ($item->post_type === 'product') {
 		$taxonomy = 'product_cat';
 	} else {
-		$taxonomies = get_object_taxonomies($item, 'names');
+		$taxonomy = '';
 
-		if ($taxonomies) {
-			$taxonomy = reset($taxonomies);
-		} else {
-			$taxonomy = '';
+		// Use the first public hierarchical taxonomy, or else the first public one. Skip the private ones, such as the languages.
+		foreach (get_object_taxonomies($item, 'objects') as $name => $object) {
+			if (!$object->public) {
+				continue;
+			}
+
+			if ($object->hierarchical) {
+				$taxonomy = $name;
+				break;
+			}
+
+			if ($taxonomy === '') {
+				$taxonomy = $name;
+			}
 		}
 	}
 

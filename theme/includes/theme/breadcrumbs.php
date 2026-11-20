@@ -143,14 +143,6 @@ function tw_breadcrumbs_list($query = null): array
 						}
 					}
 
-					if ($current_term > 0) {
-						if (defined('RANK_MATH_VERSION')) {
-							tw_meta_update('post', $post_id, 'rank_math_primary_' . $taxonomy, $current_term);
-						} elseif (defined('WPSEO_VERSION')) {
-							tw_meta_update('post', $post_id, '_yoast_wpseo_primary_' . $taxonomy, $current_term);
-						}
-					}
-
 				} else {
 
 					$parent_terms = tw_term_ancestors($current_term, $taxonomy);

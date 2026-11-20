@@ -407,7 +407,12 @@ function tw_asset_enqueue($name, bool $instant = false): void
 		}
 	}
 
-	if (!is_string($name) or empty($assets_registered[$name]) or !is_array($assets_registered[$name])) {
+	if (!is_string($name)) {
+		return;
+	}
+
+	// The assets are registered on wp_head. Before it, keep only the name: tw_asset_print skips an unknown name.
+	if ($instant and (empty($assets_registered[$name]) or !is_array($assets_registered[$name]))) {
 		return;
 	}
 

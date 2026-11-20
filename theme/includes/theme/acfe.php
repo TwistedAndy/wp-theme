@@ -342,6 +342,14 @@ function tw_acfe_render_scripts(): void
 		.acf-admin-7-0 .select2-container.-acf .select2-selection--multiple .select2-search__field {
 			min-width: auto;
 		}
+
+		div.acfe-fc-layout-thumb {
+			background-color: #ffffff;
+		}
+
+		div.acfe-fc-layout-thumb > img {
+			height: auto;
+		}
 	</style>
 <?php }
 

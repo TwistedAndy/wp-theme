@@ -25,6 +25,7 @@ function tw_preview_filter_thumbnail(string $thumbnail, array $field, array $lay
 
 add_filter('acfe/flexible/thumbnail', 'tw_preview_filter_thumbnail', 10, 3);
 
+
 /**
  * Run the code below only on the local server
  */
@@ -129,7 +130,7 @@ function tw_preview_action_scripts(): void
 			}
 
 			// The library does not embed the mask images of the pseudo elements, such as the icons,
-			// so the stylesheet rules get the images as data URLs
+			// so the stylesheet rules and the style attributes get the images as data URLs
 			async function embedMasks(contents) {
 				const rules = [];
 				const images = {};
@@ -154,6 +155,9 @@ function tw_preview_action_scripts(): void
 					}
 				}
 
+				// The icons can set the mask image in the style attribute
+				rules.push(...contents.querySelectorAll('[style*="mask"]'));
+
 				for (const rule of rules) {
 					for (const name of ['-webkit-mask-image', 'mask-image', '--mask-image']) {
 						const value = rule.style.getPropertyValue(name);
@@ -165,7 +169,7 @@ function tw_preview_action_scripts(): void
 						let result = value;
 
 						for (const match of value.matchAll(/url\(\s*['"]?([^'")]+)['"]?\s*\)/g)) {
-							const url = new URL(match[1], rule.parentStyleSheet.href || contents.baseURI).href;
+							const url = new URL(match[1], rule.parentStyleSheet?.href || contents.baseURI).href;
 
 							images[url] = images[url] || fetch(url).then(function(response) {
 								return response.blob();
@@ -208,6 +212,13 @@ function tw_preview_action_scripts(): void
 						await wait(100);
 					}
 
+					// The frame is outside the screen, so the browser does not load the lazy images
+					const images = Array.from(contents.images, function(image) {
+						image.loading = 'eager';
+						return image.decode().catch(function() {});
+					});
+
+					await Promise.race([Promise.all(images), wait(10000)]);
 					await contents.fonts.ready;
 					await embedMasks(contents);
 
@@ -217,15 +228,19 @@ function tw_preview_action_scripts(): void
 					const main = contents.querySelector('main') || contents.body;
 					const node = (main.children.length === 1) ? main.firstElementChild : main;
 					const canvas = await modernScreenshot.domToCanvas(node, {
-						scale: 1,
-						backgroundColor: getComputedStyle(contents.body).backgroundColor
+						scale: 1
 					});
 
 					const result = document.createElement('canvas');
+					const context = result.getContext('2d');
 
 					result.width = canvas.width;
 					result.height = Math.min(canvas.height, size);
-					result.getContext('2d').drawImage(canvas, 0, 0);
+
+					// The backgroundColor option replaces the block background, so fill the canvas first
+					context.fillStyle = getComputedStyle(contents.body).backgroundColor;
+					context.fillRect(0, 0, result.width, result.height);
+					context.drawImage(canvas, 0, 0);
 
 					return await new Promise(function(resolve) {
 						result.toBlob(resolve, 'image/webp', 0.8);
@@ -282,20 +297,6 @@ function tw_preview_action_scripts(): void
 			});
 		});
 	</script>
-	<style>
-		div.acfe-flexible-layout-thumbnail {
-			height: auto;
-			background-size: contain;
-			background-color: #ffffff;
-		}
-
-		div.acfe-flexible-layout-thumbnail:before {
-			content: '';
-			display: block;
-			position: relative;
-			padding-bottom: 62.5%;
-		}
-	</style>
 <?php }
 
 add_action('acf/input/admin_enqueue_scripts', 'tw_preview_action_scripts', 20);
