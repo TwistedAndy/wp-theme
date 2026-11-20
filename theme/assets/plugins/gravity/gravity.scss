@@ -1117,14 +1117,25 @@ $gform_phone_flags: af, ax, al, dz, as, ad, ao, ai, ag, ar, am, aw, ac, au, at, 
 
 	.ginput_country-selector_container {
 		display: flex;
+		flex-direction: column;
 		flex-grow: 0;
 		flex-shrink: 0;
+
+		label:last-child {
+			margin: 8px 0 0;
+		}
+
 	}
 
 	.ginput_phone_container {
 		display: block;
 		flex-grow: 1;
 		min-width: 0;
+	}
+
+	.gform-field-label--type-sub {
+		font-size: var(--size-tiny);
+		line-height: var(--line-tiny);
 	}
 
 	&__country-selector {

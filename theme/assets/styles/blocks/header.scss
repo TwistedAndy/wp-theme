@@ -40,7 +40,7 @@
 		top: var(--offset-top);
 	}
 
-	&.is_fixed {
+	&.is_stuck {
 		background-color: var(--color-base);
 		box-shadow: var(--shadow-small);
 	}

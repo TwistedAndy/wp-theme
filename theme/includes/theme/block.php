@@ -96,16 +96,23 @@ function tw_block_attributes(string|array $class, array $block): string
 
 	}
 
+	/**
+	 * The gaps are multipliers of --gap-section. Older blocks store
+	 * the names, and a number is used as it is
+	 */
+	$scales = ['none' => 0, 'half' => 0.5, 'normal' => 1];
 	$styles = [];
 
-	if (isset($settings['top']) and is_numeric($settings['top']) and $settings['top'] >= 0) {
-		$classes[] = 'has_top';
-		$styles[] = '--gap-scale-top: ' . (float) $settings['top'];
-	}
+	foreach (['top', 'bottom'] as $side) {
 
-	if (isset($settings['bottom']) and is_numeric($settings['bottom']) and $settings['bottom'] >= 0) {
-		$classes[] = 'has_bottom';
-		$styles[] = '--gap-scale-bottom: ' . (float) $settings['bottom'];
+		$scale = $settings[$side] ?? '';
+		$scale = $scales[$scale] ?? $scale;
+
+		if (is_numeric($scale) and $scale >= 0) {
+			$classes[] = 'has_' . $side;
+			$styles[] = '--gap-scale-' . $side . ': ' . (float) $scale;
+		}
+
 	}
 
 	if (!empty($settings['background']) and $settings['background'] != 'default') {

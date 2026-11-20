@@ -164,8 +164,8 @@ A page is built from blocks: the layouts of an ACF Flexible Content field.
 - A template writes its section with `tw_block_attributes('<name>_box', $block)`. This adds the classes that the
   settings of the block choose:
   - the background: `is_light` or `is_dark`;
-  - the top spacing: `has_top`, `has_top_half` or `has_no_top`;
-  - the bottom spacing: `has_bottom`, `has_bottom_half` or `has_no_bottom`;
+  - the top spacing: `has_top`, and `--gap-scale-top` in the `style` attribute;
+  - the bottom spacing: `has_bottom`, and `--gap-scale-bottom` in the `style` attribute;
   - the border: `has_border`.
 - `tw_block_contents()` renders the title, the text and the buttons of a block. `tw_block_buttons()` renders the
   buttons alone.
@@ -173,15 +173,9 @@ A page is built from blocks: the layouts of an ACF Flexible Content field.
 
 ### Previews
 
-ACF Extended shows a preview image for each layout, `assets/preview/<layout>.webp`. `screens.js` makes them with
-Puppeteer from a page of the site that shows the blocks:
-
-```bash
-node screens.js http://project.test/?preview
-```
-
-The URL must end in `.test`. The script finds the project in `Z:/` by its host name. A second argument sets the
-selector of the sections, and a third sets the theme folder when its name differs from the host.
+ACF Extended shows a preview image for each layout, `assets/preview/<layout>.webp`. To make a preview, put the block
+on a page of a local site, and click the camera icon (**Generate a preview**) on the layout in the editor. The browser
+makes a WebP image of the block, 1280 pixels wide, and the theme saves it in `assets/preview`.
 
 ## Building the assets
 

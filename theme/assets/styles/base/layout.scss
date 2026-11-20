@@ -2,12 +2,7 @@ html {
 	scroll-behavior: smooth;
 	--wp-admin--admin-bar--height: 0px !important;
 
-	&.bp-lock {
-		overflow: auto;
-	}
-
 	&.bp-lock body {
-		overflow: unset;
 		touch-action: none;
 	}
 
