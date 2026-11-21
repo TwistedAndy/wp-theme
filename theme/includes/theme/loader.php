@@ -52,6 +52,27 @@ function tw_loader_handle(): void
 		$template = 'post';
 	}
 
+	// The template variables are signed together with the query parameters
+	$data = [];
+
+	if (!empty($_POST['data']) and is_array($_POST['data'])) {
+		foreach (wp_unslash($_POST['data']) as $key => $value) {
+			// The signature does not include empty values, so a request can add them
+			if (!is_string($value) or $value === '') {
+				continue;
+			}
+
+			// jQuery sends all the values as strings
+			if ($value === 'true' or $value === 'false') {
+				$data[$key] = ($value === 'true');
+			} elseif (is_numeric($value)) {
+				$data[$key] = $value;
+			} else {
+				$data[$key] = sanitize_text_field($value);
+			}
+		}
+	}
+
 	$args = [
 		'post_status'    => 'publish',
 		'offset'         => $params['offset'],
@@ -240,7 +261,7 @@ function tw_loader_handle(): void
 
 		while ($query->have_posts()) {
 			$query->the_post();
-			$result['result'] .= tw_app_template($template, ['item' => $query->post]);
+			$result['result'] .= tw_app_template($template, array_merge($data, ['item' => $query->post]));
 		}
 
 	} else {
@@ -263,10 +284,11 @@ add_action('wp_ajax_loader', 'tw_loader_handle');
  * @param WP_Query|false $query
  * @param int            $number
  * @param bool           $is_hidden
+ * @param array          $data      Variables for the template: snake_case names with string, integer or boolean values
  *
  * @return void
  */
-function tw_loader_button($wrapper, $template = 'post', $query = false, $number = false, $is_hidden = false): void
+function tw_loader_button($wrapper, $template = 'post', $query = false, $number = false, $is_hidden = false, array $data = []): void
 {
 	global $wp_query;
 
@@ -365,6 +387,7 @@ function tw_loader_button($wrapper, $template = 'post', $query = false, $number 
 		'search'          => $search,
 		'wrapper'         => $wrapper,
 		'template'        => $template,
+		'data'            => $data,
 		'author'          => $author,
 		'post__in'        => $post_in,
 		'post__not_in'    => $post_not,
