@@ -10,11 +10,11 @@ Twee.addModule('content', '.content.content_compact', function($, content) {
 
 		var toggle = content.next('.toggle'),
 			element = content.get(0),
-			isExpanded = content.hasClass('expanded');
+			isExpanded = content.hasClass('content_expanded');
 
 		// Temporarily remove the expanded state to accurately check for natural overflow
 		if (isExpanded) {
-			content.removeClass('expanded');
+			content.removeClass('content_expanded');
 		}
 
 		// Check if there's an overflow
@@ -26,11 +26,11 @@ Twee.addModule('content', '.content.content_compact', function($, content) {
 				content.after(toggle);
 
 				toggle.on('click', function() {
-					if (content.hasClass('expanded')) {
-						content.removeClass('expanded').addClass('collapsed');
+					if (content.hasClass('content_expanded')) {
+						content.removeClass('content_expanded').addClass('content_collapsed');
 						toggle.text(tw_template.lang_more).removeClass('active');
 					} else {
-						content.addClass('expanded').removeClass('collapsed');
+						content.addClass('content_expanded').removeClass('content_collapsed');
 						toggle.text(tw_template.lang_less).addClass('active');
 					}
 				});
@@ -38,15 +38,15 @@ Twee.addModule('content', '.content.content_compact', function($, content) {
 
 			// Restore the correct classes and button state based on the previous state
 			if (isExpanded) {
-				content.addClass('expanded').removeClass('collapsed');
+				content.addClass('content_expanded').removeClass('content_collapsed');
 				toggle.text(tw_template.lang_less).addClass('active');
 			} else {
-				content.addClass('collapsed').removeClass('expanded');
+				content.addClass('content_collapsed').removeClass('content_expanded');
 				toggle.text(tw_template.lang_more).removeClass('active');
 			}
 		} else {
 			// If no overflow (e.g., window widened), remove classes and the toggle button
-			content.removeClass('collapsed expanded');
+			content.removeClass('content_collapsed content_expanded');
 
 			if (toggle.length > 0) {
 				toggle.remove();

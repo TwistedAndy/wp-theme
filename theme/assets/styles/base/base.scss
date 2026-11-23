@@ -166,6 +166,21 @@
 .content {
 	@extend %content;
 
+	&.content_collapsed {
+		overflow: hidden;
+		-webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1) 0.75em);
+	}
+
+	&.content_compact {
+		overflow: hidden;
+		--height-content: 7.5em;
+	}
+
+	&.content_expanded {
+		overflow: visible;
+		--height-content: auto;
+	}
+
 	& + .toggle {
 		@extend %toggle;
 		width: auto;
