@@ -178,7 +178,7 @@
 
 	&.content_expanded {
 		overflow: visible;
-		--height-content: auto;
+		--height-content: none;
 	}
 
 	& + .toggle {

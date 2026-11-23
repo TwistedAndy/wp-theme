@@ -1,6 +1,7 @@
 %content {
 	display: block;
 	position: relative;
+	max-height: var(--height-content);
 	margin: -5px 0 calc(var(--gap-contents) - 5px);
 	color: var(--color-text);
 	font-size: var(--size-content);
